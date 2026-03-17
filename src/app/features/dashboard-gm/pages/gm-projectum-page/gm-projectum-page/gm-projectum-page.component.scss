@@ -1,0 +1,412 @@
+:host {
+  display: block;
+}
+
+.projectum-page {
+  padding: 2rem;
+  background: #f6f8fb;
+  min-height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.projectum-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  background: linear-gradient(135deg, #0f8f88 0%, #23b3aa 100%);
+  border-radius: 28px;
+  padding: 2rem;
+  color: #ffffff;
+  box-shadow: 0 16px 32px rgba(15, 143, 136, 0.16);
+}
+
+.hero-left {
+  max-width: 760px;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.projectum-hero h1 {
+  margin: 0;
+  font-size: 2.3rem;
+  font-weight: 800;
+}
+
+.subtitle {
+  margin: 0.8rem 0 0;
+  color: rgba(255, 255, 255, 0.95);
+  line-height: 1.7;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.primary-btn,
+.secondary-btn,
+.refresh-btn,
+.table-link-btn,
+.delete-btn {
+  border: none;
+  border-radius: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.primary-btn,
+.secondary-btn,
+.refresh-btn {
+  padding: 0.85rem 1.1rem;
+}
+
+.primary-btn {
+  background: #ffffff;
+  color: #0f8f88;
+}
+
+.primary-btn:hover {
+  background: #f8fafc;
+}
+
+.secondary-btn {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+.secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.26);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.stat-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 22px;
+  padding: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.stat-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .material-symbols-outlined {
+    font-size: 28px;
+  }
+}
+
+.total-icon {
+  background: #dff7f5;
+  color: #0f8f88;
+}
+
+.active-icon {
+  background: #e8f7eb;
+  color: #16a34a;
+}
+
+.risk-icon {
+  background: #fff4e6;
+  color: #ea580c;
+}
+
+.progress-icon {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.stat-label {
+  color: #64748b;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.stat-value {
+  color: #0f172a;
+  font-size: 1.7rem;
+  font-weight: 800;
+}
+
+.content-layout {
+  display: block;
+}
+
+.main-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.toolbar-card,
+.project-list-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 22px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.toolbar-card {
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+}
+
+.toolbar-left {
+  flex: 1;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border: 1px solid #dbe3ec;
+  border-radius: 16px;
+  padding: 0.85rem 1rem;
+  background: #f8fafc;
+
+  .material-symbols-outlined {
+    color: #64748b;
+    font-size: 20px;
+  }
+
+  input {
+    border: none;
+    outline: none;
+    background: transparent;
+    width: 100%;
+    font-size: 0.95rem;
+    color: #0f172a;
+  }
+}
+
+.refresh-btn {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.refresh-btn:hover {
+  background: #e2e8f0;
+}
+
+.list-header {
+  padding: 1.25rem 1.4rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.list-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+
+  .material-symbols-outlined {
+    color: #0f8f88;
+    font-size: 22px;
+  }
+}
+
+.list-header h2 {
+  margin: 0;
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.list-header p {
+  margin: 0.4rem 0 0;
+  color: #64748b;
+  line-height: 1.55;
+}
+
+.records-badge {
+  background: #dff7f5;
+  color: #0f8f88;
+  border-radius: 999px;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.84rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  min-width: 820px;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 1rem 1.1rem;
+  text-align: left;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+th {
+  background: #f8fafc;
+  color: #475569;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 800;
+}
+
+td {
+  color: #0f172a;
+  font-size: 0.94rem;
+}
+
+.code-cell {
+  font-family: monospace;
+  font-weight: 700;
+  color: #334155;
+}
+
+.project-main-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.project-name-cell {
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.project-sub-info {
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.phase-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.date-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.table-link-btn {
+  background: #dff7f5;
+  color: #0f8f88;
+  padding: 0.55rem 0.8rem;
+}
+
+.table-link-btn:hover {
+  background: #c9f0ec;
+}
+
+.delete-btn {
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 0.55rem 0.8rem;
+}
+
+.delete-btn:hover {
+  background: #fee2e2;
+}
+
+.empty-state {
+  text-align: center;
+  color: #64748b;
+  padding: 2rem;
+}
+
+@media (max-width: 1200px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .projectum-page {
+    padding: 1rem;
+  }
+
+  .projectum-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.5rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbar-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .list-header {
+    flex-direction: column;
+  }
+
+  .action-buttons {
+    flex-wrap: wrap;
+  }
+}

@@ -1,0 +1,78 @@
+<div class="dashboard-page">
+  <div class="topbar">
+    <div>
+      <h1>General Manager Dashboard</h1>
+      <p class="topbar-sub">Portfolio overview • time health • quick KPIs</p>
+    </div>
+
+    <div class="topbar-actions">
+      <button routerLink="/gm/projects/schedule-init" class="new-project-btn">
+        Project Schedule Initialization
+      </button>
+
+      <button class="btn" (click)="load()">Refresh</button>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <input [(ngModel)]="search" placeholder="Search by code or name..." />
+  </div>
+
+  <div *ngIf="loading" class="state">Loading projects...</div>
+  <div *ngIf="!loading && error" class="state error">{{ error }}</div>
+
+  <section class="kpis" *ngIf="!loading && !error">
+    <div class="kpi">
+      <div class="label">Total Projects</div>
+      <div class="value">{{ totalProjects }}</div>
+      <div class="hint">Projects currently tracked</div>
+    </div>
+
+    <div class="kpi">
+      <div class="label">Delayed</div>
+      <div class="value">{{ delayedCount }}</div>
+      <div class="hint">Past planned end date</div>
+    </div>
+
+    <div class="kpi">
+      <div class="label">Need Attention</div>
+      <div class="value">{{ attentionCount }}</div>
+      <div class="hint">Ending soon</div>
+    </div>
+  </section>
+
+  <section class="card" *ngIf="!loading && !error">
+    <div class="card-header">
+      <div class="card-title">Projects</div>
+      <div class="card-subtitle">Time health is computed from planned dates (phase 1)</div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="tbl" *ngIf="filtered().length > 0; else empty">
+        <thead>
+          <tr>
+            <th style="width: 120px;">Code</th>
+            <th>Name</th>
+            <th style="width: 170px;">Start</th>
+            <th style="width: 170px;">End</th>
+            <th style="width: 180px;">Time Health</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let p of filtered(); trackBy: trackById" class="clickable" [routerLink]="['/gm/projects', p.id]">
+            <td class="mono">{{ p.code }}</td>
+            <td>{{ p.name }}</td>
+            <td>{{ p.plannedStart ? (p.plannedStart | date:'mediumDate') : '-' }}</td>
+            <td>{{ p.plannedEnd ? (p.plannedEnd | date:'mediumDate') : '-' }}</td>
+            <td><app-health-badge [value]="p.timeHealth"></app-health-badge></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <ng-template #empty>
+        <div class="state">No projects found.</div>
+      </ng-template>
+    </div>
+  </section>
+</div>

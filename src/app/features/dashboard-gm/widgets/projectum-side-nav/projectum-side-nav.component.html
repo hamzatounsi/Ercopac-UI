@@ -1,0 +1,16 @@
+<nav class="projectum-side-nav">
+  <a
+    *ngFor="let item of items"
+    class="nav-item"
+    [class.active]="item.key === activeItem"
+    [class.disabled]="!getRoute(item.key)"
+    [routerLink]="getRoute(item.key) || []"
+    [attr.aria-disabled]="!getRoute(item.key) ? true : null"
+    (click)="!getRoute(item.key) && $event.preventDefault()"
+  >
+    <span class="material-symbols-outlined">{{ item.icon }}</span>
+    <span>{{ item.label }}</span>
+
+    <span class="soon-pill" *ngIf="!getRoute(item.key)">Soon</span>
+  </a>
+</nav>

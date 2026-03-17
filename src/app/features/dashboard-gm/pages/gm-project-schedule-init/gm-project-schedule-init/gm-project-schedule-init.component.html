@@ -1,0 +1,186 @@
+<div class="schedule-init-page">
+  <div class="page-header">
+    <div>
+      <h1>Project Schedule Initialization</h1>
+      <p>Initialize a new industrial project with baseline scheduling and business attributes.</p>
+    </div>
+
+    <div class="header-actions">
+      <button type="button" class="btn btn-secondary" (click)="resetForm()">Reset</button>
+      <button type="button" class="btn btn-primary" (click)="submit()" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Initializing...' : 'Initialize Project' }}
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert-error">
+    {{ errorMessage }}
+  </div>
+
+  <form [formGroup]="scheduleForm" class="schedule-form">
+    <div class="form-grid">
+      <section class="form-card">
+        <div class="card-header">
+          <h2>Project Identity</h2>
+          <p>Main project information</p>
+        </div>
+
+        <div class="form-group">
+          <label for="code">Project Code *</label>
+          <input id="code" type="text" formControlName="code" placeholder="Ex: PRJ-100" />
+          <small *ngIf="hasError('code')" class="error-text">Project code is required.</small>
+        </div>
+
+        <div class="form-group">
+          <label for="name">Project Name *</label>
+          <input id="name" type="text" formControlName="name" placeholder="Enter project name" />
+          <small *ngIf="hasError('name')" class="error-text">Project name is required.</small>
+        </div>
+
+        <div class="form-group">
+          <label for="shortName">Short Name</label>
+          <input id="shortName" type="text" formControlName="shortName" placeholder="Short name" />
+        </div>
+
+        <div class="form-group">
+          <label for="portfolio">Portfolio</label>
+          <select id="portfolio" formControlName="portfolio">
+            <option value="">Select portfolio</option>
+            <option *ngFor="let item of portfolios" [value]="item">{{ item }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="orgAssignment">ORG Assignment</label>
+          <input id="orgAssignment" type="text" formControlName="orgAssignment" placeholder="General Management" />
+        </div>
+      </section>
+
+      <section class="form-card">
+        <div class="card-header">
+          <h2>Schedule Baseline</h2>
+          <p>Initial planning information</p>
+        </div>
+
+        <div class="row-2">
+          <div class="form-group">
+            <label for="plannedStart">Planned Start *</label>
+            <input id="plannedStart" type="date" formControlName="plannedStart" />
+            <small *ngIf="hasError('plannedStart')" class="error-text">Planned start is required.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="plannedEnd">Planned End *</label>
+            <input id="plannedEnd" type="date" formControlName="plannedEnd" />
+            <small *ngIf="hasError('plannedEnd')" class="error-text">Planned end is required.</small>
+          </div>
+        </div>
+
+        <div class="row-2">
+          <div class="form-group">
+            <label for="expectedStart">Expected Start</label>
+            <input id="expectedStart" type="date" formControlName="expectedStart" />
+          </div>
+
+          <div class="form-group">
+            <label for="expectedEnd">Expected End</label>
+            <input id="expectedEnd" type="date" formControlName="expectedEnd" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="projectCalendar">Project Calendar</label>
+          <input id="projectCalendar" type="text" formControlName="projectCalendar" placeholder="Standard Calendar" />
+        </div>
+
+        <div class="form-group">
+          <label for="probability">Probability (%)</label>
+          <input id="probability" type="number" min="0" max="100" formControlName="probability" />
+        </div>
+      </section>
+
+      <section class="form-card">
+        <div class="card-header">
+          <h2>Classification</h2>
+          <p>Business and strategic categorization</p>
+        </div>
+
+        <div class="form-group">
+          <label for="country">Country</label>
+          <select id="country" formControlName="country">
+            <option value="">Select country</option>
+            <option *ngFor="let item of countries" [value]="item">{{ item }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="projectType">Project Type</label>
+          <select id="projectType" formControlName="projectType">
+            <option value="">Select type</option>
+            <option *ngFor="let item of projectTypes" [value]="item">{{ item }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="projectPhase">Project Phase</label>
+          <select id="projectPhase" formControlName="projectPhase">
+            <option *ngFor="let item of projectPhases" [value]="item">{{ item }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="priority">Priority</label>
+          <select id="priority" formControlName="priority">
+            <option *ngFor="let item of priorities" [value]="item">{{ item }}</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="form-card">
+        <div class="card-header">
+          <h2>Financial & Notes</h2>
+          <p>Budget and supporting notes</p>
+        </div>
+
+        <div class="row-2">
+          <div class="form-group">
+            <label for="projectBudget">Project Budget</label>
+            <input id="projectBudget" type="number" min="0" formControlName="projectBudget" placeholder="0" />
+          </div>
+
+          <div class="form-group">
+            <label for="totalProjectBudget">Total Project Budget</label>
+            <input id="totalProjectBudget" type="number" min="0" formControlName="totalProjectBudget" placeholder="0" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="projectManagerId">Project Manager ID</label>
+          <input id="projectManagerId" type="number" min="1" formControlName="projectManagerId" placeholder="Enter manager id" />
+        </div>
+
+        <div class="form-group">
+          <label for="keywords">Keywords</label>
+          <textarea id="keywords" rows="3" formControlName="keywords" placeholder="Keywords for search"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="subcontractors">Subcontractors</label>
+          <textarea id="subcontractors" rows="3" formControlName="subcontractors" placeholder="Main subcontractors"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="comment">Comment</label>
+          <textarea id="comment" rows="4" formControlName="comment" placeholder="Additional project notes"></textarea>
+        </div>
+      </section>
+    </div>
+
+    <div class="footer-actions">
+      <button type="button" class="btn btn-secondary" (click)="resetForm()">Reset</button>
+      <button type="button" class="btn btn-primary" (click)="submit()" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Initializing...' : 'Initialize Project' }}
+      </button>
+    </div>
+  </form>
+</div>

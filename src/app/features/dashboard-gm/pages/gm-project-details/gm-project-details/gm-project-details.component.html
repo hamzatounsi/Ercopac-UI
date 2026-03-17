@@ -1,0 +1,222 @@
+<div class="project-details-page">
+  <div class="workspace-layout" *ngIf="!loading && !error && project; else stateBlock">
+    <aside class="left-panel">
+      <div class="nav-card">
+        <div class="nav-card-header">
+          <span class="material-symbols-outlined">folder_managed</span>
+          <div>
+            <h3>Project Workspace</h3>
+            <p>{{ project.code }}</p>
+          </div>
+        </div>
+
+        <app-projectum-side-nav
+          [projectId]="project.id"
+          [activeItem]="'details'">
+        </app-projectum-side-nav>
+      </div>
+    </aside>
+
+    <div class="main-panel">
+      <div class="topbar">
+        <button class="btn ghost" (click)="back()">← Back</button>
+
+        <div class="title">
+          <h1>Project Details</h1>
+          <p class="sub">Detailed project overview for General Manager</p>
+        </div>
+
+        <div class="spacer"></div>
+
+        <button class="btn" (click)="ngOnInit()">Refresh</button>
+      </div>
+
+      <section class="hero-card">
+        <div class="hero-left">
+          <div class="project-code mono">{{ project.code }}</div>
+          <h2>{{ project.name }}</h2>
+          <p class="hero-sub">
+            {{ project.projectType || 'Project' }}
+            <span class="dot">•</span>
+            {{ project.projectPhase || 'No phase defined' }}
+          </p>
+        </div>
+
+        <div class="hero-right">
+          <div class="status-chip">
+            {{ project.priority || 'No Priority' }}
+          </div>
+        </div>
+      </section>
+
+      <div class="grid-sections">
+        <section class="details-card">
+          <div class="card-header">
+            <h3>Project Identity</h3>
+            <p>Main business identity</p>
+          </div>
+
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="label">Code</span>
+              <span class="value mono">{{ project.code || '-' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="label">Name</span>
+              <span class="value">{{ project.name || '-' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="label">Short Name</span>
+              <span class="value">{{ project.shortName || '-' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="label">Portfolio</span>
+              <span class="value">{{ project.portfolio || '-' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="label">ORG Assignment</span>
+              <span class="value">{{ project.orgAssignment || '-' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="label">Project Manager ID</span>
+              <span class="value mono">{{ project.projectManagerId ?? '-' }}</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="details-card">
+          <div class="card-header">
+            <h3>Planning</h3>
+            <p>Schedule initialization data</p>
+          </div>
+
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="label">Planned Start</span>
+              <span class="value">{{ project.plannedStart ? (project.plannedStart | date:'mediumDate') : '-' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="label">Planned End</span>
+              <span class="value">{{ project.plannedEnd ? (project.plannedEnd | date:'mediumDate') : '-' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="label">Expected Start</span>
+              <span class="value">{{ project.expectedStart ? (project.expectedStart | date:'mediumDate') : '-' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="label">Expected End</span>
+              <span class="value">{{ project.expectedEnd ? (project.expectedEnd | date:'mediumDate') : '-' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="label">Project Calendar</span>
+              <span class="value">{{ project.projectCalendar || '-' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="label">Probability</span>
+              <span class="value">
+                {{ project.probability ?? '-' }}
+                <ng-container *ngIf="project.probability !== null && project.probability !== undefined">%</ng-container>
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <section class="details-card">
+          <div class="card-header">
+            <h3>Classification</h3>
+            <p>Strategic classification data</p>
+          </div>
+
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="label">Country</span>
+              <span class="value">{{ project.country || '-' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="label">Project Type</span>
+              <span class="value">{{ project.projectType || '-' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="label">Project Phase</span>
+              <span class="value">{{ project.projectPhase || '-' }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="label">Priority</span>
+              <span class="value">{{ project.priority || '-' }}</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="details-card">
+          <div class="card-header">
+            <h3>Financial</h3>
+            <p>Budget overview</p>
+          </div>
+
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="label">Project Budget</span>
+              <span class="value">{{ formatCurrency(project.projectBudget) }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="label">Total Project Budget</span>
+              <span class="value">{{ formatCurrency(project.totalProjectBudget) }}</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="details-card full-width">
+          <div class="card-header">
+            <h3>Operational Notes</h3>
+            <p>Keywords, subcontractors and comments</p>
+          </div>
+
+          <div class="notes-grid">
+            <div class="note-block">
+              <div class="label">Keywords</div>
+              <div class="note-value">{{ project.keywords || '-' }}</div>
+            </div>
+
+            <div class="note-block">
+              <div class="label">Subcontractors</div>
+              <div class="note-value">{{ project.subcontractors || '-' }}</div>
+            </div>
+
+            <div class="note-block full-width">
+              <div class="label">Comment</div>
+              <div class="note-value">{{ project.comment || '-' }}</div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #stateBlock>
+    <div class="topbar">
+      <button class="btn ghost" (click)="back()">← Back</button>
+
+      <div class="title">
+        <h1>Project Details</h1>
+        <p class="sub">Detailed project overview for General Manager</p>
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="state">Loading project...</div>
+    <div *ngIf="!loading && error" class="state error">{{ error }}</div>
+  </ng-template>
+</div>

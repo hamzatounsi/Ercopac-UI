@@ -1,0 +1,188 @@
+<div class="projectum-page">
+  <section class="projectum-hero">
+    <div class="hero-left">
+      <div class="hero-badge">
+        <span class="material-symbols-outlined">folder_managed</span>
+        <span>Projectum Workspace</span>
+      </div>
+
+      <h1>Project View</h1>
+
+      <p class="subtitle">
+        Monitor ERCOPAC industrial projects through a portfolio-level dashboard
+        with structured access, clean project visibility, and planning follow-up.
+      </p>
+    </div>
+
+    <div class="hero-actions">
+      <button type="button" class="secondary-btn" routerLink="/gm">
+        <span class="material-symbols-outlined">arrow_back</span>
+        <span>Back</span>
+      </button>
+
+      <button type="button" class="primary-btn" (click)="goToScheduleInit()">
+        <span class="material-symbols-outlined">add_circle</span>
+        <span>Initialize Project</span>
+      </button>
+    </div>
+  </section>
+
+  <section class="stats-grid">
+    <article class="stat-card">
+      <div class="stat-icon total-icon">
+        <span class="material-symbols-outlined">folder_copy</span>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Total Projects</span>
+        <strong class="stat-value">{{ stats.totalProjects }}</strong>
+      </div>
+    </article>
+
+    <article class="stat-card">
+      <div class="stat-icon active-icon">
+        <span class="material-symbols-outlined">play_circle</span>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Active Projects</span>
+        <strong class="stat-value">{{ stats.activeProjects }}</strong>
+      </div>
+    </article>
+
+    <article class="stat-card">
+      <div class="stat-icon risk-icon">
+        <span class="material-symbols-outlined">warning</span>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Delayed / At Risk</span>
+        <strong class="stat-value">{{ stats.delayedProjects }}</strong>
+      </div>
+    </article>
+
+    <article class="stat-card">
+      <div class="stat-icon progress-icon">
+        <span class="material-symbols-outlined">trending_up</span>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Average Progress</span>
+        <strong class="stat-value">{{ stats.averageProgress }}%</strong>
+      </div>
+    </article>
+  </section>
+
+  <section class="content-layout">
+    <div class="main-panel">
+      <section class="toolbar-card">
+        <div class="toolbar-left">
+          <div class="search-box">
+            <span class="material-symbols-outlined">search</span>
+            <input
+              type="text"
+              [(ngModel)]="searchTerm"
+              (input)="onSearch()"
+              placeholder="Search by code, name, portfolio or country"
+            />
+          </div>
+        </div>
+
+        <div class="toolbar-right">
+          <button type="button" class="refresh-btn" (click)="loadProjects()">
+            <span class="material-symbols-outlined">refresh</span>
+            <span>Refresh</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="project-list-card">
+        <div class="list-header">
+          <div>
+            <div class="list-title-row">
+              <span class="material-symbols-outlined">list_alt</span>
+              <h2>Projects</h2>
+            </div>
+            <p>Open a project workspace or manage the project list.</p>
+          </div>
+
+          <div class="records-badge">
+            {{ filteredProjects.length }} Records
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Project</th>
+                <th>Portfolio</th>
+                <th>Status</th>
+                <th>Dates</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr *ngIf="loading">
+                <td colspan="6" class="empty-state">Loading projects...</td>
+              </tr>
+
+              <tr *ngFor="let project of filteredProjects">
+                <td class="code-cell">{{ project.code || '-' }}</td>
+
+                <td>
+                  <div class="project-main-info">
+                    <div class="project-name-cell">{{ project.name || '-' }}</div>
+                    <div class="project-sub-info">
+                      {{ project.country || 'No country' }}
+                    </div>
+                  </div>
+                </td>
+
+                <td>{{ project.portfolio || '-' }}</td>
+
+                <td>
+                  <span class="phase-badge">
+                    {{ project.projectPhase || '-' }}
+                  </span>
+                </td>
+
+                <td>
+                  <div class="date-stack">
+                    <span>{{ project.plannedStart || '-' }}</span>
+                    <span>{{ project.plannedEnd || '-' }}</span>
+                  </div>
+                </td>
+
+                <td>
+                  <div class="action-buttons">
+                    <button
+                      type="button"
+                      class="table-link-btn"
+                      (click)="openProject(project.id)"
+                    >
+                      <span class="material-symbols-outlined">open_in_new</span>
+                      <span>Open</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      class="delete-btn"
+                    >
+                      <span class="material-symbols-outlined">delete</span>
+                      <span>Delete</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <tr *ngIf="!loading && filteredProjects.length === 0">
+                <td colspan="6" class="empty-state">
+                  No projects found for the current search.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,1 @@
+export type HealthStatus = 'GREEN' | 'YELLOW' | 'RED' | 'NA';

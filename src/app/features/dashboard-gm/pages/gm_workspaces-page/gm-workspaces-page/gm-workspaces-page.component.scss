@@ -1,0 +1,175 @@
+:host {
+  display: block;
+}
+
+.workspace-page {
+  padding: 2rem;
+  background: #f6f8fb;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.workspace-header {
+  background: linear-gradient(135deg, #0f8f88 0%, #23b3aa 100%);
+  border-radius: 24px;
+  padding: 2rem;
+  color: #ffffff;
+  margin-bottom: 2rem;
+  box-shadow: 0 16px 32px rgba(15, 143, 136, 0.16);
+}
+
+.header-text {
+  max-width: 760px;
+}
+
+.eyebrow {
+  margin: 0 0 0.5rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+.workspace-header h1 {
+  margin: 0;
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  margin: 0.8rem 0 0;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.workspace-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.workspace-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  background: #ffffff;
+  padding: 1.5rem;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.workspace-card:enabled {
+  cursor: pointer;
+}
+
+.workspace-card:enabled:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 30px rgba(15, 23, 42, 0.1);
+}
+
+.workspace-card:disabled {
+  opacity: 0.82;
+  cursor: not-allowed;
+}
+
+.primary-card {
+  border-color: rgba(15, 143, 136, 0.25);
+}
+
+.app-icon {
+  width: 68px;
+  height: 68px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .material-symbols-outlined {
+    font-size: 32px;
+  }
+}
+
+.projectum-icon {
+  background: #dff7f5;
+
+  .material-symbols-outlined {
+    color: #0f8f88;
+  }
+}
+
+.department-icon {
+  background: #efe9ff;
+
+  .material-symbols-outlined {
+    color: #7c3aed;
+  }
+}
+
+.company-icon {
+  background: #e7f7ec;
+
+  .material-symbols-outlined {
+    color: #16a34a;
+  }
+}
+
+.card-body h3 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.card-body p {
+  margin: 0.5rem 0 0;
+  color: #64748b;
+  line-height: 1.6;
+  font-size: 0.96rem;
+}
+
+.card-footer {
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 700;
+  font-size: 0.92rem;
+
+  .material-symbols-outlined {
+    font-size: 18px;
+  }
+}
+
+.available {
+  color: #0f8f88;
+}
+
+.muted {
+  color: #94a3b8;
+}
+
+@media (max-width: 1100px) {
+  .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .workspace-page {
+    padding: 1rem;
+  }
+
+  .workspace-header {
+    padding: 1.5rem;
+  }
+
+  .workspace-header h1 {
+    font-size: 2rem;
+  }
+}

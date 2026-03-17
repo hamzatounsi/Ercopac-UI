@@ -1,0 +1,145 @@
+<div class="tasks-page">
+  <div class="page-header">
+    <div>
+      <h1>Project Tasks</h1>
+      <p>Manage the task foundation for this industrial project.</p>
+    </div>
+
+    <div class="header-actions">
+      <button class="secondary-btn" routerLink="/gm/projects/{{ projectId }}">
+        Back to Project
+      </button>
+      <button class="primary-btn" (click)="toggleCreateForm()">
+        {{ showCreateForm ? 'Close Form' : 'Add Task' }}
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="alert-error">
+    {{ error }}
+  </div>
+
+  <section class="form-card" *ngIf="showCreateForm">
+    <div class="card-header">
+      <h2>Task Information</h2>
+      <p>Phase 1 general task setup</p>
+    </div>
+
+    <form [formGroup]="taskForm" class="task-form">
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label>Task Name *</label>
+          <input type="text" formControlName="name" placeholder="Enter task name" />
+          <small *ngIf="hasError('name')" class="error-text">Task name is required.</small>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Description</label>
+          <textarea rows="3" formControlName="description" placeholder="Task description"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Duration (days)</label>
+          <input type="number" min="1" formControlName="durationDays" />
+        </div>
+
+        <div class="form-group">
+          <label>Percent Complete</label>
+          <input type="number" min="0" max="100" formControlName="percentComplete" />
+        </div>
+
+        <div class="form-group">
+          <label>Priority</label>
+          <input type="number" min="0" max="1000" formControlName="priority" />
+        </div>
+
+        <div class="form-group">
+          <label>Schedule Mode</label>
+          <select formControlName="scheduleMode">
+            <option *ngFor="let mode of scheduleModes" [value]="mode">
+              {{ mode }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Planned Start</label>
+          <input type="date" formControlName="plannedStart" />
+        </div>
+
+        <div class="form-group">
+          <label>Planned End</label>
+          <input type="date" formControlName="plannedEnd" />
+        </div>
+
+        <div class="form-group">
+          <label>Display Order</label>
+          <input type="number" min="1" formControlName="displayOrder" />
+        </div>
+
+        <div class="form-group checkbox-group">
+          <label>
+            <input type="checkbox" formControlName="active" />
+            Active Task
+          </label>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="secondary-btn" (click)="toggleCreateForm()">Cancel</button>
+        <button type="button" class="primary-btn" (click)="createTask()" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Saving...' : 'Save Task' }}
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <section class="table-card">
+    <div class="card-header">
+      <h2>Task List</h2>
+      <p>General task planning records for this project</p>
+    </div>
+
+    <div *ngIf="loading" class="state">Loading tasks...</div>
+
+    <div class="table-wrap" *ngIf="!loading">
+      <table class="tasks-table" *ngIf="tasks.length > 0; else emptyTasks">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Duration</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>% Complete</th>
+            <th>Priority</th>
+            <th>Mode</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let task of tasks; trackBy: trackByTaskId">
+            <td>{{ task.displayOrder || '-' }}</td>
+            <td>{{ task.name }}</td>
+            <td>{{ task.durationDays || '-' }} day(s)</td>
+            <td>{{ task.plannedStart || '-' }}</td>
+            <td>{{ task.plannedEnd || '-' }}</td>
+            <td>{{ task.percentComplete ?? 0 }}%</td>
+            <td>{{ task.priority ?? '-' }}</td>
+            <td>{{ task.scheduleMode || '-' }}</td>
+            <td>
+              <span class="status-badge" [class.inactive]="task.active === false">
+                {{ task.active === false ? 'Inactive' : 'Active' }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <ng-template #emptyTasks>
+        <div class="state">No tasks created yet for this project.</div>
+      </ng-template>
+    </div>
+  </section>
+</div>

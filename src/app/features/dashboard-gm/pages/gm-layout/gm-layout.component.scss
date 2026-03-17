@@ -1,0 +1,26 @@
+.shell {
+  min-height: 100vh;
+  background: #f6f8fb;
+}
+
+.main-content {
+  min-height: 100vh;
+  padding: 0;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.no-sidebar-shell {
+  display: block;
+}
+
+
+.full-width {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 1rem;
+  }
+}

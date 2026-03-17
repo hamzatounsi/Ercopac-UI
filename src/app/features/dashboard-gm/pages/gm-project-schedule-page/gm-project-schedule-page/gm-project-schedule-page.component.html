@@ -1,0 +1,397 @@
+<div class="schedule-page">
+  <section class="schedule-hero">
+    <div class="hero-left">
+      <div class="hero-badge">
+        <span class="material-symbols-outlined">calendar_month</span>
+        <span>Project Planning Workspace</span>
+      </div>
+
+      <h1>Project Schedule</h1>
+      <p class="subtitle">
+        Review task sequencing, baseline dates, current planning, and timeline structure
+        for project {{ projectId }} in one planning-oriented workspace.
+      </p>
+    </div>
+
+    <div class="hero-actions">
+      <button type="button" class="secondary-btn" (click)="backToProject()">
+        <span class="material-symbols-outlined">arrow_back</span>
+        <span>Back to Project</span>
+      </button>
+
+      <button type="button" class="primary-btn" (click)="goToTasks()">
+        <span class="material-symbols-outlined">task</span>
+        <span>Manage Tasks</span>
+      </button>
+    </div>
+  </section>
+
+  <section class="schedule-stats">
+    <article class="stat-card">
+      <div class="stat-icon total-icon">
+        <span class="material-symbols-outlined">list_alt</span>
+      </div>
+      <div class="stat-text">
+        <small>Total Tasks</small>
+        <strong>{{ stats.total }}</strong>
+      </div>
+    </article>
+
+    <article class="stat-card">
+      <div class="stat-icon milestone-icon">
+        <span class="material-symbols-outlined">flag</span>
+      </div>
+      <div class="stat-text">
+        <small>Milestones</small>
+        <strong>{{ stats.milestones }}</strong>
+      </div>
+    </article>
+
+    <article class="stat-card">
+      <div class="stat-icon summary-icon">
+        <span class="material-symbols-outlined">account_tree</span>
+      </div>
+      <div class="stat-text">
+        <small>Summary Tasks</small>
+        <strong>{{ stats.summaries }}</strong>
+      </div>
+    </article>
+
+    <article class="stat-card">
+      <div class="stat-icon progress-icon">
+        <span class="material-symbols-outlined">trending_up</span>
+      </div>
+      <div class="stat-text">
+        <small>Average Progress</small>
+        <strong>{{ stats.avgProgress }}%</strong>
+      </div>
+    </article>
+  </section>
+
+  <section class="planning-toolbar" *ngIf="!loading">
+    <div class="toolbar-title">
+      <span class="material-symbols-outlined">view_timeline</span>
+      <div>
+        <h3>Planning Board</h3>
+        <p>Schedule structure and timeline visualization</p>
+      </div>
+    </div>
+
+    <div class="toolbar-actions">
+      <button type="button" class="toolbar-btn">
+        <span class="material-symbols-outlined">add</span>
+        <span>New Task</span>
+      </button>
+
+      <button type="button" class="toolbar-btn">
+        <span class="material-symbols-outlined">filter_alt</span>
+        <span>Filter</span>
+      </button>
+
+      <button type="button" class="toolbar-btn">
+        <span class="material-symbols-outlined">download</span>
+        <span>Export</span>
+      </button>
+
+      <button type="button" class="toolbar-btn subtle-btn" (click)="loadSchedule()">
+        <span class="material-symbols-outlined">refresh</span>
+        <span>Refresh</span>
+      </button>
+    </div>
+  </section>
+
+  <section class="legend-card" *ngIf="!loading && tasks.length">
+    <div class="legend-item">
+      <span class="legend-bar baseline-legend"></span>
+      <span>Baseline</span>
+    </div>
+
+    <div class="legend-item">
+      <span class="legend-bar planned-legend"></span>
+      <span>Planned</span>
+    </div>
+
+    <div class="legend-item">
+      <span class="legend-summary"></span>
+      <span>Summary</span>
+    </div>
+
+    <div class="legend-item">
+      <span class="legend-milestone"></span>
+      <span>Milestone</span>
+    </div>
+  </section>
+
+  <section class="schedule-board" *ngIf="!loading">
+    <div class="left-grid-card">
+      <div class="card-header fixed-header">
+        <div>
+          <h2>Schedule Table</h2>
+          <p>Task hierarchy, ownership, dates and progress.</p>
+        </div>
+        <span>{{ tasks.length }} rows</span>
+      </div>
+
+      <div class="table-header-row">
+        <table class="schedule-table schedule-table-head">
+          <thead>
+            <tr>
+              <th class="col-id">ID</th>
+              <th class="col-wbs">WBS</th>
+              <th class="col-name">Task Name</th>
+              <th class="col-type">Type</th>
+              <th class="col-dept">Dept</th>
+              <th class="col-dates">Baseline</th>
+              <th class="col-dates">Planned</th>
+              <th class="col-progress">Progress</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+
+      <div class="table-body-scroll" #tableBodyScroll (scroll)="onTableVerticalScroll()">
+        <table class="schedule-table schedule-table-body">
+          <tbody>
+            <tr
+              *ngFor="let task of tasks"
+              class="schedule-table-row"
+              [class.summary-row]="isSummary(task)"
+              [class.selected-row]="selectedTask?.id === task.id"
+              (click)="openTaskDrawer(task)">
+
+              <td class="col-id">{{ task.id }}</td>
+              <td class="col-wbs mono-cell">{{ task.wbsCode || '-' }}</td>
+
+              <td class="col-name name-cell">
+                <div class="task-name-wrap" [style.padding-left.px]="getIndentLevel(task) * 18">
+                  <span *ngIf="isSummary(task)" class="summary-marker">▾</span>
+                  <span *ngIf="isMilestone(task)" class="milestone-dot">◆</span>
+                  <span class="task-name-text">{{ task.name }}</span>
+                </div>
+              </td>
+
+              <td class="col-type">
+                <span
+                  class="type-badge"
+                  [class.summary]="isSummary(task)"
+                  [class.milestone]="isMilestone(task)">
+                  {{ task.taskType || 'ACTIVITY' }}
+                </span>
+              </td>
+
+              <td class="col-dept">
+                <span class="dept-badge" *ngIf="task.departmentCode; else emptyDept">
+                  {{ task.departmentCode }}
+                </span>
+                <ng-template #emptyDept>-</ng-template>
+              </td>
+
+              <td class="col-dates date-stack">
+                <span>{{ task.baselineStart || '-' }}</span>
+                <span>{{ task.baselineEnd || '-' }}</span>
+              </td>
+
+              <td class="col-dates date-stack">
+                <span>{{ task.plannedStart || '-' }}</span>
+                <span>{{ task.plannedEnd || '-' }}</span>
+              </td>
+
+              <td class="col-progress">
+                <div class="progress-cell">
+                  <div class="progress-track">
+                    <div class="progress-fill" [style.width.%]="task.percentComplete ?? 0"></div>
+                  </div>
+                  <span>{{ task.percentComplete ?? 0 }}%</span>
+                </div>
+              </td>
+            </tr>
+
+            <tr *ngIf="tasks.length === 0">
+              <td colspan="8" class="empty-state">No schedule tasks found for this project.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="right-gantt-card">
+      <div class="card-header fixed-header">
+        <div>
+          <h2>Gantt Timeline</h2>
+          <p>Baseline and current planning visualization.</p>
+        </div>
+
+        <div class="gantt-header-actions">
+          <button type="button" class="mini-btn">
+            <span class="material-symbols-outlined">zoom_in</span>
+          </button>
+          <button type="button" class="mini-btn">
+            <span class="material-symbols-outlined">zoom_out</span>
+          </button>
+          <span>{{ timelineDays.length }} days</span>
+        </div>
+      </div>
+
+      <div class="gantt-shell">
+        <div class="timeline-header-scroll" #timelineHeaderScroll>
+          <div class="timeline-header" [style.width.px]="getTimelineWidth()">
+            <div class="timeline-day" *ngFor="let day of timelineDays; trackBy: trackTimelineDay">
+              {{ day.label }}
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="gantt-body-scroll"
+          #ganttBodyScroll
+          (scroll)="onGanttVerticalScroll(); onGanttHorizontalScroll()">
+          <div class="gantt-wrapper" [style.width.px]="getTimelineWidth()">
+            <div
+              class="gantt-row"
+              *ngFor="let task of tasks"
+              [class.summary-row]="isSummary(task)"
+              [class.selected-row]="selectedTask?.id === task.id"
+              (click)="openTaskDrawer(task)">
+
+              <div class="gantt-grid-line" *ngFor="let day of timelineDays; trackBy: trackTimelineDay"></div>
+
+              <div
+                *ngIf="hasBaseline(task) && !isMilestone(task)"
+                class="gantt-baseline-bar"
+                [class.summary-baseline]="isSummary(task)"
+                [style.left.px]="getBaselineLeft(task)"
+                [style.width.px]="getBaselineWidth(task)">
+              </div>
+
+              <div
+                *ngIf="!isMilestone(task)"
+                class="gantt-bar"
+                [class.summary-bar]="isSummary(task)"
+                [style.left.px]="getTaskLeft(task)"
+                [style.width.px]="getTaskWidth(task)">
+                <span>{{ task.name }}</span>
+              </div>
+
+              <div
+                *ngIf="isMilestone(task)"
+                class="gantt-milestone"
+                [style.left.px]="getTaskLeft(task)">
+              </div>
+            </div>
+
+            <div *ngIf="tasks.length === 0" class="gantt-empty">
+              No timeline to display.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="loading-card" *ngIf="loading">
+    Loading project schedule...
+  </div>
+
+  <aside class="task-drawer" [class.open]="drawerOpen" *ngIf="taskForm">
+    <div class="drawer-header">
+      <div>
+        <h2>Task Details</h2>
+        <p *ngIf="selectedTask">Task #{{ selectedTask.id }}</p>
+      </div>
+      <button type="button" class="close-btn" (click)="closeDrawer()">✕</button>
+    </div>
+
+    <form class="drawer-body" [formGroup]="taskForm">
+      <div class="form-group full-width">
+        <label>Name</label>
+        <input type="text" formControlName="name" />
+      </div>
+
+      <div class="form-group full-width">
+        <label>Description</label>
+        <textarea rows="3" formControlName="description"></textarea>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Task Type</label>
+          <select formControlName="taskType">
+            <option *ngFor="let type of taskTypes" [value]="type">{{ type }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Department</label>
+          <select formControlName="departmentCode">
+            <option value="">--</option>
+            <option *ngFor="let dept of departmentCodes" [value]="dept">{{ dept }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>WBS Code</label>
+          <input type="text" formControlName="wbsCode" />
+        </div>
+
+        <div class="form-group">
+          <label>Priority</label>
+          <input type="number" formControlName="priority" />
+        </div>
+
+        <div class="form-group">
+          <label>Display Order</label>
+          <input type="number" formControlName="displayOrder" />
+        </div>
+
+        <div class="form-group">
+          <label>Duration (days)</label>
+          <input type="number" formControlName="durationDays" />
+        </div>
+
+        <div class="form-group">
+          <label>Baseline Start</label>
+          <input type="date" formControlName="baselineStart" />
+        </div>
+
+        <div class="form-group">
+          <label>Baseline End</label>
+          <input type="date" formControlName="baselineEnd" />
+        </div>
+
+        <div class="form-group">
+          <label>Planned Start</label>
+          <input type="date" formControlName="plannedStart" />
+        </div>
+
+        <div class="form-group">
+          <label>Planned End</label>
+          <input type="date" formControlName="plannedEnd" />
+        </div>
+
+        <div class="form-group">
+          <label>Percent Complete</label>
+          <input type="number" min="0" max="100" formControlName="percentComplete" />
+        </div>
+
+        <div class="form-group">
+          <label>Schedule Mode</label>
+          <input type="text" formControlName="scheduleMode" />
+        </div>
+      </div>
+
+      <div class="checkbox-row">
+        <label><input type="checkbox" formControlName="active" /> Active</label>
+        <label><input type="checkbox" formControlName="customerMilestone" /> Customer milestone</label>
+      </div>
+    </form>
+
+    <div class="drawer-footer">
+      <button type="button" class="secondary-drawer-btn" (click)="closeDrawer()">Cancel</button>
+      <button type="button" class="primary-drawer-btn" (click)="saveTask()" [disabled]="saving">
+        {{ saving ? 'Saving...' : 'Save Task' }}
+      </button>
+    </div>
+  </aside>
+
+  <div class="drawer-overlay" *ngIf="drawerOpen" (click)="closeDrawer()"></div>
+</div>
