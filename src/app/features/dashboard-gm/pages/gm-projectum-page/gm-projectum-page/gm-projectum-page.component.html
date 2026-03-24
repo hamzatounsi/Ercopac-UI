@@ -1,188 +1,180 @@
-<div class="projectum-page">
-  <section class="projectum-hero">
-    <div class="hero-left">
-      <div class="hero-badge">
+<div class="projectum-shell">
+  <!-- APP HEADER -->
+  <header class="app-header">
+    <div class="app-brand">
+      <div class="app-logo">
         <span class="material-symbols-outlined">folder_managed</span>
-        <span>Projectum Workspace</span>
       </div>
-
-      <h1>Project View</h1>
-
-      <p class="subtitle">
-        Monitor ERCOPAC industrial projects through a portfolio-level dashboard
-        with structured access, clean project visibility, and planning follow-up.
-      </p>
+      <div class="app-brand-text">
+        <div class="app-name">ERCOPAC <span>Projectum</span></div>
+        <div class="app-subtitle">Project Portfolio Workspace</div>
+      </div>
     </div>
 
-    <div class="hero-actions">
-      <button type="button" class="secondary-btn" routerLink="/gm">
+    <div class="app-header-right">
+      <button type="button" class="icon-header-btn" routerLink="/gm">
         <span class="material-symbols-outlined">arrow_back</span>
-        <span>Back</span>
       </button>
 
-      <button type="button" class="primary-btn" (click)="goToScheduleInit()">
+      <button type="button" class="header-action-btn" (click)="goToScheduleInit()">
         <span class="material-symbols-outlined">add_circle</span>
         <span>Initialize Project</span>
       </button>
     </div>
+  </header>
+
+  <!-- ACTION TOOLBAR -->
+  <section class="top-toolbar">
+    <div class="toolbar-left">
+      <div class="search-box">
+        <span class="material-symbols-outlined">search</span>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (input)="onSearch()"
+          placeholder="Search by code, name, portfolio or country"
+        />
+      </div>
+
+      <div class="toolbar-divider"></div>
+
+      <button type="button" class="toolbar-chip-btn" (click)="loadProjects()">
+        <span class="material-symbols-outlined">refresh</span>
+        <span>Refresh</span>
+      </button>
+    </div>
+
+    <div class="toolbar-stats">
+      <div class="toolbar-stat">
+        <strong>{{ stats.totalProjects }}</strong>
+        <small>Projects</small>
+      </div>
+      <div class="toolbar-stat">
+        <strong class="accent-green">{{ stats.activeProjects }}</strong>
+        <small>Active</small>
+      </div>
+      <div class="toolbar-stat">
+        <strong class="accent-orange">{{ stats.delayedProjects }}</strong>
+        <small>Risk</small>
+      </div>
+      <div class="toolbar-stat">
+        <strong class="accent-purple">{{ stats.averageProgress }}%</strong>
+        <small>Avg %</small>
+      </div>
+    </div>
   </section>
 
-  <section class="stats-grid">
-    <article class="stat-card">
-      <div class="stat-icon total-icon">
-        <span class="material-symbols-outlined">folder_copy</span>
-      </div>
-      <div class="stat-content">
-        <span class="stat-label">Total Projects</span>
-        <strong class="stat-value">{{ stats.totalProjects }}</strong>
-      </div>
-    </article>
+  <!-- LEGEND / CONTEXT BAR -->
+  <section class="context-strip">
+    <div class="context-chip">
+      <span class="context-dot total"></span>
+      <span>Total Projects</span>
+    </div>
+    <div class="context-chip">
+      <span class="context-dot active"></span>
+      <span>Active Projects</span>
+    </div>
+    <div class="context-chip">
+      <span class="context-dot risk"></span>
+      <span>Delayed / At Risk</span>
+    </div>
+    <div class="context-chip">
+      <span class="context-dot progress"></span>
+      <span>Average Progress</span>
+    </div>
 
-    <article class="stat-card">
-      <div class="stat-icon active-icon">
-        <span class="material-symbols-outlined">play_circle</span>
-      </div>
-      <div class="stat-content">
-        <span class="stat-label">Active Projects</span>
-        <strong class="stat-value">{{ stats.activeProjects }}</strong>
-      </div>
-    </article>
-
-    <article class="stat-card">
-      <div class="stat-icon risk-icon">
-        <span class="material-symbols-outlined">warning</span>
-      </div>
-      <div class="stat-content">
-        <span class="stat-label">Delayed / At Risk</span>
-        <strong class="stat-value">{{ stats.delayedProjects }}</strong>
-      </div>
-    </article>
-
-    <article class="stat-card">
-      <div class="stat-icon progress-icon">
-        <span class="material-symbols-outlined">trending_up</span>
-      </div>
-      <div class="stat-content">
-        <span class="stat-label">Average Progress</span>
-        <strong class="stat-value">{{ stats.averageProgress }}%</strong>
-      </div>
-    </article>
+    <div class="records-indicator">
+      {{ filteredProjects.length }} records
+    </div>
   </section>
 
-  <section class="content-layout">
-    <div class="main-panel">
-      <section class="toolbar-card">
-        <div class="toolbar-left">
-          <div class="search-box">
-            <span class="material-symbols-outlined">search</span>
-            <input
-              type="text"
-              [(ngModel)]="searchTerm"
-              (input)="onSearch()"
-              placeholder="Search by code, name, portfolio or country"
-            />
-          </div>
+  <!-- MAIN TABLE PANEL -->
+  <section class="workspace-panel">
+    <div class="panel-header">
+      <div class="panel-title-wrap">
+        <span class="material-symbols-outlined">list_alt</span>
+        <div>
+          <h2>Projects</h2>
+          <p>Open a project workspace or manage the portfolio list.</p>
         </div>
+      </div>
+    </div>
 
-        <div class="toolbar-right">
-          <button type="button" class="refresh-btn" (click)="loadProjects()">
-            <span class="material-symbols-outlined">refresh</span>
-            <span>Refresh</span>
-          </button>
-        </div>
-      </section>
+    <div class="table-wrapper">
+      <table class="project-table">
+        <thead>
+          <tr>
+            <th class="col-code">Code</th>
+            <th class="col-project">Project</th>
+            <th class="col-portfolio">Portfolio</th>
+            <th class="col-status">Status</th>
+            <th class="col-dates">Dates</th>
+            <th class="col-actions">Actions</th>
+          </tr>
+        </thead>
 
-      <section class="project-list-card">
-        <div class="list-header">
-          <div>
-            <div class="list-title-row">
-              <span class="material-symbols-outlined">list_alt</span>
-              <h2>Projects</h2>
-            </div>
-            <p>Open a project workspace or manage the project list.</p>
-          </div>
+        <tbody>
+          <tr *ngIf="loading">
+            <td colspan="6" class="empty-state">Loading projects...</td>
+          </tr>
 
-          <div class="records-badge">
-            {{ filteredProjects.length }} Records
-          </div>
-        </div>
+          <tr *ngFor="let project of filteredProjects; let i = index" class="project-row">
+            <td class="code-cell col-code">
+              {{ project.code || '-' }}
+            </td>
 
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Code</th>
-                <th>Project</th>
-                <th>Portfolio</th>
-                <th>Status</th>
-                <th>Dates</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
+            <td class="col-project">
+              <div class="project-main-info">
+                <div class="project-name-cell">{{ project.name || '-' }}</div>
+                <div class="project-sub-info">
+                  {{ project.country || 'No country' }}
+                </div>
+              </div>
+            </td>
 
-            <tbody>
-              <tr *ngIf="loading">
-                <td colspan="6" class="empty-state">Loading projects...</td>
-              </tr>
+            <td class="col-portfolio">
+              <span class="portfolio-text">{{ project.portfolio || '-' }}</span>
+            </td>
 
-              <tr *ngFor="let project of filteredProjects">
-                <td class="code-cell">{{ project.code || '-' }}</td>
+            <td class="col-status">
+              <span class="phase-badge">
+                {{ project.projectPhase || '-' }}
+              </span>
+            </td>
 
-                <td>
-                  <div class="project-main-info">
-                    <div class="project-name-cell">{{ project.name || '-' }}</div>
-                    <div class="project-sub-info">
-                      {{ project.country || 'No country' }}
-                    </div>
-                  </div>
-                </td>
+            <td class="col-dates">
+              <div class="date-stack">
+                <span>{{ project.plannedStart || '-' }}</span>
+                <span>{{ project.plannedEnd || '-' }}</span>
+              </div>
+            </td>
 
-                <td>{{ project.portfolio || '-' }}</td>
+            <td class="col-actions">
+              <div class="action-buttons">
+                <button
+                  type="button"
+                  class="table-link-btn"
+                  (click)="openProject(project.id)"
+                >
+                  <span class="material-symbols-outlined">open_in_new</span>
+                  <span>Open</span>
+                </button>
 
-                <td>
-                  <span class="phase-badge">
-                    {{ project.projectPhase || '-' }}
-                  </span>
-                </td>
+                <button type="button" class="delete-btn">
+                  <span class="material-symbols-outlined">delete</span>
+                  <span>Delete</span>
+                </button>
+              </div>
+            </td>
+          </tr>
 
-                <td>
-                  <div class="date-stack">
-                    <span>{{ project.plannedStart || '-' }}</span>
-                    <span>{{ project.plannedEnd || '-' }}</span>
-                  </div>
-                </td>
-
-                <td>
-                  <div class="action-buttons">
-                    <button
-                      type="button"
-                      class="table-link-btn"
-                      (click)="openProject(project.id)"
-                    >
-                      <span class="material-symbols-outlined">open_in_new</span>
-                      <span>Open</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      class="delete-btn"
-                    >
-                      <span class="material-symbols-outlined">delete</span>
-                      <span>Delete</span>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-
-              <tr *ngIf="!loading && filteredProjects.length === 0">
-                <td colspan="6" class="empty-state">
-                  No projects found for the current search.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+          <tr *ngIf="!loading && filteredProjects.length === 0">
+            <td colspan="6" class="empty-state">
+              No projects found for the current search.
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </section>
 </div>
