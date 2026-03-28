@@ -16,4 +16,12 @@ export class GmDashboardService {
   getProjects(): Observable<ProjectDashboardRow[]> {
     return this.http.get<ProjectDashboardRow[]>(`${this.baseUrl}/projects`);
   }
+
+  getPortfolioKpis() {
+  return this.http.get<any>(`${this.baseUrl}/kpis/portfolio`);
+  }
+
+  getProjectKpis(projectId: number) {
+    return this.http.get<any>(`${this.baseUrl}/projects/${projectId}/kpis`);
+  }
 }
