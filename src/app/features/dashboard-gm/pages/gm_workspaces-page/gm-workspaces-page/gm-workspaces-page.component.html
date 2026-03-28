@@ -1,62 +1,109 @@
-<div class="workspace-page">
-  <section class="workspace-header">
-    <div class="header-text">
-      <p class="eyebrow">ERCOPAC Monitoring Platform</p>
-      <h1>Select your workspace</h1>
-      <p class="subtitle">
-        Access project monitoring, department follow-up and executive visibility
-        from one unified platform.
-      </p>
+<div class="workspace-shell">
+  <header class="app-header">
+    <div class="app-brand">
+      <div class="app-logo">P</div>
+      <div class="app-brand-text">
+        <div class="app-name">Projectum</div>
+        <div class="app-subtitle">Workspace Launcher</div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="header-chip active" type="button">
+        <span class="material-symbols-outlined">apps</span>
+        <span>Applications</span>
+      </button>
+
+      <button class="header-chip" type="button">
+        <span class="material-symbols-outlined">admin_panel_settings</span>
+        <span>Admin</span>
+      </button>
+    </div>
+  </header>
+
+  <section class="launcher-hero">
+    <div class="hero-title">Applications</div>
+    <div class="hero-subtitle">
+      Access portfolio monitoring, department follow-up, and executive visibility from one unified platform.
     </div>
   </section>
 
-  <section class="workspace-grid">
-    <button class="workspace-card primary-card" type="button" (click)="openProjectum()">
-      <div class="app-icon projectum-icon">
-        <span class="material-symbols-outlined">folder_managed</span>
+  <section class="apps-grid">
+    <button class="app-tile available" type="button" (click)="openProjectum()">
+      <div class="tile-icon projectum-icon">
+        <svg viewBox="0 0 64 64" class="icon-svg" aria-hidden="true">
+          <rect x="10" y="18" width="22" height="28" rx="7" fill="#2F80ED"></rect>
+          <rect x="30" y="12" width="24" height="34" rx="8" fill="#56CCF2"></rect>
+          <path d="M18 26h28" stroke="#ffffff" stroke-width="4" stroke-linecap="round"></path>
+          <path d="M18 34h20" stroke="#ffffff" stroke-width="4" stroke-linecap="round"></path>
+        </svg>
       </div>
-
-      <div class="card-body">
-        <h3>Projectum</h3>
-        <p>Project portfolio, planning and project supervision workspace.</p>
-      </div>
-
-      <div class="card-footer available">
-        <span class="material-symbols-outlined">arrow_forward</span>
-        <span>Open</span>
-      </div>
+      <div class="tile-title">Projectum</div>
+      <div class="tile-subtitle">Projects</div>
+      <div class="tile-status live">Available</div>
     </button>
 
-    <button class="workspace-card" type="button" disabled>
-      <div class="app-icon department-icon">
-        <span class="material-symbols-outlined">apartment</span>
+    <button class="app-tile" type="button" disabled>
+      <div class="tile-icon department-icon">
+        <svg viewBox="0 0 64 64" class="icon-svg" aria-hidden="true">
+          <rect x="10" y="24" width="14" height="24" rx="4" fill="#4F8EF7"></rect>
+          <rect x="26" y="16" width="14" height="32" rx="4" fill="#2D6CDF"></rect>
+          <rect x="42" y="10" width="12" height="38" rx="4" fill="#8BB8FF"></rect>
+        </svg>
       </div>
-
-      <div class="card-body">
-        <h3>My Department</h3>
-        <p>Department-level visibility, coordination and operational follow-up.</p>
-      </div>
-
-      <div class="card-footer muted">
-        <span class="material-symbols-outlined">schedule</span>
-        <span>Coming soon</span>
-      </div>
+      <div class="tile-title">My Department</div>
+      <div class="tile-subtitle">Operations</div>
+      <div class="tile-status planned">Planned</div>
     </button>
 
-    <button class="workspace-card" type="button" disabled>
-      <div class="app-icon company-icon">
-        <span class="material-symbols-outlined">monitoring</span>
+    <button class="app-tile" type="button" disabled>
+      <div class="tile-icon company-icon">
+        <svg viewBox="0 0 64 64" class="icon-svg" aria-hidden="true">
+          <circle cx="22" cy="24" r="10" fill="#36A2EB"></circle>
+          <circle cx="40" cy="22" r="8" fill="#1E5EFF"></circle>
+          <path d="M14 46c3-8 10-12 18-12s15 4 18 12" fill="#5AA9FF"></path>
+        </svg>
       </div>
+      <div class="tile-title">Company Dashboard</div>
+      <div class="tile-subtitle">Executive</div>
+      <div class="tile-status planned">Planned</div>
+    </button>
 
-      <div class="card-body">
-        <h3>Company Dashboard</h3>
-        <p>Executive KPIs, company-wide indicators and strategic visibility.</p>
+    <button class="app-tile" type="button">
+      <div class="tile-icon expense-icon">
+        <svg viewBox="0 0 64 64" class="icon-svg" aria-hidden="true">
+          <rect x="16" y="12" width="32" height="40" rx="8" fill="#2F80ED"></rect>
+          <path d="M24 24h16M24 32h12M24 40h10" stroke="#ffffff" stroke-width="4" stroke-linecap="round"></path>
+        </svg>
       </div>
+      <div class="tile-title">My Expenses</div>
+      <div class="tile-subtitle">Finance</div>
+      <div class="tile-status planned">Planned</div>
+    </button>
 
-      <div class="card-footer muted">
-        <span class="material-symbols-outlined">schedule</span>
-        <span>Coming soon</span>
+    <button class="app-tile" type="button">
+      <div class="tile-icon crm-icon">
+        <svg viewBox="0 0 64 64" class="icon-svg" aria-hidden="true">
+          <circle cx="24" cy="24" r="9" fill="#56CCF2"></circle>
+          <circle cx="41" cy="20" r="7" fill="#2F80ED"></circle>
+          <path d="M16 46c2-7 8-11 15-11 8 0 14 4 17 11" fill="#1E5EFF"></path>
+        </svg>
       </div>
+      <div class="tile-title">My CRM</div>
+      <div class="tile-subtitle">Customers</div>
+      <div class="tile-status planned">Planned</div>
+    </button>
+
+    <button class="app-tile" type="button">
+      <div class="tile-icon ticket-icon">
+        <svg viewBox="0 0 64 64" class="icon-svg" aria-hidden="true">
+          <path d="M14 24a6 6 0 0 0 6-6h24a6 6 0 0 0 6 6v16a6 6 0 0 0-6 6H20a6 6 0 0 0-6-6V24z" fill="#2F80ED"></path>
+          <path d="M32 18v28" stroke="#ffffff" stroke-width="4" stroke-dasharray="4 4" stroke-linecap="round"></path>
+        </svg>
+      </div>
+      <div class="tile-title">My Ticketing</div>
+      <div class="tile-subtitle">Support</div>
+      <div class="tile-status planned">Planned</div>
     </button>
   </section>
 </div>
