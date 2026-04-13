@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { GmDashboardService } from '../../../services/gm-dashboard.service';
+import { ProjectDashboardRow } from '../../../models/project-dashboard-row.model';
+import { HealthStatus } from '../../../models/health-status.model';
 
 interface ProjectKpiView {
   title: string;
@@ -15,14 +17,14 @@ interface ProjectKpiView {
   styleUrls: ['./gm-projectum-page.component.scss']
 })
 export class GmProjectumPageComponent implements OnInit {
-  projects: any[] = [];
-  filteredProjects: any[] = [];
-  searchTerm: string = '';
-  loading: boolean = false;
+  projects: ProjectDashboardRow[] = [];
+  filteredProjects: ProjectDashboardRow[] = [];
+  searchTerm = '';
+  loading = false;
   error: string | null = null;
 
   selectedProjectId: number | null = null;
-  selectedProject: any | null = null;
+  selectedProject: ProjectDashboardRow | null = null;
 
   portfolioKpis: any = null;
   projectKpis: any = null;
@@ -49,8 +51,12 @@ export class GmProjectumPageComponent implements OnInit {
     this.error = null;
 
     this.gmDashboardService.getProjects().subscribe({
-      next: (response) => {
-        this.projects = response || [];
+      next: (projectsResponse) => {
+        this.projects = (projectsResponse ?? []).map(project => ({
+          ...project,
+          timeHealth: this.normalizeHealthStatus(project.timeHealth)
+        }));
+
         this.filteredProjects = [...this.projects];
         this.computeStatistics();
 
@@ -99,7 +105,7 @@ export class GmProjectumPageComponent implements OnInit {
     );
   }
 
-  selectProject(project: any): void {
+  selectProject(project: ProjectDashboardRow): void {
     if (!project?.id) {
       return;
     }
@@ -107,6 +113,7 @@ export class GmProjectumPageComponent implements OnInit {
     this.selectedProjectId = project.id;
     this.selectedProject = project;
     this.loading = true;
+    this.error = null;
 
     this.gmDashboardService.getProjectKpis(project.id).subscribe({
       next: (response) => {
@@ -130,11 +137,48 @@ export class GmProjectumPageComponent implements OnInit {
   }
 
   openProject(projectId: number): void {
-    this.router.navigate(['/gm/projects', projectId]);
+    this.router.navigate(['/gm/projects', projectId, 'schedule']);
   }
 
   goToScheduleInit(): void {
     this.router.navigate(['/gm/projects/schedule-init']);
+  }
+
+  getStatusLabel(project: ProjectDashboardRow): string {
+    if (project.projectPhase) {
+      return project.projectPhase;
+    }
+
+    if (project.timeHealth === 'RED') {
+      return 'DELAYED';
+    }
+
+    if (project.timeHealth === 'YELLOW') {
+      return 'AT RISK';
+    }
+
+    if (project.timeHealth === 'GREEN') {
+      return 'ON TRACK';
+    }
+
+    return '-';
+  }
+
+  formatDate(value?: string): string {
+    if (!value) {
+      return '-';
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
   }
 
   formatCurrency(value: number | null | undefined): string {
@@ -158,25 +202,25 @@ export class GmProjectumPageComponent implements OnInit {
     this.displayedKpis = [
       {
         title: 'Total Projects',
-        value: this.portfolioKpis.totalProjects,
+        value: this.portfolioKpis.totalProjects ?? 0,
         hint: 'Projects in portfolio',
         accent: 'blue'
       },
       {
         title: 'Active Projects',
-        value: this.portfolioKpis.activeProjects,
+        value: this.portfolioKpis.activeProjects ?? 0,
         hint: 'Currently active',
         accent: 'green'
       },
       {
         title: 'Delayed Projects',
-        value: this.portfolioKpis.delayedProjects,
+        value: this.portfolioKpis.delayedProjects ?? 0,
         hint: 'Delayed or at risk',
         accent: 'orange'
       },
       {
         title: 'Average Progress',
-        value: `${this.portfolioKpis.averageProgress}%`,
+        value: `${this.portfolioKpis.averageProgress ?? 0}%`,
         hint: 'Across all projects',
         accent: 'purple'
       },
@@ -188,7 +232,7 @@ export class GmProjectumPageComponent implements OnInit {
       },
       {
         title: 'On-Time Rate',
-        value: `${this.portfolioKpis.onTimeRate}%`,
+        value: `${this.portfolioKpis.onTimeRate ?? 0}%`,
         hint: 'Projects not delayed',
         accent: 'green'
       }
@@ -204,25 +248,25 @@ export class GmProjectumPageComponent implements OnInit {
     this.displayedKpis = [
       {
         title: 'Total Tasks',
-        value: this.projectKpis.totalTasks,
+        value: this.projectKpis.totalTasks ?? 0,
         hint: 'Tasks in project',
         accent: 'blue'
       },
       {
         title: 'Completed Tasks',
-        value: this.projectKpis.completedTasks,
+        value: this.projectKpis.completedTasks ?? 0,
         hint: 'Finished tasks',
         accent: 'green'
       },
       {
         title: 'Delayed Tasks',
-        value: this.projectKpis.delayedTasks,
+        value: this.projectKpis.delayedTasks ?? 0,
         hint: 'Delayed against baseline',
         accent: 'orange'
       },
       {
         title: 'Average Progress',
-        value: `${this.projectKpis.averageTaskProgress}%`,
+        value: `${this.projectKpis.averageTaskProgress ?? 0}%`,
         hint: 'Average completion',
         accent: 'purple'
       },
@@ -234,7 +278,7 @@ export class GmProjectumPageComponent implements OnInit {
       },
       {
         title: 'Planned Duration',
-        value: `${this.projectKpis.plannedDurationDays} d`,
+        value: `${this.projectKpis.plannedDurationDays ?? 0} d`,
         hint: 'Planned duration',
         accent: 'green'
       }
@@ -245,15 +289,31 @@ export class GmProjectumPageComponent implements OnInit {
     this.stats.totalProjects = this.projects.length;
 
     this.stats.activeProjects = this.projects.filter(project =>
-      project.projectPhase &&
+      !!project.projectPhase &&
       project.projectPhase !== 'COMPLETED' &&
       project.projectPhase !== 'CLOSED'
     ).length;
 
     this.stats.delayedProjects = this.projects.filter(project =>
-      project.timeHealth === 'DELAYED' || project.timeHealth === 'AT_RISK'
+      project.timeHealth === 'RED' || project.timeHealth === 'YELLOW'
     ).length;
 
     this.stats.averageProgress = this.projects.length > 0 ? 64 : 0;
+  }
+
+  private normalizeHealthStatus(status?: string): HealthStatus {
+    switch (status) {
+      case 'GREEN':
+        return 'GREEN';
+      case 'YELLOW':
+      case 'AT_RISK':
+        return 'YELLOW';
+      case 'RED':
+      case 'DELAYED':
+        return 'RED';
+      case 'NA':
+      default:
+        return 'NA';
+    }
   }
 }

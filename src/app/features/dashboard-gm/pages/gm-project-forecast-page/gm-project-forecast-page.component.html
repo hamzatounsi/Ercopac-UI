@@ -1,0 +1,207 @@
+<div class="forecast-shell">
+  <!-- TOP HEADER -->
+  <div id="app-hdr">
+    <div class="brand-wrap">
+      <div>
+        <div class="app-name">Projectum<span>ALL</span></div>
+        <div class="app-sub">all around project</div>
+      </div>
+    </div>
+
+    <div class="hdr-sep"></div>
+
+    <a class="nav-pill" (click)="goToProjectum()">🏠 Projects</a>
+    <a class="nav-pill" (click)="goToSchedule()">📊 Gantt</a>
+    <a class="nav-pill" (click)="goToActions()">✅ Actions</a>
+    <a class="nav-pill">👥 Resources</a>
+    <a class="nav-pill">🏢 Dept</a>
+    <a class="nav-pill">🔧 My CS</a>
+    <a class="nav-pill" (click)="goToFinance()">💰 Finance</a>
+    <a class="nav-pill active">📘 Forecast</a>
+    <a class="nav-pill" (click)="goToRisks()">⚠️ Risk</a>
+    <a class="nav-pill" (click)="goToCr()">📝 CR</a>
+    <a class="nav-pill">⚙️ WBS Settings</a>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div id="toolbar">
+    <span class="tb-lbl">View:</span>
+
+    <div class="tb-mode-group">
+      <button class="tb-btn" [class.on]="viewMode === 'week'" (click)="setViewMode('week')">Week</button>
+      <button class="tb-btn" [class.on]="viewMode === 'month'" (click)="setViewMode('month')">Month</button>
+    </div>
+
+    <div class="tb-sep"></div>
+
+    <button class="tb-icon-btn">«</button>
+    <button class="tb-icon-btn">‹</button>
+    <button class="tb-btn tb-today">Today</button>
+    <button class="tb-icon-btn">›</button>
+    <button class="tb-icon-btn">»</button>
+
+    <div class="tb-sep"></div>
+
+    <span class="tb-lbl">Periods:</span>
+    <select class="tb-sel small" [(ngModel)]="periods" (change)="onPeriodsChange()">
+      <option [ngValue]="6">6</option>
+      <option [ngValue]="12">12</option>
+      <option [ngValue]="18">18</option>
+      <option [ngValue]="24">24</option>
+    </select>
+
+    <select class="tb-sel medium">
+      <option>All Levels</option>
+    </select>
+
+    <select class="tb-sel small">
+      <option>EUR €</option>
+    </select>
+
+    <div class="tb-spacer"></div>
+
+    <button class="save-btn" (click)="loadData()">💾 Save</button>
+  </div>
+
+  <!-- PROJECT BAR -->
+  <div class="project-strip">
+    <div class="project-label">📁 Project:</div>
+    <div class="project-select">
+      <span class="project-code">{{ projectLabel }}</span>
+      <span class="project-caret">▾</span>
+    </div>
+    <div class="project-chip">{{ projectShortName }}</div>
+  </div>
+
+  <div *ngIf="error" class="error-box">
+    {{ error }}
+  </div>
+
+  <div class="loading-box" *ngIf="loading">
+    Loading forecast...
+  </div>
+
+  <div id="main-wrap" *ngIf="!loading">
+    <!-- LEFT GRID -->
+    <div id="wbs-panel">
+      <div id="wbs-panel-hdr">
+        <div class="col-wbs hdr-cell">WBS</div>
+        <div class="col-icon hdr-cell">◧</div>
+        <div class="col-type hdr-cell">TYPE</div>
+        <div class="col-budget hdr-cell">BUDGET</div>
+        <div class="col-actual hdr-cell">ACTUAL</div>
+        <div class="col-remaining hdr-cell">REMAINING</div>
+      </div>
+
+      <div id="wbs-list-body">
+        <div class="wbs-row" *ngFor="let row of filteredRows">
+          <div class="col-wbs mono indentable" [style.paddingLeft.px]="8 + ((row.level - 1) * 16)">
+            {{ row.wbsCode }}
+          </div>
+
+          <div class="col-icon icon-cell">
+            <span class="row-folder" *ngIf="row.level === 1">📁</span>
+          </div>
+
+          <div class="col-type type-cell">
+            <div class="desc-main" [title]="row.description">{{ row.description }}</div>
+            <span class="type-badge" [ngClass]="getTypeBadgeClass(row)">
+              {{ getTypeLabel(row) }}
+            </span>
+          </div>
+
+          <div class="col-budget money">
+            {{ formatBudgetOrHours(row) }}
+          </div>
+
+          <div class="col-actual money actual-cell">
+            {{ formatActualOrHours(row) }}
+          </div>
+
+          <div class="col-remaining money remaining-cell">
+            <div class="remaining-wrap">
+              <div class="mini-bar-track">
+                <div class="mini-bar-fill" [style.width.%]="getRemainingPercent(row)"></div>
+              </div>
+              <span>{{ formatRemainingOrHours(row) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="filteredRows.length === 0" class="empty-box">
+          No forecast rows found.
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT GRID -->
+    <div id="cal-panel">
+      <div id="cal-hdr">
+        <div class="year-strip">
+          <div class="year-block">{{ getHeaderYearLabel(0) }}</div>
+          <div class="year-block" *ngIf="getHeaderYearLabel(1)">{{ getHeaderYearLabel(1) }}</div>
+        </div>
+
+        <div id="cal-hdr-top">
+          <div class="period-cell" *ngFor="let period of getPeriodKeys()">
+            {{ formatMonth(period) }}
+          </div>
+          <div class="period-total">TOTAL F</div>
+        </div>
+      </div>
+
+      <div id="cal-body-wrap">
+        <div id="cal-canvas">
+          <div class="cal-row" *ngFor="let row of filteredRows">
+            <div class="f-cell" *ngFor="let period of getPeriodKeys()">
+              <span class="cell-text">
+                {{ formatForecastCell(row, period) }}
+              </span>
+            </div>
+
+            <div class="f-cell-total">
+              {{ formatTotalForecast(row) }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="footer-strip" *ngIf="summary">
+    <div class="footer-item">
+      <span class="ftr-lbl">TOTAL FORECAST</span>
+      <span class="ftr-val">{{ formatMoney(summary.totalForecast) }}</span>
+    </div>
+
+    <div class="ftr-sep"></div>
+
+    <div class="footer-item">
+      <span class="ftr-lbl">TOTAL BUDGET</span>
+      <span class="ftr-val">{{ formatMoney(summary.totalBudget) }}</span>
+    </div>
+
+    <div class="ftr-sep"></div>
+
+    <div class="footer-item">
+      <span class="ftr-lbl">TOTAL AC</span>
+      <span class="ftr-val">{{ formatMoney(summary.totalActualCost) }}</span>
+    </div>
+
+    <div class="ftr-sep"></div>
+
+    <div class="footer-item">
+      <span class="ftr-lbl">EAC (AC + F)</span>
+      <span class="ftr-val">{{ formatMoney(summary.totalEac) }}</span>
+    </div>
+
+    <div class="ftr-sep"></div>
+
+    <div class="footer-item">
+      <span class="ftr-lbl">VARIANCE (B − EAC)</span>
+      <span class="ftr-val" [class.pos]="summary.totalVariance >= 0" [class.neg]="summary.totalVariance < 0">
+        {{ formatMoney(summary.totalVariance) }}
+      </span>
+    </div>
+  </div>
+</div>

@@ -1,91 +1,317 @@
 <div class="pm-shell">
+  
   <!-- APP HEADER -->
-  <header class="app-header">
-    <div class="app-brand">
-      <div class="app-logo">
-        <span class="material-symbols-outlined">calendar_month</span>
-      </div>
-      <div class="app-brand-text">
-        <div class="app-name">ERCOPAC <span>Projectum</span></div>
-        <div class="app-subtitle">
-          Project Schedule · Project {{ projectId }}
-        </div>
-      </div>
-    </div>
-
-    <div class="app-header-right">
-      <div class="mode-switch">
+   <app-projectum-project-header>
+      <div class="mode-switch light-mode-switch">
         <span class="switch-label">BAR</span>
-        <button type="button" class="mode-btn active">Baseline</button>
-        <button type="button" class="mode-btn">Planned</button>
+
+        <button
+          type="button"
+          class="mode-btn"
+          [class.active]="activeMode === 'baseline'"
+          (click)="setMode('baseline')">
+          Baseline
+        </button>
+
+        <button
+          type="button"
+          class="mode-btn"
+          [class.active]="activeMode === 'actual'"
+          (click)="setMode('actual')">
+          Actual
+        </button>
       </div>
 
-      <button type="button" class="icon-header-btn" (click)="backToProject()">
-        <span class="material-symbols-outlined">arrow_back</span>
+      <button
+        type="button"
+        class="icon-header-btn"
+        title="Settings"
+        (click)="toggleSettings()">
+        <span class="material-symbols-outlined">settings</span>
       </button>
 
-      <button type="button" class="header-action-btn" (click)="goToTasks()">
-        <span class="material-symbols-outlined">task</span>
-        <span>Tasks</span>
+      <button
+        type="button"
+        class="export-header-btn"
+        title="Refresh"
+        (click)="loadSchedule()">
+        <span class="material-symbols-outlined">refresh</span>
+        <span>Refresh</span>
       </button>
-    </div>
-  </header>
-
+    </app-projectum-project-header>
+  <!-- SIDE PANEL -->
+  <app-gm-project-side-panel
+    [projectId]="projectId"
+    currentPage="gantt">
+  </app-gm-project-side-panel>
   <!-- TOOLBAR -->
-  <section class="top-toolbar" *ngIf="!loading">
+  <section class="top-toolbar modern-toolbar" *ngIf="!loading">
     <div class="toolbar-group primary-group">
-      <button type="button" class="toolbar-main-btn">
-        <span class="material-symbols-outlined">save</span>
-        <span>Save</span>
+      <div class="action-cluster">
+        <button
+          type="button"
+          class="toolbar-main-btn save-btn"
+          (click)="saveTask()"
+          [disabled]="!selectedTask || saving">
+          <span class="material-symbols-outlined">save</span>
+          <span>{{ saving ? 'Saving...' : 'Save' }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="toolbar-main-btn export-btn"
+          (click)="exportScheduleJson()">
+          <span class="material-symbols-outlined">download</span>
+          <span>Export</span>
+        </button>
+
+        <label class="toolbar-main-btn import-btn">
+          <span class="material-symbols-outlined">upload</span>
+          <span>Import</span>
+          <input type="file" hidden accept=".json" (change)="importScheduleJson($event)" />
+        </label>
+
+        <button
+          type="button"
+          class="toolbar-main-btn"
+          (click)="undo()"
+          [disabled]="history.length === 0">
+          <span class="material-symbols-outlined">undo</span>
+          <span>Undo</span>
+        </button>
+
+        <button
+          type="button"
+          class="toolbar-main-btn"
+          (click)="redo()"
+          [disabled]="future.length === 0">
+          <span class="material-symbols-outlined">redo</span>
+          <span>Redo</span>
+        </button>
+      </div>
+
+      <div class="toolbar-divider"></div>
+
+      <button
+        type="button"
+        class="toolbar-main-btn"
+        (click)="outdentTask()"
+        [disabled]="!selectedTask">
+        <span class="material-symbols-outlined">format_indent_decrease</span>
+        <span>Outdent</span>
+      </button>
+
+      <button
+        type="button"
+        class="toolbar-main-btn"
+        (click)="indentTask()"
+        [disabled]="!selectedTask">
+        <span class="material-symbols-outlined">format_indent_increase</span>
+        <span>Indent</span>
       </button>
 
       <div class="toolbar-divider"></div>
 
-      <button type="button" class="toolbar-mini-btn" (click)="loadSchedule()">
-        <span class="material-symbols-outlined">refresh</span>
-      </button>
-    </div>
+      <span class="toolbar-inline-label">Level:</span>
 
-    <div class="toolbar-divider toolbar-divider-large"></div>
+      <div class="toolbar-menu-wrap">
+        <button
+          type="button"
+          class="toolbar-icon-square level-square-btn"
+          (click)="toggleLevelMenu()">
+          <span class="material-symbols-outlined">segment</span>
+          <span class="level-badge">{{ getLevelButtonLabel() }}</span>
+        </button>
 
-    <div class="toolbar-inline">
-      <span class="toolbar-label">Level</span>
-      <button type="button" class="toolbar-chip-btn">
-        <span class="material-symbols-outlined">format_indent_decrease</span>
-        <span>Outdent</span>
-      </button>
-      <button type="button" class="toolbar-chip-btn">
-        <span>Indent</span>
-        <span class="material-symbols-outlined">format_indent_increase</span>
-      </button>
-    </div>
+        <div class="toolbar-dropdown-menu compact-menu dark-menu" *ngIf="levelMenuOpen">
+          <button type="button" class="toolbar-dropdown-item" (click)="setLevelFilter('ALL')">
+            All levels
+          </button>
+          <button type="button" class="toolbar-dropdown-item" (click)="setLevelFilter(1)">
+            Level 1 only
+          </button>
+          <button type="button" class="toolbar-dropdown-item" (click)="setLevelFilter(2)">
+            Up to level 2
+          </button>
+          <button type="button" class="toolbar-dropdown-item" (click)="setLevelFilter(3)">
+            Up to level 3
+          </button>
+          <button type="button" class="toolbar-dropdown-item" (click)="setLevelFilter(4)">
+            Up to level 4
+          </button>
+          <button type="button" class="toolbar-dropdown-item" (click)="setLevelFilter(5)">
+            Up to level 5
+          </button>
+        </div>
+      </div>
 
-    <div class="toolbar-divider toolbar-divider-large"></div>
+      <div class="toolbar-divider"></div>
 
-    <div class="toolbar-inline">
-      <span class="toolbar-label">Dept</span>
-      <button type="button" class="toolbar-select-btn">All</button>
-    </div>
+      <span class="toolbar-inline-label">Dept:</span>
 
-    <div class="toolbar-divider toolbar-divider-large"></div>
+      <div class="toolbar-menu-wrap">
+        <button
+          type="button"
+          class="toolbar-select-btn dark-select-btn"
+          (click)="toggleDeptMenu()">
+          <span>{{ selectedDepartmentFilter }}</span>
+          <span class="material-symbols-outlined mini-arrow">expand_more</span>
+        </button>
 
-    <div class="toolbar-inline">
-      <span class="toolbar-label">Zoom</span>
-      <button type="button" class="zoom-btn">−</button>
-      <button type="button" class="zoom-chip">2W</button>
-      <button type="button" class="zoom-chip active">1M</button>
-      <button type="button" class="zoom-chip">2M</button>
-      <button type="button" class="zoom-chip">Day</button>
-      <button type="button" class="zoom-btn">+</button>
-    </div>
+        <div class="toolbar-dropdown-menu compact-menu dark-menu" *ngIf="deptMenuOpen">
+          <button
+            type="button"
+            class="toolbar-dropdown-item"
+            (click)="setDepartmentFilter('ALL')">
+            All
+          </button>
 
-    <div class="toolbar-divider toolbar-divider-large"></div>
+          <button
+            type="button"
+            class="toolbar-dropdown-item"
+            *ngFor="let dept of departmentCodes"
+            (click)="setDepartmentFilter(dept)">
+            {{ dept }}
+          </button>
+        </div>
+      </div>
 
-    <div class="toolbar-inline">
-      <button type="button" class="toolbar-chip-btn">
-        <span>Columns</span>
-        <span class="material-symbols-outlined">arrow_drop_down</span>
-      </button>
+      <div class="toolbar-divider"></div>
+
+      <div class="toolbar-inline zoom-toolbar">
+        <span class="toolbar-label">Zoom:</span>
+
+        <button
+          type="button"
+          class="zoom-step-btn dark-zoom-step"
+          (click)="zoomOut()">
+          <span class="material-symbols-outlined">remove</span>
+        </button>
+
+        <button
+          type="button"
+          class="zoom-chip"
+          [class.active]="activeZoom === '2W'"
+          (click)="setZoom('2W')">
+          2W
+        </button>
+
+        <button
+          type="button"
+          class="zoom-chip"
+          [class.active]="activeZoom === '1M'"
+          (click)="setZoom('1M')">
+          1M
+        </button>
+
+        <button
+          type="button"
+          class="zoom-chip"
+          [class.active]="activeZoom === '2M'"
+          (click)="setZoom('2M')">
+          2M
+        </button>
+
+        <button
+          type="button"
+          class="zoom-chip"
+          [class.active]="activeZoom === 'Day'"
+          (click)="setZoom('Day')">
+          Day
+        </button>
+
+        <button
+          type="button"
+          class="zoom-step-btn dark-zoom-step"
+          (click)="zoomIn()">
+          <span class="material-symbols-outlined">add</span>
+        </button>
+      </div>
+
+      <div class="toolbar-divider"></div>
+
+      <div class="toolbar-menu-wrap">
+        <button
+          type="button"
+          class="toolbar-select-btn dark-select-btn"
+          (click)="toggleColumnsMenu()">
+          <span class="material-symbols-outlined">view_column</span>
+          <span>Columns</span>
+          <span class="material-symbols-outlined mini-arrow">expand_more</span>
+        </button>
+
+        <div class="toolbar-dropdown-menu columns-menu dark-menu" *ngIf="columnsMenuOpen">
+          <label class="toolbar-check-item">
+            <input type="checkbox" [(ngModel)]="columnVisibility.id" [ngModelOptions]="{standalone: true}" />
+            <span>ID</span>
+          </label>
+
+          <label class="toolbar-check-item">
+            <input type="checkbox" [(ngModel)]="columnVisibility.wbs" [ngModelOptions]="{standalone: true}" />
+            <span>Level (WBS)</span>
+          </label>
+
+          <label class="toolbar-check-item">
+            <input type="checkbox" [(ngModel)]="columnVisibility.customer" [ngModelOptions]="{standalone: true}" />
+            <span>Customer (C)</span>
+          </label>
+
+          <label class="toolbar-check-item">
+            <input type="checkbox" [(ngModel)]="columnVisibility.name" [ngModelOptions]="{standalone: true}" />
+            <span>Activity</span>
+          </label>
+
+          <label class="toolbar-check-item">
+            <input type="checkbox" [(ngModel)]="columnVisibility.type" [ngModelOptions]="{standalone: true}" />
+            <span>Type</span>
+          </label>
+
+          <label class="toolbar-check-item">
+            <input type="checkbox" [(ngModel)]="columnVisibility.resourceType" [ngModelOptions]="{standalone: true}" />
+            <span>Resource Type</span>
+          </label>
+
+          <label class="toolbar-check-item">
+            <input type="checkbox" [(ngModel)]="columnVisibility.department" [ngModelOptions]="{standalone: true}" />
+            <span>Department</span>
+          </label>
+
+          <label class="toolbar-check-item">
+            <input type="checkbox" [(ngModel)]="columnVisibility.actualStart" [ngModelOptions]="{standalone: true}" />
+            <span>Actual Start</span>
+          </label>
+
+          <label class="toolbar-check-item">
+            <input type="checkbox" [(ngModel)]="columnVisibility.actualFinish" [ngModelOptions]="{standalone: true}" />
+            <span>Actual Finish</span>
+          </label>
+
+          <label class="toolbar-check-item">
+            <input type="checkbox" [(ngModel)]="columnVisibility.duration" [ngModelOptions]="{standalone: true}" />
+            <span>Duration</span>
+          </label>
+
+          <label class="toolbar-check-item">
+            <input type="checkbox" [(ngModel)]="columnVisibility.predecessors" [ngModelOptions]="{standalone: true}" />
+            <span>Predecessors</span>
+          </label>
+
+          <label class="toolbar-check-item">
+            <input type="checkbox" [(ngModel)]="columnVisibility.progress" [ngModelOptions]="{standalone: true}" />
+            <span>% Done</span>
+          </label>
+
+          <label class="toolbar-check-item">
+            <input type="checkbox" [(ngModel)]="columnVisibility.baselineStart" [ngModelOptions]="{standalone: true}" />
+            <span>Baseline Start</span>
+          </label>
+
+          <label class="toolbar-check-item">
+            <input type="checkbox" [(ngModel)]="columnVisibility.baselineEnd" [ngModelOptions]="{standalone: true}" />
+            <span>Baseline End</span>
+          </label>
+        </div>
+      </div>
     </div>
 
     <div class="toolbar-stats">
@@ -111,8 +337,8 @@
   <!-- LEGEND -->
   <section class="legend-strip" *ngIf="!loading && tasks.length">
     <div class="legend-chip">
-      <span class="legend-double planned"></span>
-      <span>Planned</span>
+      <span class="legend-double actual"></span>
+      <span>Actual</span>
     </div>
     <div class="legend-chip">
       <span class="legend-double baseline"></span>
@@ -126,6 +352,10 @@
       <span class="legend-milestone"></span>
       <span>Milestone</span>
     </div>
+    <div class="legend-chip">
+      <span class="legend-customer-milestone"></span>
+      <span>Customer milestone</span>
+    </div>
     <div class="legend-chip today-legend">
       <span class="legend-today"></span>
       <span>Today</span>
@@ -134,111 +364,263 @@
 
   <!-- MAIN -->
   <section class="planner-main" *ngIf="!loading">
-    <!-- LEFT TABLE -->
-    <div class="planner-left">
-      <div class="left-header">
-        <div class="group-header-row">
-          <div class="gh col-id">ID</div>
-          <div class="gh col-wbs">Level</div>
-          <div class="gh col-name">Activity</div>
-          <div class="gh col-type">Type</div>
-          <div class="gh col-dept">Dept</div>
-          <div class="gh col-baseline-group">Baseline</div>
-          <div class="gh col-planned-group">Planned</div>
-          <div class="gh col-progress">Progress</div>
-        </div>
-
-        <div class="field-header-row">
-          <div class="fh col-id"></div>
-          <div class="fh col-wbs">WBS</div>
-          <div class="fh col-name">Name</div>
-          <div class="fh col-type">Type</div>
-          <div class="fh col-dept">Dept</div>
-          <div class="fh col-date">B.Start</div>
-          <div class="fh col-date">B.End</div>
-          <div class="fh col-date planned-cell">P.Start</div>
-          <div class="fh col-date planned-cell">P.End</div>
-          <div class="fh col-progress">%</div>
+    <!-- LEFT -->
+    <div class="planner-left" [style.width.px]="leftPaneWidth">
+      <div class="left-header" #leftHeaderScroll>
+        <div
+          class="group-header-row schedule-grid"
+          [style.grid-template-columns]="visibleColumnTemplate"
+          [style.min-width.px]="visibleColumnMinWidth"
+        >
+          <div class="gh col-id" *ngIf="columnVisibility.id">ID</div>
+          <div class="gh col-wbs" *ngIf="columnVisibility.wbs">WBS</div>
+          <div class="gh col-customer" *ngIf="columnVisibility.customer">C</div>
+          <div class="gh col-name" *ngIf="columnVisibility.name">Activity</div>
+          <div class="gh col-type" *ngIf="columnVisibility.type">Type</div>
+          <div class="gh col-restype" *ngIf="columnVisibility.resourceType">Res.Type</div>
+          <div class="gh col-dept" *ngIf="columnVisibility.department">Department</div>
+          <div class="gh col-date" *ngIf="columnVisibility.actualStart">A.Start</div>
+          <div class="gh col-date" *ngIf="columnVisibility.actualFinish">A.Finish</div>
+          <div class="gh col-dur" *ngIf="columnVisibility.duration">Dur.</div>
+          <div class="gh col-progress" *ngIf="columnVisibility.progress">% Done</div>
+          <div class="gh col-pred" *ngIf="columnVisibility.predecessors">Pred.</div>
         </div>
       </div>
 
-      <div class="left-body" #tableBodyScroll (scroll)="onTableVerticalScroll()">
+      <div class="left-body" #tableBodyScroll (scroll)="onTableScroll()">
         <div
-          *ngFor="let task of tasks; let i = index"
-          class="table-row"
+          *ngFor="let task of visibleTasks; let i = index"
+          class="table-row schedule-grid"
+          [style.grid-template-columns]="visibleColumnTemplate"
+          [style.min-width.px]="visibleColumnMinWidth"
           [class.even]="i % 2 === 0"
           [class.odd]="i % 2 !== 0"
           [class.summary-row]="isSummary(task)"
           [class.selected-row]="selectedTask?.id === task.id"
           (click)="openTaskDrawer(task)"
         >
-          <div class="cell cell-id col-id">{{ task.id }}</div>
+          <div class="cell cell-id col-id" *ngIf="columnVisibility.id">
+            {{ task.id }}
+          </div>
 
-          <div class="cell cell-wbs col-wbs">
+          <div class="cell cell-wbs col-wbs" *ngIf="columnVisibility.wbs">
             {{ task.wbsCode || '-' }}
           </div>
 
-          <div class="cell cell-name col-name">
-            <div class="task-name-wrap compact-name" [style.padding-left.px]="getIndentLevel(task) * 12">
-              <span *ngIf="isSummary(task)" class="summary-marker">▾</span>
-              <span *ngIf="isMilestone(task)" class="milestone-dot">◆</span>
-              <span class="task-name-text" [class.summary-text]="isSummary(task)" [class.milestone-text]="isMilestone(task)">
-                {{ task.name }}
+          <div
+              class="cell editable-cell col-customer customer-cell"
+              *ngIf="columnVisibility.customer"
+              (click)="$event.stopPropagation()"
+            >
+              <label class="customer-flag-toggle">
+                <input
+                  type="checkbox"
+                  [checked]="isCustomerChecked(task)"
+                  (change)="onCustomerFlagChange(task, $any($event.target).checked)"
+                />
+                <span class="customer-flag" [class.yes]="task.customerMilestone" [class.no]="!task.customerMilestone">
+                  {{ getCustomerFlag(task) }}
+                </span>
+              </label>
+            </div>
+
+          <div
+            class="cell editable-cell col-name"
+            *ngIf="columnVisibility.name"
+            (click)="$event.stopPropagation()"
+          >
+            <div class="task-name-wrap" [style.padding-left.px]="getIndent(task)">
+              <span
+                *ngIf="isSummary(task)"
+                class="summary-marker"
+                (click)="toggleSummary(task, $event)">
+                {{ collapsedTaskIds.has(task.id) ? '▸' : '▾' }}
               </span>
+
+              <span
+                *ngIf="isMilestone(task)"
+                class="milestone-dot"
+                [class.customer]="isCustomerMilestone(task)">
+                ◆
+              </span>
+
+              <input
+                class="grid-input text-input"
+                [value]="task.name || ''"
+                (input)="updateLocalTaskField(task, 'name', $any($event.target).value)"
+                (blur)="saveInlineTask(task)"
+              />
             </div>
           </div>
 
-          <div class="cell col-type">
-            <span
-              class="type-pill"
-              [class.summary]="isSummary(task)"
-              [class.milestone]="isMilestone(task)">
-              {{ task.taskType || 'ACTIVITY' }}
-            </span>
+        <div
+          class="cell editable-cell col-type"
+          *ngIf="columnVisibility.type"
+          (click)="$event.stopPropagation()"
+        >
+          <select
+            class="type-select"
+            [ngModel]="getNormalizedTaskType(task)"
+            [ngModelOptions]="{ standalone: true }"
+            [class.activity]="getNormalizedTaskType(task) === 'ACTIVITY'"
+            [class.summary]="getNormalizedTaskType(task) === 'SUMMARY'"
+            [class.milestone]="getNormalizedTaskType(task) === 'MILESTONE'"
+            (ngModelChange)="updateLocalTaskField(task, 'taskType', $event); saveInlineTask(task)">
+            <option value="ACTIVITY">Acti</option>
+            <option value="SUMMARY">Sum</option>
+            <option value="MILESTONE">Mile</option>
+          </select>
+        </div>
+            <div
+              class="cell editable-cell col-restype"
+              *ngIf="columnVisibility.resourceType"
+              (click)="$event.stopPropagation()"
+            >
+              <select
+                class="resource-select"
+                [ngModel]="getNormalizedResourceType(task)"
+                [ngModelOptions]="{ standalone: true }"
+                [class.has-value]="!!(getEditableValue(task, 'resourceType') || task.resourceType)"
+                (ngModelChange)="updateInlineField(task, 'resourceType', $event)">
+                <option value="">--</option>
+                <option value="PM">PM</option>
+                <option value="ME">ME</option>
+                <option value="EE">EE</option>
+                <option value="PC">PC</option>
+                <option value="PLC">PLC</option>
+                <option value="PRC">PRC</option>
+                <option value="MFC">MFC</option>
+                <option value="QA">QA</option>
+                <option value="HSE">HSE</option>
+                <option value="INST">INST</option>
+                <option value="FIN">FIN</option>
+                <option value="CS">CS</option>
+                <option value="MEC">MEC</option>
+                <option value="ELECT">ELECT</option>
+                <option value="CUST">CUST</option>
+              </select>
+            </div>
+
+            <div
+              class="cell editable-cell col-dept"
+              *ngIf="columnVisibility.department"
+              (click)="$event.stopPropagation()"
+            >
+              <select
+                class="department-select"
+                [ngModel]="(task.departmentCode || '').toUpperCase()"
+                [ngModelOptions]="{ standalone: true }"
+                [class.has-value]="!!task.departmentCode"
+                (ngModelChange)="updateLocalTaskField(task, 'departmentCode', $event); saveInlineTask(task)">
+                <option value="">--</option>
+                <option *ngFor="let dept of departmentCodes" [value]="dept">{{ dept }} ✓</option>
+              </select>
+            </div>
+
+          <div
+            class="cell editable-cell col-date mono-date"
+            *ngIf="columnVisibility.actualStart"
+            (click)="$event.stopPropagation()"
+          >
+            <input
+              class="grid-input date-input"
+              type="date"
+              [value]="formatDateForInput(task.plannedStart)"
+              (change)="updateLocalTaskField(task, 'plannedStart', $any($event.target).value); saveInlineTask(task)"
+            />
           </div>
 
-          <div class="cell col-dept">
-            <span class="dept-pill" *ngIf="task.departmentCode; else noDept">
-              {{ task.departmentCode }}
-            </span>
-            <ng-template #noDept>—</ng-template>
+          <div
+            class="cell editable-cell col-date mono-date"
+            *ngIf="columnVisibility.actualFinish"
+            (click)="$event.stopPropagation()"
+          >
+            <input
+              class="grid-input date-input"
+              type="date"
+              [value]="formatDateForInput(task.plannedEnd)"
+              (change)="updateLocalTaskField(task, 'plannedEnd', $any($event.target).value); saveInlineTask(task)"
+            />
           </div>
 
-          <div class="cell col-date baseline-cell mono-date">{{ task.baselineStart || '—' }}</div>
-          <div class="cell col-date baseline-cell mono-date">{{ task.baselineEnd || '—' }}</div>
-          <div class="cell col-date planned-cell mono-date">{{ task.plannedStart || '—' }}</div>
-          <div class="cell col-date planned-cell mono-date">{{ task.plannedEnd || '—' }}</div>
+          <div
+            class="cell editable-cell col-dur"
+            *ngIf="columnVisibility.duration"
+            (click)="$event.stopPropagation()"
+          >
+            <input
+              class="grid-input number-input"
+              type="number"
+              min="0"
+              [value]="task.durationDays ?? 0"
+              [disabled]="!!task && isMilestone(task)"
+              (input)="updateLocalTaskField(task, 'durationDays', toNumber($any($event.target).value))"
+              (blur)="saveInlineTask(task)"
+            />
+          </div>
 
-          <div class="cell col-progress">
-            <div class="compact-progress" *ngIf="!isMilestone(task); else msLabel">
-              <div class="compact-progress-track">
-                <div class="compact-progress-fill" [style.width.%]="task.percentComplete ?? 0"></div>
+          <div
+            class="cell editable-cell col-progress"
+            *ngIf="columnVisibility.progress"
+            (click)="$event.stopPropagation()"
+          >
+            <div class="pct-wrap">
+              <div class="pct-track">
+                <div class="pct-fill" [style.width.%]="task.percentComplete ?? 0"></div>
               </div>
-              <span>{{ task.percentComplete ?? 0 }}%</span>
+              <input
+                class="grid-input number-input progress-input"
+                type="number"
+                min="0"
+                max="100"
+                [value]="task.percentComplete ?? 0"
+                [disabled]="!!task && isSummary(task)"
+                (input)="updateLocalTaskField(task, 'percentComplete', toNumber($any($event.target).value))"
+                (blur)="saveInlineTask(task)"
+              />
             </div>
-            <ng-template #msLabel>
-              <span class="milestone-mini-label">MS</span>
-            </ng-template>
+          </div>
+
+          <div class="cell col-pred pred-cell" *ngIf="columnVisibility.predecessors">
+            {{ getPredecessorText(task) }}
           </div>
         </div>
 
-        <div *ngIf="tasks.length === 0" class="empty-state-line">
+        <div *ngIf="visibleTasks.length === 0" class="empty-state-line">
           No schedule tasks found for this project.
         </div>
       </div>
     </div>
 
-    <!-- RIGHT GANTT -->
+    <!-- RESIZER -->
+    <div
+      class="planner-resizer"
+      (mousedown)="startResize($event)"
+      title="Drag to resize"
+    ></div>
+
+    <!-- RIGHT -->
     <div class="planner-right">
       <div class="gantt-header-top">
-        <div class="year-row">
-          <div class="year-cell" [style.width.px]="getTimelineWidth()">2026</div>
+        <div class="month-header-scroll" #monthHeaderScroll>
+          <div class="month-row" [style.width.px]="getTimelineWidth()">
+            <div
+              *ngFor="let month of getTimelineMonths()"
+              class="month-cell"
+              [style.width.px]="month.width">
+              {{ month.label }}
+            </div>
+          </div>
         </div>
 
         <div class="timeline-header-scroll" #timelineHeaderScroll>
-          <div class="timeline-header" [style.width.px]="getTimelineWidth()">
-            <div class="timeline-day" *ngFor="let day of timelineDays; trackBy: trackTimelineDay">
-              {{ day.label }}
+          <div class="timeline-header weeks-only-header" [style.width.px]="getTimelineWidth()">
+            <div
+              class="timeline-week-cell"
+              *ngFor="let week of getTimelineWeeks()"
+              [style.width.px]="week.width">
+              <div class="timeline-week-code">W{{ week.weekNumber }}</div>
+              <div class="timeline-week-start">{{ week.startLabel }}</div>
             </div>
           </div>
         </div>
@@ -247,11 +629,33 @@
       <div
         class="gantt-body-scroll"
         #ganttBodyScroll
-        (scroll)="onGanttVerticalScroll(); onGanttHorizontalScroll()"
+        (scroll)="onGanttScroll()"
       >
         <div class="gantt-wrapper" [style.width.px]="getTimelineWidth()">
+          <div class="today-line" [style.left.px]="getTodayLineLeft()"></div>
+
+          <ng-container *ngFor="let arrow of getDependencyArrows()">
+            <ng-container *ngFor="let seg of arrow.segments">
+              <div
+                class="dependency-segment"
+                [class.horizontal]="seg.direction === 'h'"
+                [class.vertical]="seg.direction === 'v'"
+                [style.left.px]="seg.left"
+                [style.top.px]="seg.top"
+                [style.width.px]="seg.direction === 'h' ? seg.width : 2"
+                [style.height.px]="seg.direction === 'v' ? seg.height : 2">
+              </div>
+            </ng-container>
+
+            <div
+              class="dependency-arrow-head"
+              [style.left.px]="arrow.arrowLeft"
+              [style.top.px]="arrow.arrowTop">
+            </div>
+          </ng-container>
+
           <div
-            *ngFor="let task of tasks; let i = index"
+            *ngFor="let task of visibleTasks; let i = index"
             class="gantt-row"
             [class.even]="i % 2 === 0"
             [class.odd]="i % 2 !== 0"
@@ -261,7 +665,8 @@
           >
             <div
               class="gantt-grid-line"
-              *ngFor="let day of timelineDays; trackBy: trackTimelineDay">
+              *ngFor="let day of timelineDays; trackBy: trackTimelineDay"
+              [class.week-separator]="day.isWeekStart">
             </div>
 
             <div
@@ -273,18 +678,43 @@
             </div>
 
             <div
+              *ngIf="activeMode === 'actual' && hasActualDates(task) && !isMilestone(task)"
+              class="gantt-actual-bar"
+              [style.left.px]="getActualLeft(task)"
+              [style.width.px]="getActualWidth(task)">
+            </div>
+
+            <div
               *ngIf="!isMilestone(task)"
               class="gantt-bar"
               [class.summary-bar]="isSummary(task)"
-              [style.left.px]="getTaskLeft(task)"
-              [style.width.px]="getTaskWidth(task)">
-              <span>{{ task.name }}</span>
+              [class.dragging]="dragState?.taskId === task.id"
+              [class.draggable]="canDragTask(task)"
+              [style.left.px]="getBarLeft(task)"
+              [style.width.px]="getBarWidth(task)"
+              (mousedown)="startBarDrag($event, task)"
+            >
+              <div
+                class="gantt-bar-progress"
+                *ngIf="!isSummary(task)"
+                [style.width.%]="task.percentComplete || 0">
+              </div>
+
+              <span class="gantt-label" *ngIf="!isSummary(task)">{{ getTaskLabel(task) }}</span>
             </div>
 
             <div
               *ngIf="isMilestone(task)"
               class="gantt-milestone"
-              [style.left.px]="getTaskLeft(task)">
+              [class.customer]="isCustomerMilestone(task)"
+              [style.left.px]="getBarLeft(task)">
+            </div>
+
+            <div
+              *ngIf="isMilestone(task)"
+              class="gantt-milestone-label"
+              [style.left.px]="getBarLeft(task) + 16">
+              {{ task.name }}
             </div>
           </div>
 
@@ -300,150 +730,865 @@
     Loading project schedule...
   </div>
 
-  <!-- BOTTOM DETAIL PANEL -->
-  <section class="bottom-panel" [class.open]="drawerOpen" *ngIf="taskForm">
-    <div class="bottom-panel-header">
-      <div class="task-identity">
-        <div class="task-id-badge">{{ selectedTask?.id || '—' }}</div>
-        <div class="task-identity-text">
-          <div class="task-title">{{ selectedTask?.name || 'Select a task' }}</div>
-          <div class="task-subtitle">
-            Task #{{ selectedTask?.id || '—' }} · {{ selectedTask?.wbsCode || '—' }}
-          </div>
+  <!-- BOTTOM PANEL -->
+  <section class="supervisor-panel" [class.open]="drawerOpen" *ngIf="taskForm">
+    <div class="sp-topbar">
+      <div class="sp-task-chip">
+        {{ selectedTask?.id || '—' }}
+      </div>
+
+      <div class="sp-task-meta">
+        <div class="sp-task-name">{{ selectedTask?.name || 'Select a task' }}</div>
+        <div class="sp-task-sub">
+          ID {{ selectedTask?.id || '—' }}
+          <span>·</span>
+          WBS {{ selectedTask?.wbsCode || '—' }}
+          <span>·</span>
+          {{ normalizeTaskType(selectedTask?.taskType) | titlecase }}
         </div>
       </div>
 
-      <div class="bottom-tabs">
-        <button type="button" class="bottom-tab active">General</button>
-        <button type="button" class="bottom-tab">Dates</button>
-        <button type="button" class="bottom-tab">Progress</button>
+      <div class="sp-tabs">
+        <button
+          type="button"
+          class="sp-tab"
+          [class.active]="activeDetailTab === 'general'"
+          (click)="activeDetailTab = 'general'">
+          General
+        </button>
+
+        <button
+          type="button"
+          class="sp-tab"
+          [class.active]="activeDetailTab === 'predecessors'"
+          (click)="activeDetailTab = 'predecessors'">
+          Predecessors
+        </button>
+
+        <button
+          type="button"
+          class="sp-tab"
+          [class.active]="activeDetailTab === 'resources'"
+          (click)="activeDetailTab = 'resources'">
+          Resources
+        </button>
       </div>
 
-      <button type="button" class="bottom-close-btn" (click)="closeDrawer()">✕</button>
-    </div>
-
-    <form class="bottom-panel-body" [formGroup]="taskForm">
-      <div class="detail-grid">
-        <div class="detail-card large">
-          <div class="detail-card-title">Task Details</div>
-          <div class="form-row">
-            <div class="form-group flex-2">
-              <label>Name</label>
-              <input type="text" formControlName="name" />
-            </div>
-
-            <div class="form-group small">
-              <label>Duration</label>
-              <input type="number" formControlName="durationDays" />
-            </div>
-
-            <div class="form-group small">
-              <label>Priority</label>
-              <input type="number" formControlName="priority" />
-            </div>
-
-            <div class="form-group small">
-              <label>Type</label>
-              <select formControlName="taskType">
-                <option *ngFor="let type of taskTypes" [value]="type">{{ type }}</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-group full-width">
-            <label>Description</label>
-            <textarea rows="3" formControlName="description"></textarea>
-          </div>
-        </div>
-
-        <div class="detail-card side">
-          <div class="detail-card-title">Progress</div>
-          <div class="progress-slider-box">
-            <div class="progress-preview-track">
-              <div class="progress-preview-fill" [style.width.%]="taskForm.get('percentComplete')?.value || 0"></div>
-            </div>
-            <div class="progress-number">{{ taskForm.get('percentComplete')?.value || 0 }}%</div>
-          </div>
-
-          <div class="form-group">
-            <label>Percent Complete</label>
-            <input type="number" min="0" max="100" formControlName="percentComplete" />
-          </div>
-
-          <div class="checkbox-stack">
-            <label><input type="checkbox" formControlName="active" /> Active</label>
-            <label><input type="checkbox" formControlName="customerMilestone" /> Customer milestone</label>
-          </div>
-        </div>
-
-        <div class="detail-card large">
-          <div class="detail-card-title">Baseline / Planned Dates</div>
-
-          <div class="date-columns">
-            <div class="date-block baseline-block">
-              <div class="date-block-title">Baseline</div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label>Start</label>
-                  <input type="date" formControlName="baselineStart" />
-                </div>
-                <div class="form-group">
-                  <label>End</label>
-                  <input type="date" formControlName="baselineEnd" />
-                </div>
-              </div>
-            </div>
-
-            <div class="date-block planned-block">
-              <div class="date-block-title">Planned</div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label>Start</label>
-                  <input type="date" formControlName="plannedStart" />
-                </div>
-                <div class="form-group">
-                  <label>End</label>
-                  <input type="date" formControlName="plannedEnd" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="detail-card side">
-          <div class="detail-card-title">Additional Info</div>
-
-          <div class="form-group">
-            <label>Department</label>
-            <select formControlName="departmentCode">
-              <option value="">--</option>
-              <option *ngFor="let dept of departmentCodes" [value]="dept">{{ dept }}</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>WBS Code</label>
-            <input type="text" formControlName="wbsCode" />
-          </div>
-
-          <div class="form-group">
-            <label>Display Order</label>
-            <input type="number" formControlName="displayOrder" />
-          </div>
-
-          <div class="form-group">
-            <label>Schedule Mode</label>
-            <input type="text" formControlName="scheduleMode" />
-          </div>
-        </div>
-      </div>
-    </form>
-
-    <div class="bottom-panel-footer">
-      <button type="button" class="secondary-drawer-btn" (click)="closeDrawer()">Cancel</button>
-      <button type="button" class="primary-drawer-btn" (click)="saveTask()" [disabled]="saving">
-        {{ saving ? 'Saving...' : 'Save Task' }}
+      <button type="button" class="sp-close-btn" (click)="closeDrawer()">
+        <span class="material-symbols-outlined">close</span>
       </button>
     </div>
+
+    <form class="sp-body" [formGroup]="taskForm">
+      <ng-container *ngIf="activeDetailTab === 'general'">
+        <div class="sp-general-layout">
+          <div class="sp-general-main">
+            <div class="sp-card">
+              <div class="sp-card-title blue-dot">Task Details</div>
+
+              <div class="sp-task-grid">
+                <div class="sp-field sp-col-name">
+                  <label>Name</label>
+                  <input type="text" formControlName="name" />
+                </div>
+
+                <div class="sp-field sp-col-duration">
+                  <label>Duration (d)</label>
+                  <input
+                    type="number"
+                    formControlName="durationDays"
+                    [disabled]="!!selectedTask && isMilestone(selectedTask)" />
+                </div>
+
+                <div class="sp-field sp-col-priority">
+                  <label>Priority</label>
+                  <input type="number" formControlName="priority" />
+                </div>
+
+                <div class="sp-field sp-col-type">
+                  <label>Type</label>
+                  <select formControlName="taskType">
+                    <option *ngFor="let t of taskTypes" [value]="t">{{ t }}</option>
+                  </select>
+                </div>
+
+                <div class="sp-field sp-col-customer">
+                  <label>Customer</label>
+                  <select formControlName="customerMilestone">
+                    <option [ngValue]="false">No</option>
+                    <option [ngValue]="true">Yes</option>
+                  </select>
+                </div>
+
+                <div class="sp-field sp-col-restype">
+                  <label>Res. Type</label>
+                  <select formControlName="resourceType">
+                    <option value="">--</option>
+                    <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
+                  </select>
+                </div>
+
+                <div class="sp-field sp-col-dept">
+                  <label>Department</label>
+                  <select formControlName="departmentCode">
+                    <option value="">--</option>
+                    <option *ngFor="let dept of departmentCodes" [value]="dept">{{ dept }}</option>
+                  </select>
+                </div>
+
+                <div class="sp-field">
+                  <label>Schedule Mode</label>
+                  <select formControlName="scheduleMode">
+                    <option value="AUTO">AUTO</option>
+                    <option value="MANUAL">MANUAL</option>
+                  </select>
+                </div>
+
+                <div class="sp-field">
+                  <label>Status</label>
+                  <input type="text" formControlName="status" />
+                </div>
+
+                <div class="sp-field">
+                  <label>Color</label>
+                  <input type="text" formControlName="color" placeholder="#4f46e5" />
+                </div>
+              </div>
+            </div>
+
+            <div class="sp-card">
+              <div class="sp-dates-grid">
+                <div class="sp-date-box baseline">
+                  <div class="sp-card-title amber-dot">Baseline</div>
+
+                  <div class="sp-date-row">
+                    <div class="sp-field">
+                      <label>Start</label>
+                      <input type="date" formControlName="baselineStart" />
+                    </div>
+
+                    <div class="sp-field">
+                      <label>Finish</label>
+                      <input type="date" formControlName="baselineEnd" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="sp-date-divider"></div>
+
+                <div class="sp-date-box planned">
+                  <div class="sp-card-title blue-dot">Planned</div>
+
+                  <div class="sp-date-row">
+                    <div class="sp-field">
+                      <label>Start</label>
+                      <input type="date" formControlName="plannedStart" />
+                    </div>
+
+                    <div class="sp-field">
+                      <label>Finish</label>
+                      <input type="date" formControlName="plannedEnd" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="sp-card">
+              <div class="sp-dates-grid">
+                <div class="sp-date-box planned">
+                  <div class="sp-card-title purple-dot">Actual</div>
+
+                  <div class="sp-date-row">
+                    <div class="sp-field">
+                      <label>Start</label>
+                      <input type="date" formControlName="actualStart" />
+                    </div>
+
+                    <div class="sp-field">
+                      <label>Finish</label>
+                      <input type="date" formControlName="actualEnd" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="sp-date-divider"></div>
+
+                <div class="sp-date-box baseline">
+                  <div class="sp-card-title green-dot">Execution</div>
+
+                  <div class="sp-date-row">
+                    <div class="sp-field">
+                      <label>% Complete</label>
+                      <input type="number" min="0" max="100" formControlName="percentComplete" />
+                    </div>
+
+                    <div class="sp-field">
+                      <label>Allocation %</label>
+                      <input type="number" min="0" max="100" formControlName="allocationPercent" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <aside class="sp-general-side">
+            <div class="sp-side-card">
+              <div class="sp-card-title purple-dot">Progress</div>
+
+              <div class="sp-progress-wrap">
+                <div class="sp-progress-bar">
+                  <div
+                    class="sp-progress-fill"
+                    [style.width.%]="taskForm.get('percentComplete')?.value || 0">
+                  </div>
+                </div>
+                <div class="sp-progress-value">
+                  {{ taskForm.get('percentComplete')?.value || 0 }}%
+                </div>
+              </div>
+            </div>
+
+            <div class="sp-side-card">
+              <div class="sp-card-title orange-dot">Options</div>
+
+              <div class="sp-options-grid">
+                <label class="sp-check-pill">
+                  <input
+                    type="checkbox"
+                    [checked]="taskForm.get('scheduleMode')?.value === 'MANUAL'" />
+                  <span>Manual</span>
+                </label>
+
+                <label class="sp-check-pill">
+                  <input
+                    type="checkbox"
+                    [checked]="taskForm.get('active')?.value === false" />
+                  <span>Inactive</span>
+                </label>
+
+                <label class="sp-check-pill">
+                  <input
+                    type="checkbox"
+                    [checked]="taskForm.get('customerMilestone')?.value === true" />
+                  <span>Customer MS</span>
+                </label>
+
+                <label class="sp-check-pill">
+                  <input
+                    type="checkbox"
+                    [checked]="isMilestone(selectedTask)"
+                    [disabled]="true" />
+                  <span>Milestone</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="sp-side-card">
+              <div class="sp-card-title blue-dot">Assignment</div>
+              <div class="sp-assignment-text">
+                {{ selectedTask?.assignedUserName || selectedTask?.departmentCode || 'Unassigned' }}
+              </div>
+              <div class="sp-assignment-text">
+                Resource: {{ taskForm.get('resourceType')?.value || '—' }}
+              </div>
+            </div>
+
+            <div class="sp-side-card">
+              <button
+                type="button"
+                class="toolbar-main-btn save-btn full-save-btn"
+                (click)="saveTask()"
+                [disabled]="!selectedTask || saving">
+                <span class="material-symbols-outlined">save</span>
+                <span>{{ saving ? 'Saving...' : 'Save Task' }}</span>
+              </button>
+            </div>
+          </aside>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="activeDetailTab === 'predecessors'">
+        <div class="sp-table-card">
+          <div class="sp-table-head predecessor-head">
+            <div>#</div>
+            <div>ID</div>
+            <div>Task Name</div>
+            <div>Relation Type</div>
+            <div>Lag (days)</div>
+            <div></div>
+          </div>
+
+          <div
+            class="sp-table-row predecessor-row"
+            *ngFor="let dep of selectedTask?.dependencies; let i = index">
+            <div>
+              <span class="sp-row-badge">{{ i + 1 }}</span>
+            </div>
+
+            <div>{{ dep.predecessorTaskId }}</div>
+
+            <div>
+              {{ getTaskNameById(dep.predecessorTaskId) }}
+            </div>
+
+            <div>
+              <select
+                class="sp-inline-select"
+                [(ngModel)]="dep.dependencyType"
+                [ngModelOptions]="{ standalone: true }"
+                (change)="saveDependency(dep)">
+                <option *ngFor="let type of dependencyTypes" [value]="type">{{ type }}</option>
+              </select>
+            </div>
+
+            <div>
+              <input
+                class="sp-inline-input small"
+                type="number"
+                [(ngModel)]="dep.lagDays"
+                [ngModelOptions]="{ standalone: true }"
+                (blur)="saveDependency(dep)" />
+            </div>
+
+            <div class="sp-row-actions">
+              <button
+                *ngIf="dep.id"
+                type="button"
+                class="sp-icon-btn"
+                (click)="removeDependency(dep.id)">
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="sp-table-row predecessor-row">
+            <div>
+              <span class="sp-row-badge">+</span>
+            </div>
+
+            <div>New</div>
+
+            <div>
+              <select
+                class="sp-inline-select"
+                [(ngModel)]="newDependency.predecessorTaskId"
+                [ngModelOptions]="{ standalone: true }">
+                <option [ngValue]="null">-- Select predecessor --</option>
+                <option *ngFor="let task of availablePredecessorTasks" [ngValue]="task.id">
+                  {{ task.wbsCode || task.id }} - {{ task.name }}
+                </option>
+              </select>
+            </div>
+
+            <div>
+              <select
+                class="sp-inline-select"
+                [(ngModel)]="newDependency.dependencyType"
+                [ngModelOptions]="{ standalone: true }">
+                <option *ngFor="let type of dependencyTypes" [value]="type">{{ type }}</option>
+              </select>
+            </div>
+
+            <div>
+              <input
+                class="sp-inline-input small"
+                type="number"
+                [(ngModel)]="newDependency.lagDays"
+                [ngModelOptions]="{ standalone: true }" />
+            </div>
+
+            <div class="sp-row-actions">
+              <button
+                type="button"
+                class="sp-icon-btn"
+                (click)="addDependency()"
+                [disabled]="!selectedTask || !newDependency.predecessorTaskId">
+                <span class="material-symbols-outlined">add</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="activeDetailTab === 'resources'">
+        <div class="sp-table-card">
+          <div class="sp-table-head resource-head">
+            <div>#</div>
+            <div>Res.Type</div>
+            <div>Assignment</div>
+            <div>Qty</div>
+            <div>Units (%)</div>
+            <div>Cost (€)</div>
+            <div></div>
+          </div>
+
+          <div
+            class="sp-table-row resource-row"
+            *ngFor="let res of taskResources; let i = index">
+            <div>
+              <span class="sp-row-badge">{{ i + 1 }}</span>
+            </div>
+
+            <div>
+              <select
+                class="sp-inline-select"
+                [(ngModel)]="res.resourceType"
+                [ngModelOptions]="{ standalone: true }"
+                (change)="saveResource(res)">
+                <option value="">--</option>
+                <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
+              </select>
+            </div>
+
+            <div>
+              <input
+                class="sp-inline-input"
+                type="text"
+                [(ngModel)]="res.assignmentName"
+                [ngModelOptions]="{ standalone: true }"
+                (blur)="saveResource(res)" />
+            </div>
+
+            <div>
+              <input
+                class="sp-inline-input small"
+                type="number"
+                [(ngModel)]="res.quantity"
+                [ngModelOptions]="{ standalone: true }"
+                (blur)="saveResource(res)" />
+            </div>
+
+            <div>
+              <input
+                class="sp-inline-input"
+                type="number"
+                [(ngModel)]="res.unitsPercent"
+                [ngModelOptions]="{ standalone: true }"
+                (blur)="saveResource(res)" />
+            </div>
+
+            <div>
+              <input
+                class="sp-inline-input"
+                type="number"
+                [(ngModel)]="res.cost"
+                [ngModelOptions]="{ standalone: true }"
+                (blur)="saveResource(res)" />
+            </div>
+
+            <div class="sp-row-actions">
+              <button
+                type="button"
+                class="sp-icon-btn"
+                (click)="removeResource(res.id)">
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="sp-table-row resource-row">
+            <div>
+              <span class="sp-row-badge">+</span>
+            </div>
+
+            <div>
+              <select
+                class="sp-inline-select"
+                [(ngModel)]="newResource.resourceType"
+                [ngModelOptions]="{ standalone: true }">
+                <option value="">--</option>
+                <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
+              </select>
+            </div>
+
+            <div>
+              <input
+                class="sp-inline-input"
+                type="text"
+                [(ngModel)]="newResource.assignmentName"
+                [ngModelOptions]="{ standalone: true }"
+                placeholder="Assignment name" />
+            </div>
+
+            <div>
+              <input
+                class="sp-inline-input small"
+                type="number"
+                [(ngModel)]="newResource.quantity"
+                [ngModelOptions]="{ standalone: true }" />
+            </div>
+
+            <div>
+              <input
+                class="sp-inline-input"
+                type="number"
+                [(ngModel)]="newResource.unitsPercent"
+                [ngModelOptions]="{ standalone: true }" />
+            </div>
+
+            <div>
+              <input
+                class="sp-inline-input"
+                type="number"
+                [(ngModel)]="newResource.cost"
+                [ngModelOptions]="{ standalone: true }" />
+            </div>
+
+            <div class="sp-row-actions">
+              <button
+                type="button"
+                class="sp-icon-btn"
+                (click)="addResource()">
+                <span class="material-symbols-outlined">add</span>
+              </button>
+            </div>
+          </div>
+
+          <div *ngIf="!taskResources?.length" class="empty-state-line">
+            No resources assigned to this task yet.
+          </div>
+        </div>
+      </ng-container>
+    </form>
   </section>
+
+  <!-- SETTINGS DRAWER -->
+  <div
+    class="settings-overlay"
+    [class.open]="settingsOpen"
+    (click)="closeSettingsOnBackdrop($event)"
+  >
+    <aside class="settings-drawer" [class.open]="settingsOpen">
+      <div class="settings-drawer-header">
+        <div class="settings-drawer-title-wrap">
+          <span class="material-symbols-outlined settings-drawer-icon">settings</span>
+          <div class="settings-drawer-title">Project Settings</div>
+        </div>
+
+        <button
+          type="button"
+          class="settings-close-btn"
+          (click)="toggleSettings()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="settings-tab-bar">
+        <button
+          type="button"
+          class="settings-tab-btn"
+          [class.active]="settingsTab === 'templates'"
+          (click)="openTemplateTab()">
+          <span class="material-symbols-outlined tab-mini-icon">article</span>
+          <span>Templates</span>
+        </button>
+
+        <button
+          type="button"
+          class="settings-tab-btn"
+          [class.active]="settingsTab === 'calendar'"
+          (click)="settingsTab = 'calendar'">
+          <span class="material-symbols-outlined tab-mini-icon">calendar_month</span>
+          <span>Calendars</span>
+        </button>
+
+        <button
+          type="button"
+          class="settings-tab-btn"
+          [class.active]="settingsTab === 'baseline'"
+          (click)="openBaselineTab()">
+          <span class="material-symbols-outlined tab-mini-icon">flag</span>
+          <span>Baselines</span>
+        </button>
+      </div>
+
+      <div class="settings-drawer-body">
+        <ng-container *ngIf="settingsTab === 'templates'">
+          <section class="drawer-section">
+            <div class="drawer-section-header">
+              <div class="drawer-section-title">
+                <span class="material-symbols-outlined sec-icon">dashboard_customize</span>
+                <span>Saved Templates</span>
+              </div>
+
+              <button type="button" class="mini-outline-btn">↑ Import .xml</button>
+            </div>
+
+            <div class="drawer-empty-card" *ngIf="templates.length === 0">
+              <span class="material-symbols-outlined empty-icon">inventory_2</span>
+              <div class="empty-title">No templates saved yet.</div>
+              <div class="empty-subtitle">Create one below.</div>
+            </div>
+
+            <div class="drawer-list-card" *ngFor="let template of templates">
+              <div class="list-card-main">
+                <div class="list-card-title">{{ template.name }}</div>
+                <div class="list-card-sub">
+                  {{ template.scope }} · {{ template.createdAt }}
+                  <span *ngIf="template.description"> · {{ template.description }}</span>
+                </div>
+              </div>
+
+              <div class="list-card-actions">
+                <button type="button" class="icon-square-btn" (click)="applyTemplate(template.id)">
+                  <span class="material-symbols-outlined">play_arrow</span>
+                </button>
+                <button type="button" class="icon-square-btn danger" (click)="deleteTemplate(template.id)">
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <section class="drawer-section">
+            <div class="drawer-section-header no-border">
+              <div class="drawer-section-title">
+                <span class="material-symbols-outlined sec-icon">add_circle</span>
+                <span>Create New Template</span>
+              </div>
+            </div>
+
+            <div class="template-builder-card">
+              <div class="template-scope-row">
+                <button
+                  type="button"
+                  class="template-scope-btn"
+                  [class.active]="selectedTemplateScope === 'all'"
+                  (click)="setTemplateScope('all')">
+                  <div class="scope-title">📋 Full Schedule</div>
+                  <div class="scope-sub">All tasks in project</div>
+                </button>
+
+                <button
+                  type="button"
+                  class="template-scope-btn"
+                  [class.active]="selectedTemplateScope === 'selected'"
+                  (click)="setTemplateScope('selected')">
+                  <div class="scope-title">✂️ Selected Tasks</div>
+                  <div class="scope-sub">Select tasks below</div>
+                </button>
+              </div>
+
+              <div class="template-create-row">
+                <input
+                  type="text"
+                  class="template-name-input"
+                  [(ngModel)]="templateName"
+                  placeholder="Template name..." />
+
+                <button
+                  type="button"
+                  class="primary-action-btn"
+                  (click)="saveTemplateWithName()"
+                  [disabled]="selectedTemplateScope === 'selected' && getSelectedTemplateCount() === 0">
+                  Save Template
+                </button>
+              </div>
+
+              <div class="template-create-row">
+                <input
+                  type="text"
+                  class="template-name-input"
+                  [(ngModel)]="templateDescription"
+                  placeholder="Template description (optional)..." />
+              </div>
+
+              <ng-container *ngIf="selectedTemplateScope === 'selected'">
+                <div class="template-selection-head">
+                  <div class="template-selection-title">Select tasks to include:</div>
+
+                  <div class="template-selection-actions">
+                    <button
+                      type="button"
+                      class="mini-outline-btn"
+                      (click)="toggleAllTemplateTasks(true)">
+                      Select all
+                    </button>
+
+                    <button
+                      type="button"
+                      class="mini-outline-btn"
+                      (click)="clearTemplateSelection()">
+                      Clear
+                    </button>
+                  </div>
+                </div>
+
+                <div class="template-selection-count">
+                  {{ getSelectedTemplateCount() }} task(s) selected
+                </div>
+
+                <div class="template-task-picker">
+                  <div
+                    class="template-task-row"
+                    *ngFor="let task of visibleTasks; let i = index"
+                    [class.summary]="isSummary(task)">
+
+                    <label class="template-task-check">
+                      <input
+                        type="checkbox"
+                        [checked]="isTemplateTaskSelected(task.id)"
+                        (change)="toggleTemplateTask(task.id, $any($event.target).checked)" />
+                    </label>
+
+                    <div class="template-task-wbs">
+                      {{ task.wbsCode || '—' }}
+                    </div>
+
+                    <div class="template-task-name" [style.padding-left.px]="getIndent(task)">
+                      <span *ngIf="isSummary(task)" class="summary-marker-static">▸</span>
+                      {{ task.name }}
+                    </div>
+
+                    <div class="template-task-type-badge" [class.summary]="isSummary(task)" [class.milestone]="isMilestone(task)">
+                      {{ getTemplateTaskTypeLabel(task) }}
+                    </div>
+                  </div>
+                </div>
+              </ng-container>
+            </div>
+          </section>
+        </ng-container>
+
+        <ng-container *ngIf="settingsTab === 'calendar'">
+          <section class="drawer-section">
+            <div class="drawer-section-header">
+              <div class="drawer-section-title">
+                <span class="material-symbols-outlined sec-icon">calendar_month</span>
+                <span>Saved Calendars</span>
+              </div>
+
+              <button type="button" class="primary-action-btn small-btn" (click)="createDefaultCalendar()">
+                + New Calendar
+              </button>
+            </div>
+
+            <div class="drawer-list-card calendar-card" *ngFor="let cal of calendars">
+              <div class="calendar-avatar">
+                <span class="material-symbols-outlined">calendar_month</span>
+              </div>
+
+              <div class="list-card-main">
+                <div class="list-card-title">
+                  {{ cal.name }}
+                  <span class="default-badge" *ngIf="cal.isDefault">Default</span>
+                </div>
+                <div class="list-card-sub">
+                  {{ getCalendarDaysLabel(cal.workingDays) }} · {{ cal.hoursPerDay }}h/day · Start {{ cal.startTime }}
+                </div>
+              </div>
+
+              <div class="list-card-actions">
+                <button
+                  type="button"
+                  class="icon-square-btn"
+                  title="Make default"
+                  (click)="makeCalendarDefault(cal.id)">
+                  <span class="material-symbols-outlined">star</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="icon-square-btn danger"
+                  title="Delete"
+                  (click)="deleteCalendar(cal.id)">
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="drawer-empty-card" *ngIf="calendars.length === 0">
+              <span class="material-symbols-outlined empty-icon">calendar_month</span>
+              <div class="empty-title">No calendars saved yet.</div>
+            </div>
+          </section>
+        </ng-container>
+
+        <ng-container *ngIf="settingsTab === 'baseline'">
+          <section class="drawer-section">
+            <div class="drawer-section-header no-border">
+              <div class="drawer-section-title">
+                <span class="material-symbols-outlined sec-icon">add</span>
+                <span>Set New Baseline</span>
+              </div>
+            </div>
+
+            <div class="baseline-create-card">
+              <div class="baseline-help-text">
+                Captures the current <strong>planned dates</strong> and <strong>% complete</strong>
+                of all tasks as a snapshot.
+              </div>
+
+              <div class="template-create-row">
+                <input
+                  type="text"
+                  class="template-name-input"
+                  [(ngModel)]="baselineName"
+                  placeholder="Baseline name..." />
+
+                <button
+                  type="button"
+                  class="primary-action-btn"
+                  (click)="saveBaselineWithName()">
+                  📌 Set Baseline
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <section class="drawer-section">
+            <div class="drawer-section-header">
+              <div class="drawer-section-title">
+                <span class="material-symbols-outlined sec-icon">inventory_2</span>
+                <span>Saved Baselines</span>
+              </div>
+            </div>
+
+            <ng-container *ngIf="baselines && baselines.length > 0; else noBaselines">
+              <div
+                class="drawer-list-card baseline-card"
+                [class.active-baseline]="baseline.active"
+                *ngFor="let baseline of baselines; trackBy: trackBaseline">
+                <div class="list-card-main">
+                  <div class="list-card-title">{{ baseline.name }}</div>
+                  <div class="list-card-sub">{{ baseline.createdAt }}</div>
+                </div>
+
+                <div class="list-card-actions">
+                  <button type="button" class="icon-square-btn" (click)="restoreBaseline(baseline.id)">
+                    <span class="material-symbols-outlined">restore</span>
+                  </button>
+                  <button type="button" class="icon-square-btn danger" (click)="deleteBaseline(baseline.id)">
+                    <span class="material-symbols-outlined">delete</span>
+                  </button>
+                </div>
+              </div>
+            </ng-container>
+
+            <ng-template #noBaselines>
+              <div class="drawer-empty-card">
+                <span class="material-symbols-outlined empty-icon">add</span>
+                <div class="empty-title">No baselines saved yet.</div>
+                <div class="empty-subtitle">Set one above to begin tracking.</div>
+              </div>
+            </ng-template>
+          </section>
+        </ng-container>
+      </div>
+
+      <div class="settings-drawer-footer">
+        <span class="footer-note">Changes are applied immediately</span>
+
+        <button
+          type="button"
+          class="save-settings-btn"
+          (click)="toggleSettings()">
+          <span class="material-symbols-outlined">save</span>
+          <span>Save Settings</span>
+        </button>
+      </div>
+    </aside>
+  </div>
 </div>

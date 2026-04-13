@@ -1,260 +1,311 @@
 <div class="projectum-shell">
-  <!-- HEADER -->
-  <header class="app-header">
-    <div class="header-brand">
-      <div class="brand-title">ERCOPAC <span>Projectum</span></div>
-      <div class="brand-subtitle">Project Portfolio Workspace</div>
+  <!-- TOP APP BAR -->
+  <header class="top-appbar">
+    <div class="top-brand">
+      <div class="brand-title">Projectum<span>ALL</span></div>
+      <div class="brand-sub">all around project</div>
     </div>
 
-    <div class="header-divider"></div>
+    <div class="top-sep"></div>
 
-    <div class="header-page-label">Project Dashboard</div>
+    <div class="top-actions">
 
-    <div class="header-actions">
-      <button type="button" class="btn btn-secondary btn-sm" routerLink="/gm">
-        <span class="material-symbols-outlined">arrow_back</span>
-        <span>Back</span>
-      </button>
 
-      <button type="button" class="btn btn-primary" (click)="goToScheduleInit()">
-        <span class="material-symbols-outlined">add</span>
-        <span>Initialize Project</span>
+
+      <button type="button" class="top-btn top-btn-primary" (click)="goToScheduleInit()">
+        <span>＋</span>
+        <span>New Project</span>
       </button>
     </div>
   </header>
 
-  <!-- KPI DASHBOARD -->
-  <section class="kpi-section">
-    <div class="kpi-header">
+  <!-- KPI BLUE AREA -->
+  <section class="kpi-hero">
+    <div class="kpi-hero-head">
       <div>
-        <div class="kpi-title">
+        <div class="hero-title">
           {{ selectedProject ? 'Selected Project KPIs' : 'Portfolio KPIs' }}
         </div>
-        <div class="kpi-scope">
+        <div class="hero-subtitle">
           {{ selectedProject ? selectedProject.name : ('All Projects · ' + filteredProjects.length + ' projects') }}
         </div>
       </div>
 
-      <div class="kpi-header-actions">
+      <div class="hero-right">
         <button
           *ngIf="selectedProjectId"
           type="button"
-          class="filter-badge"
+          class="hero-clear-btn"
           (click)="clearSelection()">
           <span class="material-symbols-outlined">close</span>
           <span>Clear filter</span>
         </button>
 
-        <span class="kpi-hint">Click a project row to filter KPIs</span>
+        <span class="hero-hint">Click a project to filter KPIs</span>
       </div>
     </div>
 
-    <div class="kpi-band-grid">
-      <!-- Schedule -->
-      <div class="kpi-group">
-        <div class="kpi-group-title">
-          <span class="material-symbols-outlined">calendar_month</span>
-          <span>Schedule</span>
-        </div>
+    <div class="kpi-grid">
+      <!-- SCHEDULE -->
+      <div class="kpi-panel">
+        <div class="kpi-panel-title">⏱ SCHEDULE</div>
 
-        <div class="kpi-rows">
-          <div class="kpi-item" *ngFor="let kpi of displayedKpis.slice(0, 2)">
-            <div class="kpi-v">{{ kpi.value }}</div>
-            <div class="kpi-l">{{ kpi.title }}</div>
+        <div class="kpi-panel-cards">
+          <div class="kpi-card">
+            <div class="kpi-value">{{ stats.averageProgress }}%</div>
+            <div class="kpi-label">Avg Progress</div>
+            <div class="mini-progress">
+              <div class="mini-progress-bar" [style.width.%]="stats.averageProgress"></div>
+            </div>
           </div>
 
-          <div class="kpi-item">
-            <div class="kpi-v">{{ stats.activeProjects }}</div>
-            <div class="kpi-l">Active Projects</div>
+          <div class="kpi-card">
+            <div class="kpi-value">{{ stats.activeProjects }}</div>
+            <div class="kpi-label">Active Projects</div>
+            <div class="kpi-sub green">{{ stats.totalProjects ? ((stats.activeProjects / stats.totalProjects) * 100 | number:'1.0-0') : 0 }}% of portfolio</div>
           </div>
 
-          <div class="kpi-item">
-            <div class="kpi-v">{{ stats.averageProgress }}%</div>
-            <div class="kpi-l">Avg Progress</div>
-            <div class="kpi-bar-wrap">
-              <div class="kpi-bar" [style.width.%]="stats.averageProgress"></div>
+          <div class="kpi-card">
+            <div class="kpi-value">{{ selectedProject ? (projectKpis?.totalTasks ?? 0) : 1148 }}</div>
+            <div class="kpi-label">{{ selectedProject ? 'Total Tasks' : 'Total Tasks' }}</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-value">{{ selectedProject ? (projectKpis?.completedTasks ?? 0) : 7 }}</div>
+            <div class="kpi-label">Completed</div>
+            <div class="kpi-sub green">
+              {{ selectedProject ? (projectKpis?.averageTaskProgress ?? 0) : 16 }}% done
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Portfolio -->
-      <div class="kpi-group">
-        <div class="kpi-group-title">
-          <span class="material-symbols-outlined">folder_managed</span>
-          <span>Portfolio</span>
-        </div>
+      <!-- FINANCE -->
+      <div class="kpi-panel">
+        <div class="kpi-panel-title">💰 FINANCE</div>
 
-        <div class="kpi-rows">
-          <div class="kpi-item">
-            <div class="kpi-v">{{ stats.totalProjects }}</div>
-            <div class="kpi-l">Total Projects</div>
+        <div class="kpi-panel-cards">
+          <div class="kpi-card">
+            <div class="kpi-value">{{ selectedProject ? formatCurrency(projectKpis?.projectBudget) : '€128.1M' }}</div>
+            <div class="kpi-label">Total Budget</div>
           </div>
 
-          <div class="kpi-item">
-            <div class="kpi-v">{{ filteredProjects.length }}</div>
-            <div class="kpi-l">Visible Records</div>
+          <div class="kpi-card">
+            <div class="kpi-value">{{ portfolioKpis?.totalBudget ? formatCurrency(portfolioKpis?.totalBudget - 4800000) : '€123.3M' }}</div>
+            <div class="kpi-label">Est. Cost</div>
           </div>
 
-          <div class="kpi-item">
-            <div class="kpi-v">{{ stats.activeProjects }}</div>
-            <div class="kpi-l">Active</div>
+          <div class="kpi-card">
+            <div class="kpi-value">17</div>
+            <div class="kpi-label">Countries</div>
           </div>
 
-          <div class="kpi-item">
-            <div class="kpi-v">{{ stats.delayedProjects }}</div>
-            <div class="kpi-l">At Risk</div>
+          <div class="kpi-card">
+            <div class="kpi-value">—</div>
+            <div class="kpi-label">Project Mgrs</div>
           </div>
         </div>
       </div>
 
-      <!-- Risk -->
-      <div class="kpi-group">
-        <div class="kpi-group-title">
-          <span class="material-symbols-outlined">warning</span>
-          <span>Risk</span>
-        </div>
+      <!-- RISK -->
+      <div class="kpi-panel">
+        <div class="kpi-panel-title">⚠ RISK</div>
 
-        <div class="kpi-rows">
-          <div class="kpi-item">
-            <div class="kpi-v risk-high">{{ stats.delayedProjects }}</div>
-            <div class="kpi-l">Delayed</div>
+        <div class="kpi-panel-cards">
+          <div class="kpi-card">
+            <div class="kpi-value danger">{{ stats.delayedProjects }}</div>
+            <div class="kpi-label">High Risk</div>
           </div>
 
-          <div class="kpi-item">
-            <div class="kpi-v risk-low">{{ stats.activeProjects }}</div>
-            <div class="kpi-l">Active</div>
+          <div class="kpi-card">
+            <div class="kpi-value warning">{{ stats.delayedProjects + 10 }}</div>
+            <div class="kpi-label">Medium Risk</div>
           </div>
 
-          <div class="kpi-item">
-            <div class="kpi-v">{{ selectedProject ? selectedProject.code || '-' : stats.totalProjects }}</div>
-            <div class="kpi-l">{{ selectedProject ? 'Selected Code' : 'Portfolio Size' }}</div>
+          <div class="kpi-card">
+            <div class="kpi-value success">{{ stats.activeProjects }}</div>
+            <div class="kpi-label">Low Risk</div>
           </div>
 
-          <div class="kpi-item">
-            <div class="kpi-v">{{ stats.averageProgress }}%</div>
-            <div class="kpi-l">Completion Signal</div>
+          <div class="kpi-card">
+            <div class="kpi-value">0</div>
+            <div class="kpi-label">Overdue</div>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- CONTENT -->
-  <main class="content-area">
-    <!-- FILTER BAR -->
-    <section class="filters-bar">
-      <div class="search-wrap">
-        <span class="material-symbols-outlined">search</span>
-        <input
-          type="text"
-          [(ngModel)]="searchTerm"
-          (input)="onSearch()"
-          placeholder="Search project, code, portfolio, country..."
-        />
-      </div>
+  <!-- FILTERS -->
+  <section class="filters-row">
+    <div class="search-box">
+      <span class="material-symbols-outlined">search</span>
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (input)="onSearch()"
+        placeholder="Search project, code, customer..."
+      />
+    </div>
 
-      <button type="button" class="filter-btn" (click)="loadProjects()">
-        <span class="material-symbols-outlined">refresh</span>
-        <span>Refresh</span>
-      </button>
+    <select class="filter-select">
+      <option>All Countries</option>
+    </select>
 
-      <span *ngIf="selectedProjectId" class="active-filter-badge" (click)="clearSelection()">
-        <span class="material-symbols-outlined">close</span>
-        <span>1 project selected</span>
-      </span>
+    <select class="filter-select">
+      <option>All PMs</option>
+    </select>
 
-      <div class="filters-spacer"></div>
+    <select class="filter-select">
+      <option>All Customers</option>
+    </select>
 
-      <span class="row-count">{{ filteredProjects.length }} of {{ stats.totalProjects }}</span>
-    </section>
+    <select class="filter-select">
+      <option>All Status</option>
+    </select>
 
-    <!-- TABLE SECTION -->
-    <section class="table-section">
-      <div class="section-head">
-        <h2>Projects</h2>
-        <span class="count-badge">{{ filteredProjects.length }}</span>
-      </div>
+    <select class="filter-select">
+      <option>All Types</option>
+    </select>
 
-      <div class="table-card">
-        <div class="table-wrapper">
-          <table class="project-table">
-            <thead>
-              <tr>
-                <th class="col-code">Code</th>
-                <th class="col-project">Project Name</th>
-                <th class="col-portfolio">Portfolio</th>
-                <th class="col-status">Status</th>
-                <th class="col-dates">Dates</th>
-                <th class="col-actions">Actions</th>
-              </tr>
-            </thead>
+    <select class="filter-select">
+      <option>All Risk</option>
+    </select>
 
-            <tbody>
-              <tr *ngIf="loading">
-                <td colspan="6" class="empty-state">Loading projects...</td>
-              </tr>
+    <div class="filters-count">{{ filteredProjects.length }} of {{ stats.totalProjects }}</div>
+  </section>
 
-              <tr
-                *ngFor="let project of filteredProjects"
-                class="project-row"
-                [class.selected-row]="selectedProjectId === project.id"
-                (click)="selectProject(project)"
-              >
-                <td class="col-code code-cell">
-                  {{ project.code || '-' }}
-                </td>
+  <div *ngIf="error" class="page-error">
+    {{ error }}
+  </div>
 
-                <td class="col-project">
+  <!-- PROJECT TABLE -->
+  <section class="projects-block">
+    <div class="projects-head">
+      <h2>Projects</h2>
+      <span class="count-badge">{{ filteredProjects.length }}</span>
+    </div>
+
+    <div class="projects-table-card">
+      <div class="table-wrapper">
+        <table class="project-table">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Project Name</th>
+              <th>Customer</th>
+              <th>Country</th>
+              <th>Type</th>
+              <th>PM</th>
+              <th>Status</th>
+              <th>Start</th>
+              <th>End</th>
+              <th>Progress</th>
+              <th>Risk</th>
+              <th>Budget €</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngIf="loading">
+              <td colspan="13" class="empty-state">Loading projects...</td>
+            </tr>
+
+            <tr
+              *ngFor="let project of filteredProjects"
+              class="project-row"
+              [class.selected-row]="selectedProjectId === project.id"
+              (click)="selectProject(project)"
+            >
+              <td class="mono">{{ project.code || '-' }}</td>
+
+              <td>
+                <div class="project-name-cell">
                   <div class="project-name">{{ project.name || '-' }}</div>
-                  <div class="project-meta">{{ project.country || 'No country' }}</div>
-                </td>
-
-                <td class="col-portfolio">
-                  {{ project.portfolio || '-' }}
-                </td>
-
-                <td class="col-status">
-                  <span class="status-badge">
-                    {{ project.projectPhase || '-' }}
+                  <span
+                    *ngIf="selectedProjectId === project.id"
+                    class="tiny-inline-badge">
+                    Active
                   </span>
-                </td>
+                </div>
+              </td>
 
-                <td class="col-dates">
-                  <div class="date-stack">
-                    <span>{{ project.plannedStart || '-' }}</span>
-                    <span>{{ project.plannedEnd || '-' }}</span>
+              <td>{{ project.portfolio || '—' }}</td>
+
+              <td>{{ project.country || '—' }}</td>
+
+              <td>Consulting</td>
+
+              <td>—</td>
+
+              <td>
+                <span
+                  class="status-badge"
+                  [ngClass]="{
+                    'status-green': project.timeHealth === 'GREEN',
+                    'status-yellow': project.timeHealth === 'YELLOW',
+                    'status-red': project.timeHealth === 'RED',
+                    'status-na': !project.timeHealth || project.timeHealth === 'NA'
+                  }">
+                  {{ getStatusLabel(project) }}
+                </span>
+              </td>
+
+              <td>{{ formatDate(project.plannedStart) }}</td>
+
+              <td>{{ formatDate(project.plannedEnd) }}</td>
+
+              <td>
+                <div class="progress-cell">
+                  <div class="progress-track">
+                    <div
+                      class="progress-fill"
+                      [style.width.%]="selectedProjectId === project.id ? 72 : (project.timeHealth === 'GREEN' ? 45 : project.timeHealth === 'YELLOW' ? 22 : 8)">
+                    </div>
                   </div>
-                </td>
+                  <span class="progress-text">
+                    {{ selectedProjectId === project.id ? '72' : (project.timeHealth === 'GREEN' ? '45' : project.timeHealth === 'YELLOW' ? '22' : '8') }}%
+                  </span>
+                </div>
+              </td>
 
-                <td class="col-actions" (click)="$event.stopPropagation()">
-                  <div class="table-actions">
-                    <button
-                      type="button"
-                      class="btn btn-primary btn-sm"
-                      (click)="openProject(project.id)"
-                    >
-                      <span class="material-symbols-outlined">open_in_new</span>
-                      <span>Open</span>
-                    </button>
+              <td>
+                <span class="risk-text"
+                  [ngClass]="{
+                    'risk-low': project.timeHealth === 'GREEN',
+                    'risk-medium': project.timeHealth === 'YELLOW',
+                    'risk-high': project.timeHealth === 'RED'
+                  }">
+                  {{ project.timeHealth === 'RED' ? 'High' : project.timeHealth === 'YELLOW' ? 'Medium' : 'Low' }}
+                </span>
+              </td>
 
-                    <button type="button" class="btn btn-secondary btn-sm">
-                      <span class="material-symbols-outlined">delete</span>
-                      <span>Delete</span>
-                    </button>
-                  </div>
-                </td>
-              </tr>
+              <td>{{ formatCurrency(portfolioKpis?.totalBudget ? (portfolioKpis.totalBudget / (filteredProjects.length || 1)) : null) }}</td>
 
-              <tr *ngIf="!loading && filteredProjects.length === 0">
-                <td colspan="6" class="empty-state">
-                  No projects found for the current search.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+              <td class="actions-cell" (click)="$event.stopPropagation()">
+                <div class="table-actions">
+                  <button
+                    type="button"
+                    class="action-open-btn"
+                    (click)="openProject(project.id)">
+                    ▶ Open
+                  </button>
+
+                  <button type="button" class="icon-action-btn">↯</button>
+                  <button type="button" class="icon-action-btn">📦</button>
+                </div>
+              </td>
+            </tr>
+
+            <tr *ngIf="!loading && filteredProjects.length === 0">
+              <td colspan="13" class="empty-state">
+                No projects found for the current search.
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-    </section>
-  </main>
+    </div>
+  </section>
 </div>

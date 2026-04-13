@@ -1,0 +1,229 @@
+<div class="risk-shell">
+
+
+  <div id="toolbar">
+    <button class="tb-btn add" (click)="addRisk()">＋ Add Risk</button>
+
+    <div class="tb-sep"></div>
+
+    <span class="tb-lbl">Type:</span>
+    <select class="tb-sel" [(ngModel)]="typeFilter" (change)="applyFilters()">
+      <option value="">All</option>
+      <option value="risk">↓ Risk</option>
+      <option value="opportunity">↑ Opportunity</option>
+    </select>
+
+    <div class="tb-sep"></div>
+
+    <span class="tb-lbl">State:</span>
+    <select class="tb-sel" [(ngModel)]="stateFilter" (change)="applyFilters()">
+      <option value="">All</option>
+      <option *ngFor="let state of states" [value]="state">{{ state }}</option>
+    </select>
+
+    <select class="tb-sel" [(ngModel)]="levelFilter" (change)="applyFilters()">
+      <option value="">All Levels</option>
+      <option value="low">Low (1–4)</option>
+      <option value="med">Medium (5–9)</option>
+      <option value="hi">High (10–16)</option>
+      <option value="crit">Critical (17–25)</option>
+    </select>
+
+    <button class="tb-btn" (click)="clearFilters()">✕ Clear</button>
+
+    <input class="tb-search" [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="🔍 Search…">
+
+    <div class="tb-sep"></div>
+
+    <button class="tb-btn" (click)="loadData()">↺ Refresh</button>
+  </div>
+
+  <div *ngIf="error" class="error-box">{{ error }}</div>
+
+  <div id="kpi-strip" *ngIf="summary">
+    <div class="kpi-cell">
+      <div class="kpi-lbl">Total Risks</div>
+      <div class="kpi-val">{{ summary.total }}</div>
+    </div>
+
+    <div class="kpi-cell crit">
+      <div class="kpi-lbl">Critical</div>
+      <div class="kpi-val">{{ summary.critical }}</div>
+    </div>
+
+    <div class="kpi-cell hi">
+      <div class="kpi-lbl">High</div>
+      <div class="kpi-val">{{ summary.high }}</div>
+    </div>
+
+    <div class="kpi-cell med">
+      <div class="kpi-lbl">Medium</div>
+      <div class="kpi-val">{{ summary.medium }}</div>
+    </div>
+
+    <div class="kpi-cell low">
+      <div class="kpi-lbl">Low</div>
+      <div class="kpi-val">{{ summary.low }}</div>
+    </div>
+
+    <div class="kpi-cell var">
+      <div class="kpi-lbl">Variance (pending)</div>
+      <div class="kpi-val">{{ summary.pendingVariance }}</div>
+    </div>
+
+    <div class="kpi-cell open">
+      <div class="kpi-lbl">Open Risks</div>
+      <div class="kpi-val">{{ summary.openRisks }}</div>
+    </div>
+  </div>
+
+  <div id="risk-main-area" *ngIf="!loading">
+    <div id="table-wrap">
+      <table id="risk-tbl">
+        <thead>
+          <tr>
+            <th style="width:44px;">ID</th>
+            <th style="min-width:220px;">Description</th>
+            <th style="width:88px;">Type</th>
+            <th style="width:98px;">State</th>
+            <th style="width:95px;">Input Date</th>
+            <th style="width:95px;">Due Date</th>
+            <th style="width:80px;">Dept</th>
+            <th style="width:120px;">Owner</th>
+            <th style="width:120px;">WBS</th>
+            <th style="width:52px;">Impact</th>
+            <th style="width:52px;">Prob.</th>
+            <th style="width:60px;">RV</th>
+            <th style="width:95px;">Var. Status</th>
+            <th style="min-width:180px;">Mitigation</th>
+            <th style="width:32px;"></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let row of filteredRows"
+              [class.selected]="selectedRisk?.id === row.id"
+              (click)="selectRow(row)">
+            <td>{{ row.id }}</td>
+
+            <td>
+              <input class="r-inp long" [(ngModel)]="row.description" (change)="saveRow(row)">
+            </td>
+
+            <td>
+              <select class="r-sel" [(ngModel)]="row.riskType" (change)="saveRow(row)">
+                <option *ngFor="let t of types" [value]="t">{{ t }}</option>
+              </select>
+            </td>
+
+            <td>
+              <select class="r-sel" [(ngModel)]="row.state" (change)="saveRow(row)">
+                <option *ngFor="let s of states" [value]="s">{{ s }}</option>
+              </select>
+            </td>
+
+            <td>
+              <input class="r-inp" type="date" [(ngModel)]="row.inputDate" (change)="saveRow(row)">
+            </td>
+
+            <td>
+              <input class="r-inp" type="date" [(ngModel)]="row.dueDate" (change)="saveRow(row)">
+            </td>
+
+            <td>
+              <select class="r-sel" [(ngModel)]="row.ownerDept" (change)="saveRow(row)">
+                <option value="">—</option>
+                <option *ngFor="let d of departments" [value]="d">{{ d }}</option>
+              </select>
+            </td>
+
+            <td>
+              <input class="r-inp" [(ngModel)]="row.owner" (change)="saveRow(row)">
+            </td>
+
+            <td>
+              <input class="r-inp" [(ngModel)]="row.wbsCode" (change)="saveRow(row)">
+            </td>
+
+            <td>
+              <select class="r-sel" [(ngModel)]="row.impact" (change)="saveRow(row)">
+                <option *ngFor="let n of [1,2,3,4,5]" [ngValue]="n">{{ n }}</option>
+              </select>
+            </td>
+
+            <td>
+              <select class="r-sel" [(ngModel)]="row.probability" (change)="saveRow(row)">
+                <option *ngFor="let n of [1,2,3,4,5]" [ngValue]="n">{{ n }}</option>
+              </select>
+            </td>
+
+            <td>
+              <span class="rv-cell" [ngClass]="getRiskClass(row)">{{ getRiskValue(row) }}</span>
+            </td>
+
+            <td>
+              <select class="r-sel" [(ngModel)]="row.varianceStatus" (change)="saveRow(row)">
+                <option value="">—</option>
+                <option value="open">open</option>
+                <option value="approved">approved</option>
+              </select>
+            </td>
+
+            <td>
+              <input class="r-inp long" [(ngModel)]="row.mitigation" (change)="saveRow(row)">
+            </td>
+
+            <td>
+              <button class="btn-del" (click)="deleteRow(row); $event.stopPropagation()">✕</button>
+            </td>
+          </tr>
+
+          <tr *ngIf="filteredRows.length === 0">
+            <td colspan="15" class="empty-row">No risks found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="rp-sidebar" *ngIf="summary">
+      <div id="rp-hdr">⚖️ Risk Position</div>
+
+      <div id="rp-body">
+        <div class="rp-sec">Risk Exposure</div>
+        <div class="rp-kpi red">
+          <div class="rp-kpi-lbl">Risk Count</div>
+          <div class="rp-kpi-val">{{ summary.riskCount }}</div>
+          <div class="rp-kpi-sub">Negative exposure side</div>
+        </div>
+
+        <div class="rp-sec">Opportunity Upside</div>
+        <div class="rp-kpi green">
+          <div class="rp-kpi-lbl">Opportunity Count</div>
+          <div class="rp-kpi-val">{{ summary.opportunityCount }}</div>
+          <div class="rp-kpi-sub">Positive upside side</div>
+        </div>
+
+        <div class="rp-sec">Net Position</div>
+        <div class="rp-kpi blue">
+          <div class="rp-kpi-lbl">Net Exposure Score</div>
+          <div class="rp-kpi-val">{{ getNetExposure() }}</div>
+          <div class="rp-kpi-sub">Risks minus opportunities</div>
+        </div>
+
+        <div class="rp-sec">Heat Rules</div>
+        <div id="heatmap">
+          <div class="hm-lbl"></div>
+          <div class="hm-lbl">1</div><div class="hm-lbl">2</div><div class="hm-lbl">3</div><div class="hm-lbl">4</div><div class="hm-lbl">5</div>
+
+          <div class="hm-lbl">5</div><div class="hm-cell crit">5</div><div class="hm-cell crit">10</div><div class="hm-cell crit">15</div><div class="hm-cell crit">20</div><div class="hm-cell crit">25</div>
+          <div class="hm-lbl">4</div><div class="hm-cell hi">4</div><div class="hm-cell hi">8</div><div class="hm-cell hi">12</div><div class="hm-cell hi">16</div><div class="hm-cell crit">20</div>
+          <div class="hm-lbl">3</div><div class="hm-cell low">3</div><div class="hm-cell med">6</div><div class="hm-cell med">9</div><div class="hm-cell hi">12</div><div class="hm-cell hi">15</div>
+          <div class="hm-lbl">2</div><div class="hm-cell low">2</div><div class="hm-cell low">4</div><div class="hm-cell med">6</div><div class="hm-cell med">8</div><div class="hm-cell hi">10</div>
+          <div class="hm-lbl">1</div><div class="hm-cell low">1</div><div class="hm-cell low">2</div><div class="hm-cell low">3</div><div class="hm-cell low">4</div><div class="hm-cell med">5</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading-box" *ngIf="loading">Loading risks...</div>
+</div>

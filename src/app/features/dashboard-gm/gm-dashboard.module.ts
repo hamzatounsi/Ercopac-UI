@@ -13,6 +13,13 @@ import { GmWorkspacesPageComponent } from './pages/gm_workspaces-page/gm-workspa
 import { GmProjectumPageComponent } from './pages/gm-projectum-page/gm-projectum-page/gm-projectum-page.component';
 import { ProjectumSideNavComponent } from './widgets/projectum-side-nav/projectum-side-nav.component';
 import { GmProjectSchedulePageComponent } from './pages/gm-project-schedule-page/gm-project-schedule-page/gm-project-schedule-page.component';
+import { GmProjectFinancePageComponent } from './pages/gm-project-finance-page/gm-project-finance-page.component';
+import { GmProjectForecastPageComponent } from './pages/gm-project-forecast-page/gm-project-forecast-page.component';
+import { GmProjectRisksPageComponent } from './pages/gm-project-risks-page/gm-project-risks-page.component';
+import { GmProjectChangeRequestsPageComponent } from './pages/gm-project-change-requests-page/gm-project-change-requests-page.component';
+import { GmProjectActionsPageComponent } from './pages/gm-project-actions-page/gm-project-actions-page.component';
+import { ProjectumProjectHeaderComponent } from './widgets/projectum-project-header/projectum-project-header.component';
+import { GmProjectSidePanelComponent } from './widgets/gm-project-side-panel/gm-project-side-panel.component';
 
 
 
@@ -28,6 +35,13 @@ import { GmProjectSchedulePageComponent } from './pages/gm-project-schedule-page
     GmProjectumPageComponent,
     ProjectumSideNavComponent,
     GmProjectSchedulePageComponent,
+    GmProjectFinancePageComponent,
+    GmProjectForecastPageComponent,
+    GmProjectRisksPageComponent,
+    GmProjectChangeRequestsPageComponent,
+    GmProjectActionsPageComponent,
+    ProjectumProjectHeaderComponent,
+    GmProjectSidePanelComponent,
   ],
   imports: [
     CommonModule,

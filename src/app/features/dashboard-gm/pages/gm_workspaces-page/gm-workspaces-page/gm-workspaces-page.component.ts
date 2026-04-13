@@ -12,4 +12,10 @@ export class GmWorkspacesPageComponent {
   openProjectum(): void {
     this.router.navigate(['/gm/projectum']);
   }
+
+  openMyDepartment(): void {
+    this.router.navigate(['/gm/my-department']);
+  }
+
+  
 }

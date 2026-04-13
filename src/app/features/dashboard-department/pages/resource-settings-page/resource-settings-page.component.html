@@ -1,0 +1,293 @@
+<div class="resource-settings-page">
+  <div class="topbar">
+    <div>
+      <h2>Resource Settings</h2>
+      <p>Manage organisation resources, assignments, and profile settings.</p>
+    </div>
+
+    <button type="button" class="topbar-btn" (click)="openCreate()">+ New Resource</button>
+  </div>
+
+  <div class="filters">
+    <input
+      class="filter-input"
+      type="text"
+      [(ngModel)]="search"
+      placeholder="Search by name, email, code..."
+    />
+
+    <select class="filter-select" [(ngModel)]="selectedDepartmentCode">
+      <option value="">All Departments</option>
+      <option *ngFor="let dept of departments" [value]="dept">{{ dept }}</option>
+    </select>
+
+    <select class="filter-select" [(ngModel)]="selectedRole">
+      <option value="">All Roles</option>
+      <option value="GENERAL_MANAGER">GENERAL_MANAGER</option>
+      <option value="DEPARTMENT_MANAGER">DEPARTMENT_MANAGER</option>
+      <option value="EMPLOYEE">EMPLOYEE</option>
+    </select>
+
+    <select class="filter-select" [(ngModel)]="selectedActive">
+      <option [ngValue]="null">All Status</option>
+      <option [ngValue]="true">Active</option>
+      <option [ngValue]="false">Inactive</option>
+    </select>
+
+    <select class="filter-select" [(ngModel)]="selectedInternalUser">
+      <option [ngValue]="null">Internal + External</option>
+      <option [ngValue]="true">Internal</option>
+      <option [ngValue]="false">External</option>
+    </select>
+
+    <button type="button" class="filter-btn primary" (click)="applyFilters()">Apply</button>
+    <button type="button" class="filter-btn" (click)="resetFilters()">Reset</button>
+  </div>
+
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <div class="content">
+    <div class="list-panel">
+      <div class="list-panel-head">
+        <h3>Resources</h3>
+        <span>{{ totalElements }} total</span>
+      </div>
+
+      <div *ngIf="loading" class="list-loading">Loading...</div>
+
+      <table *ngIf="!loading" class="resource-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Code</th>
+            <th>Department</th>
+            <th>Type</th>
+            <th>Job Title</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr
+            *ngFor="let resource of resources; trackBy: trackByResourceId"
+            (click)="openDetails(resource.id)"
+          >
+            <td>{{ resource.fullName }}</td>
+            <td>{{ resource.employeeCode || '-' }}</td>
+            <td>{{ resource.departmentCode || '-' }}</td>
+            <td>{{ resource.resourceType || '-' }}</td>
+            <td>{{ resource.jobTitle || '-' }}</td>
+            <td>
+              <span class="status-badge" [class.inactive]="!resource.active">
+                {{ resource.active ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+            <td>
+              <button
+                type="button"
+                class="mini-btn"
+                (click)="toggleStatus(resource.id, resource.active); $event.stopPropagation()"
+              >
+                {{ resource.active ? 'Deactivate' : 'Activate' }}
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="pagination">
+        <button type="button" (click)="goToPage(page - 1)" [disabled]="page === 0">
+          Prev
+        </button>
+
+        <span>Page {{ page + 1 }} / {{ totalPages || 1 }}</span>
+
+        <button
+          type="button"
+          (click)="goToPage(page + 1)"
+          [disabled]="page + 1 >= totalPages"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+
+    <div class="details-panel">
+      <div class="dp-head">
+        <h3>{{ createMode ? 'Create Resource' : 'Resource Detail' }}</h3>
+        <button type="button" class="dp-close" (click)="createMode = false; selectedResource = null">✕</button>
+      </div>
+
+      <form class="dp-body" [formGroup]="form" (ngSubmit)="save()">
+        <div class="dp-section">Identity</div>
+
+        <div class="dp-field">
+          <label>Full Name</label>
+          <input class="dp-inp" type="text" formControlName="fullName" />
+          <div class="field-error" *ngIf="form.get('fullName')?.touched && form.get('fullName')?.invalid">
+            Full name is required.
+          </div>
+        </div>
+
+        <div class="dp-row">
+          <div class="dp-field">
+            <label>Email</label>
+            <input class="dp-inp" type="email" formControlName="email" [readonly]="!createMode" />
+            <div class="field-error" *ngIf="form.get('email')?.touched && form.get('email')?.hasError('required')">
+              Email is required.
+            </div>
+            <div class="field-error" *ngIf="form.get('email')?.touched && form.get('email')?.hasError('email')">
+              Invalid email format.
+            </div>
+          </div>
+
+          <div class="dp-field" *ngIf="createMode">
+            <label>Password</label>
+            <input class="dp-inp" type="password" formControlName="password" />
+            <div class="field-error" *ngIf="form.get('password')?.touched && form.get('password')?.hasError('required')">
+              Password is required.
+            </div>
+            <div class="field-error" *ngIf="form.get('password')?.touched && form.get('password')?.hasError('minlength')">
+              Min 6 characters.
+            </div>
+          </div>
+        </div>
+
+        <div class="dp-row">
+          <div class="dp-field">
+            <label>Employee Code</label>
+            <input class="dp-inp" type="text" formControlName="employeeCode" />
+          </div>
+
+          <div class="dp-field">
+            <label>Seniority</label>
+            <select class="dp-sel" formControlName="seniority">
+              <option value="">-- Select Seniority --</option>
+              <option *ngFor="let seniority of seniorities" [value]="seniority">{{ seniority }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="dp-section">Organisation</div>
+
+        <div class="dp-row">
+          <div class="dp-field">
+            <label>Resource Type</label>
+            <select class="dp-sel" formControlName="resourceType">
+              <option value="">-- Select Resource Type --</option>
+              <option *ngFor="let type of resourceTypes" [value]="type">{{ type }}</option>
+            </select>
+          </div>
+
+          <div class="dp-field">
+            <label>Department</label>
+            <select class="dp-sel" formControlName="departmentCode">
+              <option value="">-- Select Department --</option>
+              <option *ngFor="let dept of departments" [value]="dept">{{ dept }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="dp-row">
+          <div class="dp-field">
+            <label>Role</label>
+            <select class="dp-sel" formControlName="role" [disabled]="!createMode">
+              <option value="GENERAL_MANAGER">GENERAL_MANAGER</option>
+              <option value="DEPARTMENT_MANAGER">DEPARTMENT_MANAGER</option>
+              <option value="EMPLOYEE">EMPLOYEE</option>
+            </select>
+          </div>
+
+          <div class="dp-field">
+            <label>Job Title</label>
+            <input class="dp-inp" type="text" formControlName="jobTitle" />
+          </div>
+        </div>
+
+        <div class="dp-field">
+          <label>Internal User</label>
+          <select class="dp-sel" formControlName="internalUser">
+            <option [ngValue]="true">Internal</option>
+            <option [ngValue]="false">External</option>
+          </select>
+        </div>
+
+        <div class="dp-section">Capacity</div>
+
+        <div class="dp-row">
+          <div class="dp-field">
+            <label>Hours / Day</label>
+            <input class="dp-inp" type="number" formControlName="hoursPerDay" />
+          </div>
+
+          <div class="dp-field">
+            <label>Days / Week</label>
+            <input class="dp-inp" type="number" formControlName="daysPerWeek" />
+          </div>
+        </div>
+
+        <div class="dp-field">
+          <label>Workdays</label>
+          <input class="dp-inp" type="text" formControlName="workdays" placeholder="e.g. MON-FRI" />
+        </div>
+
+        <div class="dp-section">Cost</div>
+
+        <div class="dp-row three">
+          <div class="dp-field">
+            <label>Rate Type</label>
+            <input class="dp-inp" type="text" formControlName="rateType" />
+          </div>
+
+          <div class="dp-field">
+            <label>Default Rate</label>
+            <input class="dp-inp" type="number" formControlName="defaultRate" />
+          </div>
+
+          <div class="dp-field">
+            <label>Currency</label>
+            <input class="dp-inp" type="text" formControlName="currency" />
+          </div>
+        </div>
+
+        <div class="dp-section">Display & Notes</div>
+
+        <div class="dp-field">
+          <label>Color</label>
+          <input class="dp-inp" type="text" formControlName="color" placeholder="#1565c0" />
+        </div>
+
+        <div class="dp-field">
+          <label>Notes</label>
+          <textarea class="dp-inp dp-textarea" formControlName="notes" rows="4"></textarea>
+        </div>
+
+        <div class="dp-field">
+          <label>Active</label>
+          <select class="dp-sel" formControlName="active">
+            <option [ngValue]="true">Active</option>
+            <option [ngValue]="false">Inactive</option>
+          </select>
+        </div>
+
+        <div class="dp-footer">
+          <button type="submit" class="btn btn-primary" [disabled]="saving">
+            {{ saving ? 'Saving...' : 'Save' }}
+          </button>
+
+          <button
+            *ngIf="selectedResource && !createMode"
+            type="button"
+            class="btn btn-danger"
+            (click)="toggleStatus(selectedResource.id, selectedResource.active)"
+          >
+            {{ selectedResource.active ? 'Deactivate' : 'Activate' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
