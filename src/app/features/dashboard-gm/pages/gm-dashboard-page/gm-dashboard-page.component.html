@@ -65,7 +65,7 @@
             <td>{{ p.name }}</td>
             <td>{{ p.plannedStart ? (p.plannedStart | date:'mediumDate') : '-' }}</td>
             <td>{{ p.plannedEnd ? (p.plannedEnd | date:'mediumDate') : '-' }}</td>
-            <td><app-health-badge [value]="p.timeHealth"></app-health-badge></td>
+            <td><app-health-badge [value]="p.timeHealth ?? 'NA'"></app-health-badge></td>
           </tr>
         </tbody>
       </table>

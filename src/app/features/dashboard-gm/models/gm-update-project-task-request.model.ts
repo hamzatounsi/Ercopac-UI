@@ -1,18 +1,27 @@
 export interface GmUpdateProjectTaskRequest {
-  name: string;
+  name?: string;
   description?: string;
   durationDays?: number;
   baselineStart?: string;
   baselineEnd?: string;
   plannedStart?: string;
   plannedEnd?: string;
+  actualStart?: string;
+  actualEnd?: string;
   percentComplete?: number;
+  allocationPercent?: number;
+  plannedHours?: number;
+  actualHours?: number;
   priority?: number;
+  scheduleMode?: string;
+  status?: string;
+  color?: string;
+  active?: boolean;
+  displayOrder?: number;
   taskType?: string;
   wbsCode?: string;
   departmentCode?: string;
-  active?: boolean;
-  displayOrder?: number;
+  resourceType?: string;
   customerMilestone?: boolean;
-  scheduleMode?: string;
+  assignedUserId?: number;
 }

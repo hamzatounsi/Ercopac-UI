@@ -1,0 +1,87 @@
+<div class="side-hover-zone" (mouseenter)="open()"></div>
+
+<aside
+  class="project-side-panel"
+  [class.open]="expanded"
+  (mouseenter)="open()"
+  (mouseleave)="close()"
+>
+  <div class="panel-top">
+    <div class="panel-title">Project Navigation</div>
+    <div class="panel-subtitle">all around project</div>
+  </div>
+
+  <nav class="panel-nav">
+
+    <!-- PROJECTS -->
+    <button type="button" class="panel-link" (click)="goToProjectum()">
+      <span class="panel-icon">🏠</span>
+      <span>Projects</span>
+    </button>
+
+    <div class="panel-project-label">
+      Project {{ projectId || '—' }}
+    </div>
+
+    <!-- GANTT -->
+    <button
+      type="button"
+      class="panel-link"
+      [class.active]="currentPage === 'gantt'"
+      (click)="goToSchedule()">
+      <span class="panel-icon">📊</span>
+      <span>Gantt</span>
+    </button>
+
+    <!-- ACTIONS -->
+    <button
+      type="button"
+      class="panel-link"
+      [class.active]="currentPage === 'actions'"
+      (click)="goToActions()">
+      <span class="panel-icon">✅</span>
+      <span>Actions</span>
+    </button>
+
+    <!-- FINANCE -->
+    <button
+      type="button"
+      class="panel-link"
+      [class.active]="currentPage === 'finance'"
+      (click)="goToFinance()">
+      <span class="panel-icon">💰</span>
+      <span>Finance</span>
+    </button>
+
+    <!-- FORECAST -->
+    <button
+      type="button"
+      class="panel-link"
+      [class.active]="currentPage === 'forecast'"
+      (click)="goToForecast()">
+      <span class="panel-icon">📈</span>
+      <span>Forecast</span>
+    </button>
+
+    <!-- RISK -->
+    <button
+      type="button"
+      class="panel-link"
+      [class.active]="currentPage === 'risk'"
+      (click)="goToRisks()">
+      <span class="panel-icon">⚠️</span>
+      <span>Risk</span>
+    </button>
+
+    <!-- CR -->
+    <button
+      type="button"
+      class="panel-link"
+      [class.active]="currentPage === 'cr'"
+      (click)="goToCr()">
+      <span class="panel-icon">📝</span>
+      <span>CR</span>
+    </button>
+
+  </nav>
+</aside>

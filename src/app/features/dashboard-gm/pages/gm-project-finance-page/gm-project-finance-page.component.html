@@ -1,0 +1,402 @@
+<div class="finance-shell">
+
+  <app-gm-project-side-panel
+    [projectId]="projectId"
+    currentPage="finance">
+  </app-gm-project-side-panel>
+
+  <app-projectum-project-header></app-projectum-project-header>
+
+  <!-- TOP TOOLBAR -->
+  <div class="erp-toolbar">
+    <button class="tb-btn green">🔌 Connect ERP</button>
+    <button class="tb-btn" (click)="loadData()">↺ Refresh</button>
+
+    <div class="tb-sep"></div>
+
+    <label class="tb-btn file-btn">
+      📥 Import JSON/CSV
+      <input type="file" (change)="onFileUpload($event)" accept=".xlsx,.xls" hidden />
+    </label>
+
+    <button class="tb-btn">📤 Export</button>
+
+    <div class="tb-sep"></div>
+
+    <span class="tb-label">Level:</span>
+    <select class="tb-sel" [(ngModel)]="levelFilter" (change)="applyFilters()">
+      <option value="">All</option>
+      <option value="1">L1</option>
+      <option value="2">L2</option>
+      <option value="3">L3</option>
+      <option value="4">L4</option>
+    </select>
+
+    <input
+      class="tb-search"
+      [(ngModel)]="searchTerm"
+      (input)="applyFilters()"
+      placeholder="🔍 Search WBS, description..."
+    />
+
+    <span class="tb-label">Currency:</span>
+    <select class="tb-sel currency-sel" [(ngModel)]="currency">
+      <option value="EUR">EUR €</option>
+      <option value="USD">USD $</option>
+    </select>
+
+    <button class="tb-gear" (click)="openSettings()" title="Finance settings">⚙️</button>
+
+    <div class="erp-status">
+      <span class="erp-dot"></span>
+      <span>Local data</span>
+    </div>
+  </div>
+
+  <!-- PROJECT SELECTOR BAR -->
+  <div class="project-selector-wrap">
+    <span class="proj-label">📁 Project:</span>
+    <div class="project-selector-box">
+      <span class="project-selector-value">{{ projectId }}</span>
+      <span class="project-selector-arrow">⌄</span>
+    </div>
+    <span class="project-chip">{{ projectId }}</span>
+  </div>
+
+  <!-- KPI STRIP -->
+  <div class="kpi-strip" *ngIf="summary">
+    <div class="kpi-cell sales">
+      <div class="kpi-lbl">TOTAL SALES</div>
+      <div class="kpi-val">{{ formatMoney(summary.totalSales) }}</div>
+      <div class="kpi-sub">Contract value</div>
+    </div>
+
+    <div class="kpi-cell budget">
+      <div class="kpi-lbl">TOTAL BUDGET</div>
+      <div class="kpi-val">{{ formatMoney(summary.totalBudget) }}</div>
+      <div class="kpi-sub">Approved cost</div>
+    </div>
+
+    <div class="kpi-cell commit">
+      <div class="kpi-lbl">COMMITMENT</div>
+      <div class="kpi-val">{{ formatMoney(summary.totalCommitment) }}</div>
+      <div class="kpi-sub">Ordered (PO)</div>
+    </div>
+
+    <div class="kpi-cell ac">
+      <div class="kpi-lbl">ACTUAL COST (AC)</div>
+      <div class="kpi-val">{{ formatMoney(summary.totalActualCost) }}</div>
+      <div class="kpi-sub">Already spent</div>
+    </div>
+
+    <div class="kpi-cell forecast">
+      <div class="kpi-lbl">FORECAST (F)</div>
+      <div class="kpi-val">{{ formatMoney(summary.totalForecast) }}</div>
+      <div class="kpi-sub">Cost to complete</div>
+    </div>
+
+    <div class="kpi-cell eac">
+      <div class="kpi-lbl">EAC (AC + F)</div>
+      <div class="kpi-val">{{ formatMoney(summary.totalEac) }}</div>
+      <div class="kpi-sub">Estimate at completion</div>
+    </div>
+
+    <div class="kpi-cell variance" [class.pos]="summary.totalVariance > 0" [class.neg]="summary.totalVariance < 0">
+      <div class="kpi-lbl">VARIANCE (BUDGET − EAC)</div>
+      <div class="kpi-val">{{ formatMoney(summary.totalVariance) }}</div>
+      <div class="kpi-sub">{{ summary.totalVariance >= 0 ? 'Under budget' : 'Over budget' }}</div>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="main-area">
+    <div class="table-wrap">
+      <div *ngIf="loading" class="empty-row">⏳ Loading finance data...</div>
+      <div *ngIf="error" class="error-box">⚠️ {{ error }}</div>
+
+      <table id="wbs-table" *ngIf="!loading && !error">
+        <thead>
+          <tr>
+            <th (click)="sortBy('wbsCode')">WBS CODE</th>
+            <th (click)="sortBy('description')">DESCRIPTION</th>
+            <th (click)="sortBy('level')">LVL</th>
+            <th (click)="sortBy('sales')">SALES</th>
+            <th (click)="sortBy('budget')">BUDGET</th>
+            <th (click)="sortBy('commitment')">COMMITMENT</th>
+            <th (click)="sortBy('actualCost')">AC</th>
+            <th (click)="sortBy('forecast')">FORECAST (F)</th>
+            <th (click)="sortBy('eac')">EAC</th>
+            <th (click)="sortBy('variance')">VARIANCE</th>
+            <th (click)="sortBy('cpi')">CPI</th>
+            <th (click)="sortBy('percentAc')">% AC</th>
+            <th (click)="sortBy('owner')">OWNER</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngIf="filteredRows.length === 0">
+            <td colspan="13" class="empty-row">No finance data found</td>
+          </tr>
+
+          <tr *ngFor="let row of filteredRows" [ngClass]="'row-l' + row.level">
+            <td class="wbs-code">{{ row.wbsCode }}</td>
+            <td class="desc-cell" [style.paddingLeft.px]="row.level > 1 ? (row.level - 1) * 18 + 10 : 10">
+              {{ row.description }}
+            </td>
+            <td class="lvl-cell">L{{ row.level }}</td>
+            <td>{{ row.sales ? formatMoney(row.sales) : '—' }}</td>
+            <td>{{ formatMoney(row.budget) }}</td>
+            <td>{{ row.commitment ? formatMoney(row.commitment) : '0' }}</td>
+            <td>{{ row.actualCost ? formatMoney(row.actualCost) : '0' }}</td>
+            <td>{{ row.forecast ? formatMoney(row.forecast) : '0' }}</td>
+            <td>{{ row.eac ? formatMoney(row.eac) : '—' }}</td>
+            <td [ngClass]="getVarianceClass(row.variance)">
+              {{ row.variance ? formatMoney(row.variance) : '—' }}
+            </td>
+            <td>
+              <span class="cpi-badge" [ngClass]="getCpiClass(row.cpi)">
+                {{ row.cpi ? (row.cpi | number:'1.0-2') : '—' }}
+              </span>
+            </td>
+            <td>
+              <div class="ac-cell">
+                <div class="ac-track">
+                  <div
+                    class="ac-fill"
+                    [style.width.%]="row.percentAc || 0"
+                    [ngClass]="getProgressClass(row.percentAc)">
+                  </div>
+                </div>
+                <span class="ac-value">{{ row.percentAc ? (row.percentAc | number:'1.0-0') : 0 }}%</span>
+              </div>
+            </td>
+            <td class="owner-cell">{{ row.owner || '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- RIGHT SIDEBAR -->
+    <div class="chart-sidebar">
+      <div class="chart-sidebar-hdr">📊 Cost Analysis</div>
+
+      <div class="chart-section">
+        <div class="chart-title">BUDGET VS EAC BY PROJECT</div>
+        <div class="mini-chart-placeholder">26002</div>
+      </div>
+
+      <div class="chart-section">
+        <div class="chart-title">COST BREAKDOWN</div>
+        <div class="donut-wrap">
+          <div class="donut-canvas-wrap">
+            <canvas #donutChart></canvas>
+          </div>
+          <div class="donut-legend">
+            <div><span class="dot ac-dot"></span> AC: {{ summary ? formatMoney(summary.totalActualCost) : '—' }}</div>
+            <div><span class="dot fc-dot"></span> Forecast: {{ summary ? formatMoney(summary.totalForecast) : '—' }}</div>
+            <div><span class="dot rem-dot"></span> Remaining Budget: —</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-section">
+        <div class="chart-title">MARGIN OVERVIEW</div>
+        <div class="mini-chart-placeholder no-data">No sales data</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div class="settings-overlay" *ngIf="settingsOpen">
+    <div class="settings-modal">
+      <div class="settings-header">
+        <div class="settings-title">⚙️ Finance Settings</div>
+        <div class="settings-header-actions">
+          <button class="btn primary" (click)="saveSettings()" [disabled]="settingsSaving">
+            {{ settingsSaving ? 'Saving...' : '💾 Save' }}
+          </button>
+          <button class="btn ghost" (click)="closeSettings()">✕ Close</button>
+        </div>
+      </div>
+
+      <div class="settings-body">
+        <aside class="settings-sidebar-menu">
+          <button class="settings-tab" [class.active]="activeSettingsTab === 'wbs'" (click)="setSettingsTab('wbs')">📋 WBS Structure</button>
+          <button class="settings-tab" [class.active]="activeSettingsTab === 'owner'" (click)="setSettingsTab('owner')">👤 Owner Mapping</button>
+          <button class="settings-tab" [class.active]="activeSettingsTab === 'rates'" (click)="setSettingsTab('rates')">💶 Hour Rates</button>
+          <button class="settings-tab" [class.active]="activeSettingsTab === 'import'" (click)="setSettingsTab('import')">📥 Import WBS</button>
+          <button class="settings-tab" [class.active]="activeSettingsTab === 'apply'" (click)="setSettingsTab('apply')">🔄 Apply to Projects</button>
+        </aside>
+
+        <section class="settings-content">
+          <div *ngIf="settingsLoading" class="settings-empty">Loading settings...</div>
+          <div *ngIf="settingsError && !settingsLoading" class="settings-error">{{ settingsError }}</div>
+
+          <ng-container *ngIf="!settingsLoading">
+            <div *ngIf="activeSettingsTab === 'wbs'" class="settings-section">
+              <div class="section-top">
+                <div>
+                  <h2>📋 WBS Structure Template</h2>
+                  <p>Define the standard WBS applied to all projects.</p>
+                </div>
+                <div class="section-actions">
+                  <button class="btn ghost" (click)="addTemplateRow()">＋ Add Row</button>
+                  <button class="btn primary" (click)="saveSettings()">💾 Save</button>
+                </div>
+              </div>
+
+              <div class="callout">
+                <strong>Type:</strong> <em>Hour</em> = labour (budget & forecast in hours × rate). 
+                <em>Cost</em> = expense/material. <em>Summary</em> = computed from children.<br>
+                <strong>Owner key</strong> links to the Owner Mapping tab.
+              </div>
+
+              <div class="settings-table-wrap">
+                <table class="settings-table">
+                  <thead>
+                    <tr>
+                      <th style="width:70px;">LVL</th>
+                      <th style="width:260px;">WBS CODE</th>
+                      <th>DESCRIPTION</th>
+                      <th style="width:170px;">TYPE</th>
+                      <th style="width:170px;">OWNER KEY</th>
+                      <th style="width:140px;">HOUR RATE</th>
+                      <th style="width:60px;"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let row of financeSettings.templateRows; let i = index; trackBy: trackByIndex">
+                      <td><span class="lvl-badge">{{ row.level }}</span></td>
+                      <td><input [(ngModel)]="row.codeTemplate" class="tbl-input mono" /></td>
+                      <td><input [(ngModel)]="row.description" class="tbl-input" /></td>
+                      <td>
+                        <select [(ngModel)]="row.type" class="tbl-select">
+                          <option *ngFor="let type of rowTypeOptions" [ngValue]="type">{{ type }}</option>
+                        </select>
+                      </td>
+                      <td><input [(ngModel)]="row.ownerKey" class="tbl-input" /></td>
+                      <td><input [(ngModel)]="row.hourRate" class="tbl-input" type="number" /></td>
+                      <td><button class="delete-btn" (click)="removeTemplateRow(i)">✕</button></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div *ngIf="activeSettingsTab === 'owner'" class="settings-section">
+              <div class="section-top">
+                <div>
+                  <h2>👤 Owner Mapping</h2>
+                  <p>Link owner key to resource type and role.</p>
+                </div>
+                <div class="section-actions">
+                  <button class="btn ghost" (click)="addOwnerMapping()">＋ Add Mapping</button>
+                  <button class="btn primary" (click)="saveSettings()">💾 Save</button>
+                </div>
+              </div>
+
+              <div class="settings-table-wrap">
+                <table class="settings-table">
+                  <thead>
+                    <tr>
+                      <th style="width:180px;">OWNER KEY</th>
+                      <th style="width:180px;">RESOURCE TYPE</th>
+                      <th style="width:180px;">ROLE FILTER</th>
+                      <th>NOTES</th>
+                      <th style="width:60px;"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let row of financeSettings.ownerMappings; let i = index; trackBy: trackByIndex">
+                      <td><input [(ngModel)]="row.ownerKey" class="tbl-input mono" /></td>
+                      <td>
+                        <select [(ngModel)]="row.resourceType" class="tbl-select">
+                          <option *ngFor="let type of resourceTypeOptions" [ngValue]="type">{{ type }}</option>
+                        </select>
+                      </td>
+                      <td><input [(ngModel)]="row.roleFilter" class="tbl-input" /></td>
+                      <td><input [(ngModel)]="row.notes" class="tbl-input" /></td>
+                      <td><button class="delete-btn" (click)="removeOwnerMapping(i)">✕</button></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div *ngIf="activeSettingsTab === 'rates'" class="settings-section">
+              <div class="section-top">
+                <div>
+                  <h2>💶 Hour Rates</h2>
+                  <p>Default rate and resource-type-specific rates.</p>
+                </div>
+                <div class="section-actions">
+                  <button class="btn primary" (click)="saveSettings()">💾 Save</button>
+                </div>
+              </div>
+
+              <div class="settings-card">
+                <h3>Default Rate</h3>
+                <div class="form-row">
+                  <label>Default Hourly Rate</label>
+                  <input [(ngModel)]="financeSettings.defaultHourlyRate" type="number" class="form-input short" />
+                  <span>€/h</span>
+                </div>
+              </div>
+
+              <div class="settings-card">
+                <div class="section-top mini">
+                  <h3>Per Resource Type Rates</h3>
+                  <button class="btn ghost" (click)="addHourlyRate()">＋ Add Rate</button>
+                </div>
+
+                <div class="rate-list">
+                  <div class="rate-row" *ngFor="let row of financeSettings.hourlyRates; let i = index; trackBy: trackByIndex">
+                    <select [(ngModel)]="row.resourceType" class="form-input short">
+                      <option *ngFor="let type of resourceTypeOptions" [ngValue]="type">{{ type }}</option>
+                    </select>
+                    <input [(ngModel)]="row.hourlyRate" type="number" class="form-input short" />
+                    <span>€/h</span>
+                    <button class="delete-btn" (click)="removeHourlyRate(i)">✕</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="activeSettingsTab === 'import'" class="settings-section">
+              <div class="section-top">
+                <div>
+                  <h2>📥 Import WBS</h2>
+                  <p>Load JSON/CSV template later or use built-in template flow.</p>
+                </div>
+              </div>
+
+              <div class="settings-card centered-card">
+                <div class="import-icon">📁</div>
+                <div class="import-title">Drop JSON or CSV here</div>
+                <div class="import-sub">Import UI placeholder ready. Backend settings already connected.</div>
+              </div>
+            </div>
+
+            <div *ngIf="activeSettingsTab === 'apply'" class="settings-section">
+              <div class="section-top">
+                <div>
+                  <h2>🔄 Apply to Projects</h2>
+                  <p>Apply the current WBS template to the current project.</p>
+                </div>
+                <div class="section-actions">
+                  <button class="btn primary" (click)="applyTemplateToCurrentProject()" [disabled]="applyLoading">
+                    {{ applyLoading ? 'Applying...' : '⚡ Apply to Current Project' }}
+                  </button>
+                </div>
+              </div>
+
+              <div class="callout">
+                This will generate finance rows for project <strong>{{ projectId }}</strong> from the current template.
+              </div>
+            </div>
+          </ng-container>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,241 @@
+<div class="cr-shell">
+  <div id="app-hdr">
+    <div>
+      <div class="app-name">Projectum<span>ALL</span></div>
+      <div class="app-sub">all around project</div>
+    </div>
+
+    <div class="hdr-sep"></div>
+
+    <a class="nav-pill" (click)="goToProjectum()">🏠 Projects</a>
+    <a class="nav-pill" (click)="goToSchedule()">📊 Gantt</a>
+    <a class="nav-pill" (click)="goToActions()">✅ Actions</a>
+    <a class="nav-pill" (click)="goToFinance()">💰 Finance</a>
+    <a class="nav-pill" (click)="goToForecast()">📈 Forecast</a>
+    <a class="nav-pill" (click)="goToRisks()">⚠️ Risk</a>
+    <a class="nav-pill active">📝 CR</a>
+  </div>
+
+  <div id="toolbar">
+    <button class="tb-btn add" (click)="addCr()">＋ Add CR</button>
+
+    <div class="tb-sep"></div>
+
+    <span class="tb-lbl">Status:</span>
+    <select class="tb-sel" [(ngModel)]="statusFilter" (change)="applyFilters()">
+      <option value="">All</option>
+      <option *ngFor="let status of statuses" [value]="status">{{ getStatusLabel(status) }}</option>
+    </select>
+
+    <button class="tb-btn" (click)="clearFilters()">✕ Clear</button>
+
+    <input class="tb-search" [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="🔍 Search…">
+
+    <div class="tb-sep"></div>
+
+    <button class="tb-btn" (click)="loadData()">↺ Refresh</button>
+  </div>
+
+  <div *ngIf="error" class="error-box">{{ error }}</div>
+
+  <div id="kpi-strip" *ngIf="summary">
+    <div class="kpi-cell">
+      <div class="kpi-lbl">Total CRs</div>
+      <div class="kpi-val">{{ summary.totalCount }}</div>
+    </div>
+    <div class="kpi-cell blue">
+      <div class="kpi-lbl">Open</div>
+      <div class="kpi-val">{{ summary.openCount }}</div>
+    </div>
+    <div class="kpi-cell amber">
+      <div class="kpi-lbl">Submitted</div>
+      <div class="kpi-val">{{ summary.submittedCount }}</div>
+    </div>
+    <div class="kpi-cell green">
+      <div class="kpi-lbl">Accepted</div>
+      <div class="kpi-val">{{ summary.acceptedCount }}</div>
+    </div>
+    <div class="kpi-cell red">
+      <div class="kpi-lbl">Refused</div>
+      <div class="kpi-val">{{ summary.refusedCount }}</div>
+    </div>
+    <div class="kpi-cell gray">
+      <div class="kpi-lbl">Cancelled</div>
+      <div class="kpi-val">{{ summary.cancelledCount }}</div>
+    </div>
+  </div>
+
+  <div id="main-area" *ngIf="!loading">
+    <div id="table-wrap">
+      <table id="cr-table">
+        <thead>
+          <tr>
+            <th style="width:90px;">CR-ID</th>
+            <th>Title</th>
+            <th style="width:160px;">Status</th>
+            <th style="width:110px;">Date</th>
+            <th style="width:120px;">Value</th>
+            <th style="width:120px;">Cost</th>
+            <th style="width:120px;">Margin</th>
+            <th style="width:95px;">Margin %</th>
+            <th style="width:130px;">Owner</th>
+            <th style="min-width:180px;">Note</th>
+            <th style="width:90px;">Files</th>
+            <th style="width:42px;"></th>
+          </tr>
+        </thead>
+
+        <tbody id="cr-tbody">
+          <tr *ngFor="let row of filteredRows" [class.selected]="selectedCr?.id === row.id" (click)="openDrawer(row)">
+            <td>{{ row.code }}</td>
+
+            <td>
+              <input class="cr-inp long" [(ngModel)]="row.title" (change)="saveRow(row)">
+            </td>
+
+            <td>
+              <select class="cr-sel" [(ngModel)]="row.status" (change)="saveRow(row)">
+                <option *ngFor="let status of statuses" [value]="status">{{ getStatusLabel(status) }}</option>
+              </select>
+            </td>
+
+            <td>
+              <input class="cr-inp" type="date" [(ngModel)]="row.requestDate" (change)="saveRow(row)">
+            </td>
+
+            <td class="num">
+              <input class="cr-inp num-input" type="number" [(ngModel)]="row.valueAmount" (change)="saveRow(row)">
+            </td>
+
+            <td class="num">
+              <input class="cr-inp num-input" type="number" [(ngModel)]="row.costAmount" (change)="saveRow(row)">
+            </td>
+
+            <td class="num">
+              <span [ngClass]="getMarginClass(row.marginAmount)">{{ formatMoney(row.marginAmount) }}</span>
+            </td>
+
+            <td class="num">
+              <span [ngClass]="getMarginClass(row.marginAmount)">{{ formatPercent(row.marginPercent) }}</span>
+            </td>
+
+            <td>
+              <input class="cr-inp" [(ngModel)]="row.owner" (change)="saveRow(row)">
+            </td>
+
+            <td>
+              <input class="cr-inp long" [(ngModel)]="row.note" (change)="saveRow(row)">
+            </td>
+
+            <td class="num">{{ row.attachments?.length || 0 }}</td>
+
+            <td>
+              <button class="btn-del" (click)="deleteRow(row); $event.stopPropagation()">✕</button>
+            </td>
+          </tr>
+
+          <tr *ngIf="filteredRows.length > 1" class="footer-row">
+            <td colspan="4">TOTAL ({{ filteredRows.length }} CRs)</td>
+            <td class="num">{{ formatMoney(summary?.totalValue) }}</td>
+            <td class="num">{{ formatMoney(summary?.totalCost) }}</td>
+            <td class="num"><span [ngClass]="getMarginClass(summary?.totalMargin)">{{ formatMoney(summary?.totalMargin) }}</span></td>
+            <td class="num"><span [ngClass]="getMarginClass(summary?.totalMargin)">{{ formatPercent(summary?.totalMarginPercent) }}</span></td>
+            <td colspan="4"></td>
+          </tr>
+
+          <tr *ngIf="filteredRows.length === 0">
+            <td colspan="12" class="empty-row">No change requests found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <section id="detail-drawer" [class.open]="!!selectedCr" *ngIf="selectedCr">
+      <div id="dd-hdr">
+        <div id="dd-cr-id">{{ selectedCr.code }}</div>
+        <div id="dd-title">{{ selectedCr.title || 'Change Request' }}</div>
+        <div id="dd-meta">
+          {{ getStatusLabel(selectedCr.status) }} ·
+          {{ formatMoney(selectedCr.valueAmount) }} value ·
+          {{ formatPercent(selectedCr.marginPercent) }} margin
+        </div>
+        <button id="dd-close" (click)="closeDrawer()">✕</button>
+      </div>
+
+      <div id="dd-tabs">
+        <div class="dd-tab on">📋 General</div>
+        <div class="dd-tab">💶 Financials</div>
+        <div class="dd-tab">📎 Files</div>
+        <div class="dd-tab">🕐 History</div>
+      </div>
+
+      <div id="dd-body">
+        <div class="dd-sec">Identification</div>
+
+        <div class="dd-field">
+          <div class="dd-lbl">Title</div>
+          <input class="dd-inp" [(ngModel)]="selectedCr.title" (change)="saveRow(selectedCr)">
+        </div>
+
+        <div class="dd-field">
+          <div class="dd-lbl">Status</div>
+          <select class="dd-sel" [(ngModel)]="selectedCr.status" (change)="saveRow(selectedCr)">
+            <option *ngFor="let status of statuses" [value]="status">{{ getStatusLabel(status) }}</option>
+          </select>
+        </div>
+
+        <div class="dd-field">
+          <div class="dd-lbl">Date</div>
+          <input class="dd-inp" type="date" [(ngModel)]="selectedCr.requestDate" (change)="saveRow(selectedCr)">
+        </div>
+
+        <div class="dd-sec">Financials</div>
+
+        <div class="dd-field">
+          <div class="dd-lbl">Value</div>
+          <input class="dd-inp" type="number" [(ngModel)]="selectedCr.valueAmount" (change)="saveRow(selectedCr)">
+        </div>
+
+        <div class="dd-field">
+          <div class="dd-lbl">Cost</div>
+          <input class="dd-inp" type="number" [(ngModel)]="selectedCr.costAmount" (change)="saveRow(selectedCr)">
+        </div>
+
+        <div class="dd-field">
+          <div class="dd-lbl">Margin</div>
+          <div class="dd-ro" [ngClass]="getMarginClass(selectedCr.marginAmount)">
+            {{ formatMoney(selectedCr.marginAmount) }} · {{ formatPercent(selectedCr.marginPercent) }}
+          </div>
+        </div>
+
+        <div class="dd-sec">Ownership</div>
+
+        <div class="dd-field">
+          <div class="dd-lbl">Owner</div>
+          <input class="dd-inp" [(ngModel)]="selectedCr.owner" (change)="saveRow(selectedCr)">
+        </div>
+
+        <div class="dd-field">
+          <div class="dd-lbl">Note</div>
+          <textarea class="dd-ta" [(ngModel)]="selectedCr.note" (change)="saveRow(selectedCr)"></textarea>
+        </div>
+
+        <div class="dd-sec">Files</div>
+        <div class="att-empty" *ngIf="!selectedCr.attachments?.length">No files attached yet.</div>
+        <div class="att-item" *ngFor="let att of selectedCr.attachments">
+          <div class="att-name">{{ att.fileName }}</div>
+          <div class="att-size">{{ att.fileSize || 0 }} bytes</div>
+        </div>
+
+        <div class="dd-sec">History</div>
+        <div class="hist-empty" *ngIf="!selectedCr.history?.length">No history yet.</div>
+        <div class="hist-row" *ngFor="let h of selectedCr.history">
+          <div class="hist-act">{{ h.action }}</div>
+          <div class="hist-meta">{{ h.performedBy || 'User' }} · {{ h.createdAt }}</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="loading-box" *ngIf="loading">Loading change requests...</div>
+</div>

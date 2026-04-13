@@ -1,0 +1,273 @@
+<div class="actions-shell">
+  <div id="app-hdr">
+    <div>
+      <div class="app-name">Projectum<span>ALL</span></div>
+      <div class="app-sub">all around project</div>
+    </div>
+
+    <div class="hdr-sep"></div>
+
+    <a class="nav-pill" (click)="goToProjectum()">🏠 Projects</a>
+    <a class="nav-pill" (click)="goToSchedule()">📊 Gantt</a>
+    <a class="nav-pill active">✅ Actions</a>
+    <a class="nav-pill" (click)="goToFinance()">💰 Finance</a>
+    <a class="nav-pill" (click)="goToForecast()">📈 Forecast</a>
+    <a class="nav-pill" (click)="goToRisks()">⚠️ Risk</a>
+    <a class="nav-pill" (click)="goToCr()">📝 CR</a>
+  </div>
+
+  <div id="toolbar-row1">
+    <div class="view-switch">
+      <button class="tb-btn" [class.on]="viewMode==='list'" (click)="setView('list')">List</button>
+      <button class="tb-btn" [class.on]="viewMode==='kanban'" (click)="setView('kanban')">Kanban</button>
+    </div>
+
+    <div class="tb-sep"></div>
+
+    <button class="tb-btn add" (click)="addAction()">＋ New Action</button>
+  </div>
+
+  <div id="toolbar-row2">
+    <span class="tb-label">Type:</span>
+    <div class="filter-group">
+      <button class="chip" [class.on]="selectedTypes.has('action')" (click)="toggleType('action')">Action</button>
+      <button class="chip" [class.on]="selectedTypes.has('issue')" (click)="toggleType('issue')">Issue</button>
+    </div>
+
+    <div class="tb-sep"></div>
+
+    <span class="tb-label">Status:</span>
+    <div class="filter-group">
+      <button class="chip" *ngFor="let s of statuses" [class.on]="selectedStatuses.has(s)" (click)="toggleStatus(s)">
+        {{ getStatusLabel(s) }}
+      </button>
+    </div>
+
+    <div class="tb-sep"></div>
+
+    <span class="tb-label">Due:</span>
+    <select class="flt-sel" [(ngModel)]="dueFilter" (change)="applyFilters()">
+      <option value="">Any date</option>
+      <option value="overdue">Overdue</option>
+      <option value="today">Due today</option>
+    </select>
+
+    <div class="tb-sep"></div>
+
+    <span class="tb-label">Assignee:</span>
+    <select class="flt-sel" (change)="toggleAssignee($any($event.target).value)">
+      <option value="">Select...</option>
+      <option *ngFor="let a of getAssigneesUniverse()" [value]="a">{{ a }}</option>
+    </select>
+
+    <button class="tb-btn" (click)="clearFilters()">✕ Clear</button>
+
+    <input class="tb-search" [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="🔍 Search…">
+
+    <button class="tb-btn" (click)="loadData()">↺ Refresh</button>
+  </div>
+
+  <div *ngIf="error" class="error-box">{{ error }}</div>
+
+  <div id="summary-strip" *ngIf="summary">
+    <div class="sum-card"><div class="sum-lbl">Total</div><div class="sum-val">{{ summary.total }}</div></div>
+    <div class="sum-card"><div class="sum-lbl">To Do</div><div class="sum-val">{{ summary.todo }}</div></div>
+    <div class="sum-card"><div class="sum-lbl">In Progress</div><div class="sum-val">{{ summary.doing }}</div></div>
+    <div class="sum-card"><div class="sum-lbl">In Review</div><div class="sum-val">{{ summary.review }}</div></div>
+    <div class="sum-card"><div class="sum-lbl">Blocked</div><div class="sum-val">{{ summary.blocked }}</div></div>
+    <div class="sum-card"><div class="sum-lbl">Done</div><div class="sum-val">{{ summary.done }}</div></div>
+    <div class="sum-card"><div class="sum-lbl">Customer</div><div class="sum-val">{{ summary.customerVisible }}</div></div>
+    <div class="sum-card"><div class="sum-lbl">Internal</div><div class="sum-val">{{ summary.internalOnly }}</div></div>
+    <div class="sum-card"><div class="sum-lbl">Overdue</div><div class="sum-val">{{ summary.overdue }}</div></div>
+  </div>
+
+  <div id="content" *ngIf="!loading">
+    <div id="list-view" *ngIf="viewMode === 'list'">
+      <div class="table-wrap">
+        <table class="list-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Action</th>
+              <th>Type</th>
+              <th>Dept</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Customer</th>
+              <th>Inserted</th>
+              <th>Due Date</th>
+              <th>Assigned To</th>
+              <th></th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let row of filteredRows" (click)="openDetail(row)" [class.selected]="selectedAction?.id === row.id">
+              <td>#{{ row.id }}</td>
+              <td>
+                <input class="cell-input title" [(ngModel)]="row.title" (change)="saveRow(row); $event.stopPropagation()">
+              </td>
+              <td>
+                <select class="cell-select" [(ngModel)]="row.actionType" (change)="saveRow(row); $event.stopPropagation()">
+                  <option *ngFor="let t of actionTypes" [value]="t">{{ t }}</option>
+                </select>
+              </td>
+              <td>
+                <select class="cell-select" [(ngModel)]="row.departmentCode" (change)="saveRow(row); $event.stopPropagation()">
+                  <option value="">—</option>
+                  <option *ngFor="let d of departments" [value]="d">{{ d }}</option>
+                </select>
+              </td>
+              <td>
+                <select class="cell-select" [(ngModel)]="row.priority" (change)="saveRow(row); $event.stopPropagation()">
+                  <option *ngFor="let p of priorities" [value]="p">{{ getPriorityLabel(p) }}</option>
+                </select>
+              </td>
+              <td>
+                <select class="cell-select" [(ngModel)]="row.status" (change)="saveRow(row); $event.stopPropagation()">
+                  <option *ngFor="let s of statuses" [value]="s">{{ getStatusLabel(s) }}</option>
+                </select>
+              </td>
+              <td class="center">
+                <input type="checkbox" [(ngModel)]="row.customerVisible" (change)="saveRow(row); $event.stopPropagation()">
+              </td>
+              <td>
+                <input class="cell-input" type="date" [(ngModel)]="row.insertedDate" (change)="saveRow(row); $event.stopPropagation()">
+              </td>
+              <td>
+                <input class="cell-input" type="date" [(ngModel)]="row.dueDate" (change)="saveRow(row); $event.stopPropagation()">
+              </td>
+              <td>{{ row.assignees.join(', ') || '—' }}</td>
+              <td>
+                <button class="btn-del" (click)="deleteRow(row); $event.stopPropagation()">✕</button>
+              </td>
+            </tr>
+
+            <tr *ngIf="filteredRows.length === 0">
+              <td colspan="11" class="empty-state">No actions found</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="kanban-view" *ngIf="viewMode === 'kanban'">
+      <div class="kanban-board">
+        <div class="kanban-col" *ngFor="let s of statuses">
+          <div class="kanban-col-hdr">{{ getStatusLabel(s) }}</div>
+
+          <div class="kanban-card" *ngFor="let row of getKanbanRows(s)" (click)="openDetail(row)">
+            <div class="kc-top">
+              <span class="badge" [ngClass]="getTypeClass(row.actionType)">{{ row.actionType }}</span>
+              <span class="badge" [ngClass]="getPriorityClass(row.priority)">{{ getPriorityLabel(row.priority) }}</span>
+            </div>
+
+            <div class="kc-title">{{ row.title }}</div>
+            <div class="kc-meta">{{ row.departmentCode || '—' }} · {{ row.assignees.join(', ') || 'No assignee' }}</div>
+            <div class="kc-date">Due: {{ row.dueDate || '—' }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading-box" *ngIf="loading">Loading actions...</div>
+
+  <div class="detail-overlay" *ngIf="selectedAction">
+    <div class="detail-modal">
+      <div class="modal-hdr">
+        <h2>#{{ selectedAction.id }} {{ selectedAction.title }}</h2>
+        <button class="modal-close" (click)="closeDetail()">✕</button>
+      </div>
+
+      <div class="tabs">
+        <div class="tab on">Details</div>
+        <div class="tab">Comments <span class="mini-badge">{{ selectedAction.comments.length }}</span></div>
+        <div class="tab">Attachments <span class="mini-badge">{{ selectedAction.attachments.length }}</span></div>
+      </div>
+
+      <div class="modal-body">
+        <div class="field">
+          <label>Action Title</label>
+          <input [(ngModel)]="selectedAction.title" (change)="saveRow(selectedAction)">
+        </div>
+
+        <div class="field">
+          <label>Description</label>
+          <textarea [(ngModel)]="selectedAction.description" (change)="saveRow(selectedAction)"></textarea>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Type</label>
+            <select [(ngModel)]="selectedAction.actionType" (change)="saveRow(selectedAction)">
+              <option *ngFor="let t of actionTypes" [value]="t">{{ t }}</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Department</label>
+            <select [(ngModel)]="selectedAction.departmentCode" (change)="saveRow(selectedAction)">
+              <option value="">—</option>
+              <option *ngFor="let d of departments" [value]="d">{{ d }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Status</label>
+            <select [(ngModel)]="selectedAction.status" (change)="saveRow(selectedAction)">
+              <option *ngFor="let s of statuses" [value]="s">{{ getStatusLabel(s) }}</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Priority</label>
+            <select [(ngModel)]="selectedAction.priority" (change)="saveRow(selectedAction)">
+              <option *ngFor="let p of priorities" [value]="p">{{ getPriorityLabel(p) }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Inserted</label>
+            <input type="date" [(ngModel)]="selectedAction.insertedDate" (change)="saveRow(selectedAction)">
+          </div>
+
+          <div class="field">
+            <label>Due Date</label>
+            <input type="date" [(ngModel)]="selectedAction.dueDate" (change)="saveRow(selectedAction)">
+          </div>
+        </div>
+
+        <div class="field checkbox-row">
+          <label><input type="checkbox" [(ngModel)]="selectedAction.customerVisible" (change)="saveRow(selectedAction)"> Customer visible</label>
+        </div>
+
+        <div class="section-title">Comments</div>
+        <div class="comment-list">
+          <div class="comment-item" *ngFor="let c of selectedAction.comments; trackBy: trackComment">
+            <div class="comment-author">{{ c.author }}</div>
+            <div class="comment-text">{{ c.text }}</div>
+            <div class="comment-meta">{{ c.createdAt }}</div>
+          </div>
+          <div class="empty-mini" *ngIf="selectedAction.comments.length === 0">No comments yet.</div>
+        </div>
+
+        <div class="comment-add">
+          <textarea [(ngModel)]="commentText" placeholder="Write a comment..."></textarea>
+          <button class="tb-btn add" (click)="addComment()">Add Comment</button>
+        </div>
+
+        <div class="section-title">Attachments</div>
+        <div class="empty-mini" *ngIf="selectedAction.attachments.length === 0">No attachments yet.</div>
+        <div class="attach-item" *ngFor="let a of selectedAction.attachments">
+          <div>{{ a.fileName }}</div>
+          <small>{{ a.fileSize || 0 }} bytes</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

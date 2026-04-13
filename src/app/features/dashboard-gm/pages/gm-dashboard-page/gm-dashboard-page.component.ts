@@ -29,8 +29,11 @@ export class GmDashboardPageComponent implements OnInit {
 
     this.gmService.getProjects().subscribe({
       next: (rows) => {
-        this.projects = rows ?? [];
-        this.computeKpis(); // ✅ add this
+        this.projects = (rows ?? []).map(row => ({
+          ...row,
+          timeHealth: row.timeHealth ?? 'NA'
+        }));
+        this.computeKpis();
       },
       error: (err) => {
         this.projects = [];
