@@ -39,6 +39,8 @@ export class GmProjectActionsPageComponent implements OnInit {
 
   isNewAction = false;
 
+  availableAssignees: string[] = [];
+
   readonly departments = ['PM', 'ME', 'CE', 'SW', 'PRC', 'MFC', 'QA', 'HSE', 'Other'];
   readonly actionTypes: Array<'action' | 'issue'> = ['action', 'issue'];
   readonly priorities: Array<'high' | 'medium' | 'low'> = ['high', 'medium', 'low'];
@@ -67,8 +69,19 @@ export class GmProjectActionsPageComponent implements OnInit {
         this.actionService.getSummary(this.projectId).subscribe({
           next: (summary) => {
             this.summary = summary;
-            this.refreshSelectedAction();
-            this.loading = false;
+
+            this.actionService.getAvailableAssignees(this.projectId).subscribe({
+              next: (assignees) => {
+                this.availableAssignees = assignees ?? [];
+                this.refreshSelectedAction();
+                this.loading = false;
+              },
+              error: (err) => {
+                console.error(err);
+                this.error = 'Failed to load available assignees.';
+                this.loading = false;
+              }
+            });
           },
           error: (err) => {
             console.error(err);
@@ -217,6 +230,8 @@ export class GmProjectActionsPageComponent implements OnInit {
   }
 
   saveRow(row: ActionItem): void {
+    if (this.saving) return;
+
     this.saving = true;
 
     const payload = {
@@ -276,6 +291,7 @@ export class GmProjectActionsPageComponent implements OnInit {
   }
 
   openDetail(row: ActionItem): void {
+    this.isNewAction = false;
     this.selectedAction = this.cloneAction(row);
     this.detailTab = 'details';
     this.commentText = '';
@@ -285,6 +301,7 @@ export class GmProjectActionsPageComponent implements OnInit {
     this.selectedAction = null;
     this.commentText = '';
     this.detailTab = 'details';
+    this.isNewAction = false;
   }
 
   addComment(): void {
@@ -304,20 +321,31 @@ export class GmProjectActionsPageComponent implements OnInit {
     });
   }
 
-  addAssigneeToSelected(name: string): void {
-    if (!this.selectedAction) return;
-    const trimmed = name.trim();
-    if (!trimmed) return;
-    if (!this.selectedAction.assignees.includes(trimmed)) {
-      this.selectedAction.assignees = [...this.selectedAction.assignees, trimmed];
-      this.saveRow(this.selectedAction);
-    }
+addAssigneeToSelected(name: string): void {
+  if (!this.selectedAction) return;
+
+  const trimmed = name.trim();
+  if (!trimmed) return;
+
+  if (!this.availableAssignees.includes(trimmed)) return;
+
+  if (!this.selectedAction.assignees.includes(trimmed)) {
+    this.selectedAction.assignees = [...this.selectedAction.assignees, trimmed];
   }
+
+  if (!this.isNewAction) {
+    this.saveRow(this.selectedAction);
+  }
+}
 
   removeAssigneeFromSelected(name: string): void {
     if (!this.selectedAction) return;
+
     this.selectedAction.assignees = this.selectedAction.assignees.filter(a => a !== name);
-    this.saveRow(this.selectedAction);
+
+    if (!this.isNewAction) {
+      this.saveRow(this.selectedAction);
+    }
   }
 
   getAssigneesUniverse(): string[] {

@@ -395,29 +395,28 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
   }
 
   get resourceRows(): DepartmentResourceRow[] {
-  const rows = this.overview?.resourceRows ?? [];
+    const rows = [...(this.overview?.resourceRows ?? [])];
 
-  if (this.showResources && this.showSuppliers) {
-    return rows;
-  }
+    let filtered = rows;
 
-  if (!this.showResources && !this.showSuppliers) {
-    return [];
-  }
-
-  return rows.filter(row => {
-    const isInternal = row.member.internal;
-
-    if (this.showResources && !this.showSuppliers) {
-      return isInternal;
+    if (!this.showResources && !this.showSuppliers) {
+      filtered = [];
+    } else if (this.showResources && !this.showSuppliers) {
+      filtered = rows.filter(row => row.member.internal);
+    } else if (!this.showResources && this.showSuppliers) {
+      filtered = rows.filter(row => !row.member.internal);
     }
 
-    if (!this.showResources && this.showSuppliers) {
-      return !isInternal;
-    }
+    return filtered.sort((a, b) => {
+      const aGeneric = (a.member.fullName || '').startsWith('G-');
+      const bGeneric = (b.member.fullName || '').startsWith('G-');
 
-    return true;
-  });
+      if (aGeneric !== bGeneric) {
+        return aGeneric ? 1 : -1;
+      }
+
+      return (a.member.fullName || '').localeCompare(b.member.fullName || '');
+    });
   }
 
   toggleTimeFilterMenu(): void {

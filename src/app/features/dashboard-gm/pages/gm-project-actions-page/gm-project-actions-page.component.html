@@ -105,7 +105,7 @@
       <span class="tb-label">Assignee:</span>
       <select class="flt-sel" (change)="toggleAssignee($any($event.target).value)">
         <option value="">All assignees</option>
-        <option *ngFor="let a of getAssigneesUniverse()" [value]="a">{{ a }}</option>
+        <option *ngFor="let a of availableAssignees" [value]="a">{{ a }}</option>
       </select>
 
       <div class="assignee-chips" *ngIf="selectedAssignees.size > 0">
@@ -398,7 +398,7 @@
                     #assigneeSel
                     (change)="addAssigneeToSelected(assigneeSel.value); assigneeSel.value=''">
               <option value="">Add assignee...</option>
-              <option *ngFor="let a of getAssigneesUniverse()" [value]="a">{{ a }}</option>
+              <option *ngFor="let a of availableAssignees" [value]="a">{{ a }}</option>
             </select>
           </div>
         </ng-container>

@@ -35,4 +35,8 @@ export class GmActionService {
   addComment(projectId: number, id: number, text: string): Observable<any> {
     return this.http.post(`${this.baseUrl}/${projectId}/actions/${id}/comments`, { text });
   }
+
+  getAvailableAssignees(projectId: number): Observable<string[]> {
+    return this.http.get<string[]>(`${this.baseUrl}/${projectId}/actions/assignees`);
+  }
 }
