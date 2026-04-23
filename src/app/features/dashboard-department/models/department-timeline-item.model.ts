@@ -4,13 +4,14 @@ export interface DepartmentTimelineItem {
   projectName: string | null;
   taskId: number | null;
   taskName: string;
-  taskType: string;
+  taskType: string | null;
   startDate: string;
   endDate: string;
-  progressPercent: number | null;
+  progressPercent: number;
   departmentCode: string | null;
   resourceType: string | null;
   doubleBooked: boolean;
   holiday: boolean;
   holidayNote: string | null;
+  internalResource: boolean | null;
 }

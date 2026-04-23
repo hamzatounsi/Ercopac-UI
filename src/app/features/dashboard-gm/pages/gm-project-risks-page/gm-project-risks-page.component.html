@@ -1,5 +1,10 @@
 <div class="risk-shell">
+  <app-gm-project-side-panel
+    [projectId]="projectId"
+    currentPage="risk">
+  </app-gm-project-side-panel>
 
+  <app-projectum-project-header></app-projectum-project-header>
 
   <div id="toolbar">
     <button class="tb-btn add" (click)="addRisk()">＋ Add Risk</button>
@@ -29,13 +34,80 @@
       <option value="crit">Critical (17–25)</option>
     </select>
 
+    <select class="tb-sel" [(ngModel)]="varianceStatusFilter" (change)="applyFilters()">
+      <option value="">All</option>
+      <option value="open">Variance Open</option>
+      <option value="approved">Variance Approved</option>
+    </select>
+
+    <div class="tb-sep"></div>
+
+    <span class="tb-lbl">Dept:</span>
+    <select class="tb-sel" [(ngModel)]="deptFilter" (change)="applyFilters()">
+      <option value="">All</option>
+      <option *ngFor="let d of departments" [value]="d">{{ d }}</option>
+    </select>
+
+    <div class="tb-sep"></div>
+
+    <span class="tb-lbl">Input:</span>
+    <input class="tb-date" type="date" [(ngModel)]="inputDateFrom" (change)="applyFilters()">
+    <span class="tb-arrow">→</span>
+    <input class="tb-date" type="date" [(ngModel)]="inputDateTo" (change)="applyFilters()">
+
+    <div class="tb-sep"></div>
+
+    <span class="tb-lbl">Due:</span>
+    <input class="tb-date" type="date" [(ngModel)]="dueDateFrom" (change)="applyFilters()">
+    <span class="tb-arrow">→</span>
+    <input class="tb-date" type="date" [(ngModel)]="dueDateTo" (change)="applyFilters()">
+
     <button class="tb-btn" (click)="clearFilters()">✕ Clear</button>
 
     <input class="tb-search" [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="🔍 Search…">
 
     <div class="tb-sep"></div>
 
+    <button class="tb-btn" (click)="exportRisks()">📤 Export</button>
     <button class="tb-btn" (click)="loadData()">↺ Refresh</button>
+
+    <div class="bell-wrap">
+      <button class="bell-btn" (click)="toggleBell()">
+        🔔
+        <span class="bell-badge" *ngIf="pendingApprovals.length > 0">{{ pendingApprovals.length }}</span>
+      </button>
+
+      <div class="bell-drop" *ngIf="bellOpen">
+        <div class="bell-drop-hdr">
+          <span>Pending Approvals</span>
+          <button type="button" class="bell-close" (click)="bellOpen = false">✕</button>
+        </div>
+
+        <div class="bell-drop-body">
+          <div *ngIf="pendingApprovals.length === 0" class="bell-empty">
+            No pending approvals ✓
+          </div>
+
+          <div
+            *ngFor="let row of pendingApprovals"
+            class="bell-item"
+            (click)="openDrawer(row); bellOpen = false">
+            <div class="bell-item-top">
+              <span class="bell-item-title">{{ formatRiskId(row) }} · {{ row.description }}</span>
+              <span class="bell-item-badge">{{ row.state | uppercase }}</span>
+            </div>
+            <div class="bell-item-sub">
+              RV = {{ getRiskValue(row) }} ({{ getRiskLevelLabel(row) }}) · {{ row.ownerDept || '—' }} · Due: {{ row.dueDate || '—' }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="project-bar">
+    <span class="project-lbl">📂 Project:</span>
+    <span class="project-chip">Project #{{ projectId }}</span>
   </div>
 
   <div *ngIf="error" class="error-box">{{ error }}</div>
@@ -82,91 +154,67 @@
       <table id="risk-tbl">
         <thead>
           <tr>
-            <th style="width:44px;">ID</th>
-            <th style="min-width:220px;">Description</th>
-            <th style="width:88px;">Type</th>
-            <th style="width:98px;">State</th>
-            <th style="width:95px;">Input Date</th>
-            <th style="width:95px;">Due Date</th>
-            <th style="width:80px;">Dept</th>
-            <th style="width:120px;">Owner</th>
-            <th style="width:120px;">WBS</th>
-            <th style="width:52px;">Impact</th>
-            <th style="width:52px;">Prob.</th>
-            <th style="width:60px;">RV</th>
-            <th style="width:95px;">Var. Status</th>
+            <th [ngClass]="getSortClass('id')" (click)="sortBy('id')" style="width:60px;">ID</th>
+            <th [ngClass]="getSortClass('description')" (click)="sortBy('description')" style="min-width:220px;">Description</th>
+            <th [ngClass]="getSortClass('riskType')" (click)="sortBy('riskType')" style="width:100px;">Type</th>
+            <th [ngClass]="getSortClass('state')" (click)="sortBy('state')" style="width:100px;">State</th>
+            <th [ngClass]="getSortClass('inputDate')" (click)="sortBy('inputDate')" style="width:110px;">Input Date</th>
+            <th [ngClass]="getSortClass('dueDate')" (click)="sortBy('dueDate')" style="width:110px;">Due Date</th>
+            <th [ngClass]="getSortClass('ownerDept')" (click)="sortBy('ownerDept')" style="width:80px;">Dept</th>
+            <th [ngClass]="getSortClass('owner')" (click)="sortBy('owner')" style="width:120px;">Owner</th>
+            <th [ngClass]="getSortClass('wbsCode')" (click)="sortBy('wbsCode')" style="width:120px;">WBS</th>
+            <th [ngClass]="getSortClass('impact')" (click)="sortBy('impact')" style="width:60px;">Impact</th>
+            <th [ngClass]="getSortClass('probability')" (click)="sortBy('probability')" style="width:60px;">Prob.</th>
+            <th [ngClass]="getSortClass('riskValue')" (click)="sortBy('riskValue')" style="width:60px;">RV</th>
+            <th [ngClass]="getSortClass('varianceStatus')" (click)="sortBy('varianceStatus')" style="width:110px;">Var. Status</th>
             <th style="min-width:180px;">Mitigation</th>
-            <th style="width:32px;"></th>
+            <th style="width:40px;"></th>
           </tr>
         </thead>
 
         <tbody>
-          <tr *ngFor="let row of filteredRows"
-              [class.selected]="selectedRisk?.id === row.id"
-              (click)="selectRow(row)">
-            <td>{{ row.id }}</td>
+          <tr
+            *ngFor="let row of filteredRows"
+            [class.selected]="selectedRisk?.id === row.id"
+            (click)="selectRow(row)"
+            (dblclick)="openDrawer(row)">
+            <td class="risk-id-cell">{{ formatRiskId(row) }}</td>
 
             <td>
               <input class="r-inp long" [(ngModel)]="row.description" (change)="saveRow(row)">
             </td>
 
             <td>
-              <select class="r-sel" [(ngModel)]="row.riskType" (change)="saveRow(row)">
-                <option *ngFor="let t of types" [value]="t">{{ t }}</option>
-              </select>
+              <span class="rt-badge" [ngClass]="getTypeClass(row.riskType)">
+                {{ row.riskType === 'opportunity' ? '↑ Opportunity' : '↓ Risk' }}
+              </span>
             </td>
 
             <td>
-              <select class="r-sel" [(ngModel)]="row.state" (change)="saveRow(row)">
-                <option *ngFor="let s of states" [value]="s">{{ s }}</option>
-              </select>
+              <span class="state-badge" [ngClass]="getStateClass(row.state)">
+                {{ row.state }}
+              </span>
             </td>
 
-            <td>
-              <input class="r-inp" type="date" [(ngModel)]="row.inputDate" (change)="saveRow(row)">
-            </td>
-
-            <td>
-              <input class="r-inp" type="date" [(ngModel)]="row.dueDate" (change)="saveRow(row)">
-            </td>
-
-            <td>
-              <select class="r-sel" [(ngModel)]="row.ownerDept" (change)="saveRow(row)">
-                <option value="">—</option>
-                <option *ngFor="let d of departments" [value]="d">{{ d }}</option>
-              </select>
-            </td>
-
-            <td>
-              <input class="r-inp" [(ngModel)]="row.owner" (change)="saveRow(row)">
-            </td>
-
-            <td>
-              <input class="r-inp" [(ngModel)]="row.wbsCode" (change)="saveRow(row)">
-            </td>
-
-            <td>
-              <select class="r-sel" [(ngModel)]="row.impact" (change)="saveRow(row)">
-                <option *ngFor="let n of [1,2,3,4,5]" [ngValue]="n">{{ n }}</option>
-              </select>
-            </td>
-
-            <td>
-              <select class="r-sel" [(ngModel)]="row.probability" (change)="saveRow(row)">
-                <option *ngFor="let n of [1,2,3,4,5]" [ngValue]="n">{{ n }}</option>
-              </select>
-            </td>
+            <td>{{ row.inputDate || '—' }}</td>
+            <td>{{ row.dueDate || '—' }}</td>
+            <td>{{ row.ownerDept || '—' }}</td>
+            <td>{{ row.owner || '—' }}</td>
+            <td>{{ row.wbsCode || '—' }}</td>
+            <td>{{ row.impact }}</td>
+            <td>{{ row.probability }}</td>
 
             <td>
               <span class="rv-cell" [ngClass]="getRiskClass(row)">{{ getRiskValue(row) }}</span>
             </td>
 
             <td>
-              <select class="r-sel" [(ngModel)]="row.varianceStatus" (change)="saveRow(row)">
-                <option value="">—</option>
-                <option value="open">open</option>
-                <option value="approved">approved</option>
-              </select>
+              <span *ngIf="row.varianceStatus; else noVariance"
+                    class="variance-badge"
+                    [ngClass]="getVarianceClass(row.varianceStatus)">
+                {{ row.varianceStatus }}
+              </span>
+              <ng-template #noVariance>—</ng-template>
             </td>
 
             <td>
@@ -185,22 +233,42 @@
       </table>
     </div>
 
-    <div id="rp-sidebar" *ngIf="summary">
+    <div id="rp-sidebar" [class.collapsed]="riskPositionCollapsed">
+      <button id="rp-toggle" (click)="toggleRiskPosition()">
+        <span [class.rotated]="riskPositionCollapsed">‹</span>
+      </button>
+
       <div id="rp-hdr">⚖️ Risk Position</div>
 
-      <div id="rp-body">
+      <div id="rp-body" *ngIf="!riskPositionCollapsed">
         <div class="rp-sec">Risk Exposure</div>
         <div class="rp-kpi red">
-          <div class="rp-kpi-lbl">Risk Count</div>
-          <div class="rp-kpi-val">{{ summary.riskCount }}</div>
+          <div class="rp-kpi-lbl">Risk Count (−)</div>
+          <div class="rp-kpi-val">{{ getOpenRisksCount() }}</div>
           <div class="rp-kpi-sub">Negative exposure side</div>
+        </div>
+
+        <div class="rp-bar-row" *ngFor="let row of getTopRisks()">
+          <div class="rp-bar-lbl" [title]="row.description">{{ row.description }}</div>
+          <div class="rp-bar-track">
+            <div class="rp-bar-fill red-fill" [style.width.%]="getBarWidth(row, getTopRisks())"></div>
+          </div>
+          <div class="rp-bar-val">{{ getRiskValue(row) }}</div>
         </div>
 
         <div class="rp-sec">Opportunity Upside</div>
         <div class="rp-kpi green">
-          <div class="rp-kpi-lbl">Opportunity Count</div>
-          <div class="rp-kpi-val">{{ summary.opportunityCount }}</div>
+          <div class="rp-kpi-lbl">Opportunity Count (+)</div>
+          <div class="rp-kpi-val">{{ getOpenOpportunitiesCount() }}</div>
           <div class="rp-kpi-sub">Positive upside side</div>
+        </div>
+
+        <div class="rp-bar-row" *ngFor="let row of getTopOpportunities()">
+          <div class="rp-bar-lbl" [title]="row.description">{{ row.description }}</div>
+          <div class="rp-bar-track">
+            <div class="rp-bar-fill green-fill" [style.width.%]="getBarWidth(row, getTopOpportunities())"></div>
+          </div>
+          <div class="rp-bar-val">{{ getRiskValue(row) }}</div>
         </div>
 
         <div class="rp-sec">Net Position</div>
@@ -216,7 +284,7 @@
           <div class="hm-lbl">1</div><div class="hm-lbl">2</div><div class="hm-lbl">3</div><div class="hm-lbl">4</div><div class="hm-lbl">5</div>
 
           <div class="hm-lbl">5</div><div class="hm-cell crit">5</div><div class="hm-cell crit">10</div><div class="hm-cell crit">15</div><div class="hm-cell crit">20</div><div class="hm-cell crit">25</div>
-          <div class="hm-lbl">4</div><div class="hm-cell hi">4</div><div class="hm-cell hi">8</div><div class="hm-cell hi">12</div><div class="hm-cell hi">16</div><div class="hm-cell crit">20</div>
+          <div class="hm-lbl">4</div><div class="hm-cell low">4</div><div class="hm-cell hi">8</div><div class="hm-cell hi">12</div><div class="hm-cell hi">16</div><div class="hm-cell crit">20</div>
           <div class="hm-lbl">3</div><div class="hm-cell low">3</div><div class="hm-cell med">6</div><div class="hm-cell med">9</div><div class="hm-cell hi">12</div><div class="hm-cell hi">15</div>
           <div class="hm-lbl">2</div><div class="hm-cell low">2</div><div class="hm-cell low">4</div><div class="hm-cell med">6</div><div class="hm-cell med">8</div><div class="hm-cell hi">10</div>
           <div class="hm-lbl">1</div><div class="hm-cell low">1</div><div class="hm-cell low">2</div><div class="hm-cell low">3</div><div class="hm-cell low">4</div><div class="hm-cell med">5</div>
@@ -226,4 +294,130 @@
   </div>
 
   <div class="loading-box" *ngIf="loading">Loading risks...</div>
+
+  <div class="drawer-overlay" *ngIf="drawerOpen" (click)="closeDrawer()"></div>
+
+  <div class="detail-drawer" [class.open]="drawerOpen" *ngIf="selectedRisk">
+    <div class="dd-hdr">
+      <div class="dd-id">{{ formatRiskId(selectedRisk) }}</div>
+      <div class="dd-title">{{ selectedRisk.description || 'Risk Detail' }}</div>
+      <div class="dd-meta">
+        {{ getRiskLevelLabel(selectedRisk) }} risk · {{ selectedRisk.state }} · RV = {{ selectedRisk.impact }} × {{ selectedRisk.probability }} = {{ getRiskValue(selectedRisk) }}
+      </div>
+      <button class="dd-close" (click)="closeDrawer()">✕</button>
+    </div>
+
+    <div class="dd-body">
+      <div class="dd-sec">Basic Info</div>
+
+      <div class="dd-field">
+        <div class="dd-lbl">Description</div>
+        <textarea class="dd-ta" [(ngModel)]="selectedRisk.description"></textarea>
+      </div>
+
+      <div class="dd-field">
+        <div class="dd-lbl">Type</div>
+        <select class="dd-sel" [(ngModel)]="selectedRisk.riskType">
+          <option *ngFor="let t of types" [value]="t">{{ t }}</option>
+        </select>
+      </div>
+
+      <div class="dd-field">
+        <div class="dd-lbl">State</div>
+        <select class="dd-sel" [(ngModel)]="selectedRisk.state">
+          <option *ngFor="let s of states" [value]="s">{{ s }}</option>
+        </select>
+      </div>
+
+      <div class="dd-field">
+        <div class="dd-lbl">Input Date</div>
+        <input class="dd-inp" type="date" [(ngModel)]="selectedRisk.inputDate">
+      </div>
+
+      <div class="dd-field">
+        <div class="dd-lbl">Due Date</div>
+        <input class="dd-inp" type="date" [(ngModel)]="selectedRisk.dueDate">
+      </div>
+
+      <div class="dd-field">
+        <div class="dd-lbl">WBS</div>
+        <input class="dd-inp" [(ngModel)]="selectedRisk.wbsCode">
+      </div>
+
+      <div class="dd-field">
+        <div class="dd-lbl">Mitigation</div>
+        <textarea class="dd-ta" [(ngModel)]="selectedRisk.mitigation"></textarea>
+      </div>
+
+      <div class="dd-sec">Ownership</div>
+
+      <div class="dd-field">
+        <div class="dd-lbl">Department</div>
+        <select class="dd-sel" [(ngModel)]="selectedRisk.ownerDept">
+          <option value="">—</option>
+          <option *ngFor="let d of departments" [value]="d">{{ d }}</option>
+        </select>
+      </div>
+
+      <div class="dd-field">
+        <div class="dd-lbl">Owner</div>
+        <input class="dd-inp" [(ngModel)]="selectedRisk.owner">
+      </div>
+
+      <div class="dd-sec">Risk Assessment</div>
+
+      <div class="dd-field">
+        <div class="dd-lbl">Impact</div>
+        <select class="dd-sel" [(ngModel)]="selectedRisk.impact">
+          <option *ngFor="let n of [1,2,3,4,5]" [ngValue]="n">{{ n }}</option>
+        </select>
+      </div>
+
+      <div class="dd-field">
+        <div class="dd-lbl">Probability</div>
+        <select class="dd-sel" [(ngModel)]="selectedRisk.probability">
+          <option *ngFor="let n of [1,2,3,4,5]" [ngValue]="n">{{ n }}</option>
+        </select>
+      </div>
+
+      <div class="dd-field">
+        <div class="dd-lbl">Risk Value</div>
+        <div class="dd-calc" [ngClass]="getRiskClass(selectedRisk)">
+          {{ getRiskValue(selectedRisk) }} — {{ getRiskLevelLabel(selectedRisk) }}
+        </div>
+      </div>
+
+      <div class="dd-sec">Notes</div>
+
+      <div class="dd-field">
+        <div class="dd-lbl">Notes</div>
+        <textarea class="dd-ta" [(ngModel)]="selectedRisk.notes"></textarea>
+      </div>
+
+      <div class="dd-approval" *ngIf="needsApproval(selectedRisk)">
+        <div class="dd-approval-title">
+          ⚠️ {{ selectedRisk.state === 'cr' ? 'Change Request Approval Required' : 'Variance Approval Required' }}
+        </div>
+
+        <div class="dd-approval-text">
+          <ng-container *ngIf="selectedRisk.varianceStatus === 'approved'; else pendingApproval">
+            ✓ Approved by {{ selectedRisk.approvedBy || '—' }} on {{ selectedRisk.approvedAt || '—' }}
+          </ng-container>
+          <ng-template #pendingApproval>
+            ⏳ Pending approval
+          </ng-template>
+        </div>
+
+        <div class="dd-approval-actions" *ngIf="selectedRisk.varianceStatus !== 'approved'">
+          <button class="approve-btn approve" (click)="approveSelectedRisk()">✓ Approve</button>
+          <button class="approve-btn reject" (click)="rejectSelectedRisk()">✕ Reject / Revert</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="dd-foot">
+      <button class="dd-btn ghost" (click)="closeDrawer()">Cancel</button>
+      <button class="dd-btn primary" (click)="saveSelectedRisk()">💾 Save</button>
+    </div>
+  </div>
 </div>

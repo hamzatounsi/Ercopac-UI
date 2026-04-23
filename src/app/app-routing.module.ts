@@ -20,7 +20,15 @@ const routes: Routes = [
     loadChildren: () =>
       import('./features/dashboard-gm/gm-dashboard.module').then(m => m.GmDashboardModule),
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ROLE_GENERAL_MANAGER'] }
+    data: {
+      roles: [
+        'ROLE_GENERAL_MANAGER',
+        'ROLE_ORG_ADMIN',
+        'ROLE_PMO',
+        'ROLE_PLATFORM_OWNER',
+        'ROLE_PLATFORM_ADMIN'
+      ]
+    }
   },
 
   {
@@ -41,14 +49,23 @@ const routes: Routes = [
     path: 'owner',
     loadChildren: () =>
       import('./features/dashboard-owner/dashboard-owner.module').then(m => m.DashboardOwnerModule),
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ROLE_PLATFORM_OWNER', 'ROLE_PLATFORM_ADMIN'] }
   },
 
   {
     path: 'gm/my-department',
     component: MyDepartmentPageComponent,
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ROLE_GENERAL_MANAGER'] }
+    data: {
+      roles: [
+        'ROLE_GENERAL_MANAGER',
+        'ROLE_ORG_ADMIN',
+        'ROLE_PMO',
+        'ROLE_PLATFORM_OWNER',
+        'ROLE_PLATFORM_ADMIN'
+      ]
+    }
   },
 
   {

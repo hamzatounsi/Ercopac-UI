@@ -1,311 +1,447 @@
 <div class="projectum-shell">
-  <!-- TOP APP BAR -->
-  <header class="top-appbar">
-    <div class="top-brand">
-      <div class="brand-title">Projectum<span>ALL</span></div>
-      <div class="brand-sub">all around project</div>
-    </div>
 
-    <div class="top-sep"></div>
-
-    <div class="top-actions">
-
-
-
-      <button type="button" class="top-btn top-btn-primary" (click)="goToScheduleInit()">
-        <span>＋</span>
-        <span>New Project</span>
+  <app-projectum-project-header>
+      <button type="button" class="btn btn-primary new-project-btn" (click)="openCreateModal()">
+        ＋ New Project
       </button>
-    </div>
-  </header>
-
-  <!-- KPI BLUE AREA -->
-  <section class="kpi-hero">
-    <div class="kpi-hero-head">
+  </app-projectum-project-header>
+  <!-- KPI SECTION -->
+  <section class="kpi-section">
+    <div class="kpi-header">
       <div>
-        <div class="hero-title">
-          {{ selectedProject ? 'Selected Project KPIs' : 'Portfolio KPIs' }}
-        </div>
-        <div class="hero-subtitle">
-          {{ selectedProject ? selectedProject.name : ('All Projects · ' + filteredProjects.length + ' projects') }}
-        </div>
+        <div class="kpi-title">{{ activeKpiTitle }}</div>
+        <div class="kpi-scope">{{ activeKpiSubtitle }}</div>
       </div>
 
-      <div class="hero-right">
+      <div class="kpi-header-right">
         <button
           *ngIf="selectedProjectId"
           type="button"
-          class="hero-clear-btn"
+          class="kpi-filter-badge"
           (click)="clearSelection()">
-          <span class="material-symbols-outlined">close</span>
-          <span>Clear filter</span>
+          ✕ Clear filter
         </button>
 
-        <span class="hero-hint">Click a project to filter KPIs</span>
+        <span class="kpi-hint">Click a project to filter KPIs</span>
       </div>
     </div>
 
     <div class="kpi-grid">
-      <!-- SCHEDULE -->
-      <div class="kpi-panel">
-        <div class="kpi-panel-title">⏱ SCHEDULE</div>
+      <!-- Schedule -->
+      <div class="kpi-group">
+        <div class="kpi-group-title">📅 Schedule</div>
 
-        <div class="kpi-panel-cards">
-          <div class="kpi-card">
-            <div class="kpi-value">{{ stats.averageProgress }}%</div>
-            <div class="kpi-label">Avg Progress</div>
-            <div class="mini-progress">
-              <div class="mini-progress-bar" [style.width.%]="stats.averageProgress"></div>
+        <div class="kpi-rows">
+          <div class="kpi-item">
+            <div class="kpi-v">{{ scheduleAverageProgress }}%</div>
+            <div class="kpi-l">Avg Progress</div>
+            <div class="kpi-bar-wrap">
+              <div class="kpi-bar" [style.width.%]="scheduleAverageProgress"></div>
             </div>
           </div>
 
-          <div class="kpi-card">
-            <div class="kpi-value">{{ stats.activeProjects }}</div>
-            <div class="kpi-label">Active Projects</div>
-            <div class="kpi-sub green">{{ stats.totalProjects ? ((stats.activeProjects / stats.totalProjects) * 100 | number:'1.0-0') : 0 }}% of portfolio</div>
+          <div class="kpi-item">
+            <div class="kpi-v">{{ scheduleActiveProjects }}</div>
+            <div class="kpi-l">Active Projects</div>
           </div>
 
-          <div class="kpi-card">
-            <div class="kpi-value">{{ selectedProject ? (projectKpis?.totalTasks ?? 0) : 1148 }}</div>
-            <div class="kpi-label">{{ selectedProject ? 'Total Tasks' : 'Total Tasks' }}</div>
+          <div class="kpi-item">
+            <div class="kpi-v">{{ scheduleTotalTasks }}</div>
+            <div class="kpi-l">Total Tasks</div>
           </div>
 
-          <div class="kpi-card">
-            <div class="kpi-value">{{ selectedProject ? (projectKpis?.completedTasks ?? 0) : 7 }}</div>
-            <div class="kpi-label">Completed</div>
-            <div class="kpi-sub green">
-              {{ selectedProject ? (projectKpis?.averageTaskProgress ?? 0) : 16 }}% done
-            </div>
+          <div class="kpi-item">
+            <div class="kpi-v">{{ scheduleCompletedTasks }}</div>
+            <div class="kpi-l">Completed</div>
           </div>
         </div>
       </div>
 
-      <!-- FINANCE -->
-      <div class="kpi-panel">
-        <div class="kpi-panel-title">💰 FINANCE</div>
+      <!-- Finance -->
+      <div class="kpi-group">
+        <div class="kpi-group-title">💰 Finance</div>
 
-        <div class="kpi-panel-cards">
-          <div class="kpi-card">
-            <div class="kpi-value">{{ selectedProject ? formatCurrency(projectKpis?.projectBudget) : '€128.1M' }}</div>
-            <div class="kpi-label">Total Budget</div>
+        <div class="kpi-rows">
+          <div class="kpi-item">
+            <div class="kpi-v">{{ formatCurrency(financeBudget) }}</div>
+            <div class="kpi-l">Total Budget</div>
           </div>
 
-          <div class="kpi-card">
-            <div class="kpi-value">{{ portfolioKpis?.totalBudget ? formatCurrency(portfolioKpis?.totalBudget - 4800000) : '€123.3M' }}</div>
-            <div class="kpi-label">Est. Cost</div>
+          <div class="kpi-item">
+            <div class="kpi-v">{{ formatCurrency(financeEstimatedCost) }}</div>
+            <div class="kpi-l">Est. Cost</div>
           </div>
 
-          <div class="kpi-card">
-            <div class="kpi-value">17</div>
-            <div class="kpi-label">Countries</div>
+          <div class="kpi-item">
+            <div class="kpi-v">{{ countriesCount }}</div>
+            <div class="kpi-l">Countries</div>
           </div>
 
-          <div class="kpi-card">
-            <div class="kpi-value">—</div>
-            <div class="kpi-label">Project Mgrs</div>
+          <div class="kpi-item">
+            <div class="kpi-v">{{ managersCount || '—' }}</div>
+            <div class="kpi-l">Project Mgrs</div>
           </div>
         </div>
       </div>
 
-      <!-- RISK -->
-      <div class="kpi-panel">
-        <div class="kpi-panel-title">⚠ RISK</div>
+      <!-- Risk -->
+      <div class="kpi-group">
+        <div class="kpi-group-title">⚠️ Risk</div>
 
-        <div class="kpi-panel-cards">
-          <div class="kpi-card">
-            <div class="kpi-value danger">{{ stats.delayedProjects }}</div>
-            <div class="kpi-label">High Risk</div>
+        <div class="kpi-rows">
+          <div class="kpi-item">
+            <div class="kpi-v risk-high">{{ highRiskCount }}</div>
+            <div class="kpi-l">High Risk</div>
           </div>
 
-          <div class="kpi-card">
-            <div class="kpi-value warning">{{ stats.delayedProjects + 10 }}</div>
-            <div class="kpi-label">Medium Risk</div>
+          <div class="kpi-item">
+            <div class="kpi-v risk-med">{{ mediumRiskCount }}</div>
+            <div class="kpi-l">Medium Risk</div>
           </div>
 
-          <div class="kpi-card">
-            <div class="kpi-value success">{{ stats.activeProjects }}</div>
-            <div class="kpi-label">Low Risk</div>
+          <div class="kpi-item">
+            <div class="kpi-v risk-low">{{ lowRiskCount }}</div>
+            <div class="kpi-l">Low Risk</div>
           </div>
 
-          <div class="kpi-card">
-            <div class="kpi-value">0</div>
-            <div class="kpi-label">Overdue</div>
+          <div class="kpi-item">
+            <div class="kpi-v">{{ overdueCount }}</div>
+            <div class="kpi-l">Overdue</div>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- FILTERS -->
-  <section class="filters-row">
-    <div class="search-box">
-      <span class="material-symbols-outlined">search</span>
+  <!-- CONTENT -->
+  <div class="content">
+    <div class="filters-row">
       <input
+        class="fi-inp"
         type="text"
         [(ngModel)]="searchTerm"
         (input)="onSearch()"
-        placeholder="Search project, code, customer..."
+        placeholder="🔍 Search project, code, customer…"
       />
+
+      <select class="fi-sel" [(ngModel)]="selectedCountry" (change)="onFilterChange()">
+        <option value="">All Countries</option>
+        <option *ngFor="let country of countries" [value]="country">{{ country }}</option>
+      </select>
+
+      <select class="fi-sel" [(ngModel)]="selectedPm" (change)="onFilterChange()">
+        <option value="">All PMs</option>
+        <option *ngFor="let pm of projectManagers" [value]="pm">{{ pm }}</option>
+      </select>
+
+      <select class="fi-sel" [(ngModel)]="selectedCustomer" (change)="onFilterChange()">
+        <option value="">All Customers</option>
+        <option *ngFor="let customer of customers" [value]="customer">{{ customer }}</option>
+      </select>
+
+      <select class="fi-sel" [(ngModel)]="selectedStatus" (change)="onFilterChange()">
+        <option value="">All Status</option>
+        <option *ngFor="let status of statusOptions" [value]="status">{{ status }}</option>
+      </select>
+
+      <select class="fi-sel" [(ngModel)]="selectedType" (change)="onFilterChange()">
+        <option value="">All Types</option>
+        <option *ngFor="let type of typeOptions" [value]="type">{{ type }}</option>
+      </select>
+
+      <select class="fi-sel" [(ngModel)]="selectedRisk" (change)="onFilterChange()">
+        <option value="">All Risk</option>
+        <option *ngFor="let risk of riskOptions" [value]="risk">{{ risk }}</option>
+      </select>
+
+      <div class="row-count">{{ filteredProjects.length }} of {{ projects.length }}</div>
     </div>
 
-    <select class="filter-select">
-      <option>All Countries</option>
-    </select>
-
-    <select class="filter-select">
-      <option>All PMs</option>
-    </select>
-
-    <select class="filter-select">
-      <option>All Customers</option>
-    </select>
-
-    <select class="filter-select">
-      <option>All Status</option>
-    </select>
-
-    <select class="filter-select">
-      <option>All Types</option>
-    </select>
-
-    <select class="filter-select">
-      <option>All Risk</option>
-    </select>
-
-    <div class="filters-count">{{ filteredProjects.length }} of {{ stats.totalProjects }}</div>
-  </section>
-
-  <div *ngIf="error" class="page-error">
-    {{ error }}
-  </div>
-
-  <!-- PROJECT TABLE -->
-  <section class="projects-block">
-    <div class="projects-head">
+    <div class="sec-head">
       <h2>Projects</h2>
       <span class="count-badge">{{ filteredProjects.length }}</span>
     </div>
 
-    <div class="projects-table-card">
-      <div class="table-wrapper">
-        <table class="project-table">
-          <thead>
-            <tr>
-              <th>Code</th>
-              <th>Project Name</th>
-              <th>Customer</th>
-              <th>Country</th>
-              <th>Type</th>
-              <th>PM</th>
-              <th>Status</th>
-              <th>Start</th>
-              <th>End</th>
-              <th>Progress</th>
-              <th>Risk</th>
-              <th>Budget €</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
+    <div *ngIf="error" class="page-error">{{ error }}</div>
 
-          <tbody>
-            <tr *ngIf="loading">
-              <td colspan="13" class="empty-state">Loading projects...</td>
-            </tr>
+    <div class="table-card">
+      <table class="proj-table">
+        <thead>
+          <tr>
+            <th (click)="setSort('code')">Code</th>
+            <th (click)="setSort('name')">Project Name</th>
+            <th (click)="setSort('customer')">Customer</th>
+            <th (click)="setSort('country')">Country</th>
+            <th (click)="setSort('projectType')">Type</th>
+            <th (click)="setSort('projectManagerName')">PM</th>
+            <th (click)="setSort('projectPhase')">Status</th>
+            <th (click)="setSort('plannedStart')">Start</th>
+            <th (click)="setSort('plannedEnd')">End</th>
+            <th (click)="setSort('progressPercent')">Progress</th>
+            <th (click)="setSort('riskLevel')">Risk</th>
+            <th (click)="setSort('projectBudget')">Budget €</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
 
-            <tr
-              *ngFor="let project of filteredProjects"
-              class="project-row"
-              [class.selected-row]="selectedProjectId === project.id"
-              (click)="selectProject(project)"
-            >
-              <td class="mono">{{ project.code || '-' }}</td>
+        <tbody>
+          <tr *ngIf="loading">
+            <td colspan="13" class="empty-state">Loading projects...</td>
+          </tr>
 
-              <td>
-                <div class="project-name-cell">
-                  <div class="project-name">{{ project.name || '-' }}</div>
-                  <span
-                    *ngIf="selectedProjectId === project.id"
-                    class="tiny-inline-badge">
-                    Active
-                  </span>
+          <tr
+            *ngFor="let project of filteredProjects"
+            [class.selected-row]="selectedProjectId === project.id"
+            (click)="selectProject(project)">
+            <td class="mono">{{ project.code || '—' }}</td>
+
+            <td>
+              <div class="project-name">{{ project.name || '—' }}</div>
+            </td>
+
+            <td>{{ project.customer || '—' }}</td>
+            <td>{{ project.country || '—' }}</td>
+            <td>{{ project.projectType || '—' }}</td>
+            <td>{{ project.projectManagerName || '—' }}</td>
+
+            <td>
+              <span class="status-badge" [ngClass]="getStatusClass(project)">
+                {{ getStatusLabel(project) }}
+              </span>
+            </td>
+
+            <td>{{ formatDate(project.plannedStart) }}</td>
+            <td>{{ formatDate(project.plannedEnd) }}</td>
+
+            <td>
+              <div class="prog-wrap">
+                <div class="prog-bar">
+                  <div class="prog-fill" [style.width.%]="project.progressPercent || 0"></div>
                 </div>
-              </td>
+                <span class="prog-n">{{ project.progressPercent || 0 }}%</span>
+              </div>
+            </td>
 
-              <td>{{ project.portfolio || '—' }}</td>
+            <td>
+              <span [ngClass]="getRiskClass(project)">{{ getRiskLabel(project) }}</span>
+            </td>
 
-              <td>{{ project.country || '—' }}</td>
+            <td>{{ formatCurrency(project.projectBudget) }}</td>
 
-              <td>Consulting</td>
+            <td class="actions-cell" (click)="$event.stopPropagation()">
+              <div class="table-actions">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-primary btn-open"
+                  [disabled]="!project.id"
+                  (click)="openProject(project.id)">
+                  <span class="material-symbols-outlined">play_arrow</span>
+                  <span>Open</span>
+                </button>
 
-              <td>—</td>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-light btn-team"
+                  (click)="openTeamModal(project, $event)">
+                  <span class="material-symbols-outlined">group</span>
+                  <span>Team</span>
+                </button>
 
-              <td>
-                <span
-                  class="status-badge"
-                  [ngClass]="{
-                    'status-green': project.timeHealth === 'GREEN',
-                    'status-yellow': project.timeHealth === 'YELLOW',
-                    'status-red': project.timeHealth === 'RED',
-                    'status-na': !project.timeHealth || project.timeHealth === 'NA'
-                  }">
-                  {{ getStatusLabel(project) }}
-                </span>
-              </td>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-light btn-edit"
+                  (click)="openEditModal(project, $event)">
+                  <span class="material-symbols-outlined">edit</span>
+                  <span>Edit</span>
+                </button>
 
-              <td>{{ formatDate(project.plannedStart) }}</td>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-icon btn-template"
+                  (click)="applyStandardTemplate(project.id, $event)"
+                  title="Apply standard template">
+                  <span class="material-symbols-outlined">bolt</span>
+                </button>
 
-              <td>{{ formatDate(project.plannedEnd) }}</td>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-icon btn-cube"
+                  (click)="archiveProject(project, $event)"
+                  title="Archive project">
+                  <span class="material-symbols-outlined">deployed_code</span>
+                </button>
+              </div>
+            </td>
+          </tr>
 
-              <td>
-                <div class="progress-cell">
-                  <div class="progress-track">
-                    <div
-                      class="progress-fill"
-                      [style.width.%]="selectedProjectId === project.id ? 72 : (project.timeHealth === 'GREEN' ? 45 : project.timeHealth === 'YELLOW' ? 22 : 8)">
-                    </div>
-                  </div>
-                  <span class="progress-text">
-                    {{ selectedProjectId === project.id ? '72' : (project.timeHealth === 'GREEN' ? '45' : project.timeHealth === 'YELLOW' ? '22' : '8') }}%
-                  </span>
-                </div>
-              </td>
+          <tr *ngIf="!loading && filteredProjects.length === 0">
+            <td colspan="13" class="empty-state">No projects found for the current search.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
-              <td>
-                <span class="risk-text"
-                  [ngClass]="{
-                    'risk-low': project.timeHealth === 'GREEN',
-                    'risk-medium': project.timeHealth === 'YELLOW',
-                    'risk-high': project.timeHealth === 'RED'
-                  }">
-                  {{ project.timeHealth === 'RED' ? 'High' : project.timeHealth === 'YELLOW' ? 'Medium' : 'Low' }}
-                </span>
-              </td>
+  <!-- PROJECT MODAL -->
+  <div class="modal-bg" *ngIf="modalOpen" (click)="closeModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="m-head">
+        <h3>{{ editingProjectId ? 'Edit Project' : 'New Project' }}</h3>
+        <button class="m-close" type="button" (click)="closeModal()">✕</button>
+      </div>
 
-              <td>{{ formatCurrency(portfolioKpis?.totalBudget ? (portfolioKpis.totalBudget / (filteredProjects.length || 1)) : null) }}</td>
+      <div class="m-body">
+        <div class="mf full">
+          <label>Project Name *</label>
+          <input class="mi" [(ngModel)]="projectForm.name" placeholder="e.g. Machine Line 3" />
+        </div>
 
-              <td class="actions-cell" (click)="$event.stopPropagation()">
-                <div class="table-actions">
-                  <button
-                    type="button"
-                    class="action-open-btn"
-                    (click)="openProject(project.id)">
-                    ▶ Open
-                  </button>
+        <div class="mf">
+          <label>Project Code *</label>
+          <input class="mi" [(ngModel)]="projectForm.code" placeholder="e.g. 26001" />
+        </div>
 
-                  <button type="button" class="icon-action-btn">↯</button>
-                  <button type="button" class="icon-action-btn">📦</button>
-                </div>
-              </td>
-            </tr>
+        <div class="mf">
+          <label>Customer</label>
+          <input class="mi" [(ngModel)]="projectForm.customer" />
+        </div>
 
-            <tr *ngIf="!loading && filteredProjects.length === 0">
-              <td colspan="13" class="empty-state">
-                No projects found for the current search.
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="mf">
+          <label>Country</label>
+          <input class="mi" [(ngModel)]="projectForm.country" />
+        </div>
+
+        <div class="mf">
+          <label>Type</label>
+          <select class="mi" [(ngModel)]="projectForm.projectType">
+            <option value="">—</option>
+            <option *ngFor="let type of typeOptions" [value]="type">{{ type }}</option>
+          </select>
+        </div>
+
+        <div class="mf">
+          <label>Category</label>
+          <input class="mi" [(ngModel)]="projectForm.category" />
+        </div>
+
+        <div class="mf">
+          <label>Status</label>
+          <select class="mi" [(ngModel)]="projectForm.projectPhase">
+            <option *ngFor="let status of statusOptions" [value]="status">{{ status }}</option>
+          </select>
+        </div>
+
+        <div class="mf">
+          <label>Start Date</label>
+          <input class="mi" type="date" [(ngModel)]="projectForm.plannedStart" />
+        </div>
+
+        <div class="mf">
+          <label>End Date</label>
+          <input class="mi" type="date" [(ngModel)]="projectForm.plannedEnd" />
+        </div>
+
+        <div class="mf">
+          <label>Project Manager</label>
+          <input class="mi" [(ngModel)]="projectForm.projectManagerName" />
+        </div>
+
+        <div class="mf">
+          <label>Program Manager</label>
+          <input class="mi" [(ngModel)]="projectForm.programManagerName" />
+        </div>
+
+        <div class="mf">
+          <label>Sales Manager</label>
+          <input class="mi" [(ngModel)]="projectForm.salesManagerName" />
+        </div>
+
+        <div class="mf">
+          <label>Risk Level</label>
+          <select class="mi" [(ngModel)]="projectForm.riskLevel">
+            <option value="">—</option>
+            <option *ngFor="let risk of riskOptions" [value]="risk">{{ risk }}</option>
+          </select>
+        </div>
+
+        <div class="mf">
+          <label>Budget (€)</label>
+          <input class="mi" type="number" [(ngModel)]="projectForm.projectBudget" />
+        </div>
+
+        <div class="mf">
+          <label>Est. Cost (€)</label>
+          <input class="mi" type="number" [(ngModel)]="projectForm.estimatedCost" />
+        </div>
+
+        <div class="mf full">
+          <label>Description</label>
+          <input class="mi" [(ngModel)]="projectForm.comment" placeholder="Optional notes" />
+        </div>
+      </div>
+
+      <div class="m-foot">
+        <button class="btn btn-light" type="button" (click)="closeModal()">Cancel</button>
+        <button class="btn btn-primary" type="button" [disabled]="saving" (click)="saveProject()">
+          {{ editingProjectId ? 'Save Changes' : 'Create Project' }}
+        </button>
       </div>
     </div>
-  </section>
+  </div>
+
+  <!-- TEAM MODAL -->
+  <div class="modal-bg team-modal-bg" *ngIf="teamModalOpen" (click)="closeTeamModal()">
+    <div class="team-modal" (click)="$event.stopPropagation()">
+      <div class="team-modal-hdr">
+        <div>
+          <div class="team-modal-title">👥 Team Assignment</div>
+          <div class="team-modal-proj">
+            {{ teamProject?.code }} · {{ teamProject?.name }}
+          </div>
+        </div>
+
+        <button class="team-close" type="button" (click)="closeTeamModal()">✕</button>
+      </div>
+
+      <div class="team-modal-body">
+        <div class="team-dept-row" *ngFor="let dept of teamDepartments">
+          <div class="team-dept-lbl" [ngClass]="dept.colorClass">
+            {{ dept.label }}
+          </div>
+
+          <div class="team-res-wrap">
+            <span class="team-assigned-chip" *ngFor="let resource of getAssignedResources(dept.code)">
+              {{ resource.fullName }}
+              <button
+                type="button"
+                class="team-chip-del"
+                (click)="removeTeamMember(dept.code, resource.id!)">
+                ✕
+              </button>
+            </span>
+
+            <select class="team-res-sel" [(ngModel)]="selectedTeamResource[dept.code]">
+              <option [ngValue]="null">+ Add member...</option>
+              <option
+                *ngFor="let resource of getResourcesForDepartment(dept.code)"
+                [ngValue]="resource.id">
+                {{ resource.fullName }}{{ resource.jobTitle ? ' · ' + resource.jobTitle : '' }}
+              </option>
+            </select>
+
+            <button type="button" class="btn btn-light btn-sm" (click)="addTeamMember(dept.code)">
+              Add
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="team-modal-ftr">
+        <button class="btn btn-light btn-sm" type="button" (click)="closeTeamModal()">Cancel</button>
+        <button class="btn btn-primary btn-sm" type="button" (click)="saveTeamAssignments()">
+          💾 Save Team
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

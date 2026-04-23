@@ -1,49 +1,52 @@
 <div class="pm-shell">
-  
   <!-- APP HEADER -->
-   <app-projectum-project-header>
-      <div class="mode-switch light-mode-switch">
-        <span class="switch-label">BAR</span>
-
-        <button
-          type="button"
-          class="mode-btn"
-          [class.active]="activeMode === 'baseline'"
-          (click)="setMode('baseline')">
-          Baseline
-        </button>
-
-        <button
-          type="button"
-          class="mode-btn"
-          [class.active]="activeMode === 'actual'"
-          (click)="setMode('actual')">
-          Actual
-        </button>
-      </div>
-
+  <app-projectum-project-header>
+    <div class="mode-switch light-mode-switch">
+      <span class="switch-label">BAR</span>
       <button
         type="button"
-        class="icon-header-btn"
-        title="Settings"
-        (click)="toggleSettings()">
-        <span class="material-symbols-outlined">settings</span>
+        class="mode-btn"
+        [class.active]="activeMode === 'baseline'"
+        (click)="setMode('baseline')"
+      >
+        Baseline
       </button>
-
       <button
         type="button"
-        class="export-header-btn"
-        title="Refresh"
-        (click)="loadSchedule()">
-        <span class="material-symbols-outlined">refresh</span>
-        <span>Refresh</span>
+        class="mode-btn"
+        [class.active]="activeMode === 'actual'"
+        (click)="setMode('actual')"
+      >
+        Actual
       </button>
-    </app-projectum-project-header>
+    </div>
+
+    <button
+      type="button"
+      class="icon-header-btn"
+      title="Settings"
+      (click)="toggleSettings()"
+    >
+      <span class="material-symbols-outlined">settings</span>
+    </button>
+
+    <button
+      type="button"
+      class="export-header-btn"
+      title="Refresh"
+      (click)="loadSchedule()"
+    >
+      <span class="material-symbols-outlined">refresh</span>
+      <span>Refresh</span>
+    </button>
+  </app-projectum-project-header>
+
   <!-- SIDE PANEL -->
   <app-gm-project-side-panel
     [projectId]="projectId"
-    currentPage="gantt">
-  </app-gm-project-side-panel>
+    currentPage="gantt"
+  ></app-gm-project-side-panel>
+
   <!-- TOOLBAR -->
   <section class="top-toolbar modern-toolbar" *ngIf="!loading">
     <div class="toolbar-group primary-group">
@@ -52,7 +55,8 @@
           type="button"
           class="toolbar-main-btn save-btn"
           (click)="saveTask()"
-          [disabled]="!selectedTask || saving">
+          [disabled]="!selectedTask || saving"
+        >
           <span class="material-symbols-outlined">save</span>
           <span>{{ saving ? 'Saving...' : 'Save' }}</span>
         </button>
@@ -60,7 +64,8 @@
         <button
           type="button"
           class="toolbar-main-btn export-btn"
-          (click)="exportScheduleJson()">
+          (click)="openExportModal()"
+        >
           <span class="material-symbols-outlined">download</span>
           <span>Export</span>
         </button>
@@ -68,14 +73,20 @@
         <label class="toolbar-main-btn import-btn">
           <span class="material-symbols-outlined">upload</span>
           <span>Import</span>
-          <input type="file" hidden accept=".json" (change)="importScheduleJson($event)" />
+          <input
+            type="file"
+            hidden
+            accept=".json"
+            (change)="importScheduleJson($event)"
+          />
         </label>
 
         <button
           type="button"
           class="toolbar-main-btn"
           (click)="undo()"
-          [disabled]="history.length === 0">
+          [disabled]="history.length === 0"
+        >
           <span class="material-symbols-outlined">undo</span>
           <span>Undo</span>
         </button>
@@ -84,7 +95,8 @@
           type="button"
           class="toolbar-main-btn"
           (click)="redo()"
-          [disabled]="future.length === 0">
+          [disabled]="future.length === 0"
+        >
           <span class="material-symbols-outlined">redo</span>
           <span>Redo</span>
         </button>
@@ -96,7 +108,8 @@
         type="button"
         class="toolbar-main-btn"
         (click)="outdentTask()"
-        [disabled]="!selectedTask">
+        [disabled]="!selectedTask"
+      >
         <span class="material-symbols-outlined">format_indent_decrease</span>
         <span>Outdent</span>
       </button>
@@ -105,7 +118,8 @@
         type="button"
         class="toolbar-main-btn"
         (click)="indentTask()"
-        [disabled]="!selectedTask">
+        [disabled]="!selectedTask"
+      >
         <span class="material-symbols-outlined">format_indent_increase</span>
         <span>Indent</span>
       </button>
@@ -113,12 +127,12 @@
       <div class="toolbar-divider"></div>
 
       <span class="toolbar-inline-label">Level:</span>
-
       <div class="toolbar-menu-wrap">
         <button
           type="button"
           class="toolbar-icon-square level-square-btn"
-          (click)="toggleLevelMenu()">
+          (click)="toggleLevelMenu()"
+        >
           <span class="material-symbols-outlined">segment</span>
           <span class="level-badge">{{ getLevelButtonLabel() }}</span>
         </button>
@@ -148,29 +162,26 @@
       <div class="toolbar-divider"></div>
 
       <span class="toolbar-inline-label">Dept:</span>
-
       <div class="toolbar-menu-wrap">
         <button
           type="button"
           class="toolbar-select-btn dark-select-btn"
-          (click)="toggleDeptMenu()">
+          (click)="toggleDeptMenu()"
+        >
           <span>{{ selectedDepartmentFilter }}</span>
           <span class="material-symbols-outlined mini-arrow">expand_more</span>
         </button>
 
         <div class="toolbar-dropdown-menu compact-menu dark-menu" *ngIf="deptMenuOpen">
-          <button
-            type="button"
-            class="toolbar-dropdown-item"
-            (click)="setDepartmentFilter('ALL')">
+          <button type="button" class="toolbar-dropdown-item" (click)="setDepartmentFilter('ALL')">
             All
           </button>
-
           <button
             type="button"
             class="toolbar-dropdown-item"
             *ngFor="let dept of departmentCodes"
-            (click)="setDepartmentFilter(dept)">
+            (click)="setDepartmentFilter(dept)"
+          >
             {{ dept }}
           </button>
         </div>
@@ -181,10 +192,7 @@
       <div class="toolbar-inline zoom-toolbar">
         <span class="toolbar-label">Zoom:</span>
 
-        <button
-          type="button"
-          class="zoom-step-btn dark-zoom-step"
-          (click)="zoomOut()">
+        <button type="button" class="zoom-step-btn dark-zoom-step" (click)="zoomOut()">
           <span class="material-symbols-outlined">remove</span>
         </button>
 
@@ -192,7 +200,8 @@
           type="button"
           class="zoom-chip"
           [class.active]="activeZoom === '2W'"
-          (click)="setZoom('2W')">
+          (click)="setZoom('2W')"
+        >
           2W
         </button>
 
@@ -200,7 +209,8 @@
           type="button"
           class="zoom-chip"
           [class.active]="activeZoom === '1M'"
-          (click)="setZoom('1M')">
+          (click)="setZoom('1M')"
+        >
           1M
         </button>
 
@@ -208,7 +218,8 @@
           type="button"
           class="zoom-chip"
           [class.active]="activeZoom === '2M'"
-          (click)="setZoom('2M')">
+          (click)="setZoom('2M')"
+        >
           2M
         </button>
 
@@ -216,14 +227,12 @@
           type="button"
           class="zoom-chip"
           [class.active]="activeZoom === 'Day'"
-          (click)="setZoom('Day')">
+          (click)="setZoom('Day')"
+        >
           Day
         </button>
 
-        <button
-          type="button"
-          class="zoom-step-btn dark-zoom-step"
-          (click)="zoomIn()">
+        <button type="button" class="zoom-step-btn dark-zoom-step" (click)="zoomIn()">
           <span class="material-symbols-outlined">add</span>
         </button>
       </div>
@@ -234,7 +243,8 @@
         <button
           type="button"
           class="toolbar-select-btn dark-select-btn"
-          (click)="toggleColumnsMenu()">
+          (click)="toggleColumnsMenu()"
+        >
           <span class="material-symbols-outlined">view_column</span>
           <span>Columns</span>
           <span class="material-symbols-outlined mini-arrow">expand_more</span>
@@ -242,72 +252,72 @@
 
         <div class="toolbar-dropdown-menu columns-menu dark-menu" *ngIf="columnsMenuOpen">
           <label class="toolbar-check-item">
-            <input type="checkbox" [(ngModel)]="columnVisibility.id" [ngModelOptions]="{standalone: true}" />
+            <input type="checkbox" [(ngModel)]="columnVisibility.id" [ngModelOptions]="{ standalone: true }" />
             <span>ID</span>
           </label>
 
           <label class="toolbar-check-item">
-            <input type="checkbox" [(ngModel)]="columnVisibility.wbs" [ngModelOptions]="{standalone: true}" />
+            <input type="checkbox" [(ngModel)]="columnVisibility.wbs" [ngModelOptions]="{ standalone: true }" />
             <span>Level (WBS)</span>
           </label>
 
           <label class="toolbar-check-item">
-            <input type="checkbox" [(ngModel)]="columnVisibility.customer" [ngModelOptions]="{standalone: true}" />
+            <input type="checkbox" [(ngModel)]="columnVisibility.customer" [ngModelOptions]="{ standalone: true }" />
             <span>Customer (C)</span>
           </label>
 
           <label class="toolbar-check-item">
-            <input type="checkbox" [(ngModel)]="columnVisibility.name" [ngModelOptions]="{standalone: true}" />
+            <input type="checkbox" [(ngModel)]="columnVisibility.name" [ngModelOptions]="{ standalone: true }" />
             <span>Activity</span>
           </label>
 
           <label class="toolbar-check-item">
-            <input type="checkbox" [(ngModel)]="columnVisibility.type" [ngModelOptions]="{standalone: true}" />
+            <input type="checkbox" [(ngModel)]="columnVisibility.type" [ngModelOptions]="{ standalone: true }" />
             <span>Type</span>
           </label>
 
           <label class="toolbar-check-item">
-            <input type="checkbox" [(ngModel)]="columnVisibility.resourceType" [ngModelOptions]="{standalone: true}" />
+            <input type="checkbox" [(ngModel)]="columnVisibility.resourceType" [ngModelOptions]="{ standalone: true }" />
             <span>Resource Type</span>
           </label>
 
           <label class="toolbar-check-item">
-            <input type="checkbox" [(ngModel)]="columnVisibility.department" [ngModelOptions]="{standalone: true}" />
+            <input type="checkbox" [(ngModel)]="columnVisibility.department" [ngModelOptions]="{ standalone: true }" />
             <span>Department</span>
           </label>
 
           <label class="toolbar-check-item">
-            <input type="checkbox" [(ngModel)]="columnVisibility.actualStart" [ngModelOptions]="{standalone: true}" />
+            <input type="checkbox" [(ngModel)]="columnVisibility.actualStart" [ngModelOptions]="{ standalone: true }" />
             <span>Actual Start</span>
           </label>
 
           <label class="toolbar-check-item">
-            <input type="checkbox" [(ngModel)]="columnVisibility.actualFinish" [ngModelOptions]="{standalone: true}" />
+            <input type="checkbox" [(ngModel)]="columnVisibility.actualFinish" [ngModelOptions]="{ standalone: true }" />
             <span>Actual Finish</span>
           </label>
 
           <label class="toolbar-check-item">
-            <input type="checkbox" [(ngModel)]="columnVisibility.duration" [ngModelOptions]="{standalone: true}" />
+            <input type="checkbox" [(ngModel)]="columnVisibility.duration" [ngModelOptions]="{ standalone: true }" />
             <span>Duration</span>
           </label>
 
           <label class="toolbar-check-item">
-            <input type="checkbox" [(ngModel)]="columnVisibility.predecessors" [ngModelOptions]="{standalone: true}" />
+            <input type="checkbox" [(ngModel)]="columnVisibility.predecessors" [ngModelOptions]="{ standalone: true }" />
             <span>Predecessors</span>
           </label>
 
           <label class="toolbar-check-item">
-            <input type="checkbox" [(ngModel)]="columnVisibility.progress" [ngModelOptions]="{standalone: true}" />
+            <input type="checkbox" [(ngModel)]="columnVisibility.progress" [ngModelOptions]="{ standalone: true }" />
             <span>% Done</span>
           </label>
 
           <label class="toolbar-check-item">
-            <input type="checkbox" [(ngModel)]="columnVisibility.baselineStart" [ngModelOptions]="{standalone: true}" />
+            <input type="checkbox" [(ngModel)]="columnVisibility.baselineStart" [ngModelOptions]="{ standalone: true }" />
             <span>Baseline Start</span>
           </label>
 
           <label class="toolbar-check-item">
-            <input type="checkbox" [(ngModel)]="columnVisibility.baselineEnd" [ngModelOptions]="{standalone: true}" />
+            <input type="checkbox" [(ngModel)]="columnVisibility.baselineEnd" [ngModelOptions]="{ standalone: true }" />
             <span>Baseline End</span>
           </label>
         </div>
@@ -398,9 +408,10 @@
           [class.summary-row]="isSummary(task)"
           [class.selected-row]="selectedTask?.id === task.id"
           (click)="openTaskDrawer(task)"
+          (contextmenu)="openContextMenu($event, task)"
         >
           <div class="cell cell-id col-id" *ngIf="columnVisibility.id">
-            {{ task.id }}
+            {{ task.displayOrder }}
           </div>
 
           <div class="cell cell-wbs col-wbs" *ngIf="columnVisibility.wbs">
@@ -408,21 +419,25 @@
           </div>
 
           <div
-              class="cell editable-cell col-customer customer-cell"
-              *ngIf="columnVisibility.customer"
-              (click)="$event.stopPropagation()"
-            >
-              <label class="customer-flag-toggle">
-                <input
-                  type="checkbox"
-                  [checked]="isCustomerChecked(task)"
-                  (change)="onCustomerFlagChange(task, $any($event.target).checked)"
-                />
-                <span class="customer-flag" [class.yes]="task.customerMilestone" [class.no]="!task.customerMilestone">
-                  {{ getCustomerFlag(task) }}
-                </span>
-              </label>
-            </div>
+            class="cell editable-cell col-customer customer-cell"
+            *ngIf="columnVisibility.customer"
+            (click)="$event.stopPropagation()"
+          >
+            <label class="customer-flag-toggle">
+              <input
+                type="checkbox"
+                [checked]="isCustomerChecked(task)"
+                (change)="onCustomerFlagChange(task, $any($event.target).checked)"
+              />
+              <span
+                class="customer-flag"
+                [class.yes]="task.customerMilestone"
+                [class.no]="!task.customerMilestone"
+              >
+                {{ getCustomerFlag(task) }}
+              </span>
+            </label>
+          </div>
 
           <div
             class="cell editable-cell col-name"
@@ -433,14 +448,16 @@
               <span
                 *ngIf="isSummary(task)"
                 class="summary-marker"
-                (click)="toggleSummary(task, $event)">
+                (click)="toggleSummary(task, $event)"
+              >
                 {{ collapsedTaskIds.has(task.id) ? '▸' : '▾' }}
               </span>
 
               <span
                 *ngIf="isMilestone(task)"
                 class="milestone-dot"
-                [class.customer]="isCustomerMilestone(task)">
+                [class.customer]="isCustomerMilestone(task)"
+              >
                 ◆
               </span>
 
@@ -453,69 +470,74 @@
             </div>
           </div>
 
-        <div
-          class="cell editable-cell col-type"
-          *ngIf="columnVisibility.type"
-          (click)="$event.stopPropagation()"
-        >
-          <select
-            class="type-select"
-            [ngModel]="getNormalizedTaskType(task)"
-            [ngModelOptions]="{ standalone: true }"
-            [class.activity]="getNormalizedTaskType(task) === 'ACTIVITY'"
-            [class.summary]="getNormalizedTaskType(task) === 'SUMMARY'"
-            [class.milestone]="getNormalizedTaskType(task) === 'MILESTONE'"
-            (ngModelChange)="updateLocalTaskField(task, 'taskType', $event); saveInlineTask(task)">
-            <option value="ACTIVITY">Acti</option>
-            <option value="SUMMARY">Sum</option>
-            <option value="MILESTONE">Mile</option>
-          </select>
-        </div>
-            <div
-              class="cell editable-cell col-restype"
-              *ngIf="columnVisibility.resourceType"
-              (click)="$event.stopPropagation()"
+          <div
+            class="cell editable-cell col-type"
+            *ngIf="columnVisibility.type"
+            (click)="$event.stopPropagation()"
+          >
+            <select
+              class="type-select"
+              [ngModel]="getNormalizedTaskType(task)"
+              [ngModelOptions]="{ standalone: true }"
+              [class.activity]="getNormalizedTaskType(task) === 'ACTIVITY'"
+              [class.summary]="getNormalizedTaskType(task) === 'SUMMARY'"
+              [class.milestone]="getNormalizedTaskType(task) === 'MILESTONE'"
+              (ngModelChange)="updateLocalTaskField(task, 'taskType', $event); saveInlineTask(task)"
             >
-              <select
-                class="resource-select"
-                [ngModel]="getNormalizedResourceType(task)"
-                [ngModelOptions]="{ standalone: true }"
-                [class.has-value]="!!(getEditableValue(task, 'resourceType') || task.resourceType)"
-                (ngModelChange)="updateInlineField(task, 'resourceType', $event)">
-                <option value="">--</option>
-                <option value="PM">PM</option>
-                <option value="ME">ME</option>
-                <option value="EE">EE</option>
-                <option value="PC">PC</option>
-                <option value="PLC">PLC</option>
-                <option value="PRC">PRC</option>
-                <option value="MFC">MFC</option>
-                <option value="QA">QA</option>
-                <option value="HSE">HSE</option>
-                <option value="INST">INST</option>
-                <option value="FIN">FIN</option>
-                <option value="CS">CS</option>
-                <option value="MEC">MEC</option>
-                <option value="ELECT">ELECT</option>
-                <option value="CUST">CUST</option>
-              </select>
-            </div>
+              <option value="ACTIVITY">Acti</option>
+              <option value="SUMMARY">Sum</option>
+              <option value="MILESTONE">Mile</option>
+            </select>
+          </div>
 
-            <div
-              class="cell editable-cell col-dept"
-              *ngIf="columnVisibility.department"
-              (click)="$event.stopPropagation()"
+          <div
+            class="cell editable-cell col-restype"
+            *ngIf="columnVisibility.resourceType"
+            (click)="$event.stopPropagation()"
+          >
+            <select
+              class="resource-select"
+              [ngModel]="getNormalizedResourceType(task)"
+              [ngModelOptions]="{ standalone: true }"
+              [class.has-value]="!!(getEditableValue(task, 'resourceType') || task.resourceType)"
+              (ngModelChange)="updateInlineField(task, 'resourceType', $event)"
+              (blur)="saveInlineTask(task)"
             >
-              <select
-                class="department-select"
-                [ngModel]="(task.departmentCode || '').toUpperCase()"
-                [ngModelOptions]="{ standalone: true }"
-                [class.has-value]="!!task.departmentCode"
-                (ngModelChange)="updateLocalTaskField(task, 'departmentCode', $event); saveInlineTask(task)">
-                <option value="">--</option>
-                <option *ngFor="let dept of departmentCodes" [value]="dept">{{ dept }} ✓</option>
-              </select>
-            </div>
+              <option value="">--</option>
+              <option value="PM">PM</option>
+              <option value="ME">ME</option>
+              <option value="EE">EE</option>
+              <option value="PC">PC</option>
+              <option value="PLC">PLC</option>
+              <option value="PRC">PRC</option>
+              <option value="MFC">MFC</option>
+              <option value="QA">QA</option>
+              <option value="HSE">HSE</option>
+              <option value="INST">INST</option>
+              <option value="FIN">FIN</option>
+              <option value="CS">CS</option>
+              <option value="MEC">MEC</option>
+              <option value="ELECT">ELECT</option>
+              <option value="CUST">CUST</option>
+            </select>
+          </div>
+
+          <div
+            class="cell editable-cell col-dept"
+            *ngIf="columnVisibility.department"
+            (click)="$event.stopPropagation()"
+          >
+            <select
+              class="department-select"
+              [ngModel]="(task.departmentCode || '').toUpperCase()"
+              [ngModelOptions]="{ standalone: true }"
+              [class.has-value]="!!task.departmentCode"
+              (ngModelChange)="updateLocalTaskField(task, 'departmentCode', $event); saveInlineTask(task)"
+            >
+              <option value="">--</option>
+              <option *ngFor="let dept of departmentCodes" [value]="dept">{{ dept }} ✓</option>
+            </select>
+          </div>
 
           <div
             class="cell editable-cell col-date mono-date"
@@ -593,11 +615,7 @@
     </div>
 
     <!-- RESIZER -->
-    <div
-      class="planner-resizer"
-      (mousedown)="startResize($event)"
-      title="Drag to resize"
-    ></div>
+    <div class="planner-resizer" (mousedown)="startResize($event)" title="Drag to resize"></div>
 
     <!-- RIGHT -->
     <div class="planner-right">
@@ -607,7 +625,8 @@
             <div
               *ngFor="let month of getTimelineMonths()"
               class="month-cell"
-              [style.width.px]="month.width">
+              [style.width.px]="month.width"
+            >
               {{ month.label }}
             </div>
           </div>
@@ -618,7 +637,8 @@
             <div
               class="timeline-week-cell"
               *ngFor="let week of getTimelineWeeks()"
-              [style.width.px]="week.width">
+              [style.width.px]="week.width"
+            >
               <div class="timeline-week-code">W{{ week.weekNumber }}</div>
               <div class="timeline-week-start">{{ week.startLabel }}</div>
             </div>
@@ -626,11 +646,7 @@
         </div>
       </div>
 
-      <div
-        class="gantt-body-scroll"
-        #ganttBodyScroll
-        (scroll)="onGanttScroll()"
-      >
+      <div class="gantt-body-scroll" #ganttBodyScroll (scroll)="onGanttScroll()">
         <div class="gantt-wrapper" [style.width.px]="getTimelineWidth()">
           <div class="today-line" [style.left.px]="getTodayLineLeft()"></div>
 
@@ -643,15 +659,15 @@
                 [style.left.px]="seg.left"
                 [style.top.px]="seg.top"
                 [style.width.px]="seg.direction === 'h' ? seg.width : 2"
-                [style.height.px]="seg.direction === 'v' ? seg.height : 2">
-              </div>
+                [style.height.px]="seg.direction === 'v' ? seg.height : 2"
+              ></div>
             </ng-container>
 
             <div
               class="dependency-arrow-head"
               [style.left.px]="arrow.arrowLeft"
-              [style.top.px]="arrow.arrowTop">
-            </div>
+              [style.top.px]="arrow.arrowTop"
+            ></div>
           </ng-container>
 
           <div
@@ -662,27 +678,28 @@
             [class.summary-row]="isSummary(task)"
             [class.selected-row]="selectedTask?.id === task.id"
             (click)="openTaskDrawer(task)"
+            (contextmenu)="openContextMenu($event, task)"
           >
             <div
               class="gantt-grid-line"
               *ngFor="let day of timelineDays; trackBy: trackTimelineDay"
-              [class.week-separator]="day.isWeekStart">
-            </div>
+              [class.week-separator]="day.isWeekStart"
+            ></div>
 
             <div
               *ngIf="hasBaseline(task) && !isMilestone(task)"
               class="gantt-baseline-bar"
               [class.summary-baseline]="isSummary(task)"
               [style.left.px]="getBaselineLeft(task)"
-              [style.width.px]="getBaselineWidth(task)">
-            </div>
+              [style.width.px]="getBaselineWidth(task)"
+            ></div>
 
             <div
               *ngIf="activeMode === 'actual' && hasActualDates(task) && !isMilestone(task)"
               class="gantt-actual-bar"
               [style.left.px]="getActualLeft(task)"
-              [style.width.px]="getActualWidth(task)">
-            </div>
+              [style.width.px]="getActualWidth(task)"
+            ></div>
 
             <div
               *ngIf="!isMilestone(task)"
@@ -690,6 +707,7 @@
               [class.summary-bar]="isSummary(task)"
               [class.dragging]="dragState?.taskId === task.id"
               [class.draggable]="canDragTask(task)"
+              [class.proc-bar]="(task.departmentCode || '').toUpperCase() === 'PRC'"
               [style.left.px]="getBarLeft(task)"
               [style.width.px]="getBarWidth(task)"
               (mousedown)="startBarDrag($event, task)"
@@ -697,23 +715,27 @@
               <div
                 class="gantt-bar-progress"
                 *ngIf="!isSummary(task)"
-                [style.width.%]="task.percentComplete || 0">
-              </div>
+                [style.width.%]="task.percentComplete || 0"
+              ></div>
 
-              <span class="gantt-label" *ngIf="!isSummary(task)">{{ getTaskLabel(task) }}</span>
+              <span class="gantt-label" *ngIf="!isSummary(task)">
+                {{ getTaskLabel(task) }}
+              </span>
             </div>
 
             <div
               *ngIf="isMilestone(task)"
               class="gantt-milestone"
               [class.customer]="isCustomerMilestone(task)"
-              [style.left.px]="getBarLeft(task)">
-            </div>
+              [style.left.px]="getBarLeft(task)"
+              (contextmenu)="openContextMenu($event, task)"
+            ></div>
 
             <div
               *ngIf="isMilestone(task)"
               class="gantt-milestone-label"
-              [style.left.px]="getBarLeft(task) + 16">
+              [style.left.px]="getBarLeft(task) + 16"
+            >
               {{ task.name }}
             </div>
           </div>
@@ -726,16 +748,12 @@
     </div>
   </section>
 
-  <div class="loading-card" *ngIf="loading">
-    Loading project schedule...
-  </div>
+  <div class="loading-card" *ngIf="loading">Loading project schedule...</div>
 
   <!-- BOTTOM PANEL -->
   <section class="supervisor-panel" [class.open]="drawerOpen" *ngIf="taskForm">
     <div class="sp-topbar">
-      <div class="sp-task-chip">
-        {{ selectedTask?.id || '—' }}
-      </div>
+      <div class="sp-task-chip">{{ selectedTask?.id || '—' }}</div>
 
       <div class="sp-task-meta">
         <div class="sp-task-name">{{ selectedTask?.name || 'Select a task' }}</div>
@@ -753,7 +771,8 @@
           type="button"
           class="sp-tab"
           [class.active]="activeDetailTab === 'general'"
-          (click)="activeDetailTab = 'general'">
+          (click)="activeDetailTab = 'general'"
+        >
           General
         </button>
 
@@ -761,7 +780,8 @@
           type="button"
           class="sp-tab"
           [class.active]="activeDetailTab === 'predecessors'"
-          (click)="activeDetailTab = 'predecessors'">
+          (click)="activeDetailTab = 'predecessors'"
+        >
           Predecessors
         </button>
 
@@ -769,7 +789,8 @@
           type="button"
           class="sp-tab"
           [class.active]="activeDetailTab === 'resources'"
-          (click)="activeDetailTab = 'resources'">
+          (click)="activeDetailTab = 'resources'"
+        >
           Resources
         </button>
       </div>
@@ -797,7 +818,8 @@
                   <input
                     type="number"
                     formControlName="durationDays"
-                    [disabled]="!!selectedTask && isMilestone(selectedTask)" />
+                    [disabled]="!!selectedTask && isMilestone(selectedTask)"
+                  />
                 </div>
 
                 <div class="sp-field sp-col-priority">
@@ -835,24 +857,6 @@
                     <option *ngFor="let dept of departmentCodes" [value]="dept">{{ dept }}</option>
                   </select>
                 </div>
-
-                <div class="sp-field">
-                  <label>Schedule Mode</label>
-                  <select formControlName="scheduleMode">
-                    <option value="AUTO">AUTO</option>
-                    <option value="MANUAL">MANUAL</option>
-                  </select>
-                </div>
-
-                <div class="sp-field">
-                  <label>Status</label>
-                  <input type="text" formControlName="status" />
-                </div>
-
-                <div class="sp-field">
-                  <label>Color</label>
-                  <input type="text" formControlName="color" placeholder="#4f46e5" />
-                </div>
               </div>
             </div>
 
@@ -860,13 +864,11 @@
               <div class="sp-dates-grid">
                 <div class="sp-date-box baseline">
                   <div class="sp-card-title amber-dot">Baseline</div>
-
                   <div class="sp-date-row">
                     <div class="sp-field">
                       <label>Start</label>
                       <input type="date" formControlName="baselineStart" />
                     </div>
-
                     <div class="sp-field">
                       <label>Finish</label>
                       <input type="date" formControlName="baselineEnd" />
@@ -878,54 +880,14 @@
 
                 <div class="sp-date-box planned">
                   <div class="sp-card-title blue-dot">Planned</div>
-
                   <div class="sp-date-row">
                     <div class="sp-field">
                       <label>Start</label>
                       <input type="date" formControlName="plannedStart" />
                     </div>
-
                     <div class="sp-field">
                       <label>Finish</label>
                       <input type="date" formControlName="plannedEnd" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="sp-card">
-              <div class="sp-dates-grid">
-                <div class="sp-date-box planned">
-                  <div class="sp-card-title purple-dot">Actual</div>
-
-                  <div class="sp-date-row">
-                    <div class="sp-field">
-                      <label>Start</label>
-                      <input type="date" formControlName="actualStart" />
-                    </div>
-
-                    <div class="sp-field">
-                      <label>Finish</label>
-                      <input type="date" formControlName="actualEnd" />
-                    </div>
-                  </div>
-                </div>
-
-                <div class="sp-date-divider"></div>
-
-                <div class="sp-date-box baseline">
-                  <div class="sp-card-title green-dot">Execution</div>
-
-                  <div class="sp-date-row">
-                    <div class="sp-field">
-                      <label>% Complete</label>
-                      <input type="number" min="0" max="100" formControlName="percentComplete" />
-                    </div>
-
-                    <div class="sp-field">
-                      <label>Allocation %</label>
-                      <input type="number" min="0" max="100" formControlName="allocationPercent" />
                     </div>
                   </div>
                 </div>
@@ -935,75 +897,59 @@
 
           <aside class="sp-general-side">
             <div class="sp-side-card">
-              <div class="sp-card-title purple-dot">Progress</div>
-
-              <div class="sp-progress-wrap">
-                <div class="sp-progress-bar">
-                  <div
-                    class="sp-progress-fill"
-                    [style.width.%]="taskForm.get('percentComplete')?.value || 0">
+              <div class="sp-side-card progress-card">
+                <div class="sp-card-title purple-dot">Progress</div>
+                <div class="sp-progress-top">
+                  <div class="sp-progress-value">
+                    {{ taskForm.get('percentComplete')?.value || 0 }}%
                   </div>
                 </div>
-                <div class="sp-progress-value">
-                  {{ taskForm.get('percentComplete')?.value || 0 }}%
-                </div>
+
+                <input
+                  class="sp-progress-slider"
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="1"
+                  formControlName="percentComplete"
+                  [disabled]="!!selectedTask && isSummary(selectedTask)"
+                  (input)="onProgressSliderInput()"
+                  (change)="onProgressSliderCommit()"
+                />
               </div>
-            </div>
 
             <div class="sp-side-card">
               <div class="sp-card-title orange-dot">Options</div>
-
               <div class="sp-options-grid">
                 <label class="sp-check-pill">
-                  <input
-                    type="checkbox"
-                    [checked]="taskForm.get('scheduleMode')?.value === 'MANUAL'" />
+                  <input type="checkbox" [checked]="taskForm.get('scheduleMode')?.value === 'MANUAL'" />
                   <span>Manual</span>
                 </label>
-
                 <label class="sp-check-pill">
-                  <input
-                    type="checkbox"
-                    [checked]="taskForm.get('active')?.value === false" />
+                  <input type="checkbox" [checked]="taskForm.get('active')?.value === false" />
                   <span>Inactive</span>
                 </label>
-
                 <label class="sp-check-pill">
-                  <input
-                    type="checkbox"
-                    [checked]="taskForm.get('customerMilestone')?.value === true" />
+                  <input type="checkbox" [checked]="taskForm.get('customerMilestone')?.value === true" />
                   <span>Customer MS</span>
                 </label>
-
                 <label class="sp-check-pill">
-                  <input
-                    type="checkbox"
-                    [checked]="isMilestone(selectedTask)"
-                    [disabled]="true" />
+                  <input type="checkbox" [checked]="isMilestone(selectedTask)" [disabled]="true" />
                   <span>Milestone</span>
                 </label>
               </div>
             </div>
-
-            <div class="sp-side-card">
-              <div class="sp-card-title blue-dot">Assignment</div>
-              <div class="sp-assignment-text">
-                {{ selectedTask?.assignedUserName || selectedTask?.departmentCode || 'Unassigned' }}
-              </div>
-              <div class="sp-assignment-text">
-                Resource: {{ taskForm.get('resourceType')?.value || '—' }}
-              </div>
-            </div>
-
             <div class="sp-side-card">
               <button
                 type="button"
                 class="toolbar-main-btn save-btn full-save-btn"
                 (click)="saveTask()"
-                [disabled]="!selectedTask || saving">
+                [disabled]="!selectedTask || saving"
+              >
                 <span class="material-symbols-outlined">save</span>
                 <span>{{ saving ? 'Saving...' : 'Save Task' }}</span>
               </button>
+            </div>
             </div>
           </aside>
         </div>
@@ -1020,44 +966,33 @@
             <div></div>
           </div>
 
-          <div
-            class="sp-table-row predecessor-row"
-            *ngFor="let dep of selectedTask?.dependencies; let i = index">
+          <div class="sp-table-row predecessor-row" *ngFor="let dep of selectedTask?.dependencies; let i = index">
             <div>
               <span class="sp-row-badge">{{ i + 1 }}</span>
             </div>
-
             <div>{{ dep.predecessorTaskId }}</div>
-
-            <div>
-              {{ getTaskNameById(dep.predecessorTaskId) }}
-            </div>
-
+            <div>{{ getTaskNameById(dep.predecessorTaskId) }}</div>
             <div>
               <select
                 class="sp-inline-select"
                 [(ngModel)]="dep.dependencyType"
                 [ngModelOptions]="{ standalone: true }"
-                (change)="saveDependency(dep)">
+                (change)="saveDependency(dep)"
+              >
                 <option *ngFor="let type of dependencyTypes" [value]="type">{{ type }}</option>
               </select>
             </div>
-
             <div>
               <input
                 class="sp-inline-input small"
                 type="number"
                 [(ngModel)]="dep.lagDays"
                 [ngModelOptions]="{ standalone: true }"
-                (blur)="saveDependency(dep)" />
+                (blur)="saveDependency(dep)"
+              />
             </div>
-
             <div class="sp-row-actions">
-              <button
-                *ngIf="dep.id"
-                type="button"
-                class="sp-icon-btn"
-                (click)="removeDependency(dep.id)">
+              <button *ngIf="dep.id" type="button" class="sp-icon-btn" (click)="removeDependency(dep.id)">
                 <span class="material-symbols-outlined">close</span>
               </button>
             </div>
@@ -1067,44 +1002,43 @@
             <div>
               <span class="sp-row-badge">+</span>
             </div>
-
             <div>New</div>
-
             <div>
               <select
                 class="sp-inline-select"
                 [(ngModel)]="newDependency.predecessorTaskId"
-                [ngModelOptions]="{ standalone: true }">
+                [ngModelOptions]="{ standalone: true }"
+              >
                 <option [ngValue]="null">-- Select predecessor --</option>
                 <option *ngFor="let task of availablePredecessorTasks" [ngValue]="task.id">
                   {{ task.wbsCode || task.id }} - {{ task.name }}
                 </option>
               </select>
             </div>
-
             <div>
               <select
                 class="sp-inline-select"
                 [(ngModel)]="newDependency.dependencyType"
-                [ngModelOptions]="{ standalone: true }">
+                [ngModelOptions]="{ standalone: true }"
+              >
                 <option *ngFor="let type of dependencyTypes" [value]="type">{{ type }}</option>
               </select>
             </div>
-
             <div>
               <input
                 class="sp-inline-input small"
                 type="number"
                 [(ngModel)]="newDependency.lagDays"
-                [ngModelOptions]="{ standalone: true }" />
+                [ngModelOptions]="{ standalone: true }"
+              />
             </div>
-
             <div class="sp-row-actions">
               <button
                 type="button"
                 class="sp-icon-btn"
                 (click)="addDependency()"
-                [disabled]="!selectedTask || !newDependency.predecessorTaskId">
+                [disabled]="!selectedTask || !newDependency.predecessorTaskId"
+              >
                 <span class="material-symbols-outlined">add</span>
               </button>
             </div>
@@ -1124,65 +1058,59 @@
             <div></div>
           </div>
 
-          <div
-            class="sp-table-row resource-row"
-            *ngFor="let res of taskResources; let i = index">
+          <div class="sp-table-row resource-row" *ngFor="let res of taskResources; let i = index">
             <div>
               <span class="sp-row-badge">{{ i + 1 }}</span>
             </div>
-
             <div>
               <select
                 class="sp-inline-select"
                 [(ngModel)]="res.resourceType"
                 [ngModelOptions]="{ standalone: true }"
-                (change)="saveResource(res)">
+                (change)="saveResource(res)"
+              >
                 <option value="">--</option>
                 <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
               </select>
             </div>
-
             <div>
               <input
                 class="sp-inline-input"
                 type="text"
                 [(ngModel)]="res.assignmentName"
                 [ngModelOptions]="{ standalone: true }"
-                (blur)="saveResource(res)" />
+                (blur)="saveResource(res)"
+              />
             </div>
-
             <div>
               <input
                 class="sp-inline-input small"
                 type="number"
                 [(ngModel)]="res.quantity"
                 [ngModelOptions]="{ standalone: true }"
-                (blur)="saveResource(res)" />
+                (blur)="saveResource(res)"
+              />
             </div>
-
             <div>
               <input
                 class="sp-inline-input"
                 type="number"
                 [(ngModel)]="res.unitsPercent"
                 [ngModelOptions]="{ standalone: true }"
-                (blur)="saveResource(res)" />
+                (blur)="saveResource(res)"
+              />
             </div>
-
             <div>
               <input
                 class="sp-inline-input"
                 type="number"
                 [(ngModel)]="res.cost"
                 [ngModelOptions]="{ standalone: true }"
-                (blur)="saveResource(res)" />
+                (blur)="saveResource(res)"
+              />
             </div>
-
             <div class="sp-row-actions">
-              <button
-                type="button"
-                class="sp-icon-btn"
-                (click)="removeResource(res.id)">
+              <button type="button" class="sp-icon-btn" (click)="removeResource(res.id)">
                 <span class="material-symbols-outlined">close</span>
               </button>
             </div>
@@ -1192,55 +1120,51 @@
             <div>
               <span class="sp-row-badge">+</span>
             </div>
-
             <div>
               <select
                 class="sp-inline-select"
                 [(ngModel)]="newResource.resourceType"
-                [ngModelOptions]="{ standalone: true }">
+                [ngModelOptions]="{ standalone: true }"
+              >
                 <option value="">--</option>
                 <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
               </select>
             </div>
-
             <div>
               <input
                 class="sp-inline-input"
                 type="text"
                 [(ngModel)]="newResource.assignmentName"
                 [ngModelOptions]="{ standalone: true }"
-                placeholder="Assignment name" />
+                placeholder="Assignment name"
+              />
             </div>
-
             <div>
               <input
                 class="sp-inline-input small"
                 type="number"
                 [(ngModel)]="newResource.quantity"
-                [ngModelOptions]="{ standalone: true }" />
+                [ngModelOptions]="{ standalone: true }"
+              />
             </div>
-
             <div>
               <input
                 class="sp-inline-input"
                 type="number"
                 [(ngModel)]="newResource.unitsPercent"
-                [ngModelOptions]="{ standalone: true }" />
+                [ngModelOptions]="{ standalone: true }"
+              />
             </div>
-
             <div>
               <input
                 class="sp-inline-input"
                 type="number"
                 [(ngModel)]="newResource.cost"
-                [ngModelOptions]="{ standalone: true }" />
+                [ngModelOptions]="{ standalone: true }"
+              />
             </div>
-
             <div class="sp-row-actions">
-              <button
-                type="button"
-                class="sp-icon-btn"
-                (click)="addResource()">
+              <button type="button" class="sp-icon-btn" (click)="addResource()">
                 <span class="material-symbols-outlined">add</span>
               </button>
             </div>
@@ -1267,10 +1191,7 @@
           <div class="settings-drawer-title">Project Settings</div>
         </div>
 
-        <button
-          type="button"
-          class="settings-close-btn"
-          (click)="toggleSettings()">
+        <button type="button" class="settings-close-btn" (click)="toggleSettings()">
           <span class="material-symbols-outlined">close</span>
         </button>
       </div>
@@ -1280,7 +1201,8 @@
           type="button"
           class="settings-tab-btn"
           [class.active]="settingsTab === 'templates'"
-          (click)="openTemplateTab()">
+          (click)="openTemplateTab()"
+        >
           <span class="material-symbols-outlined tab-mini-icon">article</span>
           <span>Templates</span>
         </button>
@@ -1289,7 +1211,8 @@
           type="button"
           class="settings-tab-btn"
           [class.active]="settingsTab === 'calendar'"
-          (click)="settingsTab = 'calendar'">
+          (click)="settingsTab = 'calendar'"
+        >
           <span class="material-symbols-outlined tab-mini-icon">calendar_month</span>
           <span>Calendars</span>
         </button>
@@ -1298,7 +1221,8 @@
           type="button"
           class="settings-tab-btn"
           [class.active]="settingsTab === 'baseline'"
-          (click)="openBaselineTab()">
+          (click)="openBaselineTab()"
+        >
           <span class="material-symbols-outlined tab-mini-icon">flag</span>
           <span>Baselines</span>
         </button>
@@ -1312,7 +1236,6 @@
                 <span class="material-symbols-outlined sec-icon">dashboard_customize</span>
                 <span>Saved Templates</span>
               </div>
-
               <button type="button" class="mini-outline-btn">↑ Import .xml</button>
             </div>
 
@@ -1356,7 +1279,8 @@
                   type="button"
                   class="template-scope-btn"
                   [class.active]="selectedTemplateScope === 'all'"
-                  (click)="setTemplateScope('all')">
+                  (click)="setTemplateScope('all')"
+                >
                   <div class="scope-title">📋 Full Schedule</div>
                   <div class="scope-sub">All tasks in project</div>
                 </button>
@@ -1365,7 +1289,8 @@
                   type="button"
                   class="template-scope-btn"
                   [class.active]="selectedTemplateScope === 'selected'"
-                  (click)="setTemplateScope('selected')">
+                  (click)="setTemplateScope('selected')"
+                >
                   <div class="scope-title">✂️ Selected Tasks</div>
                   <div class="scope-sub">Select tasks below</div>
                 </button>
@@ -1376,13 +1301,14 @@
                   type="text"
                   class="template-name-input"
                   [(ngModel)]="templateName"
-                  placeholder="Template name..." />
-
+                  placeholder="Template name..."
+                />
                 <button
                   type="button"
                   class="primary-action-btn"
                   (click)="saveTemplateWithName()"
-                  [disabled]="selectedTemplateScope === 'selected' && getSelectedTemplateCount() === 0">
+                  [disabled]="selectedTemplateScope === 'selected' && getSelectedTemplateCount() === 0"
+                >
                   Save Template
                 </button>
               </div>
@@ -1392,25 +1318,18 @@
                   type="text"
                   class="template-name-input"
                   [(ngModel)]="templateDescription"
-                  placeholder="Template description (optional)..." />
+                  placeholder="Template description (optional)..."
+                />
               </div>
 
               <ng-container *ngIf="selectedTemplateScope === 'selected'">
                 <div class="template-selection-head">
                   <div class="template-selection-title">Select tasks to include:</div>
-
                   <div class="template-selection-actions">
-                    <button
-                      type="button"
-                      class="mini-outline-btn"
-                      (click)="toggleAllTemplateTasks(true)">
+                    <button type="button" class="mini-outline-btn" (click)="toggleAllTemplateTasks(true)">
                       Select all
                     </button>
-
-                    <button
-                      type="button"
-                      class="mini-outline-btn"
-                      (click)="clearTemplateSelection()">
+                    <button type="button" class="mini-outline-btn" (click)="clearTemplateSelection()">
                       Clear
                     </button>
                   </div>
@@ -1424,25 +1343,28 @@
                   <div
                     class="template-task-row"
                     *ngFor="let task of visibleTasks; let i = index"
-                    [class.summary]="isSummary(task)">
-
+                    [class.summary]="isSummary(task)"
+                  >
                     <label class="template-task-check">
                       <input
                         type="checkbox"
                         [checked]="isTemplateTaskSelected(task.id)"
-                        (change)="toggleTemplateTask(task.id, $any($event.target).checked)" />
+                        (change)="toggleTemplateTask(task.id, $any($event.target).checked)"
+                      />
                     </label>
 
-                    <div class="template-task-wbs">
-                      {{ task.wbsCode || '—' }}
-                    </div>
+                    <div class="template-task-wbs">{{ task.wbsCode || '—' }}</div>
 
                     <div class="template-task-name" [style.padding-left.px]="getIndent(task)">
                       <span *ngIf="isSummary(task)" class="summary-marker-static">▸</span>
                       {{ task.name }}
                     </div>
 
-                    <div class="template-task-type-badge" [class.summary]="isSummary(task)" [class.milestone]="isMilestone(task)">
+                    <div
+                      class="template-task-type-badge"
+                      [class.summary]="isSummary(task)"
+                      [class.milestone]="isMilestone(task)"
+                    >
                       {{ getTemplateTaskTypeLabel(task) }}
                     </div>
                   </div>
@@ -1485,7 +1407,8 @@
                   type="button"
                   class="icon-square-btn"
                   title="Make default"
-                  (click)="makeCalendarDefault(cal.id)">
+                  (click)="makeCalendarDefault(cal.id)"
+                >
                   <span class="material-symbols-outlined">star</span>
                 </button>
 
@@ -1493,7 +1416,8 @@
                   type="button"
                   class="icon-square-btn danger"
                   title="Delete"
-                  (click)="deleteCalendar(cal.id)">
+                  (click)="deleteCalendar(cal.id)"
+                >
                   <span class="material-symbols-outlined">delete</span>
                 </button>
               </div>
@@ -1517,8 +1441,7 @@
 
             <div class="baseline-create-card">
               <div class="baseline-help-text">
-                Captures the current <strong>planned dates</strong> and <strong>% complete</strong>
-                of all tasks as a snapshot.
+                Captures the current <strong>planned dates</strong> and <strong>% complete</strong> of all tasks as a snapshot.
               </div>
 
               <div class="template-create-row">
@@ -1526,12 +1449,9 @@
                   type="text"
                   class="template-name-input"
                   [(ngModel)]="baselineName"
-                  placeholder="Baseline name..." />
-
-                <button
-                  type="button"
-                  class="primary-action-btn"
-                  (click)="saveBaselineWithName()">
+                  placeholder="Baseline name..."
+                />
+                <button type="button" class="primary-action-btn" (click)="saveBaselineWithName()">
                   📌 Set Baseline
                 </button>
               </div>
@@ -1550,7 +1470,8 @@
               <div
                 class="drawer-list-card baseline-card"
                 [class.active-baseline]="baseline.active"
-                *ngFor="let baseline of baselines; trackBy: trackBaseline">
+                *ngFor="let baseline of baselines; trackBy: trackBaseline"
+              >
                 <div class="list-card-main">
                   <div class="list-card-title">{{ baseline.name }}</div>
                   <div class="list-card-sub">{{ baseline.createdAt }}</div>
@@ -1580,15 +1501,151 @@
 
       <div class="settings-drawer-footer">
         <span class="footer-note">Changes are applied immediately</span>
-
-        <button
-          type="button"
-          class="save-settings-btn"
-          (click)="toggleSettings()">
+        <button type="button" class="save-settings-btn" (click)="toggleSettings()">
           <span class="material-symbols-outlined">save</span>
           <span>Save Settings</span>
         </button>
       </div>
     </aside>
   </div>
+
+  <!-- CONTEXT MENU -->
+  <div
+    class="task-context-menu-backdrop"
+    *ngIf="contextMenuOpen"
+    (click)="closeContextMenu()"
+  ></div>
+
+  <div
+    class="task-context-menu"
+    *ngIf="contextMenuOpen && contextMenuTask"
+    [style.left.px]="contextMenuX"
+    [style.top.px]="contextMenuY"
+    (click)="$event.stopPropagation()"
+  >
+    <button type="button" class="context-menu-item" (click)="createActionFromTask()">
+      <span class="material-symbols-outlined">add_task</span>
+      <span>Create Action from task</span>
+    </button>
+
+    <button type="button" class="context-menu-item" (click)="insertTaskBelowContext()">
+      <span class="material-symbols-outlined">subdirectory_arrow_right</span>
+      <span>Insert task below</span>
+    </button>
+
+    <button type="button" class="context-menu-item" (click)="copyTaskBelowContext()">
+      <span class="material-symbols-outlined">content_copy</span>
+      <span>Copy below</span>
+    </button>
+
+    <button type="button" class="context-menu-item" (click)="editTaskFromContext()">
+      <span class="material-symbols-outlined">edit_square</span>
+      <span>Edit task</span>
+    </button>
+
+    <div class="context-menu-divider"></div>
+
+    <button type="button" class="context-menu-item" (click)="indentTaskFromContext()">
+      <span class="material-symbols-outlined">format_indent_increase</span>
+      <span>Indent</span>
+    </button>
+
+    <button type="button" class="context-menu-item" (click)="outdentTaskFromContext()">
+      <span class="material-symbols-outlined">format_indent_decrease</span>
+      <span>Outdent</span>
+    </button>
+
+    <div class="context-menu-divider"></div>
+
+    <button type="button" class="context-menu-item danger" (click)="deleteTaskFromContext()">
+      <span class="material-symbols-outlined">delete</span>
+      <span>Delete task</span>
+    </button>
+  </div>
+
+  <div
+  class="export-overlay"
+  *ngIf="exportModalOpen"
+  (click)="closeExportModalOnBackdrop($event)"
+>
+  <div class="export-modal">
+    <div class="export-modal-header">
+      <div class="export-modal-title-wrap">
+        <span class="material-symbols-outlined export-modal-icon">download</span>
+        <div class="export-modal-title">Export Schedule</div>
+      </div>
+
+      <button type="button" class="export-close-btn" (click)="closeExportModal()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <div class="export-modal-body">
+      <div class="export-help-text">Choose format and scope.</div>
+
+      <div class="export-scope-box">
+        <div class="export-scope-label">Scope:</div>
+
+        <label class="export-radio">
+          <input type="radio" name="exportScope" value="ALL" [(ngModel)]="exportScope" />
+          <span>All</span>
+        </label>
+
+        <label class="export-radio">
+          <input type="radio" name="exportScope" value="CUSTOMER_NO" [(ngModel)]="exportScope" />
+          <span>Customer = No</span>
+        </label>
+      </div>
+
+      <div class="export-note">
+        The schedule data will be downloaded to your device.
+      </div>
+
+      <button type="button" class="export-option-card" (click)="exportAsMsProjectXml()">
+        <div class="export-option-left">
+          <div class="export-option-icon purple">
+            <span class="material-symbols-outlined">description</span>
+          </div>
+          <div class="export-option-text">
+            <div class="export-option-title">Microsoft Project (.xml)</div>
+            <div class="export-option-sub">
+              Full MPP-compatible XML — open directly in MS Project
+            </div>
+          </div>
+        </div>
+        <span class="material-symbols-outlined export-option-arrow">arrow_forward</span>
+      </button>
+
+      <button type="button" class="export-option-card" (click)="exportAsPdfReport()">
+        <div class="export-option-left">
+          <div class="export-option-icon red">
+            <span class="material-symbols-outlined">picture_as_pdf</span>
+          </div>
+          <div class="export-option-text">
+            <div class="export-option-title">PDF Report</div>
+            <div class="export-option-sub">
+              Printable task list with dates and progress — no Gantt chart
+            </div>
+          </div>
+        </div>
+        <span class="material-symbols-outlined export-option-arrow">arrow_forward</span>
+      </button>
+
+      <button type="button" class="export-option-card" (click)="exportAsExcelCsv()">
+        <div class="export-option-left">
+          <div class="export-option-icon green">
+            <span class="material-symbols-outlined">table</span>
+          </div>
+          <div class="export-option-text">
+            <div class="export-option-title">Excel (.xlsx via CSV)</div>
+            <div class="export-option-sub">
+              Task table with all columns — no Gantt, opens in Excel/Sheets
+            </div>
+          </div>
+        </div>
+        <span class="material-symbols-outlined export-option-arrow">arrow_forward</span>
+      </button>
+    </div>
+  </div>
+</div>
 </div>
