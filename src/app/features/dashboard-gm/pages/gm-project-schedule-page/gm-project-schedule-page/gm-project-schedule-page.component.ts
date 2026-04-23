@@ -1868,6 +1868,7 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
           assignedUserId: null
         };
         this.loadTaskResources(this.selectedTask!.id);
+        this.loadSchedule();
       },
       error: (err) => console.error('Failed to create task resource', err)
     });
@@ -1887,7 +1888,10 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
     };
 
     this.service.updateTaskResource(this.projectId, this.selectedTask.id, resource.id, payload).subscribe({
-      next: () => this.loadTaskResources(this.selectedTask!.id),
+      next: () => {
+        this.loadTaskResources(this.selectedTask!.id);
+        this.loadSchedule();
+      },
       error: (err) => console.error('Failed to update task resource', err)
     });
   }
@@ -1896,7 +1900,10 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
     if (!this.selectedTask || !assignmentId) return;
 
     this.service.deleteTaskResource(this.projectId, this.selectedTask.id, assignmentId).subscribe({
-      next: () => this.loadTaskResources(this.selectedTask!.id),
+      next: () => {
+        this.loadTaskResources(this.selectedTask!.id);
+        this.loadSchedule();
+      },
       error: (err) => console.error('Failed to delete task resource', err)
     });
   }
