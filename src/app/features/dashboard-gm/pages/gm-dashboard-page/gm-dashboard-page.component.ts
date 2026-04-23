@@ -63,6 +63,6 @@ export class GmDashboardPageComponent implements OnInit {
   }
 
   trackById(_: number, p: ProjectDashboardRow): number {
-    return p.id;
+    return p.id ?? 0;
   }
 }

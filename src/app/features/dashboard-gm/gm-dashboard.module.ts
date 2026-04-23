@@ -20,6 +20,8 @@ import { GmProjectChangeRequestsPageComponent } from './pages/gm-project-change-
 import { GmProjectActionsPageComponent } from './pages/gm-project-actions-page/gm-project-actions-page.component';
 import { ProjectumProjectHeaderComponent } from './widgets/projectum-project-header/projectum-project-header.component';
 import { GmProjectSidePanelComponent } from './widgets/gm-project-side-panel/gm-project-side-panel.component';
+import { GmResourceManagementPageComponent } from './pages/gm-resource-management-page/gm-resource-management-page.component';
+import { HttpClientModule } from '@angular/common/http';
 
 
 
@@ -42,12 +44,14 @@ import { GmProjectSidePanelComponent } from './widgets/gm-project-side-panel/gm-
     GmProjectActionsPageComponent,
     ProjectumProjectHeaderComponent,
     GmProjectSidePanelComponent,
+    GmResourceManagementPageComponent,
   ],
   imports: [
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    GmDashboardRoutingModule
+    GmDashboardRoutingModule,
+    HttpClientModule
   ]
 })
 export class GmDashboardModule {}

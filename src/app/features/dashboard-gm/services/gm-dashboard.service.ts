@@ -4,11 +4,61 @@ import { Observable } from 'rxjs';
 import { ProjectDashboardRow } from '../models/project-dashboard-row.model';
 import { ProjectDetails } from '../models/project-details.model';
 
+export interface PortfolioKpiResponse {
+  totalProjects: number;
+  activeProjects: number;
+  delayedProjects: number;
+  averageProgress: number;
+  totalBudget: number;
+  estimatedCost: number;
+  totalTasks: number;
+  completedTasks: number;
+  countriesCount: number;
+  projectManagersCount: number;
+  highRiskCount: number;
+  mediumRiskCount: number;
+  lowRiskCount: number;
+  overdueProjects: number;
+  onTimeRate: number;
+}
+
+export interface ProjectKpiResponse {
+  totalTasks: number;
+  completedTasks: number;
+  delayedTasks: number;
+  averageTaskProgress: number;
+  projectBudget: number;
+  estimatedCost: number;
+  plannedDurationDays: number;
+  overdueTasks: number;
+  riskLevel?: string;
+}
+
+export interface UpsertProjectRequest {
+  name: string;
+  code: string;
+  customer?: string;
+  category?: string;
+  country?: string;
+  projectType?: string;
+  projectPhase?: string;
+  riskLevel?: string;
+  plannedStart?: string;
+  plannedEnd?: string;
+  projectManagerName?: string;
+  programManagerName?: string;
+  salesManagerName?: string;
+  projectBudget?: number;
+  estimatedCost?: number;
+  comment?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class GmDashboardService {
   private readonly baseUrl = '/api/gm/dashboard';
+  private readonly projectsUrl = '/api/projects';
 
   constructor(private http: HttpClient) {}
 
@@ -16,15 +66,27 @@ export class GmDashboardService {
     return this.http.get<ProjectDashboardRow[]>(`${this.baseUrl}/projects`);
   }
 
-  getPortfolioKpis(): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/kpis/portfolio`);
+  getPortfolioKpis(): Observable<PortfolioKpiResponse> {
+    return this.http.get<PortfolioKpiResponse>(`${this.baseUrl}/kpis/portfolio`);
   }
 
-  getProjectKpis(projectId: number): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/projects/${projectId}/kpis`);
+  getProjectKpis(projectId: number): Observable<ProjectKpiResponse> {
+    return this.http.get<ProjectKpiResponse>(`${this.baseUrl}/projects/${projectId}/kpis`);
   }
 
   getProjectById(id: number): Observable<ProjectDetails> {
-    return this.http.get<ProjectDetails>(`/api/projects/${id}`);
+    return this.http.get<ProjectDetails>(`${this.projectsUrl}/${id}`);
+  }
+
+  createProject(payload: UpsertProjectRequest): Observable<ProjectDashboardRow> {
+    return this.http.post<ProjectDashboardRow>(this.projectsUrl, payload);
+  }
+
+  updateProject(id: number, payload: UpsertProjectRequest): Observable<ProjectDashboardRow> {
+    return this.http.put<ProjectDashboardRow>(`${this.projectsUrl}/${id}`, payload);
+  }
+
+  archiveProject(id: number): Observable<void> {
+    return this.http.patch<void>(`${this.projectsUrl}/${id}/archive`, {});
   }
 }

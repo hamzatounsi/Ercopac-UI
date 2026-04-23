@@ -18,6 +18,11 @@
         <span>Dashboard</span>
       </a>
 
+      <a class="nav-item" (click)="openResourcesConfig()">
+        <span class="material-symbols-outlined">tune</span>
+        <span>Resources</span>
+      </a>
+
       <a class="nav-item">
         <span class="material-symbols-outlined">apartment</span>
         <span>Organisations</span>
@@ -88,6 +93,11 @@
         <button type="button" class="primary-btn">
           <span class="material-symbols-outlined">add_business</span>
           <span>Create Organisation</span>
+        </button>
+
+        <button type="button" class="primary-btn" (click)="openPlatformWorkspace()">
+          <span class="material-symbols-outlined">hub</span>
+          <span>Open Workspace</span>
         </button>
 
         <div class="profile-chip">
@@ -457,6 +467,7 @@
                 <th>Progress</th>
                 <th>Status</th>
                 <th>Health</th>
+                <th class="actions-col">Action</th>
               </tr>
             </thead>
 
@@ -505,10 +516,20 @@
                     {{ project.health }}
                   </span>
                 </td>
+
+                <td class="actions-col">
+                  <button
+                    type="button"
+                    class="row-action-btn"
+                    (click)="openProjectDetails(project.projectId)"
+                  >
+                    View
+                  </button>
+                </td>
               </tr>
 
               <tr *ngIf="filteredProjects.length === 0">
-                <td colspan="8" class="empty-cell">
+                <td colspan="9" class="empty-cell">
                   No global projects available.
                 </td>
               </tr>

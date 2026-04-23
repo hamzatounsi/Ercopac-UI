@@ -17,8 +17,26 @@ export class GmProjectTimelineService {
     return this.http.put<GmProjectScheduleTask>(`/api/tasks/${taskId}`, payload);
   }
 
+  insertTaskBelow(projectId: number, afterTaskId: number, payload: any): Observable<GmProjectScheduleTask> {
+    return this.http.post<GmProjectScheduleTask>(
+      `/api/projects/${projectId}/tasks/below/${afterTaskId}`,
+      payload
+    );
+  }
+
+  copyTaskBelow(projectId: number, taskId: number): Observable<GmProjectScheduleTask> {
+    return this.http.post<GmProjectScheduleTask>(
+      `/api/projects/${projectId}/tasks/copy/${taskId}`,
+      {}
+    );
+  }
+
+  deleteTask(taskId: number): Observable<void> {
+    return this.http.delete<void>(`/api/tasks/${taskId}`);
+  }
+
   createDependency(projectId: number, payload: any): Observable<any> {
-  return this.http.post(`/api/projects/${projectId}/dependencies`, payload);
+    return this.http.post(`/api/projects/${projectId}/dependencies`, payload);
   }
 
   updateDependency(projectId: number, dependencyId: number, payload: any): Observable<any> {
@@ -30,7 +48,7 @@ export class GmProjectTimelineService {
   }
 
   getTaskResources(projectId: number, taskId: number): Observable<TaskResourceAssignment[]> {
-  return this.http.get<TaskResourceAssignment[]>(`/api/projects/${projectId}/tasks/${taskId}/resources`);
+    return this.http.get<TaskResourceAssignment[]>(`/api/projects/${projectId}/tasks/${taskId}/resources`);
   }
 
   createTaskResource(projectId: number, taskId: number, payload: TaskResourceAssignment): Observable<TaskResourceAssignment> {
@@ -43,5 +61,13 @@ export class GmProjectTimelineService {
 
   deleteTaskResource(projectId: number, taskId: number, assignmentId: number): Observable<void> {
     return this.http.delete<void>(`/api/projects/${projectId}/tasks/${taskId}/resources/${assignmentId}`);
+  }
+
+  createAction(projectId: number, payload: any): Observable<any> {
+    return this.http.post(`/api/projects/${projectId}/actions`, payload);
+  }
+
+  getActionsSummary(projectId: number): Observable<any> {
+    return this.http.get(`/api/projects/${projectId}/actions/summary`);
   }
 }

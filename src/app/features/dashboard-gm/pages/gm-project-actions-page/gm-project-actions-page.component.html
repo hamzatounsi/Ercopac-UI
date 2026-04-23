@@ -1,70 +1,119 @@
 <div class="actions-shell">
-  <div id="app-hdr">
-    <div>
-      <div class="app-name">Projectum<span>ALL</span></div>
-      <div class="app-sub">all around project</div>
-    </div>
+  <app-gm-project-side-panel
+    [projectId]="projectId"
+    currentPage="actions">
+  </app-gm-project-side-panel>
 
-    <div class="hdr-sep"></div>
+  <app-projectum-project-header></app-projectum-project-header>
 
-    <a class="nav-pill" (click)="goToProjectum()">🏠 Projects</a>
-    <a class="nav-pill" (click)="goToSchedule()">📊 Gantt</a>
-    <a class="nav-pill active">✅ Actions</a>
-    <a class="nav-pill" (click)="goToFinance()">💰 Finance</a>
-    <a class="nav-pill" (click)="goToForecast()">📈 Forecast</a>
-    <a class="nav-pill" (click)="goToRisks()">⚠️ Risk</a>
-    <a class="nav-pill" (click)="goToCr()">📝 CR</a>
+  <div id="stats-bar">
+    <div class="stat-pill"><span>{{ getTotalCount() }}</span> Total</div>
+    <div class="stat-pill blue"><span>{{ getDoingCount() }}</span> In Progress</div>
+    <div class="stat-pill red"><span>{{ getOverdueCount() }}</span> Overdue</div>
+    <div class="stat-pill green"><span>{{ getDoneCount() }}</span> Done</div>
   </div>
 
-  <div id="toolbar-row1">
-    <div class="view-switch">
-      <button class="tb-btn" [class.on]="viewMode==='list'" (click)="setView('list')">List</button>
-      <button class="tb-btn" [class.on]="viewMode==='kanban'" (click)="setView('kanban')">Kanban</button>
+  <div id="toolbar">
+    <div id="toolbar-row1">
+      <div class="tb-search">
+        <span class="search-ico">🔍</span>
+        <input [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="Search actions...">
+      </div>
+
+      <div class="tb-sep"></div>
+
+      <div class="view-grp">
+        <button class="view-btn" [class.on]="viewMode==='list'" (click)="setView('list')" title="List view">☰</button>
+        <button class="view-btn" [class.on]="viewMode==='kanban'" (click)="setView('kanban')" title="Kanban view">⋮</button>
+      </div>
+
+      <div class="toolbar-right">
+        <span class="flt-summary" *ngIf="getActiveFilterCount() > 0">
+          {{ getActiveFilterCount() }} filter(s) active
+        </span>
+
+        <button class="clear-btn" *ngIf="getActiveFilterCount() > 0" (click)="clearFilters()">✕ Clear filters</button>
+
+        <div class="export-wrap">
+          <button class="export-btn" (click)="toggleExportMenu()">📤 Export ▾</button>
+          <div class="export-menu" *ngIf="exportMenuOpen">
+            <div class="exp-group-title">Internal report</div>
+            <button class="exp-item" (click)="exportCsv('internal')">CSV — Internal</button>
+            <button class="exp-item" (click)="exportJson('internal')">JSON — Internal</button>
+
+            <div class="exp-divider"></div>
+
+            <div class="exp-group-title">Customer report</div>
+            <button class="exp-item" (click)="exportCsv('customer')">CSV — Customer</button>
+            <button class="exp-item" (click)="exportJson('customer')">JSON — Customer</button>
+
+            <div class="exp-divider"></div>
+
+            <div class="exp-group-title">Full report</div>
+            <button class="exp-item" (click)="exportCsv('all')">CSV — All actions</button>
+            <button class="exp-item" (click)="exportJson('all')">JSON — All actions</button>
+          </div>
+        </div>
+
+        <button class="add-btn" (click)="addAction()">＋ New Action</button>
+      </div>
     </div>
 
-    <div class="tb-sep"></div>
+    <div id="toolbar-row2">
+      <span class="tb-label">Type:</span>
+      <div class="filter-group">
+        <button class="chip"
+                data-type="action"
+                [class.on]="selectedTypes.has('action')"
+                (click)="toggleType('action')">
+          <span class="sq blue"></span> Action
+        </button>
+        <button class="chip"
+                data-type="issue"
+                [class.on]="selectedTypes.has('issue')"
+                (click)="toggleType('issue')">
+          <span class="sq red"></span> Issue
+        </button>
+      </div>
 
-    <button class="tb-btn add" (click)="addAction()">＋ New Action</button>
-  </div>
+      <div class="tb-sep"></div>
 
-  <div id="toolbar-row2">
-    <span class="tb-label">Type:</span>
-    <div class="filter-group">
-      <button class="chip" [class.on]="selectedTypes.has('action')" (click)="toggleType('action')">Action</button>
-      <button class="chip" [class.on]="selectedTypes.has('issue')" (click)="toggleType('issue')">Issue</button>
+      <span class="tb-label">Status:</span>
+      <div class="filter-group">
+        <button class="chip"
+                *ngFor="let s of statuses"
+                [class.on]="selectedStatuses.has(s)"
+                [ngClass]="'st-' + s"
+                (click)="toggleStatus(s)">
+          {{ getStatusLabel(s) }}
+        </button>
+      </div>
+
+      <div class="tb-sep"></div>
+
+      <span class="tb-label">Due:</span>
+      <select class="flt-sel" [(ngModel)]="dueFilter" (change)="applyFilters()">
+        <option value="">Any date</option>
+        <option value="overdue">Overdue</option>
+        <option value="today">Due today</option>
+        <option value="week">This week</option>
+        <option value="month">This month</option>
+      </select>
+
+      <div class="tb-sep"></div>
+
+      <span class="tb-label">Assignee:</span>
+      <select class="flt-sel" (change)="toggleAssignee($any($event.target).value)">
+        <option value="">All assignees</option>
+        <option *ngFor="let a of getAssigneesUniverse()" [value]="a">{{ a }}</option>
+      </select>
+
+      <div class="assignee-chips" *ngIf="selectedAssignees.size > 0">
+        <button class="asgn-chip" *ngFor="let a of selectedAssignees" (click)="removeAssigneeFilter(a)">
+          {{ a }} ✕
+        </button>
+      </div>
     </div>
-
-    <div class="tb-sep"></div>
-
-    <span class="tb-label">Status:</span>
-    <div class="filter-group">
-      <button class="chip" *ngFor="let s of statuses" [class.on]="selectedStatuses.has(s)" (click)="toggleStatus(s)">
-        {{ getStatusLabel(s) }}
-      </button>
-    </div>
-
-    <div class="tb-sep"></div>
-
-    <span class="tb-label">Due:</span>
-    <select class="flt-sel" [(ngModel)]="dueFilter" (change)="applyFilters()">
-      <option value="">Any date</option>
-      <option value="overdue">Overdue</option>
-      <option value="today">Due today</option>
-    </select>
-
-    <div class="tb-sep"></div>
-
-    <span class="tb-label">Assignee:</span>
-    <select class="flt-sel" (change)="toggleAssignee($any($event.target).value)">
-      <option value="">Select...</option>
-      <option *ngFor="let a of getAssigneesUniverse()" [value]="a">{{ a }}</option>
-    </select>
-
-    <button class="tb-btn" (click)="clearFilters()">✕ Clear</button>
-
-    <input class="tb-search" [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="🔍 Search…">
-
-    <button class="tb-btn" (click)="loadData()">↺ Refresh</button>
   </div>
 
   <div *ngIf="error" class="error-box">{{ error }}</div>
@@ -102,44 +151,79 @@
           </thead>
 
           <tbody>
-            <tr *ngFor="let row of filteredRows" (click)="openDetail(row)" [class.selected]="selectedAction?.id === row.id">
-              <td>#{{ row.id }}</td>
+            <tr *ngFor="let row of filteredRows"
+                (click)="openDetail(row)"
+                [class.selected]="selectedAction?.id === row.id">
               <td>
-                <input class="cell-input title" [(ngModel)]="row.title" (change)="saveRow(row); $event.stopPropagation()">
+                <span class="tbl-id">{{ formatActionId(row) }}</span>
               </td>
+
               <td>
-                <select class="cell-select" [(ngModel)]="row.actionType" (change)="saveRow(row); $event.stopPropagation()">
-                  <option *ngFor="let t of actionTypes" [value]="t">{{ t }}</option>
-                </select>
+                <div class="tbl-title">
+                  {{ row.title }}
+                  <small *ngIf="row.description">{{ row.description }}</small>
+                </div>
               </td>
+
               <td>
-                <select class="cell-select" [(ngModel)]="row.departmentCode" (change)="saveRow(row); $event.stopPropagation()">
-                  <option value="">—</option>
-                  <option *ngFor="let d of departments" [value]="d">{{ d }}</option>
-                </select>
+                <span class="badge" [ngClass]="getTypeClass(row.actionType)">
+                  {{ row.actionType === 'issue' ? 'Issue' : 'Action' }}
+                </span>
               </td>
+
               <td>
-                <select class="cell-select" [(ngModel)]="row.priority" (change)="saveRow(row); $event.stopPropagation()">
-                  <option *ngFor="let p of priorities" [value]="p">{{ getPriorityLabel(p) }}</option>
-                </select>
+                <span class="dept-badge" *ngIf="row.departmentCode; else noDept">{{ row.departmentCode }}</span>
+                <ng-template #noDept>—</ng-template>
               </td>
+
               <td>
-                <select class="cell-select" [(ngModel)]="row.status" (change)="saveRow(row); $event.stopPropagation()">
-                  <option *ngFor="let s of statuses" [value]="s">{{ getStatusLabel(s) }}</option>
-                </select>
+                <span class="badge" [ngClass]="getPriorityClass(row.priority)">
+                  {{ getPriorityLabel(row.priority) }}
+                </span>
               </td>
+
+              <td>
+                <span class="badge" [ngClass]="getStatusClass(row.status)">
+                  {{ getStatusLabel(row.status) }}
+                </span>
+              </td>
+
               <td class="center">
-                <input type="checkbox" [(ngModel)]="row.customerVisible" (change)="saveRow(row); $event.stopPropagation()">
+                <span class="cust-pill" [class.yes]="row.customerVisible" [class.no]="!row.customerVisible">
+                  {{ row.customerVisible ? 'YES' : 'NO' }}
+                </span>
               </td>
+
               <td>
-                <input class="cell-input" type="date" [(ngModel)]="row.insertedDate" (change)="saveRow(row); $event.stopPropagation()">
+                <span class="tbl-date">{{ formatDate(row.insertedDate) }}</span>
               </td>
+
               <td>
-                <input class="cell-input" type="date" [(ngModel)]="row.dueDate" (change)="saveRow(row); $event.stopPropagation()">
+                <span class="tbl-date" [ngClass]="getDueClass(row)">
+                  {{ formatDate(row.dueDate) }}
+                  <ng-container *ngIf="getDueClass(row) === 'overdue'"> ⚠</ng-container>
+                  <ng-container *ngIf="getDueClass(row) === 'soon'"> !</ng-container>
+                </span>
               </td>
-              <td>{{ row.assignees.join(', ') || '—' }}</td>
+
               <td>
-                <button class="btn-del" (click)="deleteRow(row); $event.stopPropagation()">✕</button>
+                <div class="avatar-stack" *ngIf="row.assignees.length > 0; else noAssignee">
+                  <div class="avatar"
+                       *ngFor="let a of row.assignees | slice:0:3"
+                       [style.background]="getPersonColor(a)"
+                       [title]="a">
+                    {{ getInitials(a) }}
+                  </div>
+                  <div class="avatar extra" *ngIf="row.assignees.length > 3">+{{ row.assignees.length - 3 }}</div>
+                </div>
+                <ng-template #noAssignee>—</ng-template>
+              </td>
+
+              <td>
+                <div class="row-act">
+                  <button class="row-btn edit" (click)="openDetail(row); $event.stopPropagation()">✎</button>
+                  <button class="row-btn" (click)="deleteRow(row); $event.stopPropagation()">✕</button>
+                </div>
               </td>
             </tr>
 
@@ -153,18 +237,47 @@
 
     <div id="kanban-view" *ngIf="viewMode === 'kanban'">
       <div class="kanban-board">
-        <div class="kanban-col" *ngFor="let s of statuses">
-          <div class="kanban-col-hdr">{{ getStatusLabel(s) }}</div>
+        <div class="kb-col" *ngFor="let s of statuses">
+          <div class="kb-col-hdr">
+            <div class="kb-col-dot" [ngClass]="'dot-' + s"></div>
+            <div class="kb-col-name">{{ getStatusLabel(s) }}</div>
+            <div class="kb-col-count">{{ getKanbanRows(s).length }}</div>
+          </div>
 
-          <div class="kanban-card" *ngFor="let row of getKanbanRows(s)" (click)="openDetail(row)">
-            <div class="kc-top">
-              <span class="badge" [ngClass]="getTypeClass(row.actionType)">{{ row.actionType }}</span>
-              <span class="badge" [ngClass]="getPriorityClass(row.priority)">{{ getPriorityLabel(row.priority) }}</span>
+          <div class="kb-col-body">
+            <div class="kb-card" *ngFor="let row of getKanbanRows(s)" (click)="openDetail(row)">
+              <div class="kb-prio-bar" [ngClass]="'bar-' + row.priority"></div>
+
+              <div class="kb-card-top">
+                <span class="kb-card-id">{{ formatActionId(row) }}</span>
+                <span class="kb-card-title">{{ row.title }}</span>
+              </div>
+
+              <div class="kb-card-desc" *ngIf="row.description">{{ row.description }}</div>
+
+              <div class="kb-card-meta">
+                <span class="badge" [ngClass]="getPriorityClass(row.priority)">{{ getPriorityLabel(row.priority) }}</span>
+                <span class="badge" [ngClass]="getTypeClass(row.actionType)">{{ row.actionType }}</span>
+                <span class="dept-badge" *ngIf="row.departmentCode">{{ row.departmentCode }}</span>
+                <span class="badge st-doing" *ngIf="row.customerVisible">Cust</span>
+                <span class="kb-card-date" [ngClass]="getDueClass(row)" *ngIf="row.dueDate">📅 {{ formatDate(row.dueDate) }}</span>
+              </div>
+
+              <div class="kb-card-foot">
+                <div class="avatar-stack" *ngIf="row.assignees.length > 0">
+                  <div class="avatar"
+                       *ngFor="let a of row.assignees | slice:0:3"
+                       [style.background]="getPersonColor(a)"
+                       [title]="a">
+                    {{ getInitials(a) }}
+                  </div>
+                </div>
+
+                <button class="kb-del-btn" (click)="deleteRow(row); $event.stopPropagation()">✕</button>
+              </div>
             </div>
 
-            <div class="kc-title">{{ row.title }}</div>
-            <div class="kc-meta">{{ row.departmentCode || '—' }} · {{ row.assignees.join(', ') || 'No assignee' }}</div>
-            <div class="kc-date">Due: {{ row.dueDate || '—' }}</div>
+            <button class="kb-add" (click)="addAction(s)">+ Add action</button>
           </div>
         </div>
       </div>
@@ -176,97 +289,174 @@
   <div class="detail-overlay" *ngIf="selectedAction">
     <div class="detail-modal">
       <div class="modal-hdr">
-        <h2>#{{ selectedAction.id }} {{ selectedAction.title }}</h2>
+        <h2>
+          <ng-container *ngIf="isNewAction; else existingTitle">
+            New Action
+          </ng-container>
+          <ng-template #existingTitle>
+            {{ formatActionId(selectedAction) }} {{ selectedAction.title }}
+          </ng-template>
+        </h2>
+
         <button class="modal-close" (click)="closeDetail()">✕</button>
       </div>
 
       <div class="tabs">
-        <div class="tab on">Details</div>
-        <div class="tab">Comments <span class="mini-badge">{{ selectedAction.comments.length }}</span></div>
-        <div class="tab">Attachments <span class="mini-badge">{{ selectedAction.attachments.length }}</span></div>
+        <div class="tab" [class.on]="detailTab==='details'" (click)="setDetailTab('details')">
+          Details
+        </div>
+
+        <div class="tab" [class.on]="detailTab==='comments'" (click)="setDetailTab('comments')">
+          Comments
+          <span class="mini-badge">{{ selectedAction.comments.length }}</span>
+        </div>
+
+        <div class="tab" [class.on]="detailTab==='attachments'" (click)="setDetailTab('attachments')">
+          Attachments
+          <span class="mini-badge">{{ selectedAction.attachments.length }}</span>
+        </div>
       </div>
 
       <div class="modal-body">
-        <div class="field">
-          <label>Action Title</label>
-          <input [(ngModel)]="selectedAction.title" (change)="saveRow(selectedAction)">
-        </div>
-
-        <div class="field">
-          <label>Description</label>
-          <textarea [(ngModel)]="selectedAction.description" (change)="saveRow(selectedAction)"></textarea>
-        </div>
-
-        <div class="field-row">
+        <!-- DETAILS TAB -->
+        <ng-container *ngIf="detailTab === 'details'">
           <div class="field">
-            <label>Type</label>
-            <select [(ngModel)]="selectedAction.actionType" (change)="saveRow(selectedAction)">
-              <option *ngFor="let t of actionTypes" [value]="t">{{ t }}</option>
+            <label>Action Title</label>
+            <input [(ngModel)]="selectedAction.title">
+          </div>
+
+          <div class="field">
+            <label>Description</label>
+            <textarea [(ngModel)]="selectedAction.description"></textarea>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label>Type</label>
+              <select [(ngModel)]="selectedAction.actionType">
+                <option *ngFor="let t of actionTypes" [value]="t">{{ t }}</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Department</label>
+              <select [(ngModel)]="selectedAction.departmentCode">
+                <option value="">—</option>
+                <option *ngFor="let d of departments" [value]="d">{{ d }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label>Status</label>
+              <select [(ngModel)]="selectedAction.status">
+                <option *ngFor="let s of statuses" [value]="s">{{ getStatusLabel(s) }}</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Priority</label>
+              <select [(ngModel)]="selectedAction.priority">
+                <option *ngFor="let p of priorities" [value]="p">{{ getPriorityLabel(p) }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label>Inserted</label>
+              <input type="date" [(ngModel)]="selectedAction.insertedDate">
+            </div>
+
+            <div class="field">
+              <label>Due Date</label>
+              <input type="date" [(ngModel)]="selectedAction.dueDate">
+            </div>
+          </div>
+
+          <div class="field checkbox-row">
+            <label>
+              <input type="checkbox" [(ngModel)]="selectedAction.customerVisible">
+              Customer visible
+            </label>
+          </div>
+
+          <div class="field">
+            <label>Assigned To</label>
+
+            <div class="people-tags" *ngIf="selectedAction.assignees.length > 0">
+              <span class="people-tag"
+                    *ngFor="let a of selectedAction.assignees"
+                    [style.background]="getPersonColor(a)">
+                {{ a }}
+                <button type="button" (click)="removeAssigneeFromSelected(a)">✕</button>
+              </span>
+            </div>
+
+            <select class="assignee-add-select"
+                    #assigneeSel
+                    (change)="addAssigneeToSelected(assigneeSel.value); assigneeSel.value=''">
+              <option value="">Add assignee...</option>
+              <option *ngFor="let a of getAssigneesUniverse()" [value]="a">{{ a }}</option>
             </select>
           </div>
+        </ng-container>
 
-          <div class="field">
-            <label>Department</label>
-            <select [(ngModel)]="selectedAction.departmentCode" (change)="saveRow(selectedAction)">
-              <option value="">—</option>
-              <option *ngFor="let d of departments" [value]="d">{{ d }}</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="field-row">
-          <div class="field">
-            <label>Status</label>
-            <select [(ngModel)]="selectedAction.status" (change)="saveRow(selectedAction)">
-              <option *ngFor="let s of statuses" [value]="s">{{ getStatusLabel(s) }}</option>
-            </select>
+        <!-- COMMENTS TAB -->
+        <ng-container *ngIf="detailTab === 'comments'">
+          <div class="empty-mini" *ngIf="isNewAction">
+            Save the action first to add comments.
           </div>
 
-          <div class="field">
-            <label>Priority</label>
-            <select [(ngModel)]="selectedAction.priority" (change)="saveRow(selectedAction)">
-              <option *ngFor="let p of priorities" [value]="p">{{ getPriorityLabel(p) }}</option>
-            </select>
+          <ng-container *ngIf="!isNewAction">
+            <div class="comment-list">
+              <div class="comment-item" *ngFor="let c of selectedAction.comments; trackBy: trackComment">
+                <div class="comment-author">{{ c.author }}</div>
+                <div class="comment-text">{{ c.text }}</div>
+                <div class="comment-meta">{{ c.createdAt }}</div>
+              </div>
+
+              <div class="empty-mini" *ngIf="selectedAction.comments.length === 0">
+                No comments yet.
+              </div>
+            </div>
+
+            <div class="comment-add">
+              <textarea [(ngModel)]="commentText" placeholder="Write a comment..."></textarea>
+              <button class="tb-btn add" (click)="addComment()">Post</button>
+            </div>
+          </ng-container>
+        </ng-container>
+
+        <!-- ATTACHMENTS TAB -->
+        <ng-container *ngIf="detailTab === 'attachments'">
+          <div class="empty-mini" *ngIf="isNewAction">
+            Save the action first to manage attachments.
           </div>
-        </div>
 
-        <div class="field-row">
-          <div class="field">
-            <label>Inserted</label>
-            <input type="date" [(ngModel)]="selectedAction.insertedDate" (change)="saveRow(selectedAction)">
-          </div>
+          <ng-container *ngIf="!isNewAction">
+            <div class="empty-mini" *ngIf="selectedAction.attachments.length === 0">
+              No attachments yet.
+            </div>
 
-          <div class="field">
-            <label>Due Date</label>
-            <input type="date" [(ngModel)]="selectedAction.dueDate" (change)="saveRow(selectedAction)">
-          </div>
-        </div>
+            <div class="attach-item" *ngFor="let a of selectedAction.attachments; trackBy: trackAttachment">
+              <div>{{ a.fileName }}</div>
+              <small>{{ a.fileSize || 0 }} bytes</small>
+            </div>
 
-        <div class="field checkbox-row">
-          <label><input type="checkbox" [(ngModel)]="selectedAction.customerVisible" (change)="saveRow(selectedAction)"> Customer visible</label>
-        </div>
+            <div class="attach-placeholder">
+              Attachment upload UI ready. Backend upload endpoint can be added next.
+            </div>
+          </ng-container>
+        </ng-container>
+      </div>
 
-        <div class="section-title">Comments</div>
-        <div class="comment-list">
-          <div class="comment-item" *ngFor="let c of selectedAction.comments; trackBy: trackComment">
-            <div class="comment-author">{{ c.author }}</div>
-            <div class="comment-text">{{ c.text }}</div>
-            <div class="comment-meta">{{ c.createdAt }}</div>
-          </div>
-          <div class="empty-mini" *ngIf="selectedAction.comments.length === 0">No comments yet.</div>
-        </div>
-
-        <div class="comment-add">
-          <textarea [(ngModel)]="commentText" placeholder="Write a comment..."></textarea>
-          <button class="tb-btn add" (click)="addComment()">Add Comment</button>
-        </div>
-
-        <div class="section-title">Attachments</div>
-        <div class="empty-mini" *ngIf="selectedAction.attachments.length === 0">No attachments yet.</div>
-        <div class="attach-item" *ngFor="let a of selectedAction.attachments">
-          <div>{{ a.fileName }}</div>
-          <small>{{ a.fileSize || 0 }} bytes</small>
-        </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" (click)="closeDetail()">Cancel</button>
+        <button class="btn-primary" (click)="saveSelectedAction()">
+          {{ isNewAction ? 'Create Action' : 'Save' }}
+        </button>
       </div>
     </div>
   </div>

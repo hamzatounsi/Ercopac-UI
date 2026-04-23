@@ -31,4 +31,16 @@ export class GmRiskService {
   deleteRisk(projectId: number, riskId: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${projectId}/risks/${riskId}`);
   }
+
+  getPendingApprovals(projectId: number): Observable<RiskItem[]> {
+    return this.http.get<RiskItem[]>(`${this.baseUrl}/${projectId}/risks/pending-approvals`);
+  }
+
+  approveRisk(projectId: number, riskId: number): Observable<RiskItem> {
+    return this.http.post<RiskItem>(`${this.baseUrl}/${projectId}/risks/${riskId}/approve`, {});
+  }
+
+  rejectRisk(projectId: number, riskId: number): Observable<RiskItem> {
+    return this.http.post<RiskItem>(`${this.baseUrl}/${projectId}/risks/${riskId}/reject`, {});
+  }
 }

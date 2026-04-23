@@ -1,20 +1,10 @@
 <div class="cr-shell">
-  <div id="app-hdr">
-    <div>
-      <div class="app-name">Projectum<span>ALL</span></div>
-      <div class="app-sub">all around project</div>
-    </div>
+<app-gm-project-side-panel
+    [projectId]="projectId"
+    currentPage="cr">
+  </app-gm-project-side-panel>
 
-    <div class="hdr-sep"></div>
-
-    <a class="nav-pill" (click)="goToProjectum()">🏠 Projects</a>
-    <a class="nav-pill" (click)="goToSchedule()">📊 Gantt</a>
-    <a class="nav-pill" (click)="goToActions()">✅ Actions</a>
-    <a class="nav-pill" (click)="goToFinance()">💰 Finance</a>
-    <a class="nav-pill" (click)="goToForecast()">📈 Forecast</a>
-    <a class="nav-pill" (click)="goToRisks()">⚠️ Risk</a>
-    <a class="nav-pill active">📝 CR</a>
-  </div>
+  <app-projectum-project-header></app-projectum-project-header>
 
   <div id="toolbar">
     <button class="tb-btn add" (click)="addCr()">＋ Add CR</button>

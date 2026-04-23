@@ -1,27 +1,11 @@
 <div class="forecast-shell">
   <!-- TOP HEADER -->
-  <div id="app-hdr">
-    <div class="brand-wrap">
-      <div>
-        <div class="app-name">Projectum<span>ALL</span></div>
-        <div class="app-sub">all around project</div>
-      </div>
-    </div>
+<app-gm-project-side-panel
+    [projectId]="projectId"
+    currentPage="forecast">
+  </app-gm-project-side-panel>
 
-    <div class="hdr-sep"></div>
-
-    <a class="nav-pill" (click)="goToProjectum()">🏠 Projects</a>
-    <a class="nav-pill" (click)="goToSchedule()">📊 Gantt</a>
-    <a class="nav-pill" (click)="goToActions()">✅ Actions</a>
-    <a class="nav-pill">👥 Resources</a>
-    <a class="nav-pill">🏢 Dept</a>
-    <a class="nav-pill">🔧 My CS</a>
-    <a class="nav-pill" (click)="goToFinance()">💰 Finance</a>
-    <a class="nav-pill active">📘 Forecast</a>
-    <a class="nav-pill" (click)="goToRisks()">⚠️ Risk</a>
-    <a class="nav-pill" (click)="goToCr()">📝 CR</a>
-    <a class="nav-pill">⚙️ WBS Settings</a>
-  </div>
+  <app-projectum-project-header></app-projectum-project-header>
 
   <!-- TOOLBAR -->
   <div id="toolbar">

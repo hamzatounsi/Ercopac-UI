@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { OwnerDashboardService } from '../../services/owner-dashboard.service';
 import { OwnerKpi } from '../../models/owner-kpi.model';
@@ -29,10 +30,25 @@ export class OwnerDashboardPageComponent implements OnInit {
   organisationFilter: 'ALL' | 'ACTIVE' | 'RISK' = 'ALL';
   projectFilter: 'ALL' | 'DELAYED' | 'CRITICAL' | 'ACTIVE' = 'ALL';
 
-  constructor(private ownerDashboardService: OwnerDashboardService) {}
+  constructor(
+    private ownerDashboardService: OwnerDashboardService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadDashboard();
+  }
+
+  openPlatformWorkspace(): void {
+    this.router.navigate(['/gm']);
+  }
+
+  openResourcesConfig(): void {
+    this.router.navigate(['/owner/resources']);
+  }
+
+  openProjectDetails(projectId: number): void {
+    this.router.navigate(['/gm/projects', projectId, 'details']);
   }
 
   loadDashboard(): void {

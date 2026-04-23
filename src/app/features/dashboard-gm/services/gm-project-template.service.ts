@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ProjectTemplate } from '../models/project-template.model';
+import { ApplyStandardTemplateResult } from '../models/apply-standard-template-result.model';
 
 export interface CreateProjectTemplateRequest {
   name: string;
@@ -28,5 +29,12 @@ export class GmProjectTemplateService {
 
   deleteTemplate(projectId: number, templateId: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${projectId}/templates/${templateId}`);
+  }
+
+  applyStandardTemplate(projectId: number): Observable<ApplyStandardTemplateResult> {
+    return this.http.post<ApplyStandardTemplateResult>(
+      `${this.baseUrl}/${projectId}/templates/apply-standard`,
+      {}
+    );
   }
 }

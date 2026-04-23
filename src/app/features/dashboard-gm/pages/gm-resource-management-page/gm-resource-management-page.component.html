@@ -1,0 +1,560 @@
+<div class="resource-page">
+  <header class="rm-header">
+    <div class="brand">
+      <div class="brand-title">Projectum<span>ALL</span></div>
+      <div class="brand-sub">all around project</div>
+    </div>
+
+    <div class="header-actions">
+      <button class="header-btn ghost">Export Excel</button>
+      <button class="header-btn ghost">Import Excel</button>
+      <button class="header-btn ghost">⬇ JSON</button>
+      <button class="header-btn ghost">⬆ JSON</button>
+      <button class="header-btn primary" (click)="activeTab === 'resources' ? openNewResource() : openNewSupplier()">
+        {{ activeTab === 'resources' ? '+ New Resource' : '+ New Supplier' }}
+      </button>
+    </div>
+  </header>
+
+  <div class="page-tabs">
+    <button
+      class="page-tab"
+      [class.active]="activeTab === 'resources'"
+      (click)="setTab('resources')">
+      👥 Resources
+    </button>
+
+    <button
+      class="page-tab"
+      [class.active]="activeTab === 'suppliers'"
+      (click)="setTab('suppliers')">
+      🏭 Suppliers
+    </button>
+  </div>
+
+  <div *ngIf="error" class="page-error">
+    {{ error }}
+  </div>
+
+  <!-- RESOURCES -->
+  <div *ngIf="activeTab === 'resources'" class="resources-layout">
+    <aside class="dept-sidebar">
+      <div class="sidebar-title">Department</div>
+
+      <button
+        class="dept-item"
+        [class.active]="selectedDepartment === ''"
+        (click)="selectedDepartment=''; applyResourceFilters()">
+        <span>All</span>
+        <span class="dept-count">{{ departmentCounts['ALL'] || 0 }}</span>
+      </button>
+
+      <button
+        *ngFor="let dept of departmentOptions"
+        class="dept-item"
+        [class.active]="selectedDepartment === dept"
+        (click)="selectedDepartment=dept; applyResourceFilters()">
+        <span>{{ dept }}</span>
+        <span class="dept-count">{{ departmentCounts[dept] || 0 }}</span>
+      </button>
+    </aside>
+
+    <section class="table-section">
+      <div class="toolbar">
+        <input
+          class="search-input"
+          [(ngModel)]="resourceSearchTerm"
+          (input)="applyResourceFilters()"
+          placeholder="Search name, code, role..." />
+
+        <div class="toolbar-right">
+          <select [(ngModel)]="selectedSeniority" (change)="applyResourceFiltersLocalSort()">
+            <option value="">All Seniority</option>
+            <option *ngFor="let option of seniorityOptions" [value]="option">{{ option }}</option>
+          </select>
+
+          <select [(ngModel)]="selectedInternal" (change)="applyResourceFilters()">
+            <option *ngFor="let option of internalOptions" [value]="option.value">{{ option.label }}</option>
+          </select>
+
+          <span class="count-label">{{ filteredResources.length }} of {{ totalResources }}</span>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th (click)="setResourceSort('id')">#</th>
+              <th (click)="setResourceSort('fullName')">Name</th>
+              <th (click)="setResourceSort('employeeCode')">Code</th>
+              <th (click)="setResourceSort('departmentCode')">Department</th>
+              <th (click)="setResourceSort('resourceType')">Res.Type</th>
+              <th (click)="setResourceSort('jobTitle')">Role</th>
+              <th (click)="setResourceSort('seniority')">Seniority</th>
+              <th (click)="setResourceSort('defaultRate')">Rate €/day</th>
+              <th>Email</th>
+              <th (click)="setResourceSort('internalUser')">Internal</th>
+              <th></th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngIf="loading">
+              <td colspan="11" class="empty-cell">Loading resources...</td>
+            </tr>
+
+            <tr *ngFor="let resource of filteredResources" (dblclick)="resource.id && openResource(resource.id)">
+              <td>{{ resource.id }}</td>
+              <td class="strong">{{ resource.fullName }}</td>
+              <td>{{ resource.employeeCode || '—' }}</td>
+              <td>{{ resource.departmentCode || '—' }}</td>
+              <td>{{ resource.resourceType || '—' }}</td>
+              <td>{{ resource.jobTitle || '—' }}</td>
+              <td>{{ resource.seniority || '—' }}</td>
+              <td>{{ resource.defaultRate ?? 0 }}</td>
+              <td>{{ resource.email || '—' }}</td>
+              <td>{{ resource.internalUser ? 'Inter' : 'Exter' }}</td>
+              <td>
+                <button
+                  class="icon-btn danger"
+                  *ngIf="resource.id"
+                  (click)="deactivateResource(resource.id); $event.stopPropagation()">
+                  ✕
+                </button>
+              </td>
+            </tr>
+
+            <tr *ngIf="!loading && filteredResources.length === 0">
+              <td colspan="11" class="empty-cell">No resources found.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- SUPPLIERS -->
+  <div *ngIf="activeTab === 'suppliers'" class="suppliers-layout">
+    <div class="toolbar">
+      <input
+        class="search-input"
+        [(ngModel)]="supplierSearchTerm"
+        (input)="applySupplierFilters()"
+        placeholder="Search supplier, department..." />
+
+      <div class="toolbar-right">
+        <select [(ngModel)]="supplierDepartmentFilter" (change)="applySupplierFilters()">
+          <option value="">All Departments</option>
+          <option *ngFor="let dept of departmentOptions" [value]="dept">{{ dept }}</option>
+        </select>
+
+        <button class="header-btn primary small" (click)="openNewSupplier()">+ New Supplier</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Supplier Name</th>
+            <th>Short Code</th>
+            <th>Departments</th>
+            <th>Resource Types</th>
+            <th>Contact</th>
+            <th>Country</th>
+            <th></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngIf="loading">
+            <td colspan="8" class="empty-cell">Loading suppliers...</td>
+          </tr>
+
+          <tr *ngFor="let supplier of filteredSuppliers">
+            <td>{{ supplier.id }}</td>
+            <td class="strong">{{ supplier.name }}</td>
+            <td>{{ supplier.shortCode || '—' }}</td>
+            <td>{{ (supplier.departments || []).join(', ') || '—' }}</td>
+            <td>{{ (supplier.resourceTypes || []).join(', ') || '—' }}</td>
+            <td>{{ supplier.contact || '—' }}</td>
+            <td>{{ supplier.country || '—' }}</td>
+            <td class="supplier-actions">
+              <button class="icon-btn" (click)="openSupplier(supplier)">✏</button>
+              <button class="icon-btn danger" *ngIf="supplier.id" (click)="deleteSupplier(supplier.id)">✕</button>
+            </td>
+          </tr>
+
+          <tr *ngIf="!loading && filteredSuppliers.length === 0">
+            <td colspan="8" class="empty-cell">No suppliers yet.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- RESOURCE DRAWER -->
+  <div class="drawer-backdrop" *ngIf="resourceDrawerOpen" (click)="closeResourceDrawer()"></div>
+    <aside class="drawer right" [class.open]="resourceDrawerOpen">
+        <div class="drawer-head">
+        <h3>{{ selectedResourceId ? 'Resource Detail' : 'New Resource' }}</h3>
+        <button class="close-btn" (click)="closeResourceDrawer()">✕</button>
+        </div>
+
+        <div class="drawer-body">
+
+        <!-- CREATE RESOURCE -->
+        <ng-container *ngIf="!selectedResourceId; else updateResourceTpl">
+            <div class="section-title">Identity</div>
+
+            <div class="form-field">
+            <label>Full Name</label>
+            <input [(ngModel)]="resourceCreateForm.fullName" />
+            </div>
+
+            <div class="row-2">
+            <div class="form-field">
+                <label>Email</label>
+                <input [(ngModel)]="resourceCreateForm.email" />
+            </div>
+
+            <div class="form-field">
+                <label>Password</label>
+                <input type="password" [(ngModel)]="resourceCreateForm.password" />
+            </div>
+            </div>
+
+            <div class="row-2">
+            <div class="form-field">
+                <label>System Role</label>
+                <select [(ngModel)]="resourceCreateForm.role">
+                <option *ngFor="let role of roleOptions" [value]="role">{{ role }}</option>
+                </select>
+            </div>
+
+            <div class="form-field">
+                <label>Code</label>
+                <input [(ngModel)]="resourceCreateForm.employeeCode" />
+            </div>
+            </div>
+
+            <div class="row-2">
+            <div class="form-field">
+                <label>Department</label>
+                <select [(ngModel)]="resourceCreateForm.departmentCode">
+                <option value="">—</option>
+                <option *ngFor="let dept of departmentOptions" [value]="dept">{{ dept }}</option>
+                </select>
+            </div>
+
+            <div class="form-field">
+                <label>Resource Type</label>
+                <select [(ngModel)]="resourceCreateForm.resourceType">
+                <option value="">—</option>
+                <option *ngFor="let type of resourceTypeOptions" [value]="type">{{ type }}</option>
+                </select>
+            </div>
+            </div>
+
+            <div class="row-2">
+            <div class="form-field">
+                <label>Job Title</label>
+                <input [(ngModel)]="resourceCreateForm.jobTitle" />
+            </div>
+
+            <div class="form-field">
+                <label>Seniority</label>
+                <select [(ngModel)]="resourceCreateForm.seniority">
+                <option value="">—</option>
+                <option *ngFor="let option of seniorityOptions" [value]="option">{{ option }}</option>
+                </select>
+            </div>
+            </div>
+
+            <div class="row-2">
+            <div class="form-field">
+                <label>Internal</label>
+                <select [(ngModel)]="resourceCreateForm.internalUser">
+                <option [ngValue]="true">Internal</option>
+                <option [ngValue]="false">External</option>
+                </select>
+            </div>
+
+            <div class="form-field">
+                <label>Workdays</label>
+                <input [(ngModel)]="resourceCreateForm.workdays" />
+            </div>
+            </div>
+
+            <div class="section-title">Cost</div>
+
+            <div class="row-3">
+            <div class="form-field">
+                <label>Rate Type</label>
+                <select [(ngModel)]="resourceCreateForm.rateType">
+                <option *ngFor="let type of rateTypeOptions" [value]="type">{{ type }}</option>
+                </select>
+            </div>
+
+            <div class="form-field">
+                <label>Rate</label>
+                <input type="number" [(ngModel)]="resourceCreateForm.defaultRate" />
+            </div>
+
+            <div class="form-field">
+                <label>Currency</label>
+                <select [(ngModel)]="resourceCreateForm.currency">
+                <option *ngFor="let currency of currencyOptions" [value]="currency">{{ currency }}</option>
+                </select>
+            </div>
+            </div>
+
+            <div class="section-title">Calendar</div>
+
+            <div class="row-2">
+            <div class="form-field">
+                <label>Hours/Day</label>
+                <input type="number" [(ngModel)]="resourceCreateForm.hoursPerDay" />
+            </div>
+
+            <div class="form-field">
+                <label>Days/Week</label>
+                <input type="number" [(ngModel)]="resourceCreateForm.daysPerWeek" />
+            </div>
+            </div>
+
+            <div class="form-field">
+            <label>Color</label>
+            <input [(ngModel)]="resourceCreateForm.color" />
+            </div>
+
+            <div class="form-field">
+            <label>Notes</label>
+            <textarea rows="4" [(ngModel)]="resourceCreateForm.notes"></textarea>
+            </div>
+        </ng-container>
+
+        <!-- UPDATE RESOURCE -->
+        <ng-template #updateResourceTpl>
+            <div class="section-title">Identity</div>
+
+            <div class="form-field">
+            <label>Full Name</label>
+            <input [(ngModel)]="resourceUpdateForm.fullName" />
+            </div>
+
+            <div class="row-2">
+            <div class="form-field">
+                <label>Code</label>
+                <input [(ngModel)]="resourceUpdateForm.employeeCode" />
+            </div>
+
+            <div class="form-field">
+                <label>Seniority</label>
+                <select [(ngModel)]="resourceUpdateForm.seniority">
+                <option value="">—</option>
+                <option *ngFor="let option of seniorityOptions" [value]="option">{{ option }}</option>
+                </select>
+            </div>
+            </div>
+
+            <div class="row-2">
+            <div class="form-field">
+                <label>Department</label>
+                <select [(ngModel)]="resourceUpdateForm.departmentCode">
+                <option value="">—</option>
+                <option *ngFor="let dept of departmentOptions" [value]="dept">{{ dept }}</option>
+                </select>
+            </div>
+
+            <div class="form-field">
+                <label>Resource Type</label>
+                <select [(ngModel)]="resourceUpdateForm.resourceType">
+                <option value="">—</option>
+                <option *ngFor="let type of resourceTypeOptions" [value]="type">{{ type }}</option>
+                </select>
+            </div>
+            </div>
+
+            <div class="row-2">
+            <div class="form-field">
+                <label>Job Title</label>
+                <input [(ngModel)]="resourceUpdateForm.jobTitle" />
+            </div>
+
+            <div class="form-field">
+                <label>Internal</label>
+                <select [(ngModel)]="resourceUpdateForm.internalUser">
+                <option [ngValue]="true">Internal</option>
+                <option [ngValue]="false">External</option>
+                </select>
+            </div>
+            </div>
+
+            <div class="row-2">
+            <div class="form-field">
+                <label>Email</label>
+                <input [ngModel]="selectedResource?.email || ''" disabled />
+            </div>
+
+            <div class="form-field">
+                <label>System Role</label>
+                <input [ngModel]="selectedResource?.role || ''" disabled />
+            </div>
+            </div>
+
+            <div class="section-title">Cost</div>
+
+            <div class="row-3">
+            <div class="form-field">
+                <label>Rate Type</label>
+                <select [(ngModel)]="resourceUpdateForm.rateType">
+                <option *ngFor="let type of rateTypeOptions" [value]="type">{{ type }}</option>
+                </select>
+            </div>
+
+            <div class="form-field">
+                <label>Rate</label>
+                <input type="number" [(ngModel)]="resourceUpdateForm.defaultRate" />
+            </div>
+
+            <div class="form-field">
+                <label>Currency</label>
+                <select [(ngModel)]="resourceUpdateForm.currency">
+                <option *ngFor="let currency of currencyOptions" [value]="currency">{{ currency }}</option>
+                </select>
+            </div>
+            </div>
+
+            <div class="section-title">Calendar</div>
+
+            <div class="row-2">
+            <div class="form-field">
+                <label>Hours/Day</label>
+                <input type="number" [(ngModel)]="resourceUpdateForm.hoursPerDay" />
+            </div>
+
+            <div class="form-field">
+                <label>Days/Week</label>
+                <input type="number" [(ngModel)]="resourceUpdateForm.daysPerWeek" />
+            </div>
+            </div>
+
+            <div class="form-field">
+            <label>Workdays</label>
+            <input [(ngModel)]="resourceUpdateForm.workdays" />
+            </div>
+
+            <div class="form-field">
+            <label>Color</label>
+            <input [(ngModel)]="resourceUpdateForm.color" />
+            </div>
+
+            <div class="form-field">
+            <label>Active</label>
+            <select [(ngModel)]="resourceUpdateForm.active">
+                <option [ngValue]="true">Active</option>
+                <option [ngValue]="false">Inactive</option>
+            </select>
+            </div>
+
+            <div class="form-field">
+            <label>Notes</label>
+            <textarea rows="4" [(ngModel)]="resourceUpdateForm.notes"></textarea>
+            </div>
+        </ng-template>
+        </div>
+
+        <div class="drawer-foot">
+        <button class="header-btn primary" [disabled]="saving" (click)="saveResource()">✓ Save</button>
+        <button
+            class="header-btn danger"
+            *ngIf="selectedResourceId"
+            (click)="deactivateResource(selectedResourceId)">
+            Deactivate
+        </button>
+        </div>
+    </aside>
+
+    <!-- SUPPLIER DRAWER -->
+    <div class="drawer-backdrop" *ngIf="supplierDrawerOpen" (click)="closeSupplierDrawer()"></div>
+    <aside class="drawer right" [class.open]="supplierDrawerOpen">
+        <div class="drawer-head">
+        <h3>{{ selectedSupplierId ? 'Supplier' : 'New Supplier' }}</h3>
+        <button class="close-btn" (click)="closeSupplierDrawer()">✕</button>
+        </div>
+
+        <div class="drawer-body">
+        <div class="section-title">Identity</div>
+
+        <div class="form-field">
+            <label>Supplier Name</label>
+            <input [(ngModel)]="supplierForm.name" />
+        </div>
+
+        <div class="row-2">
+            <div class="form-field">
+            <label>Short Code</label>
+            <input [(ngModel)]="supplierForm.shortCode" />
+            </div>
+
+            <div class="form-field">
+            <label>Country</label>
+            <input [(ngModel)]="supplierForm.country" />
+            </div>
+        </div>
+
+        <div class="form-field">
+            <label>Contact</label>
+            <input [(ngModel)]="supplierForm.contact" />
+        </div>
+
+        <div class="form-field">
+            <label>Website</label>
+            <input [(ngModel)]="supplierForm.website" />
+        </div>
+
+        <div class="section-title">Scope</div>
+
+        <div class="form-field">
+            <label>Departments</label>
+            <div class="chip-wrap">
+            <button
+                type="button"
+                class="chip"
+                [class.active]="isSupplierDepartmentSelected(dept)"
+                *ngFor="let dept of departmentOptions"
+                (click)="toggleSupplierDepartment(dept)">
+                {{ dept }}
+            </button>
+            </div>
+        </div>
+
+        <div class="form-field">
+            <label>Resource Types</label>
+            <div class="chip-wrap">
+            <button
+                type="button"
+                class="chip"
+                [class.active]="isSupplierResourceTypeSelected(type)"
+                *ngFor="let type of resourceTypeOptions"
+                (click)="toggleSupplierResourceType(type)">
+                {{ type }}
+            </button>
+            </div>
+        </div>
+
+        <div class="form-field">
+            <label>Notes</label>
+            <textarea rows="4" [(ngModel)]="supplierForm.notes"></textarea>
+        </div>
+        </div>
+
+        <div class="drawer-foot">
+        <button class="header-btn primary" [disabled]="saving" (click)="saveSupplier()">💾 Save</button>
+        <button class="header-btn ghost" (click)="closeSupplierDrawer()">Cancel</button>
+        </div>
+    </aside>
+</div>

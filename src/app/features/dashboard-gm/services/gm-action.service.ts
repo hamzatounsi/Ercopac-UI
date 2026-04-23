@@ -8,7 +8,7 @@ import { ActionSummary } from '../models/action-summary.model';
   providedIn: 'root'
 })
 export class GmActionService {
-  private readonly baseUrl = 'http://localhost:8090/api/projects';
+  private readonly baseUrl = 'http://localhost:8087/api/projects';
 
   constructor(private http: HttpClient) {}
 

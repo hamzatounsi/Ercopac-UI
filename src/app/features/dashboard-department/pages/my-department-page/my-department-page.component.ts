@@ -58,6 +58,22 @@ interface ActivityGridRow {
   barColor: string;
 }
 
+type TimeFilterValue =
+  | 'ALL_TIME'
+  | 'THIS_WEEK'
+  | 'THIS_MONTH'
+  | 'NEXT_MONTH'
+  | 'THIS_QUARTER'
+  | 'NEXT_6_MONTHS'
+  | 'THIS_YEAR';
+
+type ProjectStatusFilter = 'ALL' | 'ACTIVE' | 'PLANNED' | 'COMPLETED' | 'STANDBY';
+
+interface TimeFilterOption {
+  value: TimeFilterValue;
+  label: string;
+}
+
 @Component({
   selector: 'app-my-department-page',
   templateUrl: './my-department-page.component.html',
@@ -91,19 +107,43 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
 
   paColMenuOpen = false;
 
-  paToggleableCols: PaToggleColumn[] = [
-    { id: 'wbs', label: 'WBS', vis: true },
-    { id: 'activity', label: 'Activity', vis: true },
-    { id: 'type', label: 'Type', vis: true },
-    { id: 'dept', label: 'Dept', vis: true },
-    { id: 'bstart', label: 'B.Start', vis: true },
-    { id: 'bfinish', label: 'B.Finish', vis: true },
-    { id: 'astart', label: 'A.Start', vis: true },
-    { id: 'afinish', label: 'A.Finish', vis: true },
-    { id: 'days', label: 'Days', vis: true },
-    { id: 'progress', label: '%', vis: true }
+  showResources = true;
+  showSuppliers = true;
+
+
+  timeFilterMenuOpen = false;
+
+  timeFilterOptions: TimeFilterOption[] = [
+    { value: 'ALL_TIME', label: 'All Time' },
+    { value: 'THIS_WEEK', label: 'This Week' },
+    { value: 'THIS_MONTH', label: 'This Month' },
+    { value: 'NEXT_MONTH', label: 'Next Month' },
+    { value: 'THIS_QUARTER', label: 'This Quarter' },
+    { value: 'NEXT_6_MONTHS', label: 'Next 6 Months' },
+    { value: 'THIS_YEAR', label: 'This Year' }
   ];
 
+  selectedTimeFilter: TimeFilterValue = 'ALL_TIME';
+
+  activitySearch = '';
+
+  selectedProjectStatus: ProjectStatusFilter = 'ALL';
+
+  @ViewChild('timeFilterWrap') timeFilterWrap?: ElementRef<HTMLDivElement>;
+  
+
+  paToggleableCols: PaToggleColumn[] = [
+    { id: 'wbs', label: 'WBS', vis: true },
+    { id: 'activity', label: 'ACTIVITY', vis: true },
+    { id: 'type', label: 'TYPE', vis: true },
+    { id: 'dept', label: 'DEPT', vis: true },
+    { id: 'bstart', label: 'B.START', vis: true },
+    { id: 'bfinish', label: 'B.FINISH', vis: true },
+    { id: 'astart', label: 'A.START', vis: true },
+    { id: 'afinish', label: 'A.FINISH', vis: true },
+    { id: 'days', label: 'DAYS', vis: true },
+    { id: 'progress', label: '%', vis: true }
+  ];
     actTableHtml = '';
     actGanttHtml = '';
 
@@ -172,9 +212,6 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
     return this.overview?.timelineColumns ?? [];
   }
 
-  get resourceRows(): DepartmentResourceRow[] {
-    return this.overview?.resourceRows ?? [];
-  }
 
   get projectBlocks(): DepartmentProjectBlock[] {
     return this.overview?.projectBlocks ?? [];
@@ -273,7 +310,7 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
   get activityGridRows(): ActivityGridRow[] {
     const rows: ActivityGridRow[] = [];
 
-    for (const block of this.projectBlocks) {
+    for (const block of this.filteredProjectBlocks) { 
       rows.push({
         rowId: `project-${block.projectId}`,
         kind: 'project-header',
@@ -297,7 +334,7 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
         barStart: this.getProjectBarStart(block),
         barEnd: this.getProjectBarEnd(block),
         barLabel: block.projectCode || block.projectName,
-        barColor: '#dbe7f5'
+        barColor: '#cfd8e6'
       });
 
       for (const row of block.rows ?? []) {
@@ -325,12 +362,82 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
           barStart: row.actualStartDate || row.baselineStartDate,
           barEnd: row.actualEndDate || row.baselineEndDate,
           barLabel: this.getActivityBarLabel(row),
-          barColor: row.summary ? '#9fd7e8' : '#1696b8'
+          barColor: row.summary ? '#cbd5e1' : '#7f92ac'
         });
       }
     }
 
     return rows;
+  }
+
+  get selectedTimeFilterLabel(): string {
+  return this.timeFilterOptions.find(x => x.value === this.selectedTimeFilter)?.label ?? 'All Time';
+  }
+
+  get filteredProjectBlocks(): DepartmentProjectBlock[] {
+    const blocks = this.projectBlocks ?? [];
+    const search = this.activitySearch.trim().toLowerCase();
+
+    return blocks.filter(block => {
+      const statusOk = this.matchesProjectStatus(block);
+      const timeOk = this.matchesTimeFilter(block);
+      const searchOk = this.matchesSearchFilter(block, search);
+
+      return statusOk && timeOk && searchOk;
+    });
+  }
+
+  get filteredResourceRows(): DepartmentResourceRow[] {
+  return (this.resourceRows || []).map(row => ({
+    ...row,
+    items: (row.items || []).filter(item => this.shouldShowResourceItem(item))
+  }));
+  }
+
+  get resourceRows(): DepartmentResourceRow[] {
+  const rows = this.overview?.resourceRows ?? [];
+
+  if (this.showResources && this.showSuppliers) {
+    return rows;
+  }
+
+  if (!this.showResources && !this.showSuppliers) {
+    return [];
+  }
+
+  return rows.filter(row => {
+    const isInternal = row.member.internal;
+
+    if (this.showResources && !this.showSuppliers) {
+      return isInternal;
+    }
+
+    if (!this.showResources && this.showSuppliers) {
+      return !isInternal;
+    }
+
+    return true;
+  });
+  }
+
+  toggleTimeFilterMenu(): void {
+    this.timeFilterMenuOpen = !this.timeFilterMenuOpen;
+  }
+
+  selectTimeFilter(value: TimeFilterValue): void {
+    this.selectedTimeFilter = value;
+    this.timeFilterMenuOpen = false;
+    this.renderActivityView();
+  }
+
+  onActivitySearchChange(value: string): void {
+    this.activitySearch = value ?? '';
+    this.renderActivityView();
+  }
+
+  setProjectStatusFilter(status: ProjectStatusFilter): void {
+    this.selectedProjectStatus = status;
+    this.renderActivityView();
   }
 
   loadManagers(): void {
@@ -429,11 +536,17 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
   }
 
 setMainView(view: MainView): void {
+  if (this.mainView === view) {
+    return;
+  }
+
   this.mainView = view;
 
   setTimeout(() => {
     if (view === 'projects') {
       this.renderActivityView();
+      this.syncActivityScrollBarWidth();
+      this.syncActivityLayout();
     } else {
       this.syncResourceScrollBarWidth();
       this.bindBottomScrollSync();
@@ -547,8 +660,8 @@ togglePaCol(columnId: string, checked: boolean): void {
 }
 
 zoomPaGantt(delta: number): void {
-  const next = this.paGanttColWidth + delta * 2;
-  this.paGanttColWidth = Math.max(4, Math.min(30, next));
+  const next = this.paGanttColWidth + delta * 8;
+  this.paGanttColWidth = Math.max(this.paGanttMinWidth, Math.min(this.paGanttMaxWidth, next));
   this.renderActivityView();
 }
 
@@ -679,15 +792,20 @@ zoomPaGantt(delta: number): void {
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
-    if (!this.paColMenuOpen) {
-      return;
+    const target = event.target as Node | null;
+
+    if (this.paColMenuOpen) {
+      const wrap = this.paColBtnWrap?.nativeElement;
+      if (wrap && target && !wrap.contains(target)) {
+        this.paColMenuOpen = false;
+      }
     }
 
-    const target = event.target as Node | null;
-    const wrap = this.paColBtnWrap?.nativeElement;
-
-    if (wrap && target && !wrap.contains(target)) {
-      this.paColMenuOpen = false;
+    if (this.timeFilterMenuOpen) {
+      const wrap = this.timeFilterWrap?.nativeElement;
+      if (wrap && target && !wrap.contains(target)) {
+        this.timeFilterMenuOpen = false;
+      }
     }
   }
 
@@ -705,7 +823,8 @@ zoomPaGantt(delta: number): void {
       const role = payload?.role || payload?.authorities?.[0] || '';
 
       this.currentRole = role;
-      this.isDepartmentManager = role === 'ROLE_DEPARTMENT_MANAGER';
+      this.isDepartmentManager =
+      role === 'DEPARTMENT_MANAGER' || role === 'ROLE_DEPARTMENT_MANAGER';
     } catch {
       this.currentRole = '';
       this.isDepartmentManager = false;
@@ -1583,4 +1702,148 @@ private syncActivityPanelWidth(): void {
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
   }
+
+  private matchesProjectStatus(block: DepartmentProjectBlock): boolean {
+  if (this.selectedProjectStatus === 'ALL') {
+    return true;
+  }
+
+  const status = (block.status || '').trim().toUpperCase();
+  return status === this.selectedProjectStatus;
+}
+
+private matchesSearchFilter(block: DepartmentProjectBlock, search: string): boolean {
+  if (!search) {
+    return true;
+  }
+
+  const inProject =
+    (block.projectName || '').toLowerCase().includes(search) ||
+    (block.projectCode || '').toLowerCase().includes(search) ||
+    (block.status || '').toLowerCase().includes(search);
+
+  if (inProject) {
+    return true;
+  }
+
+  return (block.rows || []).some(row =>
+    (row.name || '').toLowerCase().includes(search) ||
+    (row.wbs || '').toLowerCase().includes(search) ||
+    (row.departmentCode || '').toLowerCase().includes(search) ||
+    (row.type || '').toLowerCase().includes(search)
+  );
+}
+
+private matchesTimeFilter(block: DepartmentProjectBlock): boolean {
+  if (this.selectedTimeFilter === 'ALL_TIME') {
+    return true;
+  }
+
+  const start = this.getProjectBarStart(block);
+  const end = this.getProjectBarEnd(block);
+
+  if (!start || !end) {
+    return false;
+  }
+
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+
+  const today = new Date();
+  const range = this.getSelectedTimeRange(today);
+
+  if (!range) {
+    return true;
+  }
+
+  return !(endDate < range.start || startDate > range.end);
+}
+
+private getSelectedTimeRange(today: Date): { start: Date; end: Date } | null {
+  const start = new Date(today);
+  const end = new Date(today);
+
+  switch (this.selectedTimeFilter) {
+    case 'THIS_WEEK': {
+      const day = start.getDay();
+      const diffToMonday = day === 0 ? -6 : 1 - day;
+      start.setDate(start.getDate() + diffToMonday);
+      start.setHours(0, 0, 0, 0);
+
+      end.setTime(start.getTime());
+      end.setDate(start.getDate() + 6);
+      end.setHours(23, 59, 59, 999);
+      return { start, end };
+    }
+
+    case 'THIS_MONTH': {
+      start.setDate(1);
+      start.setHours(0, 0, 0, 0);
+
+      end.setMonth(end.getMonth() + 1, 0);
+      end.setHours(23, 59, 59, 999);
+      return { start, end };
+    }
+
+    case 'NEXT_MONTH': {
+      start.setMonth(start.getMonth() + 1, 1);
+      start.setHours(0, 0, 0, 0);
+
+      end.setMonth(start.getMonth() + 1, 0);
+      end.setHours(23, 59, 59, 999);
+      return { start, end };
+    }
+
+    case 'THIS_QUARTER': {
+      const quarterStartMonth = Math.floor(start.getMonth() / 3) * 3;
+      start.setMonth(quarterStartMonth, 1);
+      start.setHours(0, 0, 0, 0);
+
+      end.setMonth(quarterStartMonth + 3, 0);
+      end.setHours(23, 59, 59, 999);
+      return { start, end };
+    }
+
+    case 'NEXT_6_MONTHS': {
+      start.setHours(0, 0, 0, 0);
+
+      end.setMonth(end.getMonth() + 6);
+      end.setHours(23, 59, 59, 999);
+      return { start, end };
+    }
+
+    case 'THIS_YEAR': {
+      start.setMonth(0, 1);
+      start.setHours(0, 0, 0, 0);
+
+      end.setMonth(11, 31);
+      end.setHours(23, 59, 59, 999);
+      return { start, end };
+    }
+
+    default:
+      return null;
+  }
+  }
+
+  private shouldShowResourceItem(item: any): boolean {
+  if (item.holiday) {
+    return true;
+  }
+
+  const isInternal = item.internalResource === true;
+  const isSupplier = item.internalResource === false;
+
+  if (isInternal && !this.showResources) {
+    return false;
+  }
+
+  if (isSupplier && !this.showSuppliers) {
+    return false;
+  }
+
+  return true;
+}
+
+
 }
