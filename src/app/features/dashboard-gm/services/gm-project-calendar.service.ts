@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ProjectCalendar } from '../models/project-calendar.model';
+import { API_PROJECTS_URL } from 'src/app/core/config/api.config';
 
 export interface CreateProjectCalendarRequest {
   name: string;
@@ -23,7 +24,7 @@ export interface UpdateProjectCalendarRequest {
   providedIn: 'root'
 })
 export class GmProjectCalendarService {
-  private readonly baseUrl = '/api/projects';
+  private readonly baseUrl = API_PROJECTS_URL;
 
   constructor(private http: HttpClient) {}
 

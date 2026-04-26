@@ -3,12 +3,13 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ForecastRow } from '../models/forecast-row.model';
 import { ForecastSummary } from '../models/forecast-summary.model';
+import { API_PROJECTS_URL } from 'src/app/core/config/api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GmForecastService {
-  private readonly baseUrl = 'http://localhost:8087/api/projects';
+  private readonly baseUrl = API_PROJECTS_URL;
 
   constructor(private http: HttpClient) {}
 
