@@ -1,50 +1,186 @@
-<div class="login-shell">
-  <div class="bg-orb orb-1"></div>
-  <div class="bg-orb orb-2"></div>
-
-  <div class="login-card">
-    <div class="brand">
-      <div class="brand-text">
-      </div>
+<div class="workspace-page">
+  <header class="topbar">
+    <div class="brand-block">
+      <div class="brand-mark">projectum</div>
     </div>
 
-    <h2>Sign in</h2>
-    <p class="hint">Use your corporate account to access dashboards.</p>
+    <nav class="top-nav">
+      <a class="top-link active">Apps</a>
+      <a class="top-link">Industries</a>
+      <a class="top-link">Community</a>
+      <a class="top-link">Prices</a>
+      <a class="top-link">Help</a>
+    </nav>
 
-    <form (ngSubmit)="submit()" #f="ngForm" class="form">
-      <div class="form-group">
-        <label>Email</label>
-        <input
-          type="text"
-          [(ngModel)]="username"
-          name="username"
-          required
-          placeholder="gm@ercopac.com"
-          autocomplete="username"
-        />
-      </div>
+    <div class="top-actions">
+      <button class="signin-link" type="button" (click)="selectedApp = 'Register'">
+        Register
+      </button>
 
-      <div class="form-group">
-        <label>Password</label>
-        <input
-          type="password"
-          [(ngModel)]="password"
-          name="password"
-          required
-          placeholder="••••••••"
-          autocomplete="current-password"
-        />
-      </div>
-
-      <button class="btn" type="submit" [disabled]="f.invalid">
+      <button class="trial-btn" type="button" (click)="selectedApp = 'Projectum'">
         Login
       </button>
-    </form>
+    </div>
+  </header>
 
-    <p class="message" [class.ok]="msg.includes('✅')" *ngIf="msg">{{ msg }}</p>
+  <section class="hero-section">
+    <div class="hero-inner">
+      <div class="hero-kicker">Projectum Workspace</div>
 
-    <div class="footer">
-      <span>v1 (PFE)</span>
+      <h1 class="hero-title">
+        All around
+        <span class="hero-highlight">project</span>
+      </h1>
+
+      <p class="hero-desc">
+        Simple, efficient and enterprise-ready!
+      </p>
+    </div>
+
+    <div class="hero-curve"></div>
+  </section>
+
+  <section class="apps-section">
+    <div class="apps-grid">
+      <button class="app-card live" type="button" (click)="selectApp('Projectum')">
+        <div class="app-icon-wrap projectum-bg">
+          <div class="tile-icon">
+            <svg viewBox="0 0 64 64" class="icon-svg">
+              <rect x="10" y="18" width="22" height="28" rx="7" fill="#2F80ED"></rect>
+              <rect x="30" y="12" width="24" height="34" rx="8" fill="#56CCF2"></rect>
+              <path d="M18 26h28" stroke="#fff" stroke-width="4" stroke-linecap="round"></path>
+              <path d="M18 34h20" stroke="#fff" stroke-width="4" stroke-linecap="round"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="app-name">Projectum</div>
+      </button>
+
+      <button class="app-card live" type="button" (click)="selectApp('My Department')">
+        <div class="app-icon-wrap department-bg">
+          <div class="tile-icon">
+            <svg viewBox="0 0 64 64" class="icon-svg">
+              <rect x="10" y="24" width="14" height="24" rx="4" fill="#4F8EF7"></rect>
+              <rect x="26" y="16" width="14" height="32" rx="4" fill="#2D6CDF"></rect>
+              <rect x="42" y="10" width="12" height="38" rx="4" fill="#8BB8FF"></rect>
+            </svg>
+          </div>
+        </div>
+        <div class="app-name">My Department</div>
+      </button>
+
+      <button class="app-card" type="button" disabled>
+        <div class="app-icon-wrap company-bg">
+          <div class="tile-icon">
+            <svg viewBox="0 0 64 64" class="icon-svg">
+              <rect x="14" y="18" width="36" height="34" rx="6" fill="#2F80ED"></rect>
+              <path d="M22 28h6M36 28h6M22 38h6M36 38h6" stroke="#fff" stroke-width="4" stroke-linecap="round"></path>
+              <path d="M26 18v-6h12v6" stroke="#56CCF2" stroke-width="4" stroke-linecap="round"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="app-name">Company Dashboard</div>
+      </button>
+
+      <button class="app-card" type="button" disabled>
+        <div class="app-icon-wrap expense-bg">
+          <div class="tile-icon">
+            <svg viewBox="0 0 64 64" class="icon-svg">
+              <rect x="16" y="12" width="32" height="40" rx="8" fill="#ff8a00"></rect>
+              <path d="M24 24h16M24 32h12M24 40h10" stroke="#fff" stroke-width="4" stroke-linecap="round"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="app-name">My Expenses</div>
+      </button>
+
+      <button class="app-card" type="button" disabled>
+        <div class="app-icon-wrap crm-bg">
+          <div class="tile-icon">
+            <svg viewBox="0 0 64 64" class="icon-svg">
+              <circle cx="24" cy="24" r="9" fill="#22c7b8"></circle>
+              <circle cx="41" cy="20" r="7" fill="#14a3ff"></circle>
+              <path d="M16 46c2-7 8-11 15-11 8 0 14 4 17 11" fill="#7b61ff"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="app-name">My CRM</div>
+      </button>
+
+      <button class="app-card" type="button" disabled>
+        <div class="app-icon-wrap ticket-bg">
+          <div class="tile-icon">
+            <svg viewBox="0 0 64 64" class="icon-svg">
+              <path d="M14 24a6 6 0 0 0 6-6h24a6 6 0 0 0 6 6v16a6 6 0 0 0-6 6H20a6 6 0 0 0-6-6V24z" fill="#9b59b6"></path>
+              <path d="M32 18v28" stroke="#fff" stroke-width="4" stroke-dasharray="4 4" stroke-linecap="round"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="app-name">My Ticketing</div>
+      </button>
+    </div>
+  </section>
+
+  <div class="login-overlay" *ngIf="selectedApp">
+    <div class="login-card">
+      <button class="back-btn" type="button" (click)="selectedApp = ''">
+        ×
+      </button>
+
+      <h2>{{ selectedApp === 'Register' ? 'Register' : 'Sign in' }}</h2>
+
+      <p class="hint">
+        <ng-container *ngIf="selectedApp === 'Register'; else loginHint">
+          Registration is not ready yet.
+        </ng-container>
+
+        <ng-template #loginHint>
+          Login to access <strong>{{ selectedApp }}</strong>.
+        </ng-template>
+      </p>
+
+      <form
+        *ngIf="selectedApp !== 'Register'"
+        (ngSubmit)="submit()"
+        #f="ngForm"
+        class="form"
+      >
+        <div class="form-group">
+          <label>Email</label>
+          <input
+            type="text"
+            [(ngModel)]="username"
+            name="username"
+            required
+            placeholder="gm@ercopac.com"
+            autocomplete="username"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Password</label>
+          <input
+            type="password"
+            [(ngModel)]="password"
+            name="password"
+            required
+            placeholder="••••••••"
+            autocomplete="current-password"
+          />
+        </div>
+
+        <button class="btn" type="submit" [disabled]="f.invalid">
+          Login
+        </button>
+      </form>
+
+      <p class="message" [class.ok]="msg.includes('✅')" *ngIf="msg">
+        {{ msg }}
+      </p>
+
+      <div class="footer">
+        <span>v1 (PFE)</span>
+      </div>
     </div>
   </div>
 </div>
