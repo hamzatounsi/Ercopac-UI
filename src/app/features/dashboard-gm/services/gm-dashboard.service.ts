@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ProjectDashboardRow } from '../models/project-dashboard-row.model';
 import { ProjectDetails } from '../models/project-details.model';
+import { API_GM_DASHBOARD_URL, API_PROJECTS_URL } from 'src/app/core/config/api.config';
 
 export interface PortfolioKpiResponse {
   totalProjects: number;
@@ -57,8 +58,8 @@ export interface UpsertProjectRequest {
   providedIn: 'root'
 })
 export class GmDashboardService {
-  private readonly baseUrl = '/api/gm/dashboard';
-  private readonly projectsUrl = '/api/projects';
+private readonly baseUrl = API_GM_DASHBOARD_URL;
+private readonly projectsUrl = API_PROJECTS_URL;
 
   constructor(private http: HttpClient) {}
 

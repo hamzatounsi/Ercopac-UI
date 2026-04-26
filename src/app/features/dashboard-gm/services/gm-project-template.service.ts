@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ProjectTemplate } from '../models/project-template.model';
 import { ApplyStandardTemplateResult } from '../models/apply-standard-template-result.model';
+import { API_PROJECTS_URL } from 'src/app/core/config/api.config';
 
 export interface CreateProjectTemplateRequest {
   name: string;
@@ -15,7 +16,7 @@ export interface CreateProjectTemplateRequest {
   providedIn: 'root'
 })
 export class GmProjectTemplateService {
-  private readonly baseUrl = '/api/projects';
+  private readonly baseUrl = API_PROJECTS_URL;
 
   constructor(private http: HttpClient) {}
 

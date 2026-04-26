@@ -3,12 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { RiskItem } from '../models/risk-item.model';
 import { RiskSummary } from '../models/risk-summary.model';
+import { API_PROJECTS_URL } from 'src/app/core/config/api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GmRiskService {
-  private readonly baseUrl = 'http://localhost:8087/api/projects';
+  private readonly baseUrl = API_PROJECTS_URL;
 
   constructor(private http: HttpClient) {}
 

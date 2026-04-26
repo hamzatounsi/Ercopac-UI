@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Supplier } from '../models/supplier.model';
+import { API_SUPPLIERS_URL } from 'src/app/core/config/api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GmSupplierService {
-  private readonly baseUrl = '/api/suppliers';
+  private readonly baseUrl = API_SUPPLIERS_URL;
 
   constructor(private http: HttpClient) {}
 

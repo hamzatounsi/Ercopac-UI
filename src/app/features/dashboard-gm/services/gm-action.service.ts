@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+
+import { API_PROJECTS_URL } from 'src/app/core/config/api.config';
 import { ActionItem } from '../models/action-item.model';
 import { ActionSummary } from '../models/action-summary.model';
 
@@ -8,7 +10,7 @@ import { ActionSummary } from '../models/action-summary.model';
   providedIn: 'root'
 })
 export class GmActionService {
-  private readonly baseUrl = 'http://localhost:8087/api/projects';
+  private readonly baseUrl = API_PROJECTS_URL;
 
   constructor(private http: HttpClient) {}
 

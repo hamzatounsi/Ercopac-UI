@@ -5,6 +5,7 @@ import { ResourceDetails } from '../models/resource-details.model';
 import { ResourceListItem } from '../models/resource-list-item.model';
 import { CreateResourceRequest } from '../models/create-resource-request.model';
 import { UpdateResourceRequest } from '../models/update-resource-request.model';
+import { API_RESOURCES_URL } from 'src/app/core/config/api.config';
 
 export interface PageResponse<T> {
   content: T[];
@@ -18,7 +19,7 @@ export interface PageResponse<T> {
   providedIn: 'root'
 })
 export class GmResourceService {
-  private readonly baseUrl = '/api/resources';
+  private readonly baseUrl = API_RESOURCES_URL;
 
   constructor(private http: HttpClient) {}
 

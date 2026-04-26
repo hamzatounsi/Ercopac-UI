@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ProjectBaseline } from '../models/project-baseline.model';
+import { API_PROJECTS_URL } from 'src/app/core/config/api.config';
 
 export interface CreateProjectBaselineRequest {
   name: string;
@@ -12,7 +13,7 @@ export interface CreateProjectBaselineRequest {
   providedIn: 'root'
 })
 export class GmProjectBaselineService {
-  private readonly baseUrl = '/api/projects';
+  private readonly baseUrl = API_PROJECTS_URL;
 
   constructor(private http: HttpClient) {}
 
