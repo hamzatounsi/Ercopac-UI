@@ -1131,13 +1131,17 @@
               </select>
             </div>
             <div>
-              <input
-                class="sp-inline-input"
-                type="text"
-                [(ngModel)]="newResource.assignmentName"
-                [ngModelOptions]="{ standalone: true }"
-                placeholder="Assignment name"
-              />
+          <select
+            class="sp-inline-select"
+            [(ngModel)]="newResource.assignedUserId"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="onNewResourceUserChange($event)"
+          >
+            <option [ngValue]="null">-- Select resource --</option>
+            <option *ngFor="let user of resourceOptions" [ngValue]="user.id">
+              {{ user.fullName }} - {{ user.departmentCode }}
+            </option>
+          </select>
             </div>
             <div>
               <input

@@ -91,8 +91,8 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
   timelineView: TimelineView = 'week';
 
   offset = 0;
-  span = 16;
-  colWidth = 98;
+  span = 52;
+  colWidth = 72;
 
   holidayModalOpen = false;
   holidayMemberId: number | null = null;
@@ -175,6 +175,8 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.resolveCurrentRole();
+
+    this.prepareFullYearTimeline();
 
     if (this.isDepartmentManager) {
       this.loadOwnDepartmentOverview();
@@ -281,10 +283,10 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
     cols.forEach((col, index) => {
       const date = new Date(col.startDate);
       const key = `${date.getFullYear()}-${date.getMonth()}`;
-      const label =
-        this.timelineView === 'day'
-          ? date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
-          : date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }).toUpperCase();
+      const label = date.toLocaleDateString('en-GB', {
+        month: 'long',
+        year: 'numeric'
+      }).toUpperCase();
 
       if (index === 0) {
         currentKey = key;
@@ -488,7 +490,8 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
 
   onManagerChange(managerIdValue: string): void {
     this.selectedManagerId = managerIdValue ? Number(managerIdValue) : null;
-    this.offset = 0;
+
+    this.prepareFullYearTimeline();
 
     if (!this.selectedManagerId) {
       this.overview = null;
@@ -534,34 +537,49 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
       });
   }
 
-setMainView(view: MainView): void {
-  if (this.mainView === view) {
-    return;
-  }
-
-  this.mainView = view;
-
-  setTimeout(() => {
-    if (view === 'projects') {
-      this.renderActivityView();
-      this.syncActivityScrollBarWidth();
-      this.syncActivityLayout();
-    } else {
-      this.syncResourceScrollBarWidth();
-      this.bindBottomScrollSync();
-    }
-  });
-}
-
-  setTimelineView(view: TimelineView): void {
-    if (this.timelineView === view) {
+  setMainView(view: MainView): void {
+    if (this.mainView === view) {
       return;
     }
 
+    this.mainView = view;
+
+    setTimeout(() => {
+      if (view === 'projects') {
+        this.renderActivityView();
+        this.syncActivityScrollBarWidth();
+        this.syncActivityLayout();
+      } else {
+        this.syncResourceScrollBarWidth();
+        this.bindBottomScrollSync();
+      }
+    });
+  }
+
+  private getStartOfYearOffset(): number {
+    const today = new Date();
+    const jan1 = new Date(today.getFullYear(), 0, 1);
+
+    const diffDays = Math.floor(
+      (jan1.getTime() - today.getTime()) / 86400000
+    );
+
+    return this.timelineView === 'week'
+      ? Math.floor(diffDays / 7)
+      : diffDays;
+  }
+
+  private prepareFullYearTimeline(): void {
+    this.span = this.timelineView === 'day' ? 365 : 52;
+    this.colWidth = this.timelineView === 'day' ? 18 : 72;
+    this.offset = this.getStartOfYearOffset();
+  }
+
+  setTimelineView(view: TimelineView): void {
+    if (this.timelineView === view) return;
+
     this.timelineView = view;
-    this.span = view === 'day' ? 28 : 16;
-    this.colWidth = view === 'day' ? 32 : 98;
-    this.offset = 0;
+    this.prepareFullYearTimeline();
 
     this.loadOverview();
   }
@@ -585,8 +603,10 @@ setMainView(view: MainView): void {
     this.loadOverview();
   }
 
+
+
   goToday(): void {
-    this.offset = 0;
+    this.prepareFullYearTimeline();
     this.loadOverview();
   }
 

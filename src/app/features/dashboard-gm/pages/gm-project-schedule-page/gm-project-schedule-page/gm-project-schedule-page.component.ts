@@ -226,6 +226,7 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
     this.initForm();
     this.setupTaskFormAutoCalculations();
     this.loadSchedule();
+    this.loadResourceOptions();
 
     const savedWidth = localStorage.getItem('gmScheduleLeftPaneWidth');
     if (savedWidth) {
@@ -542,27 +543,57 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
     if (!this.contextMenuTask) return;
 
     const source = this.contextMenuTask;
-    const index = this.tasks.findIndex(t => t.id === source.id);
-    if (index === -1) return;
 
     this.pushHistory();
 
-    const cloned: GmProjectScheduleTask = {
-      ...this.cloneTask(source),
-      id: this.generateFrontendTaskId(),
-      name: `${source.name} Copy`,
-      dependencies: []
+    const payload = {
+      name: `${source.name || 'Task'} Copy`,
+      description: source.description || '',
+      durationDays: source.durationDays ?? 1,
+
+      baselineStart: source.baselineStart || undefined,
+      baselineEnd: source.baselineEnd || undefined,
+
+      plannedStart: source.plannedStart || this.getTodayDateString(),
+      plannedEnd: source.plannedEnd || source.plannedStart || this.getTodayDateString(),
+
+      actualStart: source.actualStart || undefined,
+      actualEnd: source.actualEnd || undefined,
+
+      percentComplete: source.percentComplete ?? 0,
+      allocationPercent: source.allocationPercent ?? 100,
+      priority: source.priority ?? 500,
+
+      taskType: source.taskType || 'ACTIVITY',
+      wbsCode: source.wbsCode || '',
+      departmentCode: source.departmentCode || '',
+      resourceType: source.resourceType || undefined,
+
+      active: source.active ?? true,
+      customerMilestone: source.customerMilestone ?? false,
+      scheduleMode: source.scheduleMode || 'AUTO',
+      status: source.status || undefined,
+      color: source.color || undefined,
+      assignedUserId: source.assignedUserId ?? undefined
     };
 
-    this.tasks.splice(index + 1, 0, cloned);
-    this.recalculateDisplayOrders();
-    this.recalculateWbsCodes();
-    this.computeStats();
-    this.buildTimeline();
+    this.service.insertTaskBelow(this.projectId, source.id, payload).subscribe({
+      next: (created) => {
+        this.closeContextMenu();
 
-    this.selectedTask = cloned;
-    this.openTaskDrawer(cloned);
-    this.closeContextMenu();
+        this.loadSchedule();
+
+        setTimeout(() => {
+          const savedCopy = this.tasks.find(t => t.id === created.id) ?? created;
+          this.selectedTask = savedCopy;
+          this.openTaskDrawer(savedCopy);
+        }, 300);
+      },
+      error: (err) => {
+        console.error('Failed to copy task below', err);
+        alert('Failed to copy task below');
+      }
+    });
   }
 
   deleteTaskFromContext(): void {
@@ -804,6 +835,9 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
     }
 
     const value = this.taskForm.value;
+    if (this.selectedTask) {
+      Object.assign(this.selectedTask, value);
+    }
 
     if (value.plannedStart && value.plannedEnd && value.plannedEnd < value.plannedStart) return;
     if (value.baselineStart && value.baselineEnd && value.baselineEnd < value.baselineStart) return;
@@ -1540,12 +1574,21 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
       task.plannedStart = clamped.start;
       task.plannedEnd = clamped.end;
 
+      const start = this.toDateOnly(task.plannedStart);
+      const end = this.toDateOnly(task.plannedEnd);
+
+      task.durationDays = Math.max(
+        1,
+        Math.floor((end.getTime() - start.getTime()) / 86400000) + 1
+      );
+
       if (this.selectedTask?.id === task.id) {
         this.selectedTask = task;
         this.taskForm.patchValue(
           {
             plannedStart: task.plannedStart,
-            plannedEnd: task.plannedEnd
+            plannedEnd: task.plannedEnd,
+            durationDays: task.durationDays
           },
           { emitEvent: false }
         );
@@ -1578,31 +1621,52 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
   }
 
   private saveDraggedTask(task: GmProjectScheduleTask): void {
-    const payload = this.buildTaskUpdatePayload(task);
+  task.plannedStart = this.normalizeDateString(task.plannedStart) ?? undefined;
+  task.plannedEnd = this.normalizeDateString(task.plannedEnd) ?? undefined;
 
-    this.service.updateTask(task.id, payload).pipe(
-      switchMap((updated) => {
-        const index = this.tasks.findIndex(t => t.id === task.id);
-        if (index !== -1) {
-          this.tasks[index] = { ...this.tasks[index], ...updated };
-          task = this.tasks[index];
-        }
+  if (!task.plannedStart || !task.plannedEnd) return;
 
-        const shiftedTaskIds = this.applyDependencyCascadeFromTask(task.id);
-        return this.persistShiftedTasks(shiftedTaskIds);
-      })
-    ).subscribe({
-      next: () => {
-        this.computeStats();
-        this.buildTimeline();
-        this.syncSelectedTaskReference();
-      },
-      error: (err) => {
-        console.error('Failed to save dragged task', err);
-        this.loadSchedule();
+  const start = this.toDateOnly(task.plannedStart);
+  const end = this.toDateOnly(task.plannedEnd);
+
+  task.durationDays = this.isMilestone(task)
+    ? 0
+    : Math.max(1, Math.floor((end.getTime() - start.getTime()) / 86400000) + 1);
+
+  const payload = this.buildTaskUpdatePayload(task);
+
+  this.service.updateTask(task.id, payload).pipe(
+    switchMap((updated) => {
+      const index = this.tasks.findIndex(t => t.id === task.id);
+
+      if (index !== -1) {
+        this.tasks[index] = {
+          ...this.tasks[index],
+          ...updated,
+          plannedStart: task.plannedStart,
+          plannedEnd: task.plannedEnd,
+          durationDays: task.durationDays
+        };
+
+        task = this.tasks[index];
       }
-    });
-  }
+
+      const shiftedTaskIds = this.applyDependencyCascadeFromTask(task.id);
+      return this.persistShiftedTasks(shiftedTaskIds);
+    })
+  ).subscribe({
+    next: () => {
+      this.computeStats();
+      this.buildTimeline();
+      this.syncSelectedTaskReference();
+      this.loadSchedule();
+    },
+    error: (err) => {
+      console.error('Failed to save dragged task', err);
+      this.loadSchedule();
+    }
+  });
+}
 
   private addDaysToDateString(dateStr: string, days: number): string {
     const d = this.toDateOnly(dateStr);
@@ -2526,6 +2590,25 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
 
     durationCtrl.patchValue(duration, { emitEvent: false });
   });
+    durationCtrl.valueChanges.subscribe((durationValue) => {
+    if (!this.selectedTask) return;
+
+    const plannedStart = plannedStartCtrl.value;
+    const taskType = String(taskTypeCtrl.value || 'ACTIVITY').toUpperCase();
+
+    if (!plannedStart) return;
+
+    if (taskType === 'MILESTONE') {
+      durationCtrl.patchValue(0, { emitEvent: false });
+      plannedEndCtrl.patchValue(plannedStart, { emitEvent: false });
+      return;
+    }
+
+    const duration = Math.max(1, Number(durationValue || 1));
+    const newEnd = this.addDaysToDateString(plannedStart, duration - 1);
+
+    plannedEndCtrl.patchValue(newEnd, { emitEvent: false });
+  });
 }
 
 onProgressSliderCommit(): void {
@@ -2758,5 +2841,28 @@ exportAsExcelCsv(): void {
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
   this.downloadBlob(blob, `project-${this.projectId}-schedule.csv`);
   this.closeExportModal();
+}
+
+loadResourceOptions(): void {
+  this.service.getAssignableResources(this.projectId).subscribe({
+    next: (res) => {
+      this.resourceOptions = res ?? [];
+    },
+    error: (err) => {
+      console.error('Failed to load resources', err);
+      this.resourceOptions = [];
+    }
+  });
+}
+
+onNewResourceUserChange(userId: number | null): void {
+  const user = this.resourceOptions.find(r => r.id === userId);
+
+  this.newResource.assignedUserId = userId;
+
+  if (user) {
+    this.newResource.assignmentName = user.fullName;
+    this.newResource.resourceType = user.departmentCode;
+  }
 }
 }
