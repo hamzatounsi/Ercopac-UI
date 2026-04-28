@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { GmProjectScheduleTask } from '../models/gm-project-schedule-task.model';
 import { GmUpdateProjectTaskRequest } from '../models/gm-update-project-task-request.model';
 import { TaskResourceAssignment } from '../models/task-resource-assignment.model';
-import { API_PROJECTS_URL, API_TASKS_URL } from 'src/app/core/config/api.config';
+import { API_PROJECTS_URL, API_RESOURCES_URL, API_TASKS_URL } from 'src/app/core/config/api.config';
 
 @Injectable({ providedIn: 'root' })
 export class GmProjectTimelineService {
@@ -70,5 +70,11 @@ export class GmProjectTimelineService {
 
   getActionsSummary(projectId: number): Observable<any> {
     return this.http.get(`${API_PROJECTS_URL}/${projectId}/actions/summary`);
+  }
+
+  getAssignableResources(projectId: number) {
+    return this.http.get<{ id: number; fullName: string; departmentCode: string }[]>(
+      `${API_RESOURCES_URL}/projects/${projectId}/options`
+    );
   }
 }

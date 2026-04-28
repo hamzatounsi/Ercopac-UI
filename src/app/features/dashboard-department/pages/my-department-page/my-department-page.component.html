@@ -63,11 +63,11 @@
 
     <div class="tb-sep"></div>
 
-    <button class="nav-btn" (click)="shift(-4)">«</button>
-    <button class="nav-btn" (click)="shift(-1)">‹</button>
+    <button class="nav-btn" (click)="shift(-26)">«</button>
+    <button class="nav-btn" (click)="shift(-4)">‹</button>
     <div class="range-lbl">{{ rangeLabel }}</div>
-    <button class="nav-btn" (click)="shift(+1)">›</button>
-    <button class="nav-btn" (click)="shift(+4)">»</button>
+    <button class="nav-btn" (click)="shift(+4)">›</button>
+    <button class="nav-btn" (click)="shift(+26)">»</button>
     <button class="tb-btn today-btn" (click)="goToday()">Today</button>
 
     <div class="tb-sep"></div>
@@ -319,7 +319,10 @@
                 [attr.title]="(item.projectCode || '') + ' · ' + item.taskName"
               >
                 <div class="bar-pct" [style.width.%]="item.progressPercent || 0"></div>
-                <div class="bar-lbl">{{ item.projectCode || 'PRJ' }} · {{ item.taskName }}</div>
+                <div class="bar-lbl">
+                  <strong>{{ item.projectCode || 'PRJ' }}</strong>
+                  <span>{{ item.taskName }}</span>
+                </div>
               </div>
 
               <div
