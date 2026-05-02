@@ -22,6 +22,11 @@ import { ProjectumProjectHeaderComponent } from './widgets/projectum-project-hea
 import { GmProjectSidePanelComponent } from './widgets/gm-project-side-panel/gm-project-side-panel.component';
 import { GmResourceManagementPageComponent } from './pages/gm-resource-management-page/gm-resource-management-page.component';
 import { HttpClientModule } from '@angular/common/http';
+import { GmAdminSettingsPageComponent } from './pages/gm-admin-settings-page/gm-admin-settings-page.component';
+import { CategoriesTabComponent } from './pages/gm-admin-settings-page/components/categories-tab/categories-tab.component';
+import { LicencesTabComponent } from './pages/gm-admin-settings-page/components/licences-tab/licences-tab.component';
+import { TypesTabComponent } from './pages/gm-admin-settings-page/components/types-tab/types-tab.component';
+import { CustomersTabComponent } from './pages/gm-admin-settings-page/components/customers-tab/customers-tab.component';
 
 
 
@@ -45,6 +50,11 @@ import { HttpClientModule } from '@angular/common/http';
     ProjectumProjectHeaderComponent,
     GmProjectSidePanelComponent,
     GmResourceManagementPageComponent,
+    GmAdminSettingsPageComponent,
+    CategoriesTabComponent,
+    LicencesTabComponent,
+    TypesTabComponent,
+    CustomersTabComponent,
   ],
   imports: [
     CommonModule,

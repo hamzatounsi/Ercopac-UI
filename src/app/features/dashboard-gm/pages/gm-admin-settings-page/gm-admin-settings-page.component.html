@@ -1,0 +1,59 @@
+<div class="admin-page">
+  <app-projectum-project-header>
+        <button
+        class="main-menu-btn"
+        routerLink="/gm"
+      >
+        <span class="material-symbols-outlined">home</span>
+        <span>Main Menu</span>
+      </button>
+  </app-projectum-project-header>
+  <!-- HEADER -->
+  <div class="page-header">
+    <div>
+      <h1>Admin Settings</h1>
+      <p>Manage licences, categories, project types and customers for your organisation.</p>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tab-bar">
+    <button (click)="setTab('licences')" [class.active]="activeTab==='licences'">
+      🔒 Licences
+    </button>
+
+    <button (click)="setTab('categories')" [class.active]="activeTab==='categories'">
+      🏷️ Categories
+    </button>
+
+    <button (click)="setTab('types')" [class.active]="activeTab==='types'">
+      📄 Project Types
+    </button>
+
+    <button (click)="setTab('customers')" [class.active]="activeTab==='customers'">
+      🏢 Customers
+    </button>
+
+    <button (click)="setTab('resources')" [class.active]="activeTab==='resources'">
+      👥 Resources
+    </button>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="tab-content">
+
+    <app-gm-resource-management-page
+      *ngIf="activeTab==='resources'">
+    </app-gm-resource-management-page>
+
+    <app-licences-tab *ngIf="activeTab==='licences'"></app-licences-tab>
+
+    <app-categories-tab *ngIf="activeTab==='categories'"></app-categories-tab>
+
+    <app-types-tab *ngIf="activeTab==='types'"></app-types-tab>
+
+    <app-customers-tab *ngIf="activeTab==='customers'"></app-customers-tab>
+
+  </div>
+
+</div>

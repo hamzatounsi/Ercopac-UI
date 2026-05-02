@@ -1,0 +1,118 @@
+<div class="admin-panel-wrap">
+  <div class="section-card">
+    <div class="card-hdr">
+      <div class="card-hdr-left">
+        <span class="hdr-icon">📄</span>
+        <div>
+          <div class="card-hdr-title">Project Types</div>
+          <div class="card-hdr-sub">Types define the nature of a project (e.g. Internal, External, R&amp;D).</div>
+        </div>
+      </div>
+
+      <button class="btn btn-p btn-sm" (click)="openCreate()">＋ Add Type</button>
+    </div>
+
+    <div class="table-wrap" *ngIf="types.length">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width:44px;">Icon</th>
+            <th style="width:18px;"></th>
+            <th>Name</th>
+            <th>Code</th>
+            <th>Description</th>
+            <th>Billable</th>
+            <th>Projects using</th>
+            <th style="width:90px;">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let t of types">
+            <td class="icon-cell">{{ t.icon }}</td>
+            <td><div class="color-dot" [style.background]="t.color"></div></td>
+            <td><strong>{{ t.name }}</strong></td>
+            <td class="mono">{{ t.code }}</td>
+            <td class="muted">{{ t.description || '—' }}</td>
+            <td>
+              <span class="yes" *ngIf="t.billable">✓ Yes</span>
+              <span class="no" *ngIf="!t.billable">—</span>
+            </td>
+            <td>{{ t.projectsUsing }} project{{ t.projectsUsing === 1 ? '' : 's' }}</td>
+            <td>
+              <div class="row-actions">
+                <button class="act-btn edit" title="Edit" (click)="openEdit(t)">✎</button>
+                <button class="act-btn del" title="Delete" (click)="delete(t)">🗑</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- CENTER POPUP MODAL -->
+<div class="modal-bg" [class.open]="modalOpen" (click)="closeModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-title">
+      {{ editingId ? '✏️ Edit Project Type' : '📄 Add Project Type' }}
+    </div>
+
+    <div class="m-field">
+      <label>Name *</label>
+      <input class="inp" [(ngModel)]="form.name" placeholder="e.g. External / Commercial" />
+    </div>
+
+    <div class="form-row">
+      <div class="m-field flex">
+        <label>Code *</label>
+        <input class="inp uppercase" [(ngModel)]="form.code" placeholder="EXT" />
+      </div>
+
+      <div class="m-field icon-field">
+        <label>Icon</label>
+        <select class="sel" [(ngModel)]="form.icon">
+          <option *ngFor="let icon of icons" [value]="icon">{{ icon }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="m-field">
+      <label>Colour</label>
+      <div class="color-row">
+        <button
+          type="button"
+          class="color-opt"
+          *ngFor="let color of colors"
+          [style.background]="color"
+          [class.selected]="form.color === color"
+          (click)="form.color = color">
+        </button>
+      </div>
+    </div>
+
+    <div class="m-field">
+      <label>Description</label>
+      <input class="inp" [(ngModel)]="form.description" placeholder="Short description..." />
+    </div>
+
+    <div class="check-row">
+      <input type="checkbox" [(ngModel)]="form.billable" />
+      <span>Projects of this type are billable to the customer</span>
+    </div>
+
+    <div class="m-field">
+      <label>Status</label>
+      <select class="sel" [(ngModel)]="form.active">
+        <option [ngValue]="true">Active</option>
+        <option [ngValue]="false">Inactive</option>
+      </select>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-g" (click)="closeModal()">Cancel</button>
+      <button class="btn btn-p" (click)="save()">💾 Save Type</button>
+    </div>
+  </div>
+</div>

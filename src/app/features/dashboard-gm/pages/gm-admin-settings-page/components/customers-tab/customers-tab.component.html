@@ -1,0 +1,252 @@
+<div class="customers-wrap">
+  <div class="toolbar">
+    <input class="inp search" [(ngModel)]="search" placeholder="🔍 Search customers..." />
+
+    <select class="sel country-filter" [(ngModel)]="selectedCountry">
+      <option value="">All countries</option>
+      <option *ngFor="let country of availableCountries" [value]="country">
+        {{ country }}
+      </option>
+    </select>
+
+    <div class="toolbar-actions">
+      <button class="btn btn-g btn-sm" (click)="openImportModal()">📥 Import CSV</button>
+      <button class="erp-badge" disabled>⚡ Import from ERP</button>
+      <button class="btn btn-p btn-sm" (click)="openCreate()">＋ Add Customer</button>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="card-hdr compact">
+      <div class="card-hdr-left">
+        <span class="hdr-icon">🏢</span>
+        <div class="card-hdr-title">Customer Directory</div>
+      </div>
+
+      <div class="count-text">
+        {{ filteredCustomers.length }} of {{ customers.length }} customer{{ customers.length === 1 ? '' : 's' }}
+      </div>
+    </div>
+
+    <div class="table-wrap" *ngIf="filteredCustomers.length">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width:90px;">ID</th>
+            <th>Name</th>
+            <th>Country</th>
+            <th>Town / City</th>
+            <th>Address</th>
+            <th>VAT / Tax ID</th>
+            <th>Contact</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>ERP ID</th>
+            <th>Active</th>
+            <th style="width:90px;">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let c of filteredCustomers">
+            <td class="mono">{{ c.customerCode }}</td>
+            <td><strong>{{ c.name }}</strong></td>
+            <td>{{ c.country || '—' }}</td>
+            <td>{{ c.town || '—' }}</td>
+            <td class="truncate" [title]="c.address">{{ c.address || '—' }}</td>
+            <td class="mono">{{ c.vatTaxId || '—' }}</td>
+            <td>{{ c.contactPerson || '—' }}</td>
+            <td>
+              <a *ngIf="c.email" [href]="'mailto:' + c.email">{{ c.email }}</a>
+              <span *ngIf="!c.email">—</span>
+            </td>
+            <td>{{ c.phone || '—' }}</td>
+            <td class="mono">{{ c.erpId || '—' }}</td>
+            <td>
+              <span class="status active" *ngIf="c.active">Active</span>
+              <span class="status inactive" *ngIf="!c.active">Inactive</span>
+            </td>
+            <td>
+              <div class="row-actions">
+                <button class="act-btn edit" title="Edit" (click)="openEdit(c)">✎</button>
+                <button class="act-btn del" title="Delete" (click)="delete(c)">🗑</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="empty-state" *ngIf="!filteredCustomers.length">
+      <div class="empty-icon">🏢</div>
+      <p>No customers yet. Add manually, import a CSV, or pull from your ERP.</p>
+      <div class="empty-actions">
+        <button class="btn btn-p btn-sm" (click)="openCreate()">＋ Add Customer</button>
+        <button class="btn btn-g btn-sm" (click)="openImportModal()">📥 Import CSV</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOMER ADD / EDIT MODAL -->
+<div class="modal-bg" [class.open]="modalOpen" (click)="closeModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-title">
+      {{ editingId ? '✏️ Edit Customer' : '🏢 Add Customer' }}
+    </div>
+
+    <div class="form-row">
+      <div class="m-field id-field">
+        <label>Customer ID *</label>
+        <input class="inp uppercase" [(ngModel)]="form.customerCode" placeholder="CUST-001" />
+      </div>
+
+      <div class="m-field flex">
+        <label>Name *</label>
+        <input class="inp" [(ngModel)]="form.name" placeholder="Company Name" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="m-field flex">
+        <label>Country</label>
+        <select class="sel" [(ngModel)]="form.country">
+          <option value="">—</option>
+          <option *ngFor="let country of countries" [value]="country">
+            {{ country }}
+          </option>
+        </select>
+      </div>
+
+      <div class="m-field flex">
+        <label>Town / City</label>
+        <input class="inp" [(ngModel)]="form.town" placeholder="Milan" />
+      </div>
+    </div>
+
+    <div class="m-field">
+      <label>Address</label>
+      <input class="inp" [(ngModel)]="form.address" placeholder="Via Roma 1" />
+    </div>
+
+    <div class="form-row">
+      <div class="m-field flex">
+        <label>VAT / Tax ID</label>
+        <input class="inp" [(ngModel)]="form.vatTaxId" placeholder="IT12345678901" />
+      </div>
+
+      <div class="m-field flex">
+        <label>ERP ID</label>
+        <input class="inp" [(ngModel)]="form.erpId" placeholder="SAP / Oracle ref" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="m-field flex">
+        <label>Contact Person</label>
+        <input class="inp" [(ngModel)]="form.contactPerson" placeholder="Mario Rossi" />
+      </div>
+
+      <div class="m-field flex">
+        <label>Email</label>
+        <input class="inp" type="email" [(ngModel)]="form.email" placeholder="mario@company.com" />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="m-field flex">
+        <label>Phone</label>
+        <input class="inp" [(ngModel)]="form.phone" placeholder="+39 02 12345678" />
+      </div>
+
+      <div class="m-field flex">
+        <label>Status</label>
+        <select class="sel" [(ngModel)]="form.active">
+          <option [ngValue]="true">Active</option>
+          <option [ngValue]="false">Inactive</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-g" (click)="closeModal()">Cancel</button>
+      <button class="btn btn-p" (click)="save()">💾 Save Customer</button>
+    </div>
+  </div>
+</div>
+
+<!-- CSV IMPORT MODAL -->
+<div class="modal-bg" [class.open]="importModalOpen" (click)="closeImportModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-title">📥 Import Customers from CSV</div>
+
+    <div
+      class="import-zone"
+      (dragover)="$event.preventDefault()"
+      (drop)="handleCsvDrop($event)"
+    >
+      <div class="import-icon">📄</div>
+
+      <p>
+        Drag & drop your CSV here or
+        <label for="csv-file-input">browse</label>
+      </p>
+
+      <p class="import-help">
+        Columns: id, name, country, town, address, vat, contact, email, phone, erp_id
+      </p>
+
+      <input
+        id="csv-file-input"
+        type="file"
+        accept=".csv"
+        hidden
+        (change)="handleCsvFile($event)"
+      />
+    </div>
+
+    <div class="csv-preview" *ngIf="csvRows.length">
+      <div class="preview-title">
+        {{ csvRows.length }} valid rows found
+      </div>
+
+      <div class="preview-table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Country</th>
+              <th>Town</th>
+              <th>Email</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let row of csvRows.slice(0, csvPreviewLimit)">
+              <td class="mono">{{ row.customerCode }}</td>
+              <td>{{ row.name }}</td>
+              <td>{{ row.country || '—' }}</td>
+              <td>{{ row.town || '—' }}</td>
+              <td>{{ row.email || '—' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="preview-note" *ngIf="csvRows.length > csvPreviewLimit">
+        Showing first {{ csvPreviewLimit }} rows only.
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-g" (click)="closeImportModal()">Cancel</button>
+      <button
+        class="btn btn-p"
+        [disabled]="!csvRows.length"
+        (click)="confirmCsvImport()">
+        ✓ Import
+      </button>
+    </div>
+  </div>
+</div>

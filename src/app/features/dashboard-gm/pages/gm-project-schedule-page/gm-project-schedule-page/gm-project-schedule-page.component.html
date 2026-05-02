@@ -753,12 +753,12 @@
   <!-- BOTTOM PANEL -->
   <section class="supervisor-panel" [class.open]="drawerOpen" *ngIf="taskForm">
     <div class="sp-topbar">
-      <div class="sp-task-chip">{{ selectedTask?.id || '—' }}</div>
+      <div class="sp-task-chip">{{ getRowId(selectedTask) }}</div>
 
       <div class="sp-task-meta">
         <div class="sp-task-name">{{ selectedTask?.name || 'Select a task' }}</div>
         <div class="sp-task-sub">
-          ID {{ selectedTask?.id || '—' }}
+          ID {{ getRowId(selectedTask) }}
           <span>·</span>
           WBS {{ selectedTask?.wbsCode || '—' }}
           <span>·</span>
