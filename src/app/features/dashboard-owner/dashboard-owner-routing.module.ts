@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 
 import { OwnerDashboardPageComponent } from './pages/owner-dashboard-page/owner-dashboard-page.component';
 import { GmResourceManagementPageComponent } from '../dashboard-gm/pages/gm-resource-management-page/gm-resource-management-page.component';
+import { CreateOrganisationPageComponent } from './pages/create-organisation-page/create-organisation-page.component';
 
 import { AuthGuard } from 'src/app/core/auth/auth.guard';
 import { RoleGuard } from 'src/app/core/auth/role.guard';
@@ -24,6 +25,10 @@ const routes: Routes = [
     component: GmResourceManagementPageComponent,
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: projectumAccessRoles }
+  },
+  {
+    path: 'create-organisation',
+    component: CreateOrganisationPageComponent
   }
 ];
 

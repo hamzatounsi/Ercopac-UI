@@ -279,6 +279,9 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
         this.computeStats();
         this.buildTimeline();
         this.loading = false;
+        this.recalculateWbsCodes();
+        this.recalculateSummaryDates();
+
 
         this.loadBaselines();
         this.loadCalendars();
@@ -999,55 +1002,104 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
 
   // ---------------- WBS / indent ----------------
 
+// ---------------- WBS / indent ----------------
+
+  private getTaskLevel(task: GmProjectScheduleTask): number {
+    return Math.max(1, (task.wbsCode || '1').split('.').length);
+  }
+
+  private isDescendantOf(task: GmProjectScheduleTask, parent: GmProjectScheduleTask): boolean {
+    if (!task.wbsCode || !parent.wbsCode) return false;
+    return task.wbsCode.startsWith(parent.wbsCode + '.');
+  }
+
+  private getSubtree(task: GmProjectScheduleTask): GmProjectScheduleTask[] {
+    return this.tasks.filter(t => t.id === task.id || this.isDescendantOf(t, task));
+  }
+
   indentTask(): void {
     if (!this.selectedTask) return;
 
-    const index = this.tasks.findIndex(t => t.id === this.selectedTask?.id);
+    const index = this.tasks.findIndex(t => t.id === this.selectedTask!.id);
     if (index <= 0) return;
 
     const current = this.tasks[index];
     const previous = this.tasks[index - 1];
 
-    const previousLevel = previous.wbsCode ? previous.wbsCode.split('.').length : 1;
-    const currentLevel = current.wbsCode ? current.wbsCode.split('.').length : 1;
+    const currentLevel = this.getTaskLevel(current);
+    const previousLevel = this.getTaskLevel(previous);
 
-    if (currentLevel > previousLevel + 1) return;
+    // cannot indent more than one level under previous row
+    if (currentLevel > previousLevel) return;
 
     this.pushHistory();
-    current.wbsCode = `${previous.wbsCode || '1'}.1`;
+
+    const subtree = this.getSubtree(current);
+    subtree.forEach(t => {
+      const level = this.getTaskLevel(t);
+      const parts = t.wbsCode?.split('.') ?? ['1'];
+      parts.splice(currentLevel - 1, 0, '1');
+      t.wbsCode = parts.join('.');
+    });
+
     this.recalculateWbsCodes();
+    this.recalculateDisplayOrders();
+    this.recalculateSummaryDates();
+
+    this.persistScheduleStructure();
     this.syncSelectedTaskReference();
   }
 
   outdentTask(): void {
     if (!this.selectedTask?.wbsCode) return;
 
-    const task = this.tasks.find(t => t.id === this.selectedTask?.id);
-    if (!task?.wbsCode) return;
-
-    const parts = task.wbsCode.split('.');
-    if (parts.length <= 1) return;
+    const current = this.tasks.find(t => t.id === this.selectedTask!.id);
+    if (!current || this.getTaskLevel(current) <= 1) return;
 
     this.pushHistory();
-    parts.pop();
-    task.wbsCode = parts.join('.');
+
+    const currentLevel = this.getTaskLevel(current);
+    const subtree = this.getSubtree(current);
+
+    subtree.forEach(t => {
+      const parts = t.wbsCode?.split('.') ?? [];
+      if (parts.length >= currentLevel) {
+        parts.splice(currentLevel - 2, 1);
+        t.wbsCode = parts.join('.');
+      }
+    });
+
     this.recalculateWbsCodes();
+    this.recalculateDisplayOrders();
+    this.recalculateSummaryDates();
+
+    this.persistScheduleStructure();
     this.syncSelectedTaskReference();
   }
 
   private recalculateWbsCodes(): void {
-    const counters: number[] = [];
+  const counters: number[] = [];
 
-    this.tasks.forEach((task) => {
-      const rawLevel = task.wbsCode ? task.wbsCode.split('.').length : 1;
-      const level = Math.max(1, rawLevel);
+  this.tasks.forEach(task => {
+    let level = this.getTaskLevel(task);
 
-      counters[level - 1] = (counters[level - 1] || 0) + 1;
-      counters.length = level;
+    if (this.isSummary(task) && level === 1) {
+      counters[0] = (counters[0] || 0) + 1;
+      counters.length = 1;
+      task.wbsCode = String(counters[0]);
+      return;
+    }
 
-      task.wbsCode = counters.join('.');
-    });
-  }
+    if (level === 1 && counters[0]) {
+      level = 2;
+    }
+
+    counters[level - 1] = (counters[level - 1] || 0) + 1;
+    counters.length = level;
+
+    task.wbsCode = counters.join('.');
+  });
+}
 
   private recalculateDisplayOrders(): void {
     this.tasks.forEach((task, index) => {
@@ -1055,6 +1107,64 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
     });
   }
 
+  private recalculateSummaryDates(): void {
+  const summaries = [...this.tasks]
+    .filter(t => this.isSummary(t))
+    .sort((a, b) => this.getTaskLevel(b) - this.getTaskLevel(a));
+
+  summaries.forEach(summary => {
+    const children = this.tasks.filter(t =>
+      this.isDescendantOf(t, summary) && !this.isSummary(t)
+    );
+
+    if (!children.length) return;
+
+    const plannedStarts = children
+      .map(t => t.plannedStart)
+      .filter((d): d is string => !!d);
+
+    const plannedEnds = children
+      .map(t => t.plannedEnd)
+      .filter((d): d is string => !!d);
+
+    if (plannedStarts.length) {
+      summary.plannedStart = plannedStarts.sort()[0];
+    }
+
+    if (plannedEnds.length) {
+      summary.plannedEnd = plannedEnds.sort()[plannedEnds.length - 1];
+    }
+
+    if (summary.plannedStart && summary.plannedEnd) {
+      const start = this.toDateOnly(summary.plannedStart).getTime();
+      const end = this.toDateOnly(summary.plannedEnd).getTime();
+      summary.durationDays = Math.max(1, Math.floor((end - start) / 86400000) + 1);
+    }
+  });
+}
+
+private persistScheduleStructure(): void {
+  const requests = this.tasks.map(task =>
+    this.service.updateTask(task.id, this.buildTaskUpdatePayload(task))
+  );
+
+  forkJoin(requests).subscribe({
+    next: () => {
+      this.computeStats();
+      this.buildTimeline();
+      this.syncSelectedTaskReference();
+    },
+    error: err => {
+      console.error('Failed to persist WBS structure', err);
+      this.loadSchedule();
+    }
+  });
+}
+
+getRowId(task?: GmProjectScheduleTask | null): string {
+  if (!task) return '—';
+  return String(task.displayOrder ?? task.id);
+}
   // ---------------- Settings ----------------
 
   toggleSettings(): void {

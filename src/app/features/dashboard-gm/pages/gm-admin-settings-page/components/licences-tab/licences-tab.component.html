@@ -1,0 +1,194 @@
+<div class="licences-page">
+
+  <div class="lic-toolbar">
+    <input
+      class="inp"
+      [(ngModel)]="search"
+      placeholder="🔍 Search assigned resource..."
+    />
+
+    <span class="filter-label">Filter assigned:</span>
+
+    <select class="sel" [(ngModel)]="selectedRole">
+      <option value="">All licence types</option>
+      <option *ngFor="let role of roles" [value]="role.key">
+        {{ role.label }}
+      </option>
+    </select>
+
+    <span class="total-badge">
+      {{ totalAssigned }} of {{ resources.length }} resources assigned
+    </span>
+  </div>
+
+  <div *ngIf="loading" class="empty-state">
+    Loading licences...
+  </div>
+
+  <div *ngIf="errorMessage" class="error-box">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="!loading">
+
+    <div class="lic-card" *ngFor="let role of visibleRoles">
+
+      <div class="lic-card-left">
+        <div class="lic-card-role-hdr">
+          <span class="lic-badge" [ngClass]="role.cssClass">
+            {{ role.icon }} {{ role.label }}
+          </span>
+
+          <span class="quota-text">
+            {{ usedCount(role.key) }} / {{ role.quota }}
+          </span>
+        </div>
+
+        <div class="lic-quota-row">
+          <div class="quota-bar">
+            <div
+              class="quota-fill"
+              [ngClass]="quotaClass(role)"
+              [style.width.%]="quotaPercent(role)">
+            </div>
+          </div>
+
+          <span class="quota-small">
+            {{ usedCount(role.key) === 0 ? 'none' : usedCount(role.key) + ' assigned' }}
+          </span>
+        </div>
+
+        <div class="lic-card-desc">
+          {{ role.description }}
+        </div>
+      </div>
+
+      <div class="lic-card-right">
+
+        <div class="lic-chips">
+          <span
+            class="lic-empty-chips"
+            *ngIf="assignedForRole(role.key).length === 0">
+            — no {{ role.label }} assigned yet —
+          </span>
+
+          <span
+            class="lic-chip"
+            *ngFor="let item of assignedForRole(role.key)">
+
+            <span>{{ item.fullName }}</span>
+
+            <span class="lic-chip-dept" *ngIf="item.departmentCode">
+              {{ item.departmentCode }}
+            </span>
+
+            <button
+              type="button"
+              class="lic-chip-del"
+              title="Remove"
+              (click)="removeLicence(item.userId)">
+              ×
+            </button>
+          </span>
+        </div>
+
+        <div class="lic-add-row">
+          <select class="sel assign-select" (change)="assignLicence(role, $event)">
+            <option value="">+ assign resource…</option>
+            <option *ngFor="let resource of availableResources()" [value]="resource.id">
+              {{ resource.fullName }}
+              <ng-container *ngIf="resource.departmentCode">
+                · {{ resource.departmentCode }}
+              </ng-container>
+            </option>
+          </select>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="card-hdr">
+        <div class="card-hdr-left">
+          <span class="card-icon">📝</span>
+          <div class="card-hdr-title">Licence Types & Permissions</div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+          <tr>
+            <th>Role</th>
+            <th>Gantt</th>
+            <th>Finance</th>
+            <th>Forecast</th>
+            <th>Risk / CR</th>
+            <th>Resources</th>
+            <th>Admin Settings</th>
+            <th>Description</th>
+          </tr>
+          </thead>
+
+          <tbody>
+          <tr>
+            <td><span class="lic-badge lic-admin">🛡️ Admin</span></td>
+            <td>✓ Full</td>
+            <td>✓ Full</td>
+            <td>✓ Full</td>
+            <td>✓ Full</td>
+            <td>✓ Full</td>
+            <td>✓ Full</td>
+            <td>Full access to all pages, settings and admin panel.</td>
+          </tr>
+
+          <tr>
+            <td><span class="lic-badge lic-pm">📊 PM</span></td>
+            <td>✓ Edit</td>
+            <td>✓ Edit</td>
+            <td>✓ Edit</td>
+            <td>✓ Edit</td>
+            <td>👁 View</td>
+            <td>✗</td>
+            <td>Manages own projects end-to-end. No admin access.</td>
+          </tr>
+
+          <tr>
+            <td><span class="lic-badge lic-manager">📋 Manager</span></td>
+            <td>👁 View</td>
+            <td>✓ Edit</td>
+            <td>✓ Edit</td>
+            <td>👁 View</td>
+            <td>👁 View</td>
+            <td>✗</td>
+            <td>Portfolio view. Edits finance and forecast. Cannot edit Gantt.</td>
+          </tr>
+
+          <tr>
+            <td><span class="lic-badge lic-dept">🏢 Dept. Mgr</span></td>
+            <td>👁 View</td>
+            <td>✗</td>
+            <td>✓ Edit</td>
+            <td>✗</td>
+            <td>👁 View</td>
+            <td>✗</td>
+            <td>Manages department resources and forecast. My Dept page only.</td>
+          </tr>
+
+          <tr>
+            <td><span class="lic-badge lic-readonly">👁 Read Only</span></td>
+            <td>👁 View</td>
+            <td>👁 View</td>
+            <td>👁 View</td>
+            <td>👁 View</td>
+            <td>✗</td>
+            <td>✗</td>
+            <td>View-only access to all pages. Cannot save or edit.</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>

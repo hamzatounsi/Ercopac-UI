@@ -15,7 +15,7 @@ import { GmProjectForecastPageComponent } from './pages/gm-project-forecast-page
 import { GmProjectRisksPageComponent } from './pages/gm-project-risks-page/gm-project-risks-page.component';
 import { GmProjectChangeRequestsPageComponent } from './pages/gm-project-change-requests-page/gm-project-change-requests-page.component';
 import { GmProjectActionsPageComponent } from './pages/gm-project-actions-page/gm-project-actions-page.component';
-import { GmResourceManagementPageComponent } from './pages/gm-resource-management-page/gm-resource-management-page.component';
+import { GmAdminSettingsPageComponent } from './pages/gm-admin-settings-page/gm-admin-settings-page.component';
 
 const projectumAccessRoles = [
   'ROLE_PLATFORM_OWNER',
@@ -23,6 +23,12 @@ const projectumAccessRoles = [
   'ROLE_ORG_ADMIN',
   'ROLE_GENERAL_MANAGER',
   'ROLE_PMO'
+];
+
+const adminAccessRoles = [
+  'ROLE_PLATFORM_OWNER',
+  'ROLE_PLATFORM_ADMIN',
+  'ROLE_ORG_ADMIN'
 ];
 
 const routes: Routes = [
@@ -49,6 +55,12 @@ const routes: Routes = [
         component: GmProjectScheduleInitComponent,
         canActivate: [RoleGuard],
         data: { roles: projectumAccessRoles }
+      },
+      {
+        path: 'admin',
+        component: GmAdminSettingsPageComponent,
+        canActivate: [RoleGuard],
+        data: { roles: adminAccessRoles }
       },
 
       { path: 'projects/:id', redirectTo: 'projects/:id/schedule', pathMatch: 'full' },
@@ -100,7 +112,7 @@ const routes: Routes = [
         component: GmProjectDetailsComponent,
         canActivate: [RoleGuard],
         data: { roles: projectumAccessRoles }
-      },
+      }
     ]
   }
 ];

@@ -43,6 +43,10 @@ export class OwnerDashboardPageComponent implements OnInit {
     this.router.navigate(['/gm']);
   }
 
+  openCreateOrganisation(): void {
+    this.router.navigate(['/owner/create-organisation']);
+  }
+
   openResourcesConfig(): void {
     this.router.navigate(['/owner/resources']);
   }

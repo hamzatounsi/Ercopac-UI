@@ -1,0 +1,48 @@
+<div class="create-org-shell">
+  <div class="create-card">
+    <button type="button" class="back-btn" (click)="back()">← Back</button>
+
+    <div class="page-head">
+      <h1>Create Organisation</h1>
+      <p>Create a tenant and assign its first Organisation Admin.</p>
+    </div>
+
+    <div class="state error" *ngIf="errorMessage">{{ errorMessage }}</div>
+    <div class="state success" *ngIf="successMessage">{{ successMessage }}</div>
+
+    <form (ngSubmit)="submit()">
+      <h2>Organisation</h2>
+
+      <label>
+        Organisation Name
+        <input type="text" [(ngModel)]="form.organisationName" name="organisationName" required />
+      </label>
+
+      <label>
+        Organisation Code
+        <input type="text" [(ngModel)]="form.organisationCode" name="organisationCode" required />
+      </label>
+
+      <h2>Organisation Admin</h2>
+
+      <label>
+        Admin Full Name
+        <input type="text" [(ngModel)]="form.adminFullName" name="adminFullName" required />
+      </label>
+
+      <label>
+        Admin Email
+        <input type="email" [(ngModel)]="form.adminEmail" name="adminEmail" required />
+      </label>
+
+      <label>
+        Admin Password
+        <input type="password" [(ngModel)]="form.adminPassword" name="adminPassword" required />
+      </label>
+
+      <button type="submit" class="primary-btn" [disabled]="loading">
+        {{ loading ? 'Creating...' : 'Create Organisation' }}
+      </button>
+    </form>
+  </div>
+</div>

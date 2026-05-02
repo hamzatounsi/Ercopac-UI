@@ -9,3 +9,5 @@ export const API_SUPPLIERS_URL = `${API_BASE_URL}/api/suppliers`;
 export const API_GM_DASHBOARD_URL = `${API_BASE_URL}/api/gm/dashboard`;
 export const API_FINANCE_SETTINGS_URL = `${API_BASE_URL}/api/finance/settings`;
 export const API_GM_URL = `${API_BASE_URL}/api/gm`;
+export const API_ADMIN_URL = `${API_BASE_URL}/api/admin`;
+export const API_PLATFORM_URL = `${API_BASE_URL}/api/platform`;

@@ -67,9 +67,7 @@ export class GmResourceManagementPageComponent implements OnInit {
     'EMPLOYEE',
     'DEPARTMENT_MANAGER',
     'GENERAL_MANAGER',
-    'ORG_ADMIN',
-    'PLATFORM_ADMIN',
-    'PLATFORM_OWNER'
+    'PMO'
   ];
 
   readonly internalOptions = [

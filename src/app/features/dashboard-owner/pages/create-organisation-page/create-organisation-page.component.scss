@@ -1,0 +1,96 @@
+.create-org-shell {
+  min-height: 100vh;
+  background: #f3f4f6;
+  padding: 32px;
+}
+
+.create-card {
+  max-width: 720px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+
+.back-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  margin-bottom: 18px;
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.page-head h1 {
+  margin: 0;
+  font-size: 28px;
+  color: #111827;
+}
+
+.page-head p {
+  color: #6b7280;
+  margin-bottom: 28px;
+}
+
+form {
+  display: grid;
+  gap: 18px;
+}
+
+h2 {
+  margin: 12px 0 0;
+  font-size: 16px;
+  color: #111827;
+}
+
+label {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+input {
+  height: 42px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 0 12px;
+  outline: none;
+}
+
+input:focus {
+  border-color: #2563eb;
+}
+
+.primary-btn {
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  background: #2563eb;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.state {
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 18px;
+}
+
+.error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.success {
+  background: #dcfce7;
+  color: #166534;
+}

@@ -216,16 +216,16 @@
 
 .apps-grid {
   width: 100%;
-  max-width: 980px;
+  max-width: 720px; /* narrower for better centering */
   display: grid;
-  grid-template-columns: repeat(6, minmax(110px, 1fr));
-  gap: 26px 20px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px 28px;
   justify-items: center;
   align-content: start;
 }
 
 .app-card {
-  width: 120px;
+  width: 140px;
   background: transparent;
   border: none;
   padding: 0;
@@ -301,6 +301,18 @@
   background: linear-gradient(180deg, #f5edfb 0%, #ffffff 100%);
 }
 
+.admin-bg {
+  background: linear-gradient(180deg, #eef3ff 0%, #ffffff 100%);
+}
+
+.admin-icon {
+  border-radius: 14px;
+}
+
+.app-card.live:hover .admin-bg {
+  background: linear-gradient(180deg, #e6f0ff 0%, #ffffff 100%);
+}
+
 /* subtle extra polish */
 .projectum-icon,
 .department-icon,
@@ -312,11 +324,10 @@
 }
 
 /* fit smaller desktops */
-@media (max-width: 1200px) {
+@media (max-width: 900px) {
   .apps-grid {
-    grid-template-columns: repeat(3, minmax(110px, 1fr));
-    gap: 24px 18px;
-    max-width: 620px;
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 420px;
   }
 
   .hero-section {
@@ -325,7 +336,7 @@
 }
 
 /* tablet/mobile fallback */
-@media (max-width: 900px) {
+@media (max-width: 500px) {
   :host,
   .workspace-page {
     height: auto;
@@ -382,7 +393,7 @@
   }
 
   .apps-grid {
-    grid-template-columns: repeat(2, minmax(110px, 1fr));
-    max-width: 420px;
+    grid-template-columns: 1fr;
+    max-width: 220px;
   }
 }

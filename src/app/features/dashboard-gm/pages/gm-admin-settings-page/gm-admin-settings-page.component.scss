@@ -1,0 +1,108 @@
+:host {
+  display: block;
+  height: 100vh;
+  background: #edf0f4;
+  color: #1e293b;
+  overflow: hidden;
+}
+
+.admin-page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #edf0f4;
+  padding: 0;
+}
+
+.main-menu-btn {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1.5px solid #cbd5e1;
+  background: #fff;
+  color: #3e5cb6;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.main-menu-btn:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+}
+
+.material-symbols-outlined {
+  color: #3e5cb6;
+  font-size: 16px;
+}
+
+.page-header {
+  height: 72px;
+  flex-shrink: 0;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 14px 24px 12px;
+  display: flex;
+  align-items: center;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+  color: #1e3a5f;
+  letter-spacing: -0.2px;
+}
+
+.page-header p {
+  margin: 3px 0 0;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.tab-bar {
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  padding: 0 24px;
+  background: #fff;
+  border-bottom: 2px solid #cbd5e1;
+  overflow-x: auto;
+}
+
+.tab-bar button {
+  height: 44px;
+  padding: 0 22px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.15s ease;
+}
+
+.tab-bar button:hover {
+  color: #1565c0;
+  background: #f8fafc;
+}
+
+.tab-bar button.active {
+  color: #1565c0;
+  background: transparent;
+  border-bottom-color: #1565c0;
+}
+
+.tab-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  background: #edf0f4;
+}

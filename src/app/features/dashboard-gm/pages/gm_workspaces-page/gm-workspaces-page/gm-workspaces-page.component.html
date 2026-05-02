@@ -63,6 +63,28 @@
         <div class="app-name">My Department</div>
       </button>
 
+      <button *ngIf="canSeeAdmin()" class="app-card live" type="button" (click)="openAdmin()">
+        <div class="app-icon-wrap admin-bg">
+          <div class="tile-icon admin-icon">
+            <svg viewBox="0 0 64 64" class="icon-svg" aria-hidden="true">
+              <rect x="16" y="28" width="32" height="24" rx="7" fill="#1565c0"></rect>
+              <path
+                d="M22 28v-6c0-6 4-10 10-10s10 4 10 10v6"
+                fill="none"
+                stroke="#ffffff"
+                stroke-width="5"
+                stroke-linecap="round"
+              ></path>
+              <circle cx="32" cy="40" r="4" fill="#2F80ED"></circle>
+              <path d="M32 43v5" stroke="#ffffff" stroke-width="3" stroke-linecap="round"></path>
+            </svg>
+          </div>
+        </div>
+
+        <div class="app-name">Admin</div>
+      </button>
+
+      
       <button class="app-card" type="button" disabled>
         <div class="app-icon-wrap company-bg">
           <div class="tile-icon company-icon">
