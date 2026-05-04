@@ -22,50 +22,46 @@ export class LoginComponent {
   }
 
   submit(): void {
+    console.log('LOGIN CLICKED', this.username, this.password);
+
     this.msg = '';
 
     this.auth.login(this.username, this.password).subscribe({
-      next: () => {
+      next: (res) => {
+        console.log('LOGIN RESPONSE', res);
+        console.log('TOKEN', this.auth.getToken());
+        console.log('ROLES', this.auth.getRoles());
+
         const roles = this.auth.getRoles();
 
         if (!roles || roles.length === 0) {
-          this.msg = 'Logged in ✅ but no role found in token';
+          this.msg = 'Logged in but no role found';
           return;
         }
 
-        if (this.selectedApp === 'My Department') {
-          if (
-            roles.some(r =>
-              r.includes('GENERAL_MANAGER') ||
-              r.includes('ORG_ADMIN') ||
-              r.includes('PMO') ||
-              r.includes('PLATFORM_OWNER') ||
-              r.includes('PLATFORM_ADMIN')
-            )
-          ) {
-            this.router.navigate(['/gm/my-department']);
-          } else if (roles.some(r => r.includes('DEPARTMENT_MANAGER'))) {
-            this.router.navigate(['/department']);
-          } else {
-            this.msg = 'You do not have access to My Department';
-          }
+        const role = roles[0];
 
+        if (role.includes('PLATFORM_OWNER')) {
+          this.router.navigate(['/owner']);
           return;
         }
 
-        if (this.selectedApp === 'Projectum') {
-          if (roles.some(r => r.includes('PLATFORM_OWNER') || r.includes('PLATFORM_ADMIN'))) {
-            this.router.navigate(['/owner']);
-          } else if (roles.some(r => r.includes('GENERAL_MANAGER') || r.includes('ORG_ADMIN') || r.includes('PMO'))) {
-            this.router.navigate(['/gm/projectum']);
-          } else if (roles.some(r => r.includes('DEPARTMENT_MANAGER'))) {
-            this.router.navigate(['/department']);
-          } else if (roles.some(r => r.includes('EMPLOYEE'))) {
-            this.router.navigate(['/employee']);
-          } else {
-            this.msg = 'Logged in ✅ but role not recognized';
-          }
+        if (role.includes('GENERAL_MANAGER') || role.includes('ORG_ADMIN')) {
+          this.router.navigate(['/gm/projectum']);
+          return;
         }
+
+        if (role.includes('DEPARTMENT_MANAGER')) {
+          this.router.navigate(['/department']);
+          return;
+        }
+
+        if (role.includes('EMPLOYEE')) {
+          this.router.navigate(['/employee']);
+          return;
+        }
+
+        this.msg = 'Role not recognized: ' + role;
       },
       error: err => {
         console.error('Login failed:', err);

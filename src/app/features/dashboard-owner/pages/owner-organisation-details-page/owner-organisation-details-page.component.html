@@ -1,0 +1,391 @@
+<div class="details-loading" *ngIf="loading">Loading organisation...</div>
+
+<div class="details-shell" *ngIf="!loading && organisation">
+  <aside class="edit-sidebar">
+    <div class="sidebar-title">EDIT SECTIONS</div>
+
+    <button class="edit-link" [class.active]="selectedSection === 'general'" (click)="setSection('general')">
+    <span>🏢</span> General Info
+    </button>
+
+    <button class="edit-link" [class.active]="selectedSection === 'billing'" (click)="setSection('billing')">
+    <span>💳</span> Plan & Billing
+    </button>
+
+    <button class="edit-link" [class.active]="selectedSection === 'licences'" (click)="setSection('licences')">
+    <span>🔑</span> Licence Allocation
+    </button>
+
+    <button class="edit-link" [class.active]="selectedSection === 'security'" (click)="setSection('security')">
+    <span>🔒</span> Security
+    </button>
+
+    <button class="edit-link" [class.active]="selectedSection === 'notes'" (click)="setSection('notes')">
+    <span>📝</span> Notes & Flags
+    </button>
+
+    <div class="status-card">
+      <div class="status-title">STATUS</div>
+
+      <button
+        class="status-option active"
+        [class.selected]="organisation.status === 'ACTIVE'"
+        (click)="setStatus('ACTIVE')"
+      >
+        <span class="dot green"></span>
+        Active
+      </button>
+
+      <button
+        class="status-option trial"
+        [class.selected]="organisation.status === 'TRIAL'"
+        (click)="setStatus('TRIAL')"
+      >
+        <span class="dot amber"></span>
+        Trial
+      </button>
+
+      <button
+        class="status-option suspended"
+        [class.selected]="organisation.status === 'SUSPENDED'"
+        (click)="setStatus('SUSPENDED')"
+      >
+        <span class="dot red"></span>
+        Suspended
+      </button>
+    </div>
+  </aside>
+
+  <main class="details-main">
+    <header class="details-topbar">
+      <button class="back-btn" type="button" (click)="goBack()">← Organisations</button>
+
+      <div class="header-copy">
+        <strong>{{ organisation.name }}</strong>
+        <span>{{ organisation.code }} · {{ organisation.plan }}</span>
+      </div>
+
+      <button class="save-btn" type="button" (click)="saveChanges()" [disabled]="saving">
+        💾 {{ saving ? 'Saving...' : 'Save Changes' }}
+      </button>
+    </header>
+
+    <div class="details-content">
+      <div class="error-box" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+        <ng-container *ngIf="selectedSection === 'general'">
+    <h2 class="page-section-title">General Information</h2>
+
+    <section class="section-card">
+        <div class="form-grid">
+        <!-- LEFT -->
+        <label>
+            <span>Organisation Name</span>
+            <input [(ngModel)]="organisation.name" />
+        </label>
+
+        <label>
+            <span>Organisation ID</span>
+            <input [(ngModel)]="organisation.code" />
+        </label>
+
+        <label>
+            <span>Country / Region</span>
+            <input [(ngModel)]="organisation.country" />
+        </label>
+
+        <label>
+            <span>Admin Name</span>
+            <input [(ngModel)]="organisation.adminFullName" />
+        </label>
+
+        <label>
+            <span>Warehouses</span>
+            <input type="number" [(ngModel)]="organisation.warehouseLimit" />
+        </label>
+
+        <label>
+            <span>Total Users</span>
+            <input type="number" [(ngModel)]="organisation.userLimit" />
+        </label>
+
+        <label>
+            <span>Platform Health %</span>
+            <input type="number" [(ngModel)]="organisation.healthScore" />
+            <div class="health-line">
+            <span [style.width.%]="organisation.healthScore"></span>
+            </div>
+        </label>
+
+        <label>
+            <span>Member Since</span>
+            <input [value]="formatDate(organisation.createdAt)" readonly />
+        </label>
+        </div>
+    </section>
+    </ng-container>
+      <ng-container *ngIf="selectedSection === 'billing'">
+        <h2 class="page-section-title">Plan & Billing</h2>
+
+        <section class="section-card">
+            <h2>Subscription Plan</h2>
+        <p>Changing the plan updates the default licence limits. You can still customise them below.</p>
+
+        <div class="plan-grid">
+          <button
+            class="plan-card"
+            [class.selected]="organisation.plan === 'STARTER'"
+            (click)="selectPlan('STARTER')"
+          >
+            <div class="plan-icon">🌱</div>
+            <strong>Starter</strong>
+            <span>€490/mo</span>
+            <small>1 WH · 10 ops</small>
+          </button>
+
+          <button
+            class="plan-card"
+            [class.selected]="organisation.plan === 'PROFESSIONAL'"
+            (click)="selectPlan('PROFESSIONAL')"
+          >
+            <div class="plan-icon">🚀</div>
+            <strong>Professional</strong>
+            <span>€1,200/mo</span>
+            <small>4 WH · 50 ops</small>
+          </button>
+
+          <button
+            class="plan-card"
+            [class.selected]="organisation.plan === 'ENTERPRISE'"
+            (click)="selectPlan('ENTERPRISE')"
+          >
+            <div class="plan-icon">🏆</div>
+            <strong>Enterprise</strong>
+            <span>Custom</span>
+            <small>Unlimited</small>
+          </button>
+        </div>
+        <div class="form-grid billing-grid">
+            <label>
+                <span>Monthly Revenue (MRR)</span>
+                <input type="number" [(ngModel)]="organisation.monthlyRevenue" />
+            </label>
+
+            <label>
+                <span>Billing Email</span>
+                <input [(ngModel)]="organisation.billingEmail" />
+            </label>
+
+            <label>
+                <span>VAT Number</span>
+                <input [(ngModel)]="organisation.vatNumber" placeholder="e.g. NL123456789B01" />
+            </label>
+
+            <label>
+                <span>Payment Method</span>
+                    <select [(ngModel)]="organisation.paymentMethod">
+                        <option value="SEPA_DIRECT_DEBIT">SEPA Direct Debit</option>
+                        <option value="CREDIT_CARD">Credit Card</option>
+                        <option value="BANK_TRANSFER">Bank Transfer</option>
+                    </select>
+            </label>
+            </div>
+        </section>
+        </ng-container>
+
+      <ng-container *ngIf="selectedSection === 'licences'">
+        <h2 class="page-section-title">Licence Allocation</h2>
+
+        <section class="section-card">
+            <div class="section-head">
+            <div>
+                <h2>Licence Allocation</h2>
+                <p>Maximum number of accounts per organisation.</p>
+            </div>
+
+            <strong class="licence-total">Total: {{ totalLicences }}</strong>
+            </div>
+
+            <div class="hint-box">
+            Enterprise defaults: 5 admin · 40 specialist · 8 supervisor · 150 operator · 15 readonly
+            </div>
+
+            <div class="licence-row">
+            <div class="licence-icon red">👑</div>
+            <div class="licence-copy">
+                <strong>Admin</strong>
+                <span>Full organisation management</span>
+            </div>
+            <button type="button" (click)="changeLicence('admin', -1)">-</button>
+            <input [value]="organisation.adminLicenceLimit" readonly />
+            <button type="button" (click)="changeLicence('admin', 1)">+</button>
+            </div>
+
+            <div class="licence-row">
+            <div class="licence-icon blue">👨‍💼</div>
+            <div class="licence-copy">
+                <strong>Specialist</strong>
+                <span>All operational modules</span>
+            </div>
+            <button type="button" (click)="changeLicence('specialist', -1)">-</button>
+            <input [value]="organisation.specialistLicenceLimit" readonly />
+            <button type="button" (click)="changeLicence('specialist', 1)">+</button>
+            </div>
+
+            <div class="licence-row">
+            <div class="licence-icon gray">📋</div>
+            <div class="licence-copy">
+                <strong>Manager / Supervisor</strong>
+                <span>Labor & monitoring</span>
+            </div>
+            <button type="button" (click)="changeLicence('supervisor', -1)">-</button>
+            <input [value]="organisation.supervisorLicenceLimit" readonly />
+            <button type="button" (click)="changeLicence('supervisor', 1)">+</button>
+            </div>
+
+            <div class="licence-row">
+            <div class="licence-icon amber">🦺</div>
+            <div class="licence-copy">
+                <strong>Operator</strong>
+                <span>Mobile task execution</span>
+            </div>
+            <button type="button" (click)="changeLicence('operator', -1)">-</button>
+            <input [value]="organisation.operatorLicenceLimit" readonly />
+            <button type="button" (click)="changeLicence('operator', 1)">+</button>
+            </div>
+
+            <div class="licence-row">
+            <div class="licence-icon gray">👁</div>
+            <div class="licence-copy">
+                <strong>Read Only</strong>
+                <span>View-only access</span>
+            </div>
+            <button type="button" (click)="changeLicence('readonly', -1)">-</button>
+            <input [value]="organisation.readonlyLicenceLimit" readonly />
+            <button type="button" (click)="changeLicence('readonly', 1)">+</button>
+            </div>
+        </section>
+        </ng-container>
+      <ng-container *ngIf="selectedSection === 'security'">
+        <h2 class="page-section-title">Security & Access</h2>
+
+        <section class="section-card">
+            <h2>Two-Factor Authentication</h2>
+
+            <div class="form-grid">
+            <label>
+                <span>Force 2FA for Admins</span>
+                <input value="Enabled" readonly />
+            </label>
+
+            <label>
+                <span>Force 2FA for Specialists</span>
+                <input value="Enabled" readonly />
+            </label>
+
+            <label>
+                <span>Force 2FA for Operators</span>
+                <input value="Optional" readonly />
+            </label>
+
+            <label>
+                <span>Default 2FA Method</span>
+                <input value="Authenticator App" readonly />
+            </label>
+            </div>
+        </section>
+
+        <section class="section-card">
+            <h2>Session & Password</h2>
+
+            <div class="form-grid">
+            <label>
+                <span>Session Timeout</span>
+                <input value="4 hours" readonly />
+            </label>
+
+            <label>
+                <span>Max Failed Logins</span>
+                <input value="5" readonly />
+            </label>
+
+            <label>
+                <span>Password Min Length</span>
+                <input value="8 chars" readonly />
+            </label>
+
+            <label>
+                <span>Password Expiry</span>
+                <input value="Never" readonly />
+            </label>
+            </div>
+        </section>
+        </ng-container>
+        <ng-container *ngIf="selectedSection === 'notes'">
+            <h2 class="page-section-title">Notes & Flags</h2>
+
+            <section class="section-card">
+                <label>
+                <span>Internal Notes</span>
+                <textarea
+                    [(ngModel)]="organisation.internalNotes"
+                    placeholder="Add internal notes..."
+                ></textarea>
+                </label>
+            </section>
+
+            <section class="section-card">
+                <h2>Flags</h2>
+
+                <div class="flags-grid">
+                <label class="flag-row">
+                    <span class="dot red"></span>
+                    At-risk account
+                    <input type="checkbox" [(ngModel)]="organisation.flagAtRisk" />
+                </label>
+
+                <label class="flag-row">
+                    <span class="dot amber"></span>
+                    Payment overdue
+                    <input type="checkbox" [(ngModel)]="organisation.flagPaymentOverdue" />
+                </label>
+
+                <label class="flag-row">
+                    <span class="dot green"></span>
+                    Upsell opportunity
+                    <input type="checkbox" [(ngModel)]="organisation.flagUpsellOpportunity" />
+                </label>
+
+                <label class="flag-row">
+                    <span class="dot blue"></span>
+                    VIP / Priority
+                    <input type="checkbox" [(ngModel)]="organisation.flagVipPriority" />
+                </label>
+
+                <label class="flag-row">
+                    <span class="dot cyan"></span>
+                    Pilot features
+                    <input type="checkbox" [(ngModel)]="organisation.flagPilotFeatures" />
+                </label>
+
+                <label class="flag-row">
+                    <span class="dot gray"></span>
+                    Under review
+                    <input type="checkbox" [(ngModel)]="organisation.flagUnderReview" />
+                </label>
+                </div>
+            </section>
+
+            <section class="danger-zone">
+                <h3>⚠ Danger Zone</h3>
+
+                <div class="danger-actions">
+                <button type="button" (click)="setStatus('SUSPENDED')">Suspend Organisation</button>
+                <button type="button">Reset Admin Password</button>
+                <button type="button">Delete Organisation</button>
+                </div>
+            </section>
+            </ng-container>
+    </div>
+  </main>
+</div>

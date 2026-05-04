@@ -1,0 +1,128 @@
+.owner-shell {
+  height: 100vh;
+  display: flex;
+  background: #f4f5f7;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  color: #2a3d4a;
+}
+
+.owner-sidebar {
+  width: 262px;
+  background: #1a3d52;
+  color: #8098a8;
+  display: flex;
+  flex-direction: column;
+  border-top: 4px solid #2b5f8a;
+}
+
+.sidebar-brand {
+  height: 86px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 18px;
+}
+
+.brand-mark,
+.owner-card-icon {
+  width: 39px;
+  height: 39px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #7c3aed, #2563eb);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+}
+
+.brand-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #f1f5f9;
+}
+
+.brand-title span {
+  color: #2e8540;
+}
+
+.brand-subtitle {
+  font-size: 12px;
+  color: #637587;
+}
+
+.sidebar-nav {
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-item {
+  height: 45px;
+  padding: 0 18px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #8098a8;
+  text-decoration: none;
+  font-size: 15px;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  background: #2f4076;
+  color: #90caec;
+  border-left: 3px solid #0078b8;
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+  padding: 16px 10px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+
+.signout-btn {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #8098a8;
+  text-align: left;
+  padding: 12px 18px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.owner-card {
+  margin-top: 10px;
+  background: #274777;
+  border-radius: 8px;
+  padding: 11px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.owner-card-icon {
+  width: 34px;
+  height: 34px;
+  font-size: 17px;
+}
+
+.owner-card strong {
+  display: block;
+  font-size: 13px;
+  color: #90caec;
+}
+
+.owner-card span {
+  display: block;
+  font-size: 11px;
+  color: #637587;
+}
+
+.owner-main {
+  flex: 1;
+  overflow: auto;
+  background: #f4f5f7;
+}

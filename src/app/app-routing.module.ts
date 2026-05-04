@@ -21,13 +21,7 @@ const routes: Routes = [
       import('./features/dashboard-gm/gm-dashboard.module').then(m => m.GmDashboardModule),
     canActivate: [AuthGuard, RoleGuard],
     data: {
-      roles: [
-        'ROLE_GENERAL_MANAGER',
-        'ROLE_ORG_ADMIN',
-        'ROLE_PMO',
-        'ROLE_PLATFORM_OWNER',
-        'ROLE_PLATFORM_ADMIN'
-      ]
+      roles: ['GENERAL_MANAGER', 'ORG_ADMIN', 'PLATFORM_OWNER']
     }
   },
 
@@ -35,14 +29,18 @@ const routes: Routes = [
     path: 'department',
     component: DashboardDmComponent,
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ROLE_DEPARTMENT_MANAGER'] }
+    data: {
+      roles: ['GENERAL_MANAGER', 'ORG_ADMIN', 'PLATFORM_OWNER']
+    }
   },
 
   {
     path: 'employee',
     component: DashboardEmployeeComponent,
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ROLE_EMPLOYEE'] }
+    data: {
+      roles: ['GENERAL_MANAGER', 'ORG_ADMIN', 'PLATFORM_OWNER']
+    }
   },
 
   {
@@ -58,13 +56,7 @@ const routes: Routes = [
     component: MyDepartmentPageComponent,
     canActivate: [AuthGuard, RoleGuard],
     data: {
-      roles: [
-        'ROLE_GENERAL_MANAGER',
-        'ROLE_ORG_ADMIN',
-        'ROLE_PMO',
-        'ROLE_PLATFORM_OWNER',
-        'ROLE_PLATFORM_ADMIN'
-      ]
+      roles: ['GENERAL_MANAGER', 'ORG_ADMIN', 'PLATFORM_OWNER']
     }
   },
 
@@ -72,7 +64,7 @@ const routes: Routes = [
     path: 'department/resources',
     component: ResourceSettingsPageComponent,
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ROLE_GENERAL_MANAGER', 'ROLE_DEPARTMENT_MANAGER'] }
+    data: { roles: ['GENERAL_MANAGER', 'DEPARTMENT_MANAGER'] }
   },
 
   { path: '**', redirectTo: 'login' }

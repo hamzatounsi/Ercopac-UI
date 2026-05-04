@@ -11,34 +11,134 @@
     <div class="state success" *ngIf="successMessage">{{ successMessage }}</div>
 
     <form (ngSubmit)="submit()">
-      <h2>Organisation</h2>
+      <h2>Organisation Info</h2>
 
-      <label>
-        Organisation Name
-        <input type="text" [(ngModel)]="form.organisationName" name="organisationName" required />
-      </label>
+      <div class="form-grid">
+        <label>
+          Organisation Name *
+          <input type="text" [(ngModel)]="form.organisationName" name="organisationName" required />
+        </label>
 
-      <label>
-        Organisation Code
-        <input type="text" [(ngModel)]="form.organisationCode" name="organisationCode" required />
-      </label>
+        <label>
+          Organisation Code *
+          <input type="text" [(ngModel)]="form.organisationCode" name="organisationCode" required />
+        </label>
 
-      <h2>Organisation Admin</h2>
+        <label>
+          Country / Region
+          <input type="text" [(ngModel)]="form.country" name="country" />
+        </label>
 
-      <label>
-        Admin Full Name
-        <input type="text" [(ngModel)]="form.adminFullName" name="adminFullName" required />
-      </label>
+        <label>
+          Domain
+          <input type="text" [(ngModel)]="form.domain" name="domain" placeholder="company.com" />
+        </label>
+      </div>
 
-      <label>
-        Admin Email
-        <input type="email" [(ngModel)]="form.adminEmail" name="adminEmail" required />
-      </label>
+      <h2>First Organisation Admin</h2>
 
-      <label>
-        Admin Password
-        <input type="password" [(ngModel)]="form.adminPassword" name="adminPassword" required />
-      </label>
+      <div class="form-grid">
+        <label>
+          Admin Full Name *
+          <input type="text" [(ngModel)]="form.adminFullName" name="adminFullName" required />
+        </label>
+
+        <label>
+          Admin Email *
+          <input type="email" [(ngModel)]="form.adminEmail" name="adminEmail" required />
+        </label>
+
+        <label>
+          Admin Password *
+          <input type="password" [(ngModel)]="form.adminPassword" name="adminPassword" required />
+        </label>
+      </div>
+
+      <h2>Plan & Billing</h2>
+
+      <div class="plan-grid">
+        <button type="button" class="plan-card" [class.selected]="form.plan === 'STARTER'" (click)="selectPlan('STARTER')">
+          <strong>Starter</strong>
+          <span>€490/mo</span>
+          <small>1 WH · 10 users</small>
+        </button>
+
+        <button type="button" class="plan-card" [class.selected]="form.plan === 'PROFESSIONAL'" (click)="selectPlan('PROFESSIONAL')">
+          <strong>Professional</strong>
+          <span>€1,200/mo</span>
+          <small>4 WH · 50 users</small>
+        </button>
+
+        <button type="button" class="plan-card" [class.selected]="form.plan === 'ENTERPRISE'" (click)="selectPlan('ENTERPRISE')">
+          <strong>Enterprise</strong>
+          <span>€4,200/mo</span>
+          <small>8 WH · 218 users</small>
+        </button>
+      </div>
+
+      <div class="form-grid">
+        <label>
+          Monthly Revenue
+          <input type="number" [(ngModel)]="form.monthlyRevenue" name="monthlyRevenue" />
+        </label>
+
+        <label>
+          Billing Email
+          <input type="email" [(ngModel)]="form.billingEmail" name="billingEmail" />
+        </label>
+
+        <label>
+          VAT Number
+          <input type="text" [(ngModel)]="form.vatNumber" name="vatNumber" />
+        </label>
+
+        <label>
+          Payment Method
+          <select [(ngModel)]="form.paymentMethod" name="paymentMethod">
+            <option value="SEPA_DIRECT_DEBIT">SEPA Direct Debit</option>
+            <option value="CREDIT_CARD">Credit Card</option>
+            <option value="BANK_TRANSFER">Bank Transfer</option>
+          </select>
+        </label>
+      </div>
+
+      <h2>Licence Defaults</h2>
+
+      <div class="licence-summary">
+        Total licences: <strong>{{ totalLicences }}</strong>
+      </div>
+
+      <div class="form-grid">
+        <label>
+          Admin Licences
+          <input type="number" [(ngModel)]="form.adminLicenceLimit" name="adminLicenceLimit" />
+        </label>
+
+        <label>
+          Specialist Licences
+          <input type="number" [(ngModel)]="form.specialistLicenceLimit" name="specialistLicenceLimit" />
+        </label>
+
+        <label>
+          Supervisor Licences
+          <input type="number" [(ngModel)]="form.supervisorLicenceLimit" name="supervisorLicenceLimit" />
+        </label>
+
+        <label>
+          Operator Licences
+          <input type="number" [(ngModel)]="form.operatorLicenceLimit" name="operatorLicenceLimit" />
+        </label>
+
+        <label>
+          Readonly Licences
+          <input type="number" [(ngModel)]="form.readonlyLicenceLimit" name="readonlyLicenceLimit" />
+        </label>
+
+        <label>
+          Warehouse Limit
+          <input type="number" [(ngModel)]="form.warehouseLimit" name="warehouseLimit" />
+        </label>
+      </div>
 
       <button type="submit" class="primary-btn" [disabled]="loading">
         {{ loading ? 'Creating...' : 'Create Organisation' }}
