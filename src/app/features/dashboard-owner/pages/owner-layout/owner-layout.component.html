@@ -1,0 +1,37 @@
+<div class="owner-shell">
+  <aside class="owner-sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-mark">⬡</div>
+      <div>
+        <div class="brand-title">Ware<span>Hub</span> HQ</div>
+        <div class="brand-subtitle">Platform Owner</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a routerLink="/owner/organisations" routerLinkActive="active" class="nav-item">🏢 <span>Organisations</span></a>
+      <a routerLink="/owner/billing" routerLinkActive="active" class="nav-item">💳 <span>Billing & Plans</span></a>
+      <a routerLink="/owner/analytics" routerLinkActive="active" class="nav-item">📊 <span>Platform Analytics</span></a>
+      <a routerLink="/owner/infrastructure" routerLinkActive="active" class="nav-item">🖥 <span>Infrastructure</span></a>
+      <a routerLink="/owner/support" routerLinkActive="active" class="nav-item">🎯 <span>Support Tickets</span></a>
+      <a routerLink="/owner/permissions" routerLinkActive="active" class="nav-item">🔐 <span>Permissions</span></a>
+      <a routerLink="/owner/settings" routerLinkActive="active" class="nav-item">⚙ <span>Platform Settings</span></a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <button class="signout-btn">🚪 Sign Out</button>
+
+      <div class="owner-card">
+        <div class="owner-card-icon">⬡</div>
+        <div>
+          <strong>WareHub HQ</strong>
+          <span>Platform Owner</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="owner-main">
+    <router-outlet></router-outlet>
+  </main>
+</div>

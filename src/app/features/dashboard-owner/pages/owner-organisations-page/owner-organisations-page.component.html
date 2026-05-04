@@ -1,0 +1,137 @@
+<section class="org-page">
+  <header class="org-topbar">
+    <div class="topbar-left">
+      <h2>🏢 Organisations</h2>
+
+      <div class="global-search">
+        <span>🔍</span>
+        <input
+          type="text"
+          placeholder="Search organisations..."
+          [(ngModel)]="searchTerm"
+        />
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <span>Total MRR:</span>
+      <strong>€{{ totalMrr }}/mo</strong>
+      <span class="live-dot"></span>
+      <span class="live-text">Live</span>
+    </div>
+  </header>
+
+  <div class="kpi-row">
+    <div class="kpi-card blue">
+      <span>Organisations</span>
+      <strong>{{ organisations.length }}</strong>
+      <small>{{ activeCount }} active</small>
+    </div>
+
+    <div class="kpi-card cyan">
+      <span>Total Users</span>
+      <strong>{{ totalUsersLimit }}</strong>
+      <small>across all orgs</small>
+    </div>
+
+    <div class="kpi-card green">
+      <span>Warehouses</span>
+      <strong>{{ totalWarehouseLimit }}</strong>
+      <small>globally</small>
+    </div>
+
+    <div class="kpi-card amber">
+      <span>Monthly Revenue</span>
+      <strong>€{{ totalMrr }}</strong>
+      <small>MRR</small>
+    </div>
+
+    <div class="kpi-card green">
+      <span>Avg. Health</span>
+      <strong>{{ averageHealth }}%</strong>
+      <small>active orgs</small>
+    </div>
+  </div>
+
+  <div class="table-card" *ngIf="!loading && !errorMessage">
+    <div class="table-head">
+      <div>
+        <h3>Organisations</h3>
+        <span>— click a row to open & edit</span>
+      </div>
+
+      <button type="button" class="primary-btn" (click)="onCreateOrganisation()">
+        + New Organisation
+      </button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Organisation</th>
+          <th>Country</th>
+          <th>Plan</th>
+          <th>WHS</th>
+          <th>Users</th>
+          <th>MRR</th>
+          <th>Licences</th>
+          <th>Health</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr
+          *ngFor="let org of filteredOrganisations; trackBy: trackByOrganisation"
+          (click)="openOrganisation(org)"
+        >
+          <td>
+            <strong class="org-name">{{ org.name }}</strong>
+            <span class="org-meta">{{ org.code }} · {{ org.domain || 'No domain' }}</span>
+          </td>
+
+          <td>{{ org.country || '-' }}</td>
+
+          <td>
+            <span class="plan-pill" [ngClass]="org.plan.toLowerCase()">
+              {{ org.plan }}
+            </span>
+          </td>
+
+          <td class="num">{{ org.warehouseLimit }}</td>
+          <td class="num">{{ org.userLimit }}</td>
+          <td>€{{ org.monthlyRevenue }}</td>
+
+          <td>
+            <strong class="licence-total">{{ org.userLimit }} total</strong>
+            <span class="licence-meta">{{ org.warehouseLimit }} WHS · {{ org.userLimit }} users</span>
+          </td>
+
+          <td>
+            <div class="health-cell">
+              <div class="health-bar">
+                <div
+                  class="health-fill"
+                  [class.warning]="org.healthScore < 90 && org.healthScore > 0"
+                  [class.danger]="org.healthScore === 0"
+                  [style.width.%]="org.healthScore"
+                ></div>
+              </div>
+              <span>{{ org.healthScore }}%</span>
+            </div>
+          </td>
+
+          <td>
+            <span class="status-pill" [ngClass]="org.status.toLowerCase()">
+              {{ org.status | titlecase }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="table-footer">
+      {{ filteredOrganisations.length }} organisations · click any row to view & edit
+    </div>
+  </div>
+</section>
