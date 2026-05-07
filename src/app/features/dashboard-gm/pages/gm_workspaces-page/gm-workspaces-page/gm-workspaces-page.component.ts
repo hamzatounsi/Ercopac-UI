@@ -17,6 +17,9 @@ export class GmWorkspacesPageComponent {
   openMyDepartment(): void {
     this.router.navigate(['/gm/my-department']);
   }
+  openCrm(): void {
+  this.router.navigate(['/crm/dashboard']);
+}
 
   openAdmin(): void {
     this.router.navigate(['/gm/admin']);

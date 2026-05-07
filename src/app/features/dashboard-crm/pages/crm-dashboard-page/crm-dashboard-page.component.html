@@ -1,0 +1,238 @@
+<!-- Path: src/app/features/dashboard-crm/pages/crm-dashboard-page/crm-dashboard-page.component.html -->
+
+<div class="crm-page" *ngIf="!loading && dashboard; else loadingTpl">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Dashboard</h1>
+      <p class="page-sub">Welcome back — here's your pipeline overview</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-secondary" [routerLink]="'/crm/analytics'">View reports</button>
+      <button class="btn-primary" (click)="openNewOpp()">+ New opportunity</button>
+    </div>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Open opportunities</div>
+      <div class="kpi-value">{{ dashboard.openOpportunities }}</div>
+      <div class="kpi-sub green">↑ Active pipeline</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Pipeline value</div>
+      <div class="kpi-value">{{ formatValue(dashboard.pipelineValue) }}</div>
+      <div class="kpi-sub gray">
+        {{ dashboard.openOpportunities }} deals · Open pipeline
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Active leads</div>
+      <div class="kpi-value">{{ dashboard.activeLeads }}</div>
+      <div class="kpi-sub"
+        [class.red]="dashboard.activeLeads === 0"
+        [class.gray]="dashboard.activeLeads > 0">
+        {{ dashboard.activeLeads > 0 ? 'In progress' : 'No active leads' }}
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Won this month</div>
+      <div class="kpi-value">{{ dashboard.wonThisMonth }}</div>
+      <div class="kpi-sub green">↑ Closed deals</div>
+    </div>
+  </div>
+
+  <!-- PIPELINE KANBAN + ACTIVITY -->
+  <div class="middle-grid">
+
+    <!-- PIPELINE KANBAN -->
+    <div class="pipeline-card">
+      <div class="section-header">
+        <span class="section-title">Opportunity pipeline</span>
+        <button class="btn-link" [routerLink]="'/crm/opportunities'">View all</button>
+      </div>
+
+      <div class="pipeline-columns">
+        <div class="pipeline-col" *ngFor="let stage of dashboard.pipeline">
+
+          <!-- Column header -->
+          <div class="pipeline-col-header">
+            <span class="stage-dot" [style.background]="stage.color"></span>
+            <span class="stage-col-name">{{ stage.name }}</span>
+            <span class="stage-col-count">{{ stage.opportunityCount }} →</span>
+          </div>
+
+          <!-- Deal cards -->
+          <div class="deal-card" *ngFor="let opp of getOppsForStage(stage)">
+            <div class="deal-name">{{ opp.name }}</div>
+            <div class="deal-account" *ngIf="opp.accountName">{{ opp.accountName }}</div>
+            <div class="deal-footer">
+              <span class="deal-value" *ngIf="opp.value">{{ formatValue(opp.value) }}</span>
+              <span class="deal-prob" *ngIf="opp.probability">{{ opp.probability }}%</span>
+            </div>
+          </div>
+
+          <!-- Empty state -->
+          <div class="pipeline-empty" *ngIf="getOppsForStage(stage).length === 0">
+            No deals
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- RECENT ACTIVITY -->
+    <div class="activity-card">
+      <div class="section-title" style="margin-bottom:16px">Recent activity</div>
+      <div class="activity-list">
+        <div class="activity-item" *ngFor="let act of dashboard.recentActivities">
+          <div class="activity-dot"
+            [style.background]="getActivityColor(act.activityType)">
+          </div>
+          <div class="activity-body">
+            <div class="activity-desc">{{ act.description }}</div>
+            <div class="activity-meta">
+              {{ timeAgo(act.createdAt) }}
+              <span *ngIf="act.userName"> · {{ act.userName }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="activity-empty" *ngIf="dashboard.recentActivities.length === 0">
+          No recent activity yet.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CLOSING THIS MONTH + LEADS BY SOURCE -->
+  <div class="bottom-grid">
+
+    <div class="closing-card">
+      <div class="section-title" style="margin-bottom:16px">
+        Opportunities closing this month
+      </div>
+      <table class="crm-table">
+        <thead>
+          <tr>
+            <th>OPPORTUNITY</th>
+            <th>STAGE</th>
+            <th>VALUE</th>
+            <th>CLOSING</th>
+            <th>OWNER</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let opp of dashboard.closingThisMonth">
+            <td class="opp-name">{{ opp.name }}</td>
+            <td>
+              <span class="stage-badge"
+                [style.background]="(opp.stageColor || '#94a3b8') + '22'"
+                [style.color]="opp.stageColor || '#94a3b8'">
+                {{ opp.stageName || '—' }}
+              </span>
+            </td>
+            <td class="value-cell">{{ formatValue(opp.value) }}</td>
+            <td class="date-cell">{{ opp.closingDate | date:'dd/MM/yyyy' }}</td>
+            <td>{{ opp.ownerName ? (opp.ownerName | slice:0:7) + '.' : '—' }}</td>
+          </tr>
+          <tr *ngIf="dashboard.closingThisMonth.length === 0">
+            <td colspan="5" class="empty-row">No opportunities closing this month.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- LEADS BY SOURCE — donut chart -->
+    <div class="source-card">
+      <div class="section-title" style="margin-bottom:16px">Leads by source</div>
+
+      <div class="donut-wrap">
+        <svg width="120" height="120" viewBox="0 0 100 100">
+          <!-- Background circle -->
+          <circle cx="50" cy="50" r="40"
+            fill="none" stroke="#e2e8f0" stroke-width="14"/>
+          <!-- Segments -->
+          <circle *ngFor="let seg of getDonutSegments()"
+            cx="50" cy="50" r="40"
+            fill="none"
+            [attr.stroke]="seg.color"
+            stroke-width="14"
+            [attr.stroke-dasharray]="seg.dash + ' ' + (251.2 - seg.dash)"
+            [attr.stroke-dashoffset]="seg.offset"
+            transform="rotate(-90 50 50)"/>
+          <!-- Center text -->
+          <text x="50" y="46" text-anchor="middle"
+            style="font-size:18px;font-weight:800;fill:#1e293b">
+            {{ totalLeads }}
+          </text>
+          <text x="50" y="60" text-anchor="middle"
+            style="font-size:10px;fill:#94a3b8">
+            leads
+          </text>
+        </svg>
+      </div>
+
+      <div class="source-legend">
+        <div class="source-item" *ngFor="let s of sourceEntries()">
+          <span class="source-dot" [style.background]="sourceColor(s.key)"></span>
+          <span class="source-name">
+            {{ sourceLabel(s.key) }} — {{ sourcePercent(s.key) }}%
+          </span>
+        </div>
+        <div class="source-empty" *ngIf="sourceEntries().length === 0">
+          No leads yet.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- NEW OPPORTUNITY MODAL -->
+<div class="modal-overlay" *ngIf="showNewOppModal" (click)="cancelNewOpp()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <span>New opportunity</span>
+      <button class="modal-close" (click)="cancelNewOpp()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Opportunity name *</label>
+        <input [(ngModel)]="oppForm.name" placeholder="e.g. Steel Supply Q3" />
+      </div>
+      <div class="form-group">
+        <label>Account name</label>
+        <input [(ngModel)]="oppForm.accountName" placeholder="Company name" />
+      </div>
+      <div class="form-group">
+        <label>Value</label>
+        <input type="number" [(ngModel)]="oppForm.value" placeholder="e.g. 150000" />
+      </div>
+      <div class="form-group">
+        <label>Stage</label>
+        <select [(ngModel)]="oppForm.stageId">
+          <option *ngFor="let s of stages" [ngValue]="s.id">{{ s.name }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Closing date</label>
+        <input type="date" [(ngModel)]="oppForm.closingDate" />
+      </div>
+      <div class="form-error" *ngIf="oppError">{{ oppError }}</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="cancelNewOpp()">Cancel</button>
+      <button class="btn-primary" (click)="saveNewOpp()" [disabled]="savingOpp">
+        {{ savingOpp ? 'Creating...' : 'Create opportunity' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<ng-template #loadingTpl>
+  <div class="crm-loading">Loading dashboard...</div>
+</ng-template>

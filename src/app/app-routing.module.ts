@@ -32,6 +32,13 @@ const routes: Routes = [
   },
 
   {
+    path: 'crm',
+    loadChildren: () =>
+      import('./features/dashboard-crm/dashboard-crm.module')
+        .then(m => m.DashboardCrmModule)
+  },
+
+  {
     path: 'department',
     component: DashboardDmComponent,
     canActivate: [AuthGuard, RoleGuard],

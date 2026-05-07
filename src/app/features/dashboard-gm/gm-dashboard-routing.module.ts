@@ -32,6 +32,7 @@ const adminAccessRoles = [
 ];
 
 const routes: Routes = [
+
   {
     path: '',
     component: GmLayoutComponent,
@@ -83,6 +84,8 @@ const routes: Routes = [
         canActivate: [RoleGuard],
         data: { roles: projectumAccessRoles }
       },
+      
+
       {
         path: 'projects/:id/forecast',
         component: GmProjectForecastPageComponent,
