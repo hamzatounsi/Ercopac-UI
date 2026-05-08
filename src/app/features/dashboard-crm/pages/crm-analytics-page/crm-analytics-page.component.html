@@ -1,0 +1,125 @@
+<!-- Path: src/app/features/dashboard-crm/pages/crm-analytics-page/crm-analytics-page.component.html -->
+
+<div class="crm-page" *ngIf="!loading && dashboard; else loadingTpl">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Analytics</h1>
+      <p class="page-sub">Performance overview</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-secondary">All users</button>
+      <button class="btn-primary">Create dashboard</button>
+    </div>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">New opportunities this month</div>
+      <div class="kpi-value">{{ dashboard.openOpportunities }}</div>
+      <div class="kpi-sub red" *ngIf="dashboard.openOpportunities === 0">↓ 100%</div>
+      <div class="kpi-sub green" *ngIf="dashboard.openOpportunities > 0">↑ Active</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Revenue this month</div>
+      <div class="kpi-value">{{ formatValue(dashboard.pipelineValue) }}</div>
+      <div class="kpi-sub gray">Pipeline value</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Opportunities in pipeline</div>
+      <div class="kpi-value">{{ dashboard.openOpportunities }}</div>
+      <div class="kpi-sub gray">Open deals</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Won this month</div>
+      <div class="kpi-value">{{ dashboard.wonThisMonth }}</div>
+      <div class="kpi-sub green" *ngIf="dashboard.wonThisMonth > 0">↑ Closed</div>
+      <div class="kpi-sub gray" *ngIf="dashboard.wonThisMonth === 0">No wins yet</div>
+    </div>
+  </div>
+
+  <!-- BOTTOM GRID -->
+  <div class="analytics-grid">
+
+    <!-- Pipeline stages breakdown -->
+    <div class="analytics-card">
+      <div class="section-title" style="margin-bottom:16px">Pipeline stages breakdown</div>
+      <table class="crm-table">
+        <thead>
+          <tr>
+            <th>STAGE</th>
+            <th>OPPORTUNITIES</th>
+            <th>SHARE</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let s of dashboard.pipeline">
+            <td>
+              <span class="stage-badge"
+                [style.background]="s.color + '22'"
+                [style.color]="s.color">
+                {{ s.name }}
+              </span>
+            </td>
+            <td class="count-cell">{{ s.opportunityCount }}</td>
+            <td>
+              <div class="bar-wrap">
+                <div class="bar-fill"
+                  [style.width.%]="dashboard.openOpportunities > 0 ? (s.opportunityCount / dashboard.openOpportunities * 100) : 0"
+                  [style.background]="s.color">
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Performance table -->
+    <div class="analytics-card">
+      <div class="section-title" style="margin-bottom:16px">Performance summary</div>
+      <table class="crm-table">
+        <thead>
+          <tr>
+            <th>METRIC</th>
+            <th>VALUE</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Active leads</td>
+            <td class="count-cell">{{ dashboard.activeLeads }}</td>
+          </tr>
+          <tr>
+            <td>Open opportunities</td>
+            <td class="count-cell">{{ dashboard.openOpportunities }}</td>
+          </tr>
+          <tr>
+            <td>Pipeline value</td>
+            <td class="count-cell">{{ formatValue(dashboard.pipelineValue) }}</td>
+          </tr>
+          <tr>
+            <td>Closing this month</td>
+            <td class="count-cell">{{ dashboard.closingThisMonth.length }}</td>
+          </tr>
+          <tr>
+            <td>Won this month</td>
+            <td class="count-cell">{{ dashboard.wonThisMonth }}</td>
+          </tr>
+          <tr *ngFor="let s of dashboard.leadsBySource | keyvalue">
+            <td>Leads — {{ s.key | titlecase }}</td>
+            <td class="count-cell">{{ s.value }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+</div>
+
+<ng-template #loadingTpl>
+  <div class="crm-loading">Loading analytics...</div>
+</ng-template>
