@@ -6,7 +6,7 @@ import {
   OnInit,
   ViewChild
 } from '@angular/core';
-import { forkJoin, of, combineLatest } from 'rxjs';
+import { forkJoin, of, combineLatest, Observable } from 'rxjs';
 import { switchMap, startWith } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -24,6 +24,7 @@ import { GmProjectCalendarService } from '../../../services/gm-project-calendar.
 import { ProjectCalendar } from '../../../models/project-calendar.model';
 import { GmProjectTemplateService } from '../../../services/gm-project-template.service';
 import { ProjectTemplate } from '../../../models/project-template.model';
+import { ProjectTaskHistory } from '../../../models/project-task-history.model';
 
 export interface TimelineDay {
   label: string;
@@ -77,7 +78,7 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
   selectedTask: GmProjectScheduleTask | null = null;
 
   drawerOpen = false;
-  activeDetailTab: 'general' | 'predecessors' | 'resources' = 'general';
+  activeDetailTab: 'general' | 'predecessors' | 'resources' | 'history' = 'general';
   taskForm!: FormGroup;
 
   timelineDays: TimelineDay[] = [];
@@ -184,6 +185,9 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
 
   exportModalOpen = false;
   exportScope: 'ALL' | 'CUSTOMER_NO' = 'ALL';
+
+  taskHistory: ProjectTaskHistory[] = [];
+  historyLoading = false;
 
   dragState: {
     taskId: number;
@@ -806,7 +810,7 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
 
     const payload = this.buildTaskUpdatePayload(task);
 
-    this.service.updateTask(task.id, payload).pipe(
+    this.service.updateTask(this.projectId, task.id, payload).pipe(
       switchMap((updated) => {
         const index = this.tasks.findIndex(t => t.id === task.id);
         if (index !== -1) {
@@ -875,7 +879,7 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
       assignedUserId: value.assignedUserId ?? undefined
     };
 
-    this.service.updateTask(this.selectedTask.id, payload).pipe(
+    this.service.updateTask(this.projectId, this.selectedTask.id, payload).pipe(
       switchMap((updated) => {
         const index = this.tasks.findIndex(t => t.id === this.selectedTask!.id);
         if (index !== -1) {
@@ -1145,7 +1149,7 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
 
 private persistScheduleStructure(): void {
   const requests = this.tasks.map(task =>
-    this.service.updateTask(task.id, this.buildTaskUpdatePayload(task))
+    this.service.updateTask(this.projectId, task.id, this.buildTaskUpdatePayload(task))
   );
 
   forkJoin(requests).subscribe({
@@ -1745,7 +1749,7 @@ getRowId(task?: GmProjectScheduleTask | null): string {
 
   const payload = this.buildTaskUpdatePayload(task);
 
-  this.service.updateTask(task.id, payload).pipe(
+  this.service.updateTask(this.projectId, task.id, payload).pipe(
     switchMap((updated) => {
       const index = this.tasks.findIndex(t => t.id === task.id);
 
@@ -2646,6 +2650,7 @@ getRowId(task?: GmProjectScheduleTask | null): string {
 
   private persistShiftedTasks(taskIds: number[]) {
     const uniqueIds = Array.from(new Set(taskIds));
+
     if (!uniqueIds.length) {
       return of([]);
     }
@@ -2653,7 +2658,9 @@ getRowId(task?: GmProjectScheduleTask | null): string {
     const requests = uniqueIds
       .map(id => this.tasks.find(t => t.id === id))
       .filter((task): task is GmProjectScheduleTask => !!task)
-      .map(task => this.service.updateTask(task.id, this.buildTaskUpdatePayload(task)));
+      .map(task =>
+        this.service.updateTask(this.projectId, task.id, this.buildTaskUpdatePayload(task))
+      );
 
     return requests.length ? forkJoin(requests) : of([]);
   }
@@ -2953,16 +2960,15 @@ exportAsExcelCsv(): void {
   this.closeExportModal();
 }
 
-loadResourceOptions(): void {
-  this.service.getAssignableResources(this.projectId).subscribe({
-    next: (res) => {
-      this.resourceOptions = res ?? [];
-    },
-    error: (err) => {
-      console.error('Failed to load resources', err);
-      this.resourceOptions = [];
-    }
+getAssignableResources(projectId: number): Observable<{ id: number; fullName: string; departmentCode: string }[]> {
+  return new Observable(observer => {
+    observer.next([]);
+    observer.complete();
   });
+}
+
+loadResourceOptions(): void {
+  this.resourceOptions = [];
 }
 
 onNewResourceUserChange(userId: number | null): void {
@@ -2974,5 +2980,35 @@ onNewResourceUserChange(userId: number | null): void {
     this.newResource.assignmentName = user.fullName;
     this.newResource.resourceType = user.departmentCode;
   }
+}
+
+loadSelectedTaskHistory(): void {
+  if (!this.selectedTask) return;
+
+  this.historyLoading = true;
+
+  this.service.getTaskHistory(this.projectId, this.selectedTask.id).subscribe({
+    next: (res) => {
+      this.taskHistory = res ?? [];
+      this.historyLoading = false;
+    },
+    error: (err) => {
+      console.error('Failed to load task history', err);
+      this.taskHistory = [];
+      this.historyLoading = false;
+    }
+  });
+}
+
+setDetailTab(tab: 'general' | 'predecessors' | 'resources' | 'history'): void {
+  this.activeDetailTab = tab;
+
+  if (tab === 'history') {
+    this.loadSelectedTaskHistory();
+  }
+}
+
+formatHistoryDate(value?: string | null): string {
+  return value ? new Date(value).toLocaleString() : '—';
 }
 }

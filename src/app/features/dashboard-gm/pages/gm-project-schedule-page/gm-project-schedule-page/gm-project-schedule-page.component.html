@@ -793,6 +793,15 @@
         >
           Resources
         </button>
+
+        <button
+          type="button"
+          class="sp-tab"
+          [class.active]="activeDetailTab === 'history'"
+          (click)="setDetailTab('history')"
+        >
+          History
+        </button>
       </div>
 
       <button type="button" class="sp-close-btn" (click)="closeDrawer()">
@@ -818,7 +827,6 @@
                   <input
                     type="number"
                     formControlName="durationDays"
-                    [disabled]="!!selectedTask && isMilestone(selectedTask)"
                   />
                 </div>
 
@@ -1177,6 +1185,46 @@
           <div *ngIf="!taskResources?.length" class="empty-state-line">
             No resources assigned to this task yet.
           </div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="activeDetailTab === 'history'">
+        <div class="sp-table-card history-card">
+
+          <div class="history-loading" *ngIf="historyLoading">
+            Loading history...
+          </div>
+
+          <div class="sp-table-head history-head" *ngIf="!historyLoading">
+            <div>Date</div>
+            <div>Task</div>
+            <div>Field</div>
+            <div>Old Value</div>
+            <div>New Value</div>
+            <div>Changed By</div>
+          </div>
+
+          <div
+            class="sp-table-row history-row"
+            *ngFor="let h of taskHistory"
+          >
+            <div>{{ formatHistoryDate(h.changedAt) }}</div>
+            <div>{{ h.taskName }}</div>
+            <div>
+              <span class="history-field-pill">{{ h.fieldName }}</span>
+            </div>
+            <div class="history-old">{{ h.oldValue || '—' }}</div>
+            <div class="history-new">{{ h.newValue || '—' }}</div>
+            <div>{{ h.changedByName || 'System' }}</div>
+          </div>
+
+          <div
+            *ngIf="!historyLoading && taskHistory.length === 0"
+            class="empty-state-line"
+          >
+            No history found for this task yet.
+          </div>
+
         </div>
       </ng-container>
     </form>
