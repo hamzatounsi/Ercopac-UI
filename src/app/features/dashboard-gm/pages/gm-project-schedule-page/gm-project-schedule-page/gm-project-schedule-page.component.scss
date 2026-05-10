@@ -2001,6 +2001,48 @@
   line-height: 1.6;
 }
 
+.history-card {
+  padding: 0;
+}
+
+.history-head {
+  grid-template-columns: 170px 1.4fr 130px 1fr 1fr 150px;
+}
+
+.history-row {
+  grid-template-columns: 170px 1.4fr 130px 1fr 1fr 150px;
+  min-height: 42px;
+}
+
+.history-field-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.history-old {
+  color: #991b1b;
+  font-size: 12px;
+  word-break: break-word;
+}
+
+.history-new {
+  color: #166534;
+  font-size: 12px;
+  word-break: break-word;
+}
+
+.history-loading {
+  padding: 18px;
+  color: #64748b;
+  font-size: 13px;
+}
+
 /* =========================
    SETTINGS DRAWER
 ========================= */

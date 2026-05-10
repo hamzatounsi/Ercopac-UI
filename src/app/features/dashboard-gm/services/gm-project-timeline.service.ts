@@ -4,7 +4,13 @@ import { Observable } from 'rxjs';
 import { GmProjectScheduleTask } from '../models/gm-project-schedule-task.model';
 import { GmUpdateProjectTaskRequest } from '../models/gm-update-project-task-request.model';
 import { TaskResourceAssignment } from '../models/task-resource-assignment.model';
-import { API_PROJECTS_URL, API_RESOURCES_URL, API_TASKS_URL } from 'src/app/core/config/api.config';
+import {
+  API_PROJECTS_URL,
+  API_RESOURCES_URL,
+  API_TASKS_URL,
+  API_GM_URL
+} from 'src/app/core/config/api.config';
+import { ProjectTaskHistory } from '../models/project-task-history.model';
 
 @Injectable({ providedIn: 'root' })
 export class GmProjectTimelineService {
@@ -14,8 +20,11 @@ export class GmProjectTimelineService {
     return this.http.get<GmProjectScheduleTask[]>(`${API_PROJECTS_URL}/${projectId}/schedule`);
   }
 
-  updateTask(taskId: number, payload: GmUpdateProjectTaskRequest): Observable<GmProjectScheduleTask> {
-    return this.http.put<GmProjectScheduleTask>(`${API_TASKS_URL}/${taskId}`, payload);
+  updateTask(projectId: number, taskId: number, payload: GmUpdateProjectTaskRequest): Observable<GmProjectScheduleTask> {
+    return this.http.put<GmProjectScheduleTask>(
+      `${API_PROJECTS_URL}/${projectId}/tasks/${taskId}`,
+      payload
+    );
   }
 
   insertTaskBelow(projectId: number, afterTaskId: number, payload: any): Observable<GmProjectScheduleTask> {
@@ -75,6 +84,18 @@ export class GmProjectTimelineService {
   getAssignableResources(projectId: number) {
     return this.http.get<{ id: number; fullName: string; departmentCode: string }[]>(
       `${API_RESOURCES_URL}/projects/${projectId}/options`
+    );
+  }
+
+  getProjectHistory(projectId: number): Observable<ProjectTaskHistory[]> {
+    return this.http.get<ProjectTaskHistory[]>(
+      `${API_GM_URL}/projects/${projectId}/schedule/history`
+    );
+  }
+
+  getTaskHistory(projectId: number, taskId: number): Observable<ProjectTaskHistory[]> {
+    return this.http.get<ProjectTaskHistory[]>(
+      `${API_GM_URL}/projects/${projectId}/schedule/history/tasks/${taskId}`
     );
   }
 }
