@@ -1,47 +1,45 @@
-export interface TaskDependencyDto {
-  id?: number;
-  predecessorTaskId: number;
-  successorTaskId: number;
-  dependencyType: string;
-  lagDays?: number;
-}
+// Path: src/app/features/dashboard-gm/models/gm-project-schedule-task.model.ts
+// REPLACE your entire file with this
 
 export interface GmProjectScheduleTask {
   id: number;
-  projectId: number;
-  name: string;
+  projectId?: number;
+  parentId?: number | null;          // ← NEW: real DB parent relationship
+  name?: string;
   description?: string;
   durationDays?: number;
-
-  baselineStart?: string | null;
-  baselineEnd?: string | null;
-  plannedStart?: string | null;
-  plannedEnd?: string | null;
-  actualStart?: string | null;
-  actualEnd?: string | null;
-
-  percentComplete?: number | null;
-  allocationPercent?: number | null;
-  plannedHours?: number | null;
-  actualHours?: number | null;
-
-  priority?: number | null;
-  scheduleMode?: string | null;
-  status?: string | null;
-  color?: string | null;
-
-  taskType?: string | null;
-  wbsCode?: string | null;
-  departmentCode?: string | null;
-  resourceType?: string | null;
-
-  active?: boolean | null;
-  displayOrder?: number | null;
-  customerMilestone?: boolean | null;
-
-  predecessorLabel?: string | null;
-  dependencies?: TaskDependencyDto[];
-
+  plannedStart?: string;
+  plannedEnd?: string;
+  baselineStart?: string;
+  baselineEnd?: string;
+  actualStart?: string;
+  actualEnd?: string;
+  percentComplete?: number;
+  allocationPercent?: number;
+  plannedHours?: number;
+  actualHours?: number;
+  priority?: number;
+  scheduleMode?: string;
+  status?: string;
+  color?: string;
+  taskType?: string;
+  wbsCode?: string;
+  departmentCode?: string;
+  resourceType?: string;
+  active?: boolean;
+  displayOrder?: number;
+  outlineLevel?: number;
+  customerMilestone?: boolean;
   assignedUserId?: number | null;
-  assignedUserName?: string | null;
+  assignedUserName?: string;
+  dependencies?: TaskDependencyDto[];
+  predecessorLabel?: string;
+}
+
+export interface TaskDependencyDto {
+  id?: number;
+  predecessorTaskId: number;
+  successorTaskId?: number;
+  dependencyType?: string;
+  lagDays?: number;
 }
