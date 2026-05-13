@@ -496,30 +496,16 @@
             (click)="$event.stopPropagation()"
           >
             <select
-              class="resource-select"
-              [ngModel]="getNormalizedResourceType(task)"
-              [ngModelOptions]="{ standalone: true }"
-              [class.has-value]="!!(getEditableValue(task, 'resourceType') || task.resourceType)"
-              (ngModelChange)="updateInlineField(task, 'resourceType', $event)"
-              (blur)="saveInlineTask(task)"
-            >
-              <option value="">--</option>
-              <option value="PM">PM</option>
-              <option value="ME">ME</option>
-              <option value="EE">EE</option>
-              <option value="PC">PC</option>
-              <option value="PLC">PLC</option>
-              <option value="PRC">PRC</option>
-              <option value="MFC">MFC</option>
-              <option value="QA">QA</option>
-              <option value="HSE">HSE</option>
-              <option value="INST">INST</option>
-              <option value="FIN">FIN</option>
-              <option value="CS">CS</option>
-              <option value="MEC">MEC</option>
-              <option value="ELECT">ELECT</option>
-              <option value="CUST">CUST</option>
-            </select>
+  class="resource-select"
+  [ngModel]="getNormalizedResourceType(task)"
+  [ngModelOptions]="{ standalone: true }"
+  [class.has-value]="!!(getEditableValue(task, 'resourceType') || task.resourceType)"
+  (ngModelChange)="updateInlineField(task, 'resourceType', $event)"
+  (blur)="saveInlineTask(task)"
+>
+  <option value="">--</option>
+  <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
+</select>
           </div>
 
           <div
@@ -1053,140 +1039,185 @@
           </div>
         </div>
       </ng-container>
+<!-- REPLACE the entire resources ng-container in the HTML -->
+<!-- Find: <ng-container *ngIf="activeDetailTab === 'resources'"> -->
+<!-- REPLACE with this: -->
 
-      <ng-container *ngIf="activeDetailTab === 'resources'">
-        <div class="sp-table-card">
-          <div class="sp-table-head resource-head">
-            <div>#</div>
-            <div>Res.Type</div>
-            <div>Assignment</div>
-            <div>Qty</div>
-            <div>Units (%)</div>
-            <div>Cost (€)</div>
-            <div></div>
-          </div>
+<ng-container *ngIf="activeDetailTab === 'resources'">
+  <div class="sp-table-card">
+    <div class="sp-table-head resource-head">
+      <div>#</div>
+      <div>Res.Type</div>
+      <div>Assignment</div>
+      <div>Qty</div>
+      <div>Units (%)</div>
+      <div>Cost (€)</div>
+      <div></div>
+    </div>
 
-          <div class="sp-table-row resource-row" *ngFor="let res of taskResources; let i = index">
-            <div>
-              <span class="sp-row-badge">{{ i + 1 }}</span>
-            </div>
-            <div>
-              <select
-                class="sp-inline-select"
-                [(ngModel)]="res.resourceType"
-                [ngModelOptions]="{ standalone: true }"
-                (change)="saveResource(res)"
-              >
-                <option value="">--</option>
-                <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
-              </select>
-            </div>
-            <div>
-              <input
-                class="sp-inline-input"
-                type="text"
-                [(ngModel)]="res.assignmentName"
-                [ngModelOptions]="{ standalone: true }"
-                (blur)="saveResource(res)"
-              />
-            </div>
-            <div>
-              <input
-                class="sp-inline-input small"
-                type="number"
-                [(ngModel)]="res.quantity"
-                [ngModelOptions]="{ standalone: true }"
-                (blur)="saveResource(res)"
-              />
-            </div>
-            <div>
-              <input
-                class="sp-inline-input"
-                type="number"
-                [(ngModel)]="res.unitsPercent"
-                [ngModelOptions]="{ standalone: true }"
-                (blur)="saveResource(res)"
-              />
-            </div>
-            <div>
-              <input
-                class="sp-inline-input"
-                type="number"
-                [(ngModel)]="res.cost"
-                [ngModelOptions]="{ standalone: true }"
-                (blur)="saveResource(res)"
-              />
-            </div>
-            <div class="sp-row-actions">
-              <button type="button" class="sp-icon-btn" (click)="removeResource(res.id)">
-                <span class="material-symbols-outlined">close</span>
-              </button>
-            </div>
-          </div>
+    <!-- Existing resources -->
+    <div class="sp-table-row resource-row" *ngFor="let res of taskResources; let i = index">
+      <div>
+        <span class="sp-row-badge">{{ i + 1 }}</span>
+      </div>
+      <div>
+        <select
+          class="sp-inline-select"
+          [(ngModel)]="res.resourceType"
+          [ngModelOptions]="{ standalone: true }"
+          (change)="saveResource(res)"
+        >
+          <option value="">--</option>
+          <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
+        </select>
+      </div>
+      <div>
+        <input
+          class="sp-inline-input"
+          type="text"
+          [(ngModel)]="res.assignmentName"
+          [ngModelOptions]="{ standalone: true }"
+          (blur)="saveResource(res)"
+        />
+      </div>
+      <div>
+        <input
+          class="sp-inline-input small"
+          type="number"
+          [(ngModel)]="res.quantity"
+          [ngModelOptions]="{ standalone: true }"
+          (blur)="saveResource(res)"
+        />
+      </div>
+      <div>
+        <input
+          class="sp-inline-input"
+          type="number"
+          [(ngModel)]="res.unitsPercent"
+          [ngModelOptions]="{ standalone: true }"
+          (blur)="saveResource(res)"
+        />
+      </div>
+      <div>
+        <input
+          class="sp-inline-input"
+          type="number"
+          [(ngModel)]="res.cost"
+          [ngModelOptions]="{ standalone: true }"
+          (blur)="saveResource(res)"
+        />
+      </div>
+      <div class="sp-row-actions">
+        <button type="button" class="sp-icon-btn" (click)="removeResource(res.id)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+    </div>
 
-          <div class="sp-table-row resource-row">
-            <div>
-              <span class="sp-row-badge">+</span>
-            </div>
-            <div>
-              <select
-                class="sp-inline-select"
-                [(ngModel)]="newResource.resourceType"
-                [ngModelOptions]="{ standalone: true }"
-              >
-                <option value="">--</option>
-                <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
-              </select>
-            </div>
-            <div>
-          <select
-            class="sp-inline-select"
-            [(ngModel)]="newResource.assignedUserId"
-            [ngModelOptions]="{ standalone: true }"
-            (ngModelChange)="onNewResourceUserChange($event)"
-          >
-            <option [ngValue]="null">-- Select resource --</option>
-            <option *ngFor="let user of resourceOptions" [ngValue]="user.id">
-              {{ user.fullName }} - {{ user.departmentCode }}
-            </option>
-          </select>
-            </div>
-            <div>
-              <input
-                class="sp-inline-input small"
-                type="number"
-                [(ngModel)]="newResource.quantity"
-                [ngModelOptions]="{ standalone: true }"
-              />
-            </div>
-            <div>
-              <input
-                class="sp-inline-input"
-                type="number"
-                [(ngModel)]="newResource.unitsPercent"
-                [ngModelOptions]="{ standalone: true }"
-              />
-            </div>
-            <div>
-              <input
-                class="sp-inline-input"
-                type="number"
-                [(ngModel)]="newResource.cost"
-                [ngModelOptions]="{ standalone: true }"
-              />
-            </div>
-            <div class="sp-row-actions">
-              <button type="button" class="sp-icon-btn" (click)="addResource()">
-                <span class="material-symbols-outlined">add</span>
-              </button>
-            </div>
-          </div>
+    <!-- NEW RESOURCE ROW -->
+    <div class="sp-table-row resource-row new-resource-row">
+      <div>
+        <span class="sp-row-badge">+</span>
+      </div>
 
-          <div *ngIf="!taskResources?.length" class="empty-state-line">
-            No resources assigned to this task yet.
-          </div>
-        </div>
-      </ng-container>
+      <!-- Resource Type filter -->
+      <div>
+        <select
+          class="sp-inline-select"
+          [(ngModel)]="newResource.resourceType"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="onNewResourceTypeChange($event)"
+        >
+          <option value="">--</option>
+          <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
+        </select>
+      </div>
+<!-- Search with autocomplete only - no dropdown select -->
+<div class="resource-search-wrap" style="position: relative;">
+  <input
+    class="sp-inline-input resource-search-input"
+    type="text"
+    [(ngModel)]="resourceSearchTerm"
+    [ngModelOptions]="{ standalone: true }"
+    placeholder="Search by name..."
+    (input)="onResourceSearchInput()"
+    (blur)="showResourceDropdown = false"
+    autocomplete="off"
+  />
+
+  <div
+    *ngIf="showResourceDropdown && resourceSearchResults.length > 0"
+    class="resource-autocomplete-list"
+    style="
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      z-index: 999;
+      max-height: 180px;
+      overflow-y: auto;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    "
+  >
+    <div
+      *ngFor="let user of resourceSearchResults"
+      style="
+        padding: 8px 12px;
+        cursor: pointer;
+        font-size: 12px;
+        color: #e2e8f0;
+        border-bottom: 1px solid #334155;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      "
+      (mousedown)="selectResourceFromSearch(user)"
+    >
+      <span><strong>{{ user.fullName }}</strong></span>
+      <span style="color: #64748b; font-size: 11px;">{{ user.resourceType }}</span>
+    </div>
+  </div>
+</div>
+
+      <div>
+        <input
+          class="sp-inline-input small"
+          type="number"
+          [(ngModel)]="newResource.quantity"
+          [ngModelOptions]="{ standalone: true }"
+        />
+      </div>
+      <div>
+        <input
+          class="sp-inline-input"
+          type="number"
+          [(ngModel)]="newResource.unitsPercent"
+          [ngModelOptions]="{ standalone: true }"
+        />
+      </div>
+      <div>
+        <input
+          class="sp-inline-input"
+          type="number"
+          [(ngModel)]="newResource.cost"
+          [ngModelOptions]="{ standalone: true }"
+        />
+      </div>
+      <div class="sp-row-actions">
+        <button type="button" class="sp-icon-btn" (click)="addResource()">
+          <span class="material-symbols-outlined">add</span>
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="!taskResources?.length" class="empty-state-line">
+      No resources assigned to this task yet.
+    </div>
+  </div>
+</ng-container>
 
       <ng-container *ngIf="activeDetailTab === 'history'">
         <div class="sp-table-card history-card">
