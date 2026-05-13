@@ -1,4 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { forkJoin } from 'rxjs';
+import * as XLSX from 'xlsx';
+
 import { GmResourceService } from '../../services/gm-resource.service';
 import { GmSupplierService } from '../../services/gm-supplier.service';
 import { ResourceDetails } from '../../models/resource-details.model';
@@ -63,12 +66,7 @@ export class GmResourceManagementPageComponent implements OnInit {
   resourceSortColumn: ResourceSortColumn = 'id';
   resourceSortDirection: SortDirection = 'asc';
 
-  readonly roleOptions = [
-    'EMPLOYEE',
-    'DEPARTMENT_MANAGER',
-    'GENERAL_MANAGER',
-    'PMO'
-  ];
+  readonly roleOptions = ['DEPARTMENT_MANAGER', 'GENERAL_MANAGER', 'EMPLOYEE'];
 
   readonly internalOptions = [
     { value: '', label: 'All' },
@@ -81,7 +79,6 @@ export class GmResourceManagementPageComponent implements OnInit {
 
   resourceCreateForm: CreateResourceRequest = this.createEmptyCreateResourceForm();
   resourceUpdateForm: UpdateResourceRequest = this.createEmptyUpdateResourceForm();
-
   supplierForm: Partial<Supplier> = this.createEmptySupplierForm();
 
   constructor(
@@ -184,7 +181,6 @@ export class GmResourceManagementPageComponent implements OnInit {
 
   applySupplierFilters(): void {
     const term = this.supplierSearchTerm.trim().toLowerCase();
-
     let rows = [...this.suppliers];
 
     if (this.supplierDepartmentFilter) {
@@ -297,6 +293,135 @@ export class GmResourceManagementPageComponent implements OnInit {
     });
   }
 
+  exportResourcesExcel(): void {
+    const rows = this.filteredResources.map(r => ({
+      fullName: r.fullName,
+      email: r.email,
+      employeeCode: r.employeeCode,
+      departmentCode: r.departmentCode,
+      resourceType: r.resourceType,
+      jobTitle: r.jobTitle,
+      seniority: r.seniority,
+      internalUser: r.internalUser,
+      defaultRate: r.defaultRate,
+      rateType: r.rateType,
+      currency: r.currency
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Resources');
+    XLSX.writeFile(workbook, 'resources.xlsx');
+  }
+
+  importResourcesExcel(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const data = new Uint8Array(reader.result as ArrayBuffer);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json<any>(sheet);
+
+      this.createResourcesFromImportRows(rows, 'Failed to import resources.');
+    };
+
+    reader.readAsArrayBuffer(file);
+    input.value = '';
+  }
+
+  exportResourcesJson(): void {
+    const data = JSON.stringify(this.filteredResources, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'resources.json';
+    a.click();
+
+    window.URL.revokeObjectURL(url);
+  }
+
+  importResourcesJson(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      try {
+        const rows = JSON.parse(reader.result as string) as any[];
+        this.createResourcesFromImportRows(rows, 'Failed to import JSON resources.');
+      } catch {
+        this.error = 'Invalid JSON file.';
+      }
+    };
+
+    reader.readAsText(file);
+    input.value = '';
+  }
+
+  private createResourcesFromImportRows(rows: any[], errorMessage: string): void {
+    const requests = rows
+      .filter(row => row)
+      .map(row => this.gmResourceService.createResource({
+        fullName: row.fullName || row.FullName || row.name || row.Name || 'New Resource',
+        email: row.email || row.Email || '',
+        password: row.password || row.Password || 'Resource123!',
+        role: row.role || row.Role || 'EMPLOYEE',
+        employeeCode: row.employeeCode || row.EmployeeCode || row.code || row.Code || '',
+        departmentCode: row.departmentCode || row.DepartmentCode || row.department || row.Department || '',
+        resourceType: row.resourceType || row.ResourceType || '',
+        jobTitle: row.jobTitle || row.JobTitle || row.roleTitle || '',
+        seniority: row.seniority || row.Seniority || '',
+        internalUser: this.parseBoolean(row.internalUser ?? row.InternalUser ?? true),
+        hoursPerDay: Number(row.hoursPerDay || row.HoursPerDay || 8),
+        daysPerWeek: Number(row.daysPerWeek || row.DaysPerWeek || 5),
+        workdays: row.workdays || row.Workdays || 'MON-FRI',
+        defaultRate: Number(row.defaultRate || row.DefaultRate || row.rate || row.Rate || 0),
+        rateType: row.rateType || row.RateType || 'daily',
+        currency: row.currency || row.Currency || 'EUR',
+        color: row.color || row.Color || '',
+        notes: row.notes || row.Notes || '',
+        active: true
+      }));
+
+    if (!requests.length) {
+      this.error = 'No rows found to import.';
+      return;
+    }
+
+    this.saving = true;
+
+    forkJoin(requests).subscribe({
+      next: () => {
+        this.saving = false;
+        this.loadResources();
+      },
+      error: () => {
+        this.saving = false;
+        this.error = errorMessage;
+      }
+    });
+  }
+
+  private parseBoolean(value: unknown): boolean {
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'string') {
+      return ['true', 'yes', '1', 'internal'].includes(value.toLowerCase());
+    }
+    return Boolean(value);
+  }
+
   openNewSupplier(): void {
     this.selectedSupplierId = null;
     this.selectedSupplier = null;
@@ -405,7 +530,7 @@ export class GmResourceManagementPageComponent implements OnInit {
 
   private createEmptyCreateResourceForm(): CreateResourceRequest {
     return {
-      fullName: '',
+      fullName: 'New Resource',
       email: '',
       password: '',
       role: 'EMPLOYEE',
@@ -418,7 +543,7 @@ export class GmResourceManagementPageComponent implements OnInit {
       hoursPerDay: 8,
       daysPerWeek: 5,
       workdays: 'MON-FRI',
-      defaultRate: 0,
+      defaultRate: 50,
       rateType: 'daily',
       currency: 'EUR',
       color: '',

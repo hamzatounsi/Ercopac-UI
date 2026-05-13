@@ -20,14 +20,12 @@ export class CreateOrganisationPageComponent {
     domain: '',
     plan: 'STARTER',
 
-    warehouseLimit: 1,
-    userLimit: 10,
+    userLimit: 14,
 
-    adminLicenceLimit: 1,
-    specialistLicenceLimit: 5,
-    supervisorLicenceLimit: 2,
-    operatorLicenceLimit: 10,
-    readonlyLicenceLimit: 5,
+    orgAdminLicenceLimit: 1,
+    generalManagerLicenceLimit: 1,
+    departmentManagerLicenceLimit: 2,
+    employeeLicenceLimit: 10,
 
     monthlyRevenue: 490,
     healthScore: 100,
@@ -45,45 +43,41 @@ export class CreateOrganisationPageComponent {
     this.form.plan = plan;
 
     if (plan === 'STARTER') {
-      this.form.warehouseLimit = 1;
-      this.form.userLimit = 10;
+      this.form.userLimit = 14;
       this.form.monthlyRevenue = 490;
-      this.form.adminLicenceLimit = 1;
-      this.form.specialistLicenceLimit = 5;
-      this.form.supervisorLicenceLimit = 2;
-      this.form.operatorLicenceLimit = 10;
-      this.form.readonlyLicenceLimit = 5;
+
+      this.form.orgAdminLicenceLimit = 1;
+      this.form.generalManagerLicenceLimit = 1;
+      this.form.departmentManagerLicenceLimit = 2;
+      this.form.employeeLicenceLimit = 10;
     }
 
     if (plan === 'PROFESSIONAL') {
-      this.form.warehouseLimit = 4;
-      this.form.userLimit = 50;
+      this.form.userLimit = 62;
       this.form.monthlyRevenue = 1200;
-      this.form.adminLicenceLimit = 2;
-      this.form.specialistLicenceLimit = 12;
-      this.form.supervisorLicenceLimit = 5;
-      this.form.operatorLicenceLimit = 40;
-      this.form.readonlyLicenceLimit = 10;
+
+      this.form.orgAdminLicenceLimit = 1;
+      this.form.generalManagerLicenceLimit = 3;
+      this.form.departmentManagerLicenceLimit = 8;
+      this.form.employeeLicenceLimit = 50;
     }
 
     if (plan === 'ENTERPRISE') {
-      this.form.warehouseLimit = 8;
-      this.form.userLimit = 218;
+      this.form.userLimit = 237;
       this.form.monthlyRevenue = 4200;
-      this.form.adminLicenceLimit = 5;
-      this.form.specialistLicenceLimit = 40;
-      this.form.supervisorLicenceLimit = 8;
-      this.form.operatorLicenceLimit = 150;
-      this.form.readonlyLicenceLimit = 15;
+
+      this.form.orgAdminLicenceLimit = 2;
+      this.form.generalManagerLicenceLimit = 10;
+      this.form.departmentManagerLicenceLimit = 25;
+      this.form.employeeLicenceLimit = 200;
     }
   }
 
   get totalLicences(): number {
-    return this.form.adminLicenceLimit +
-      this.form.specialistLicenceLimit +
-      this.form.supervisorLicenceLimit +
-      this.form.operatorLicenceLimit +
-      this.form.readonlyLicenceLimit;
+    return this.form.orgAdminLicenceLimit +
+      this.form.generalManagerLicenceLimit +
+      this.form.departmentManagerLicenceLimit +
+      this.form.employeeLicenceLimit;
   }
 
   constructor(

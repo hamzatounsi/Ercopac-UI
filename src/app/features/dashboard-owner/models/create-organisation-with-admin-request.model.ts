@@ -5,14 +5,12 @@ export interface CreateOrganisationWithAdminRequest {
   domain?: string;
   plan: string;
 
-  warehouseLimit: number;
   userLimit: number;
 
-  adminLicenceLimit: number;
-  specialistLicenceLimit: number;
-  supervisorLicenceLimit: number;
-  operatorLicenceLimit: number;
-  readonlyLicenceLimit: number;
+  orgAdminLicenceLimit: number;
+  generalManagerLicenceLimit: number;
+  departmentManagerLicenceLimit: number;
+  employeeLicenceLimit: number;
 
   monthlyRevenue: number;
   healthScore: number;

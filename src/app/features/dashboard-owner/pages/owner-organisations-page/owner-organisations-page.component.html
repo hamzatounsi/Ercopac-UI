@@ -34,11 +34,6 @@
       <small>across all orgs</small>
     </div>
 
-    <div class="kpi-card green">
-      <span>Warehouses</span>
-      <strong>{{ totalWarehouseLimit }}</strong>
-      <small>globally</small>
-    </div>
 
     <div class="kpi-card amber">
       <span>Monthly Revenue</span>
@@ -71,7 +66,6 @@
           <th>Organisation</th>
           <th>Country</th>
           <th>Plan</th>
-          <th>WHS</th>
           <th>Users</th>
           <th>MRR</th>
           <th>Licences</th>
@@ -98,13 +92,12 @@
             </span>
           </td>
 
-          <td class="num">{{ org.warehouseLimit }}</td>
           <td class="num">{{ org.userLimit }}</td>
           <td>€{{ org.monthlyRevenue }}</td>
 
           <td>
             <strong class="licence-total">{{ org.userLimit }} total</strong>
-            <span class="licence-meta">{{ org.warehouseLimit }} WHS · {{ org.userLimit }} users</span>
+            <span class="licence-meta">{{ org.userLimit }} users</span>
           </td>
 
           <td>
