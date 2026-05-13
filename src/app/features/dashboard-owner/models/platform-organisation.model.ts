@@ -7,14 +7,12 @@ export interface PlatformOrganisation {
   status: 'ACTIVE' | 'TRIAL' | 'SUSPENDED';
   plan: string;
 
-  warehouseLimit: number;
   userLimit: number;
 
-  adminLicenceLimit: number;
-  specialistLicenceLimit: number;
-  supervisorLicenceLimit: number;
-  operatorLicenceLimit: number;
-  readonlyLicenceLimit: number;
+  orgAdminLicenceLimit: number;
+  generalManagerLicenceLimit: number;
+  departmentManagerLicenceLimit: number;
+  employeeLicenceLimit: number;
 
   monthlyRevenue: number;
   healthScore: number;
@@ -41,5 +39,6 @@ export interface PlatformOrganisation {
   flagVipPriority: boolean;
   flagPilotFeatures: boolean;
   flagUnderReview: boolean;
+
   adminFullName?: string;
 }

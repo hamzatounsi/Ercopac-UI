@@ -66,10 +66,6 @@ export class OwnerOrganisationsPageComponent implements OnInit {
     return this.organisations.reduce((sum, org) => sum + org.userLimit, 0);
   }
 
-  get totalWarehouseLimit(): number {
-    return this.organisations.reduce((sum, org) => sum + org.warehouseLimit, 0);
-  }
-
   get totalMrr(): number {
     return this.organisations.reduce((sum, org) => sum + org.monthlyRevenue, 0);
   }

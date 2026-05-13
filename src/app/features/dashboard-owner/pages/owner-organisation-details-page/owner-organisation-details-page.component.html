@@ -100,11 +100,6 @@
         </label>
 
         <label>
-            <span>Warehouses</span>
-            <input type="number" [(ngModel)]="organisation.warehouseLimit" />
-        </label>
-
-        <label>
             <span>Total Users</span>
             <input type="number" [(ngModel)]="organisation.userLimit" />
         </label>
@@ -140,7 +135,7 @@
             <div class="plan-icon">🌱</div>
             <strong>Starter</strong>
             <span>€490/mo</span>
-            <small>1 WH · 10 ops</small>
+            <small>14 users</small>
           </button>
 
           <button
@@ -151,7 +146,7 @@
             <div class="plan-icon">🚀</div>
             <strong>Professional</strong>
             <span>€1,200/mo</span>
-            <small>4 WH · 50 ops</small>
+            <small>62 users</small>
           </button>
 
           <button
@@ -162,7 +157,7 @@
             <div class="plan-icon">🏆</div>
             <strong>Enterprise</strong>
             <span>Custom</span>
-            <small>Unlimited</small>
+            <small>237 users</small>
           </button>
         </div>
         <div class="form-grid billing-grid">
@@ -207,63 +202,52 @@
             </div>
 
             <div class="hint-box">
-            Enterprise defaults: 5 admin · 40 specialist · 8 supervisor · 150 operator · 15 readonly
+                Enterprise defaults: 2 org admins · 10 general managers · 25 department managers · 200 employees
             </div>
 
             <div class="licence-row">
-            <div class="licence-icon red">👑</div>
-            <div class="licence-copy">
-                <strong>Admin</strong>
-                <span>Full organisation management</span>
-            </div>
-            <button type="button" (click)="changeLicence('admin', -1)">-</button>
-            <input [value]="organisation.adminLicenceLimit" readonly />
-            <button type="button" (click)="changeLicence('admin', 1)">+</button>
-            </div>
+                <div class="licence-icon red">👑</div>
+                <div class="licence-copy">
+                    <strong>Organisation Admin</strong>
+                    <span>Organisation settings, users, and administration</span>
+                </div>
+                <button type="button" (click)="changeLicence('orgAdmin', -1)">-</button>
+                <input [value]="organisation.orgAdminLicenceLimit" readonly />
+                <button type="button" (click)="changeLicence('orgAdmin', 1)">+</button>
+                </div>
 
-            <div class="licence-row">
-            <div class="licence-icon blue">👨‍💼</div>
-            <div class="licence-copy">
-                <strong>Specialist</strong>
-                <span>All operational modules</span>
-            </div>
-            <button type="button" (click)="changeLicence('specialist', -1)">-</button>
-            <input [value]="organisation.specialistLicenceLimit" readonly />
-            <button type="button" (click)="changeLicence('specialist', 1)">+</button>
-            </div>
+                <div class="licence-row">
+                <div class="licence-icon blue">🧭</div>
+                <div class="licence-copy">
+                    <strong>General Manager</strong>
+                    <span>Portfolio, projects, planning, and organisation dashboard</span>
+                </div>
+                <button type="button" (click)="changeLicence('generalManager', -1)">-</button>
+                <input [value]="organisation.generalManagerLicenceLimit" readonly />
+                <button type="button" (click)="changeLicence('generalManager', 1)">+</button>
+                </div>
 
-            <div class="licence-row">
-            <div class="licence-icon gray">📋</div>
-            <div class="licence-copy">
-                <strong>Manager / Supervisor</strong>
-                <span>Labor & monitoring</span>
-            </div>
-            <button type="button" (click)="changeLicence('supervisor', -1)">-</button>
-            <input [value]="organisation.supervisorLicenceLimit" readonly />
-            <button type="button" (click)="changeLicence('supervisor', 1)">+</button>
-            </div>
+                <div class="licence-row">
+                <div class="licence-icon gray">📋</div>
+                <div class="licence-copy">
+                    <strong>Department Manager</strong>
+                    <span>Department resources, workload, holidays, and assignments</span>
+                </div>
+                <button type="button" (click)="changeLicence('departmentManager', -1)">-</button>
+                <input [value]="organisation.departmentManagerLicenceLimit" readonly />
+                <button type="button" (click)="changeLicence('departmentManager', 1)">+</button>
+                </div>
 
-            <div class="licence-row">
-            <div class="licence-icon amber">🦺</div>
-            <div class="licence-copy">
-                <strong>Operator</strong>
-                <span>Mobile task execution</span>
-            </div>
-            <button type="button" (click)="changeLicence('operator', -1)">-</button>
-            <input [value]="organisation.operatorLicenceLimit" readonly />
-            <button type="button" (click)="changeLicence('operator', 1)">+</button>
-            </div>
-
-            <div class="licence-row">
-            <div class="licence-icon gray">👁</div>
-            <div class="licence-copy">
-                <strong>Read Only</strong>
-                <span>View-only access</span>
-            </div>
-            <button type="button" (click)="changeLicence('readonly', -1)">-</button>
-            <input [value]="organisation.readonlyLicenceLimit" readonly />
-            <button type="button" (click)="changeLicence('readonly', 1)">+</button>
-            </div>
+                <div class="licence-row">
+                <div class="licence-icon amber">👷</div>
+                <div class="licence-copy">
+                    <strong>Employee</strong>
+                    <span>Assigned tasks, personal work, and execution updates</span>
+                </div>
+                <button type="button" (click)="changeLicence('employee', -1)">-</button>
+                <input [value]="organisation.employeeLicenceLimit" readonly />
+                <button type="button" (click)="changeLicence('employee', 1)">+</button>
+                </div>
         </section>
         </ng-container>
       <ng-container *ngIf="selectedSection === 'security'">

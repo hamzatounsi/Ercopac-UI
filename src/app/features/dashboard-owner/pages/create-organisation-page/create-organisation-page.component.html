@@ -60,19 +60,19 @@
         <button type="button" class="plan-card" [class.selected]="form.plan === 'STARTER'" (click)="selectPlan('STARTER')">
           <strong>Starter</strong>
           <span>€490/mo</span>
-          <small>1 WH · 10 users</small>
+          <small>14 users</small>
         </button>
 
         <button type="button" class="plan-card" [class.selected]="form.plan === 'PROFESSIONAL'" (click)="selectPlan('PROFESSIONAL')">
           <strong>Professional</strong>
           <span>€1,200/mo</span>
-          <small>4 WH · 50 users</small>
+          <small>62 users</small>
         </button>
 
         <button type="button" class="plan-card" [class.selected]="form.plan === 'ENTERPRISE'" (click)="selectPlan('ENTERPRISE')">
           <strong>Enterprise</strong>
           <span>€4,200/mo</span>
-          <small>8 WH · 218 users</small>
+          <small>237 users</small>
         </button>
       </div>
 
@@ -110,33 +110,28 @@
 
       <div class="form-grid">
         <label>
-          Admin Licences
-          <input type="number" [(ngModel)]="form.adminLicenceLimit" name="adminLicenceLimit" />
+          Organisation Admin Licences
+          <input type="number" [(ngModel)]="form.orgAdminLicenceLimit" name="orgAdminLicenceLimit" />
         </label>
 
         <label>
-          Specialist Licences
-          <input type="number" [(ngModel)]="form.specialistLicenceLimit" name="specialistLicenceLimit" />
+          General Manager Licences
+          <input type="number" [(ngModel)]="form.generalManagerLicenceLimit" name="generalManagerLicenceLimit" />
         </label>
 
         <label>
-          Supervisor Licences
-          <input type="number" [(ngModel)]="form.supervisorLicenceLimit" name="supervisorLicenceLimit" />
+          Department Manager Licences
+          <input type="number" [(ngModel)]="form.departmentManagerLicenceLimit" name="departmentManagerLicenceLimit" />
         </label>
 
         <label>
-          Operator Licences
-          <input type="number" [(ngModel)]="form.operatorLicenceLimit" name="operatorLicenceLimit" />
+          Employee Licences
+          <input type="number" [(ngModel)]="form.employeeLicenceLimit" name="employeeLicenceLimit" />
         </label>
 
         <label>
-          Readonly Licences
-          <input type="number" [(ngModel)]="form.readonlyLicenceLimit" name="readonlyLicenceLimit" />
-        </label>
-
-        <label>
-          Warehouse Limit
-          <input type="number" [(ngModel)]="form.warehouseLimit" name="warehouseLimit" />
+          Total Users
+          <input type="number" [(ngModel)]="form.userLimit" name="userLimit" />
         </label>
       </div>
 

@@ -37,10 +37,17 @@ export class GmResourceService {
     if (filters?.search) params = params.set('search', filters.search);
     if (filters?.departmentCode) params = params.set('departmentCode', filters.departmentCode);
     if (filters?.role) params = params.set('role', filters.role);
-    if (filters?.active !== undefined) params = params.set('active', filters.active);
-    if (filters?.internalUser !== undefined) params = params.set('internalUser', filters.internalUser);
-    params = params.set('page', filters?.page ?? 0);
-    params = params.set('size', filters?.size ?? 200);
+
+    if (filters?.active !== undefined) {
+      params = params.set('active', String(filters.active));
+    }
+
+    if (filters?.internalUser !== undefined) {
+      params = params.set('internalUser', String(filters.internalUser));
+    }
+
+    params = params.set('page', String(filters?.page ?? 0));
+    params = params.set('size', String(filters?.size ?? 200));
 
     return this.http.get<PageResponse<ResourceListItem>>(this.baseUrl, { params });
   }

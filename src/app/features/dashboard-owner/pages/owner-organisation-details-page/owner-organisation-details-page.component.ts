@@ -33,12 +33,6 @@ export class OwnerOrganisationDetailsPageComponent implements OnInit {
   vatNumber = '';
   paymentMethod = 'SEPA Direct Debit';
 
-  adminLicences = 1;
-  specialistLicences = 5;
-  supervisorLicences = 2;
-  operatorLicences = 10;
-  readonlyLicences = 5;
-
   internalNotes = '';
 
   flagAtRisk = false;
@@ -51,37 +45,32 @@ export class OwnerOrganisationDetailsPageComponent implements OnInit {
   get totalLicences(): number {
     if (!this.organisation) return 0;
 
-    return this.organisation.adminLicenceLimit +
-      this.organisation.specialistLicenceLimit +
-      this.organisation.supervisorLicenceLimit +
-      this.organisation.operatorLicenceLimit +
-      this.organisation.readonlyLicenceLimit;
+    return this.organisation.orgAdminLicenceLimit +
+      this.organisation.generalManagerLicenceLimit +
+      this.organisation.departmentManagerLicenceLimit +
+      this.organisation.employeeLicenceLimit;
   }
 
   changeLicence(
-    type: 'admin' | 'specialist' | 'supervisor' | 'operator' | 'readonly',
+    type: 'orgAdmin' | 'generalManager' | 'departmentManager' | 'employee',
     delta: number
   ): void {
     if (!this.organisation) return;
 
-    if (type === 'admin') {
-      this.organisation.adminLicenceLimit = Math.max(0, this.organisation.adminLicenceLimit + delta);
+    if (type === 'orgAdmin') {
+      this.organisation.orgAdminLicenceLimit = Math.max(0, this.organisation.orgAdminLicenceLimit + delta);
     }
 
-    if (type === 'specialist') {
-      this.organisation.specialistLicenceLimit = Math.max(0, this.organisation.specialistLicenceLimit + delta);
+    if (type === 'generalManager') {
+      this.organisation.generalManagerLicenceLimit = Math.max(0, this.organisation.generalManagerLicenceLimit + delta);
     }
 
-    if (type === 'supervisor') {
-      this.organisation.supervisorLicenceLimit = Math.max(0, this.organisation.supervisorLicenceLimit + delta);
+    if (type === 'departmentManager') {
+      this.organisation.departmentManagerLicenceLimit = Math.max(0, this.organisation.departmentManagerLicenceLimit + delta);
     }
 
-    if (type === 'operator') {
-      this.organisation.operatorLicenceLimit = Math.max(0, this.organisation.operatorLicenceLimit + delta);
-    }
-
-    if (type === 'readonly') {
-      this.organisation.readonlyLicenceLimit = Math.max(0, this.organisation.readonlyLicenceLimit + delta);
+    if (type === 'employee') {
+      this.organisation.employeeLicenceLimit = Math.max(0, this.organisation.employeeLicenceLimit + delta);
     }
   }
 
@@ -124,39 +113,33 @@ export class OwnerOrganisationDetailsPageComponent implements OnInit {
     this.organisation.plan = plan;
 
     if (plan === 'STARTER') {
-      this.organisation.warehouseLimit = 1;
-      this.organisation.userLimit = 10;
+      this.organisation.userLimit = 14;
       this.organisation.monthlyRevenue = 490;
 
-      this.organisation.adminLicenceLimit = 1;
-      this.organisation.specialistLicenceLimit = 5;
-      this.organisation.supervisorLicenceLimit = 2;
-      this.organisation.operatorLicenceLimit = 10;
-      this.organisation.readonlyLicenceLimit = 5;
+      this.organisation.orgAdminLicenceLimit = 1;
+      this.organisation.generalManagerLicenceLimit = 1;
+      this.organisation.departmentManagerLicenceLimit = 2;
+      this.organisation.employeeLicenceLimit = 10;
     }
 
     if (plan === 'PROFESSIONAL') {
-      this.organisation.warehouseLimit = 4;
-      this.organisation.userLimit = 50;
+      this.organisation.userLimit = 62;
       this.organisation.monthlyRevenue = 1200;
 
-      this.organisation.adminLicenceLimit = 2;
-      this.organisation.specialistLicenceLimit = 12;
-      this.organisation.supervisorLicenceLimit = 5;
-      this.organisation.operatorLicenceLimit = 40;
-      this.organisation.readonlyLicenceLimit = 10;
+      this.organisation.orgAdminLicenceLimit = 1;
+      this.organisation.generalManagerLicenceLimit = 3;
+      this.organisation.departmentManagerLicenceLimit = 8;
+      this.organisation.employeeLicenceLimit = 50;
     }
 
     if (plan === 'ENTERPRISE') {
-      this.organisation.warehouseLimit = 8;
-      this.organisation.userLimit = 218;
+      this.organisation.userLimit = 237;
       this.organisation.monthlyRevenue = 4200;
 
-      this.organisation.adminLicenceLimit = 5;
-      this.organisation.specialistLicenceLimit = 40;
-      this.organisation.supervisorLicenceLimit = 8;
-      this.organisation.operatorLicenceLimit = 150;
-      this.organisation.readonlyLicenceLimit = 15;
+      this.organisation.orgAdminLicenceLimit = 2;
+      this.organisation.generalManagerLicenceLimit = 10;
+      this.organisation.departmentManagerLicenceLimit = 25;
+      this.organisation.employeeLicenceLimit = 200;
     }
   }
 
@@ -189,14 +172,12 @@ export class OwnerOrganisationDetailsPageComponent implements OnInit {
       domain: this.organisation.domain,
       plan: this.organisation.plan,
 
-      warehouseLimit: this.organisation.warehouseLimit,
       userLimit: this.organisation.userLimit,
 
-      adminLicenceLimit: this.organisation.adminLicenceLimit,
-      specialistLicenceLimit: this.organisation.specialistLicenceLimit,
-      supervisorLicenceLimit: this.organisation.supervisorLicenceLimit,
-      operatorLicenceLimit: this.organisation.operatorLicenceLimit,
-      readonlyLicenceLimit: this.organisation.readonlyLicenceLimit,
+      orgAdminLicenceLimit: this.organisation.orgAdminLicenceLimit,
+      generalManagerLicenceLimit: this.organisation.generalManagerLicenceLimit,
+      departmentManagerLicenceLimit: this.organisation.departmentManagerLicenceLimit,
+      employeeLicenceLimit: this.organisation.employeeLicenceLimit,
 
       monthlyRevenue: this.organisation.monthlyRevenue,
       healthScore: this.organisation.healthScore,
