@@ -1,0 +1,86 @@
+/* Path: src/app/features/dashboard-crm/pages/crm-analytics-page/crm-analytics-page.component.scss */
+
+.crm-page { width: 100%; font-family: Inter, 'Segoe UI', sans-serif; }
+.crm-loading { padding: 60px; text-align: center; color: #94a3b8; }
+
+.page-header {
+  display: flex; align-items: flex-start;
+  justify-content: space-between; margin-bottom: 24px; gap: 12px;
+}
+.page-title { font-size: 22px; font-weight: 800; color: #1e293b; margin: 0 0 4px; }
+.page-sub   { font-size: 13px; color: #64748b; margin: 0; }
+.header-actions { display: flex; gap: 10px; flex-shrink: 0; }
+
+.kpi-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 16px; margin-bottom: 24px;
+}
+
+.kpi-card {
+  background: #fff; border: 1px solid #e5e7eb;
+  border-radius: 12px; padding: 20px 22px;
+}
+
+.kpi-label { font-size: 12px; color: #64748b; margin-bottom: 8px; }
+.kpi-value { font-size: 28px; font-weight: 800; color: #1e293b; margin-bottom: 6px; }
+.kpi-sub   { font-size: 12px; }
+.kpi-sub.green { color: #16a34a; }
+.kpi-sub.red   { color: #dc2626; }
+.kpi-sub.gray  { color: #94a3b8; }
+
+.analytics-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+}
+
+.analytics-card {
+  background: #fff; border: 1px solid #e5e7eb;
+  border-radius: 12px; padding: 20px;
+}
+
+.section-title { font-size: 15px; font-weight: 700; color: #1e293b; }
+
+.crm-table {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+
+  th {
+    padding: 8px 12px; text-align: left;
+    font-size: 11px; font-weight: 700; color: #64748b;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  td {
+    padding: 10px 12px; border-bottom: 1px solid #f9fafb;
+    color: #374151; vertical-align: middle;
+  }
+
+  tr:last-child td { border-bottom: none; }
+}
+
+.count-cell { font-weight: 600; color: #1e293b; }
+
+.stage-badge {
+  display: inline-block; padding: 3px 10px;
+  border-radius: 99px; font-size: 11px; font-weight: 600;
+}
+
+.bar-wrap {
+  width: 100px; height: 6px; background: #e2e8f0;
+  border-radius: 3px; overflow: hidden;
+}
+
+.bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s; }
+
+.btn-primary {
+  padding: 9px 20px; background: #3b82f6; color: #fff;
+  border: none; border-radius: 8px; font-size: 13px;
+  font-weight: 700; cursor: pointer; font-family: inherit;
+  &:hover { background: #2563eb; }
+}
+
+.btn-secondary {
+  padding: 9px 16px; background: #fff; color: #475569;
+  border: 1px solid #e2e8f0; border-radius: 8px;
+  font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
+  &:hover { background: #f8fafc; }
+}

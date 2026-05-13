@@ -7,7 +7,37 @@
 * {
   box-sizing: border-box;
 }
+/* Path: gm-project-schedule-page.component.scss
+   Find the dependency section and REPLACE with this */
 
+/* ── Dependencies ─────────────────────────────────────────── */
+.dependency-segment {
+  position: absolute;
+  pointer-events: none;
+  background: #64748b;
+  z-index: 6;
+}
+
+/* Horizontal: width set inline, height MUST be 2px */
+.dependency-segment.horizontal {
+  height: 2px !important;
+}
+
+/* Vertical: height set inline, width MUST be 2px */
+.dependency-segment.vertical {
+  width: 2px !important;
+}
+
+.dependency-arrow-head {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 7px solid #64748b;
+  z-index: 7;
+  pointer-events: none;
+}
 :host ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -472,6 +502,35 @@
 
 .accent-orange {
   color: #f97316 !important;
+}
+/* ADD to gm-project-schedule-page.component.scss */
+
+/* Resource search wrap — stacks search input above dropdown */
+.resource-search-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.resource-search-input {
+  width: 100%;
+  font-size: 12px;
+  padding: 4px 8px;
+  border: 1px solid var(--color-border-secondary);
+  border-radius: 4px;
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+  outline: none;
+
+  &:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  }
+
+  &::placeholder {
+    color: var(--color-text-tertiary);
+  }
 }
 
 /* =========================

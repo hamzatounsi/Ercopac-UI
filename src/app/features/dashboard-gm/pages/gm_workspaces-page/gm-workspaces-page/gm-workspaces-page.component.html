@@ -62,7 +62,18 @@
         </div>
         <div class="app-name">My Department</div>
       </button>
-
+   <button class="app-card live" type="button" (click)="openCrm()">
+        <div class="app-icon-wrap crm-bg">
+          <div class="tile-icon crm-icon">
+            <svg viewBox="0 0 64 64" class="icon-svg" aria-hidden="true">
+              <circle cx="24" cy="24" r="9" fill="#22c7b8"></circle>
+              <circle cx="41" cy="20" r="7" fill="#14a3ff"></circle>
+              <path d="M16 46c2-7 8-11 15-11 8 0 14 4 17 11" fill="#7b61ff"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="app-name">My CRM</div>
+      </button>
       <button *ngIf="canSeeAdmin()" class="app-card live" type="button" (click)="openAdmin()">
         <div class="app-icon-wrap admin-bg">
           <div class="tile-icon admin-icon">
@@ -110,18 +121,7 @@
         <div class="app-name">My Expenses</div>
       </button>
 
-      <button class="app-card" type="button" disabled>
-        <div class="app-icon-wrap crm-bg">
-          <div class="tile-icon crm-icon">
-            <svg viewBox="0 0 64 64" class="icon-svg" aria-hidden="true">
-              <circle cx="24" cy="24" r="9" fill="#22c7b8"></circle>
-              <circle cx="41" cy="20" r="7" fill="#14a3ff"></circle>
-              <path d="M16 46c2-7 8-11 15-11 8 0 14 4 17 11" fill="#7b61ff"></path>
-            </svg>
-          </div>
-        </div>
-        <div class="app-name">My CRM</div>
-      </button>
+   
 
       <button class="app-card" type="button" disabled>
         <div class="app-icon-wrap ticket-bg">

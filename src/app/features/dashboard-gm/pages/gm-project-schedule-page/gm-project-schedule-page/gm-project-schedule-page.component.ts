@@ -83,7 +83,11 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
 
   timelineDays: TimelineDay[] = [];
   dayWidth = 40;
-
+// ADD these two properties near the other resource properties:
+ 
+resourceSearchTerm = '';
+filteredResourceOptions: { id: number; fullName: string; departmentCode: string; resourceType: string }[] = [];
+ 
   readonly rowHeight = 28;
   readonly activityBarTop = 9;
   readonly activityBarHeight = 12;
@@ -104,10 +108,11 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
     summaries: 0,
     avgProgress: 0
   };
-
+resourceSearchResults: { id: number; fullName: string; resourceType: string; departmentCode: string }[] = [];
+showResourceDropdown = false;
   readonly taskTypes = ['ACTIVITY', 'SUMMARY', 'MILESTONE'];
-  readonly departmentCodes = ['PM', 'ME', 'CE', 'SW', 'PRC', 'MFC', 'QA', 'HSE', 'INST', 'FIN', 'CS'];
-  readonly resourceTypes = ['PM', 'ME', 'EE', 'PC', 'PLC', 'PRC', 'MFC.M', 'MFC.E', 'QA', 'HSE', 'INST', 'FIN', 'CS', 'MEC', 'ELECT', 'CUST'];
+ departmentCodes: string[] = [];
+  resourceTypes: string[] = [];
 
   settingsOpen = false;
   settingsTab: 'templates' | 'calendar' | 'baseline' = 'templates';
@@ -149,7 +154,7 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
     lagDays: 0
   };
 
-  resourceOptions: { id: number; fullName: string; departmentCode: string }[] = [];
+resourceOptions: { id: number; fullName: string; departmentCode: string; resourceType: string }[] = [];
 
   levelMenuOpen = false;
   deptMenuOpen = false;
@@ -238,6 +243,40 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
     }
   }
 
+onNewResourceTypeChange(resourceType: string): void {
+  this.newResource.resourceType = resourceType;
+  this.resourceSearchTerm = '';
+  this.newResource.assignedUserId = null;
+  this.newResource.assignmentName = '';
+  this.filterResources();
+}
+ 
+onResourceSearch(): void {
+  this.filterResources();
+}
+ private filterResources(): void {
+  let filtered = [...this.resourceOptions];
+
+  // Filter by resource type
+  const selectedType = (this.newResource.resourceType ?? '').toUpperCase();
+  if (selectedType) {
+    filtered = filtered.filter(u =>
+      (u.resourceType ?? '').toUpperCase() === selectedType
+    );
+  }
+
+  // Filter by search term
+  const term = (this.resourceSearchTerm ?? '').trim().toLowerCase();
+  if (term) {
+    filtered = filtered.filter(u =>
+      (u.fullName ?? '').toLowerCase().includes(term) ||
+      (u.resourceType ?? '').toLowerCase().includes(term)
+    );
+  }
+
+  this.filteredResourceOptions = filtered;
+}
+ 
   ngAfterViewInit(): void {}
 
   @HostListener('document:keydown', ['$event'])
@@ -365,31 +404,38 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
       color: task.color ?? '',
       assignedUserId: task.assignedUserId ?? null,
       resourceType: task.resourceType ?? ''
+      
     };
   }
+openTaskDrawer(task: GmProjectScheduleTask): void {
+  this.closeContextMenu();
+  this.selectedTask = task;
+  this.drawerOpen = true;
+  this.activeDetailTab = 'general';
+  this.taskForm.patchValue(this.toFormValue(task));
+  this.newDependency = { predecessorTaskId: null, dependencyType: 'FS', lagDays: 0 };
+  this.newResource = {
+    resourceType: task.resourceType || '',  // ← PRE-FILL from task
+    assignmentName: '',
+    quantity: 1,
+    unitsPercent: 100,
+    cost: 0,
+    assignedUserId: null
+  };
+  this.resourceSearchTerm = '';
+  this.filteredResourceOptions = [...this.resourceOptions];
 
-  openTaskDrawer(task: GmProjectScheduleTask): void {
-    this.closeContextMenu();
-    this.selectedTask = task;
-    this.drawerOpen = true;
-    this.activeDetailTab = 'general';
-    this.taskForm.patchValue(this.toFormValue(task));
-    this.newDependency = { predecessorTaskId: null, dependencyType: 'FS', lagDays: 0 };
-    this.newResource = {
-      resourceType: '',
-      assignmentName: '',
-      quantity: 1,
-      unitsPercent: 100,
-      cost: 0,
-      assignedUserId: null
-    };
-
-    if (this.selectedTemplateScope === 'selected' && !task) {
-      this.selectedTemplateScope = 'all';
-    }
-
-    this.loadTaskResources(task.id);
+  // Auto-filter by task's resource type
+  if (task.resourceType) {
+    this.filterResources();
   }
+
+  if (this.selectedTemplateScope === 'selected' && !task) {
+    this.selectedTemplateScope = 'all';
+  }
+
+  this.loadTaskResources(task.id);
+}
 
   closeDrawer(): void {
     this.drawerOpen = false;
@@ -503,12 +549,73 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
     this.closeContextMenu();
   }
 
-  indentTaskFromContext(): void {
-    if (!this.contextMenuTask) return;
-    this.selectedTask = this.contextMenuTask;
-    this.indentTask();
-    this.closeContextMenu();
-  }
+  indentTask(): void {
+  if (!this.selectedTask) return;
+  const index = this.tasks.findIndex(t => t.id === this.selectedTask!.id);
+  if (index <= 0) return;
+ 
+  const current  = this.tasks[index];
+  const previous = this.tasks[index - 1];
+ 
+  const currentLevel  = this.getWbsLevel(current);
+  const previousLevel = this.getWbsLevel(previous);
+ 
+  // Can only indent one level under the previous task
+  if (currentLevel > previousLevel) return;
+ 
+  this.pushHistory();
+ 
+  // Set real parentId
+  current.parentId     = previous.id;
+  current.outlineLevel = previousLevel + 1;
+ 
+  // Also move all subtree children
+  const subtree = this.getSubtree(current).filter(t => t.id !== current.id);
+  subtree.forEach(t => {
+    t.outlineLevel = (t.outlineLevel ?? 1) + 1;
+  });
+ 
+  this.recalculateWbsCodes();
+  this.recalculateDisplayOrders();
+  this.recalculateSummaryDates();
+  this.persistScheduleStructure();
+  this.syncSelectedTaskReference();
+}
+ 
+outdentTask(): void {
+  if (!this.selectedTask) return;
+  const current = this.tasks.find(t => t.id === this.selectedTask!.id);
+  if (!current || this.getWbsLevel(current) <= 1) return;
+ 
+  this.pushHistory();
+ 
+  // Find current parent to get grandparent
+  const currentParent = current.parentId
+    ? this.tasks.find(t => t.id === current.parentId)
+    : null;
+ 
+  // Set parentId to grandparent (or null if going to root)
+  current.parentId     = currentParent?.parentId ?? null;
+  current.outlineLevel = Math.max(1, (current.outlineLevel ?? 1) - 1);
+ 
+  // Move subtree children too
+  const subtree = this.getSubtree(current).filter(t => t.id !== current.id);
+  subtree.forEach(t => {
+    t.outlineLevel = Math.max(1, (t.outlineLevel ?? 1) - 1);
+  });
+ 
+  this.recalculateWbsCodes();
+  this.recalculateDisplayOrders();
+  this.recalculateSummaryDates();
+  this.persistScheduleStructure();
+  this.syncSelectedTaskReference();
+}
+ indentTaskFromContext(): void {
+  if (!this.contextMenuTask) return;
+  this.selectedTask = this.contextMenuTask;
+  this.indentTask();
+  this.closeContextMenu();
+}
 
   outdentTaskFromContext(): void {
     if (!this.contextMenuTask) return;
@@ -546,62 +653,207 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
     });
   }
 
-  copyTaskBelowContext(): void {
-    if (!this.contextMenuTask) return;
+copyTaskBelowContext(): void {
+  if (!this.contextMenuTask) return;
+ 
+  const source = this.contextMenuTask;
+  this.closeContextMenu();
+ 
+  // Call the dedicated copy endpoint — copies full subtree with hierarchy
+  this.service.copyTaskBelow(this.projectId, source.id).subscribe({
+    next: (created) => {
+      this.loadSchedule();
+      setTimeout(() => {
+        const savedCopy = this.tasks.find(t => t.id === created.id) ?? created;
+        this.selectedTask = savedCopy;
+        this.openTaskDrawer(savedCopy);
+      }, 300);
+    },
+    error: (err) => {
+      console.error('Failed to copy task below', err);
+      alert('Failed to copy task below');
+    }
+  });
+}
+ 
 
-    const source = this.contextMenuTask;
 
-    this.pushHistory();
 
-    const payload = {
-      name: `${source.name || 'Task'} Copy`,
-      description: source.description || '',
-      durationDays: source.durationDays ?? 1,
 
-      baselineStart: source.baselineStart || undefined,
-      baselineEnd: source.baselineEnd || undefined,
 
-      plannedStart: source.plannedStart || this.getTodayDateString(),
-      plannedEnd: source.plannedEnd || source.plannedStart || this.getTodayDateString(),
 
-      actualStart: source.actualStart || undefined,
-      actualEnd: source.actualEnd || undefined,
 
-      percentComplete: source.percentComplete ?? 0,
-      allocationPercent: source.allocationPercent ?? 100,
-      priority: source.priority ?? 500,
 
-      taskType: source.taskType || 'ACTIVITY',
-      wbsCode: source.wbsCode || '',
-      departmentCode: source.departmentCode || '',
-      resourceType: source.resourceType || undefined,
 
-      active: source.active ?? true,
-      customerMilestone: source.customerMilestone ?? false,
-      scheduleMode: source.scheduleMode || 'AUTO',
-      status: source.status || undefined,
-      color: source.color || undefined,
-      assignedUserId: source.assignedUserId ?? undefined
-    };
 
-    this.service.insertTaskBelow(this.projectId, source.id, payload).subscribe({
-      next: (created) => {
-        this.closeContextMenu();
 
-        this.loadSchedule();
 
-        setTimeout(() => {
-          const savedCopy = this.tasks.find(t => t.id === created.id) ?? created;
-          this.selectedTask = savedCopy;
-          this.openTaskDrawer(savedCopy);
-        }, 300);
-      },
-      error: (err) => {
-        console.error('Failed to copy task below', err);
-        alert('Failed to copy task below');
-      }
-    });
-  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   deleteTaskFromContext(): void {
     if (!this.contextMenuTask) return;
@@ -1021,88 +1273,26 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
     return this.tasks.filter(t => t.id === task.id || this.isDescendantOf(t, task));
   }
 
-  indentTask(): void {
-    if (!this.selectedTask) return;
 
-    const index = this.tasks.findIndex(t => t.id === this.selectedTask!.id);
-    if (index <= 0) return;
-
-    const current = this.tasks[index];
-    const previous = this.tasks[index - 1];
-
-    const currentLevel = this.getTaskLevel(current);
-    const previousLevel = this.getTaskLevel(previous);
-
-    // cannot indent more than one level under previous row
-    if (currentLevel > previousLevel) return;
-
-    this.pushHistory();
-
-    const subtree = this.getSubtree(current);
-    subtree.forEach(t => {
-      const level = this.getTaskLevel(t);
-      const parts = t.wbsCode?.split('.') ?? ['1'];
-      parts.splice(currentLevel - 1, 0, '1');
-      t.wbsCode = parts.join('.');
-    });
-
-    this.recalculateWbsCodes();
-    this.recalculateDisplayOrders();
-    this.recalculateSummaryDates();
-
-    this.persistScheduleStructure();
-    this.syncSelectedTaskReference();
-  }
-
-  outdentTask(): void {
-    if (!this.selectedTask?.wbsCode) return;
-
-    const current = this.tasks.find(t => t.id === this.selectedTask!.id);
-    if (!current || this.getTaskLevel(current) <= 1) return;
-
-    this.pushHistory();
-
-    const currentLevel = this.getTaskLevel(current);
-    const subtree = this.getSubtree(current);
-
-    subtree.forEach(t => {
-      const parts = t.wbsCode?.split('.') ?? [];
-      if (parts.length >= currentLevel) {
-        parts.splice(currentLevel - 2, 1);
-        t.wbsCode = parts.join('.');
-      }
-    });
-
-    this.recalculateWbsCodes();
-    this.recalculateDisplayOrders();
-    this.recalculateSummaryDates();
-
-    this.persistScheduleStructure();
-    this.syncSelectedTaskReference();
-  }
-
-  private recalculateWbsCodes(): void {
-  const counters: number[] = [];
-
-  this.tasks.forEach(task => {
-    let level = this.getTaskLevel(task);
-
-    if (this.isSummary(task) && level === 1) {
-      counters[0] = (counters[0] || 0) + 1;
-      counters.length = 1;
-      task.wbsCode = String(counters[0]);
-      return;
+   
+private recalculateWbsCodes(): void {
+  // Use parentId tree — much more reliable than string parsing
+  const counters = new Map<string, number>();
+ 
+  for (const task of this.tasks) {
+    const parentKey = task.parentId != null ? String(task.parentId) : 'root';
+    const count = (counters.get(parentKey) ?? 0) + 1;
+    counters.set(parentKey, count);
+ 
+    if (task.parentId == null) {
+      task.wbsCode     = String(count);
+      task.outlineLevel = 1;
+    } else {
+      const parent = this.tasks.find(t => t.id === task.parentId);
+      task.wbsCode     = parent?.wbsCode ? `${parent.wbsCode}.${count}` : String(count);
+      task.outlineLevel = (task.wbsCode?.split('.').length) ?? 1;
     }
-
-    if (level === 1 && counters[0]) {
-      level = 2;
-    }
-
-    counters[level - 1] = (counters[level - 1] || 0) + 1;
-    counters.length = level;
-
-    task.wbsCode = counters.join('.');
-  });
+  }
 }
 
   private recalculateDisplayOrders(): void {
@@ -1831,73 +2021,88 @@ getRowId(task?: GmProjectScheduleTask | null): string {
       error: (err) => console.error('Failed to update dependency', err)
     });
   }
-
-  getDependencyArrows(): DependencyArrow[] {
-    const arrows: DependencyArrow[] = [];
-    if (!this.tasks.length) return arrows;
-
-    const taskIndexMap = new Map<number, number>();
-    const visible = this.visibleTasks;
-    visible.forEach((task, index) => taskIndexMap.set(task.id, index));
-
-    for (const successor of visible) {
-      const successorIndex = taskIndexMap.get(successor.id);
-      if (successorIndex == null || !successor.dependencies?.length) continue;
-
-      for (const dep of successor.dependencies) {
-        const predecessorIndex = taskIndexMap.get(dep.predecessorTaskId);
-        if (predecessorIndex == null) continue;
-
-        const predecessor = visible[predecessorIndex];
-        const depType = (dep.dependencyType || 'FS').toUpperCase();
-
-        const startX = this.getDependencyStartX(predecessor, depType);
-        const endX = this.getDependencyEndX(successor, depType);
-        const startY = this.getTaskAnchorY(predecessor, predecessorIndex);
-        const endY = this.getTaskAnchorY(successor, successorIndex);
-
-        const goingRight = endX >= startX;
-        const elbowOffset = goingRight ? 18 : 26;
-        const elbowX = goingRight ? startX + elbowOffset : startX + 18;
-
-        const segments: DependencySegment[] = [];
-
-        segments.push({
-          direction: 'h',
-          left: Math.min(startX, elbowX),
-          top: startY,
-          width: Math.max(8, Math.abs(elbowX - startX)),
-          height: 0
-        });
-
-        if (Math.abs(endY - startY) > 0) {
-          segments.push({
-            direction: 'v',
-            left: elbowX,
-            top: Math.min(startY, endY),
-            width: 0,
-            height: Math.abs(endY - startY)
-          });
-        }
-
-        segments.push({
-          direction: 'h',
-          left: Math.min(elbowX, endX),
-          top: endY,
-          width: Math.max(8, Math.abs(endX - elbowX)),
-          height: 0
-        });
-
-        arrows.push({
-          segments,
-          arrowLeft: endX - 5,
-          arrowTop: endY - 4
+getDependencyArrows(): DependencyArrow[] {
+  const arrows: DependencyArrow[] = [];
+  if (!this.tasks.length || !this.timelineDays.length) return arrows;
+ 
+  const visible = this.visibleTasks;
+  const indexMap = new Map<number, number>();
+  visible.forEach((t, i) => indexMap.set(t.id, i));
+  const timelineWidth = this.getTimelineWidth();
+ 
+  for (const successor of visible) {
+    const si = indexMap.get(successor.id);
+    if (si == null || !successor.dependencies?.length) continue;
+ 
+    if (!successor.plannedStart && !successor.plannedEnd) continue;
+ 
+    for (const dep of successor.dependencies) {
+      const pi = indexMap.get(dep.predecessorTaskId);
+      if (pi == null) continue;
+ 
+      const predecessor = visible[pi];
+      if (!predecessor.plannedStart && !predecessor.plannedEnd) continue;
+ 
+      const type = (dep.dependencyType || 'FS').toUpperCase();
+ 
+      const startX = (type === 'SS' || type === 'SF')
+        ? this.getTaskStartX(predecessor)
+        : this.getTaskEndX(predecessor);
+ 
+      const endX = (type === 'FF' || type === 'SF')
+        ? this.getTaskEndX(successor)
+        : this.getTaskStartX(successor);
+ 
+      // Skip off-screen
+      if (startX > timelineWidth && endX > timelineWidth) continue;
+      if (startX <= 0 && endX <= 0) continue;
+ 
+      const startY = this.getTaskAnchorY(predecessor, pi);
+      const endY   = this.getTaskAnchorY(successor, si);
+      const rawElbow = startX + 18;
+      const elbowX   = Math.min(rawElbow, timelineWidth - 4);
+      const vertH    = Math.abs(endY - startY);
+ 
+      const segs: DependencySegment[] = [];
+ 
+      // H1: horizontal predecessor → elbow
+      segs.push({
+        direction: 'h',
+        left:   Math.min(startX, elbowX),
+        top:    startY,
+        width:  Math.max(4, Math.abs(elbowX - startX)),
+        height: 2                           // ← KEY FIX: was 0
+      });
+ 
+      // V: vertical
+      if (vertH > 1) {
+        segs.push({
+          direction: 'v',
+          left:   elbowX,
+          top:    Math.min(startY, endY),
+          width:  2,                        // ← KEY FIX: was 0
+          height: vertH
         });
       }
+ 
+      // H2: horizontal elbow → successor
+      segs.push({
+        direction: 'h',
+        left:   Math.min(elbowX, endX),
+        top:    endY,
+        width:  Math.max(4, Math.abs(endX - elbowX)),
+        height: 2                           // ← KEY FIX: was 0
+      });
+ 
+      arrows.push({
+        segments: segs,
+        arrowLeft: endX - 5,
+        arrowTop:  endY - 5
+      });
     }
-
-    return arrows;
   }
+  return arrows;
+}
 
   private getTaskVisualTop(task: GmProjectScheduleTask): number {
   if (this.isMilestone(task)) return 11;
@@ -2207,6 +2412,7 @@ getRowId(task?: GmProjectScheduleTask | null): string {
 
     return total;
   }
+  
 
   // ---------------- Stats / date helpers ----------------
 
@@ -2248,6 +2454,7 @@ getRowId(task?: GmProjectScheduleTask | null): string {
     const d = new Date(value);
     return new Date(d.getFullYear(), d.getMonth(), d.getDate());
   }
+  
 
   private getWeekNumber(date: Date): number {
     const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
@@ -2480,33 +2687,37 @@ getRowId(task?: GmProjectScheduleTask | null): string {
     return Math.max(1, task.durationDays ?? 1);
   }
 
-  private buildTaskUpdatePayload(task: GmProjectScheduleTask): GmUpdateProjectTaskRequest {
-    return {
-      name: task.name ?? '',
-      description: task.description ?? '',
-      durationDays: task.durationDays ?? 0,
-      baselineStart: task.baselineStart ?? undefined,
-      baselineEnd: task.baselineEnd ?? undefined,
-      plannedStart: task.plannedStart ?? undefined,
-      plannedEnd: task.plannedEnd ?? undefined,
-      actualStart: task.actualStart ?? undefined,
-      actualEnd: task.actualEnd ?? undefined,
-      percentComplete: task.percentComplete ?? 0,
-      allocationPercent: task.allocationPercent ?? undefined,
-      priority: task.priority ?? 0,
-      taskType: task.taskType ?? 'ACTIVITY',
-      wbsCode: task.wbsCode ?? '',
-      departmentCode: task.departmentCode ?? '',
-      resourceType: task.resourceType ?? undefined,
-      active: task.active ?? true,
-      displayOrder: task.displayOrder ?? 0,
-      customerMilestone: task.customerMilestone ?? false,
-      scheduleMode: task.scheduleMode ?? 'AUTO',
-      status: task.status ?? undefined,
-      color: task.color ?? undefined,
-      assignedUserId: task.assignedUserId ?? undefined
-    };
-  }
+ 
+private buildTaskUpdatePayload(task: GmProjectScheduleTask): GmUpdateProjectTaskRequest {
+  return {
+    parentId:          task.parentId ?? null,      // ← NEW
+    name:              task.name ?? '',
+    description:       task.description ?? '',
+    durationDays:      task.durationDays ?? 0,
+    baselineStart:     task.baselineStart ?? undefined,
+    baselineEnd:       task.baselineEnd ?? undefined,
+    plannedStart:      task.plannedStart ?? undefined,
+    plannedEnd:        task.plannedEnd ?? undefined,
+    actualStart:       task.actualStart ?? undefined,
+    actualEnd:         task.actualEnd ?? undefined,
+    percentComplete:   task.percentComplete ?? 0,
+    allocationPercent: task.allocationPercent ?? undefined,
+    priority:          task.priority ?? 0,
+    taskType:          task.taskType ?? 'ACTIVITY',
+    wbsCode:           task.wbsCode ?? '',
+    departmentCode:    task.departmentCode ?? '',
+    resourceType:      task.resourceType ?? undefined,
+    active:            task.active ?? true,
+    displayOrder:      task.displayOrder ?? 0,
+    outlineLevel:      task.outlineLevel ?? 1,     // ← NEW
+    customerMilestone: task.customerMilestone ?? false,
+    scheduleMode:      task.scheduleMode ?? 'AUTO',
+    status:            task.status ?? undefined,
+    color:             task.color ?? undefined,
+    assignedUserId:    task.assignedUserId ?? undefined
+  };
+}
+ 
 
   private recalculateTaskFromPredecessors(task: GmProjectScheduleTask): boolean {
     const deps = (task.dependencies ?? []).filter(dep => !!dep.predecessorTaskId);
@@ -2966,19 +3177,79 @@ getAssignableResources(projectId: number): Observable<{ id: number; fullName: st
     observer.complete();
   });
 }
-
 loadResourceOptions(): void {
-  this.resourceOptions = [];
+  this.service.getResourceUsers(this.projectId).subscribe({
+    next: (users) => {
+      this.resourceOptions = users.map(u => ({
+        id: u.id,
+        fullName: u.fullName,
+        resourceType: u.resourceType || '',
+        departmentCode: u.departmentCode || ''
+      }));
+      this.filteredResourceOptions = [...this.resourceOptions];
+
+      // Dynamic resource types from users
+      this.resourceTypes = [...new Set(
+        this.resourceOptions.map(u => u.resourceType).filter(rt => !!rt)
+      )].sort();
+
+      // Dynamic department codes from users
+      this.departmentCodes = [...new Set(
+        this.resourceOptions.map(u => u.departmentCode).filter(d => !!d)
+      )].sort();
+    },
+    error: (err) => {
+      console.error('Could not load resource users', err);
+      this.resourceOptions = [];
+      this.filteredResourceOptions = [];
+    }
+  });
+}
+onResourceSearchInput(): void {
+  const term = (this.resourceSearchTerm ?? '').trim().toLowerCase();
+  if (!term) {
+    this.resourceSearchResults = [];
+    this.showResourceDropdown = false;
+    return;
+  }
+
+  let filtered = [...this.resourceOptions];
+
+  // Filter by selected resource type if any
+  const selectedType = (this.newResource.resourceType ?? '').trim().toUpperCase();
+  if (selectedType) {
+    filtered = filtered.filter(u =>
+      (u.resourceType ?? '').toUpperCase() === selectedType
+    );
+  }
+
+  // Filter by search term
+  this.resourceSearchResults = filtered.filter(u =>
+    (u.fullName ?? '').toLowerCase().includes(term) ||
+    (u.resourceType ?? '').toLowerCase().includes(term)
+  );
+
+  this.showResourceDropdown = this.resourceSearchResults.length > 0;
 }
 
+selectResourceFromSearch(user: { id: number; fullName: string; resourceType: string; departmentCode: string }): void {
+  this.newResource.assignedUserId = user.id;
+  this.newResource.assignmentName = user.fullName;
+  if (!this.newResource.resourceType) {
+    this.newResource.resourceType = user.resourceType;
+  }
+  this.resourceSearchTerm = user.fullName;
+  this.showResourceDropdown = false;
+  this.resourceSearchResults = [];
+}
 onNewResourceUserChange(userId: number | null): void {
   const user = this.resourceOptions.find(r => r.id === userId);
-
   this.newResource.assignedUserId = userId;
-
   if (user) {
     this.newResource.assignmentName = user.fullName;
-    this.newResource.resourceType = user.departmentCode;
+    if (!this.newResource.resourceType) {
+      this.newResource.resourceType = user.resourceType;
+    }
   }
 }
 
@@ -3010,5 +3281,6 @@ setDetailTab(tab: 'general' | 'predecessors' | 'resources' | 'history'): void {
 
 formatHistoryDate(value?: string | null): string {
   return value ? new Date(value).toLocaleString() : '—';
+  
 }
 }

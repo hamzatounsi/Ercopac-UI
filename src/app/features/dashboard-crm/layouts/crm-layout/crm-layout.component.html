@@ -1,0 +1,78 @@
+<!-- Path: src/app/features/dashboard-crm/layouts/crm-layout/crm-layout.component.html -->
+
+<div class="crm-shell">
+
+  <!-- LEFT SIDEBAR -->
+  <aside class="crm-sidebar">
+
+    <div class="crm-brand">
+      <span class="crm-brand-icon">📊</span>
+      <span class="crm-brand-name">Projectum CRM</span>
+    </div>
+
+    <div class="crm-nav-section">
+      <div class="crm-nav-label">MAIN</div>
+      <a class="crm-nav-item"
+         *ngFor="let item of navItems.slice(0, 4)"
+         [routerLink]="item.route"
+         routerLinkActive="active">
+        <span class="material-symbols-outlined nav-icon">{{ item.icon }}</span>
+        <span class="nav-label">{{ item.label }}</span>
+        <span class="nav-badge" *ngIf="item.key === 'leads' && leadCount > 0">
+          {{ leadCount }}
+        </span>
+      </a>
+    </div>
+
+    <div class="crm-nav-section">
+      <div class="crm-nav-label">INSIGHTS</div>
+      <a class="crm-nav-item"
+         [routerLink]="navItems[4].route"
+         routerLinkActive="active">
+        <span class="material-symbols-outlined nav-icon">{{ navItems[4].icon }}</span>
+        <span class="nav-label">{{ navItems[4].label }}</span>
+      </a>
+    </div>
+
+    <div class="crm-nav-section">
+      <div class="crm-nav-label">CONFIGURATION</div>
+      <a class="crm-nav-item"
+         [routerLink]="navItems[5].route"
+         routerLinkActive="active">
+        <span class="material-symbols-outlined nav-icon">{{ navItems[5].icon }}</span>
+        <span class="nav-label">{{ navItems[5].label }}</span>
+      </a>
+    </div>
+
+    <div class="crm-sidebar-footer">
+      <div class="crm-org-block">
+        <div class="crm-org-avatar">P</div>
+        <div class="crm-org-info">
+          <div class="crm-org-name">Ercopac</div>
+          <div class="crm-org-plan">Professional plan</div>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="crm-main">
+
+    <header class="crm-topbar">
+      <div class="crm-search-wrap">
+        <span class="material-symbols-outlined search-icon">search</span>
+        <input class="crm-search" placeholder="Search records..." />
+      </div>
+      <div class="crm-topbar-right">
+        <button class="back-btn" (click)="goBack()">← Back to Projectum</button>
+        <div class="crm-user-avatar">AM</div>
+      </div>
+    </header>
+
+    <main class="crm-content">
+      <router-outlet></router-outlet>
+    </main>
+
+  </div>
+</div>
