@@ -25,6 +25,8 @@ import { ProjectCalendar } from '../../../models/project-calendar.model';
 import { GmProjectTemplateService } from '../../../services/gm-project-template.service';
 import { ProjectTemplate } from '../../../models/project-template.model';
 import { ProjectTaskHistory } from '../../../models/project-task-history.model';
+import { TaskConsoleConfig } from '../../../models/task-console-config.model';
+import { TaskConsoleLog } from '../../../models/task-console-log.model';
 
 export interface TimelineDay {
   label: string;
@@ -78,7 +80,7 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
   selectedTask: GmProjectScheduleTask | null = null;
 
   drawerOpen = false;
-  activeDetailTab: 'general' | 'predecessors' | 'resources' | 'history' = 'general';
+  activeDetailTab: 'general' | 'predecessors' | 'resources' | 'history' | 'console' = 'general';
   taskForm!: FormGroup;
 
   timelineDays: TimelineDay[] = [];
@@ -213,6 +215,10 @@ resourceOptions: { id: number; fullName: string; departmentCode: string; resourc
     assignedUserId: null
   };
 
+  consoleConfig: TaskConsoleConfig | null = null;
+  consoleLogs: TaskConsoleLog[] = [];
+  consoleLoading = false;
+
   // Context menu
   contextMenuOpen = false;
   contextMenuX = 0;
@@ -245,7 +251,6 @@ resourceOptions: { id: number; fullName: string; departmentCode: string; resourc
 
 onNewResourceTypeChange(resourceType: string): void {
   this.newResource.resourceType = resourceType;
-  this.resourceSearchTerm = '';
   this.newResource.assignedUserId = null;
   this.newResource.assignmentName = '';
   this.filterResources();
@@ -1057,36 +1062,6 @@ copyTaskBelowContext(): void {
     (task as any)[field] = value;
   }
 
-  saveInlineTask(task: GmProjectScheduleTask): void {
-    this.pushHistory();
-
-    const payload = this.buildTaskUpdatePayload(task);
-
-    this.service.updateTask(this.projectId, task.id, payload).pipe(
-      switchMap((updated) => {
-        const index = this.tasks.findIndex(t => t.id === task.id);
-        if (index !== -1) {
-          this.tasks[index] = { ...this.tasks[index], ...updated };
-          task = this.tasks[index];
-        }
-
-        const shiftedTaskIds = this.applyDependencyCascadeFromTask(task.id);
-        return this.persistShiftedTasks(shiftedTaskIds);
-      })
-    ).subscribe({
-      next: () => {
-        this.computeStats();
-        this.buildTimeline();
-        this.syncSelectedTaskReference();
-        this.editedRows[task.id] = {};
-      },
-      error: err => {
-        console.error('Failed to update inline task cascade', err);
-        this.loadSchedule();
-      }
-    });
-  }
-
   saveTask(): void {
     if (!this.selectedTask || this.taskForm.invalid) {
       this.taskForm.markAllAsTouched();
@@ -1094,70 +1069,106 @@ copyTaskBelowContext(): void {
     }
 
     const value = this.taskForm.value;
-    if (this.selectedTask) {
-      Object.assign(this.selectedTask, value);
-    }
 
     if (value.plannedStart && value.plannedEnd && value.plannedEnd < value.plannedStart) return;
     if (value.baselineStart && value.baselineEnd && value.baselineEnd < value.baselineStart) return;
     if (value.actualStart && value.actualEnd && value.actualEnd < value.actualStart) return;
 
+    Object.assign(this.selectedTask, value);
+
     this.pushHistory();
     this.saving = true;
 
-    const payload: GmUpdateProjectTaskRequest = {
-      name: value.name ?? '',
-      description: value.description ?? '',
-      durationDays: value.durationDays ?? 0,
-      baselineStart: value.baselineStart || undefined,
-      baselineEnd: value.baselineEnd || undefined,
-      plannedStart: value.plannedStart || undefined,
-      plannedEnd: value.plannedEnd || undefined,
-      actualStart: value.actualStart || undefined,
-      actualEnd: value.actualEnd || undefined,
-      percentComplete: value.percentComplete ?? 0,
-      allocationPercent: value.allocationPercent ?? undefined,
-      priority: value.priority ?? 0,
-      taskType: value.taskType ?? 'ACTIVITY',
-      wbsCode: value.wbsCode ?? '',
-      departmentCode: value.departmentCode ?? '',
-      resourceType: value.resourceType ?? undefined,
-      active: value.active ?? true,
-      displayOrder: value.displayOrder ?? 0,
-      customerMilestone: value.customerMilestone ?? false,
-      scheduleMode: value.scheduleMode ?? 'AUTO',
-      status: value.status || undefined,
-      color: value.color || undefined,
-      assignedUserId: value.assignedUserId ?? undefined
-    };
+    const payload = this.buildTaskUpdatePayload(this.selectedTask);
 
-    this.service.updateTask(this.projectId, this.selectedTask.id, payload).pipe(
-      switchMap((updated) => {
+    this.service.updateTask(this.projectId, this.selectedTask.id, payload).subscribe({
+      next: (updated) => {
         const index = this.tasks.findIndex(t => t.id === this.selectedTask!.id);
+
         if (index !== -1) {
           this.tasks[index] = { ...this.tasks[index], ...updated };
           this.selectedTask = this.tasks[index];
         }
 
-        const shiftedTaskIds = this.applyDependencyCascadeFromTask(this.selectedTask!.id);
-        return this.persistShiftedTasks(shiftedTaskIds);
-      })
-    ).subscribe({
-      next: () => {
         this.saving = false;
         this.computeStats();
         this.buildTimeline();
         this.syncSelectedTaskReference();
+
         this.loadSchedule();
       },
       error: (err) => {
-        console.error('Failed to update task with dependency cascade', err);
+        console.error('Failed to update task', err);
         this.saving = false;
         this.loadSchedule();
       }
     });
   }
 
+  saveInlineTask(task: GmProjectScheduleTask): void {
+    this.pushHistory();
+
+    const payload = this.buildTaskUpdatePayload(task);
+
+    this.service.updateTask(this.projectId, task.id, payload).subscribe({
+      next: (updated) => {
+        const index = this.tasks.findIndex(t => t.id === task.id);
+
+        if (index !== -1) {
+          this.tasks[index] = { ...this.tasks[index], ...updated };
+        }
+
+        this.computeStats();
+        this.buildTimeline();
+        this.syncSelectedTaskReference();
+        this.editedRows[task.id] = {};
+
+        this.loadSchedule();
+      },
+      error: err => {
+        console.error('Failed to update inline task', err);
+        this.loadSchedule();
+      }
+    });
+  }
+
+  private saveDraggedTask(task: GmProjectScheduleTask): void {
+    task.plannedStart = this.normalizeDateString(task.plannedStart) ?? undefined;
+    task.plannedEnd = this.normalizeDateString(task.plannedEnd) ?? undefined;
+
+    if (!task.plannedStart || !task.plannedEnd) return;
+
+    const start = this.toDateOnly(task.plannedStart);
+    const end = this.toDateOnly(task.plannedEnd);
+
+    task.durationDays = this.isMilestone(task)
+      ? 0
+      : Math.max(1, Math.floor((end.getTime() - start.getTime()) / 86400000) + 1);
+
+    const payload = this.buildTaskUpdatePayload(task);
+
+    this.service.updateTask(this.projectId, task.id, payload).subscribe({
+      next: (updated) => {
+        const index = this.tasks.findIndex(t => t.id === task.id);
+
+        if (index !== -1) {
+          this.tasks[index] = { ...this.tasks[index], ...updated };
+        }
+
+        this.computeStats();
+        this.buildTimeline();
+        this.syncSelectedTaskReference();
+
+        this.loadSchedule();
+      },
+      error: (err) => {
+        console.error('Failed to save dragged task', err);
+        this.loadSchedule();
+      }
+    });
+  }
+  
+ 
   // ---------------- History ----------------
 
   private pushHistory(): void {
@@ -1924,54 +1935,6 @@ getRowId(task?: GmProjectScheduleTask | null): string {
     window.addEventListener('mouseup', onMouseUp);
   }
 
-  private saveDraggedTask(task: GmProjectScheduleTask): void {
-  task.plannedStart = this.normalizeDateString(task.plannedStart) ?? undefined;
-  task.plannedEnd = this.normalizeDateString(task.plannedEnd) ?? undefined;
-
-  if (!task.plannedStart || !task.plannedEnd) return;
-
-  const start = this.toDateOnly(task.plannedStart);
-  const end = this.toDateOnly(task.plannedEnd);
-
-  task.durationDays = this.isMilestone(task)
-    ? 0
-    : Math.max(1, Math.floor((end.getTime() - start.getTime()) / 86400000) + 1);
-
-  const payload = this.buildTaskUpdatePayload(task);
-
-  this.service.updateTask(this.projectId, task.id, payload).pipe(
-    switchMap((updated) => {
-      const index = this.tasks.findIndex(t => t.id === task.id);
-
-      if (index !== -1) {
-        this.tasks[index] = {
-          ...this.tasks[index],
-          ...updated,
-          plannedStart: task.plannedStart,
-          plannedEnd: task.plannedEnd,
-          durationDays: task.durationDays
-        };
-
-        task = this.tasks[index];
-      }
-
-      const shiftedTaskIds = this.applyDependencyCascadeFromTask(task.id);
-      return this.persistShiftedTasks(shiftedTaskIds);
-    })
-  ).subscribe({
-    next: () => {
-      this.computeStats();
-      this.buildTimeline();
-      this.syncSelectedTaskReference();
-      this.loadSchedule();
-    },
-    error: (err) => {
-      console.error('Failed to save dragged task', err);
-      this.loadSchedule();
-    }
-  });
-}
-
   private addDaysToDateString(dateStr: string, days: number): string {
     const d = this.toDateOnly(dateStr);
     d.setDate(d.getDate() + days);
@@ -2223,22 +2186,27 @@ getDependencyArrows(): DependencyArrow[] {
   addResource(): void {
     if (!this.selectedTask) return;
 
-    const resourceType = (this.newResource.resourceType ?? '').trim();
-    const assignmentName = (this.newResource.assignmentName ?? '').trim();
+    console.log('NEW RESOURCE BEFORE ADD', this.newResource);
 
-    if (!resourceType && !assignmentName) {
-      console.error('Please provide at least a resource type or assignment name.');
+    if (!this.newResource.assignedUserId) {
+      console.error('Please select a real resource from the dropdown.');
       return;
     }
 
+    const selectedUser = this.resourceOptions.find(
+      r => r.id === Number(this.newResource.assignedUserId)
+    );
+
     const payload: TaskResourceAssignment = {
-      resourceType: resourceType || undefined,
-      assignmentName: assignmentName || undefined,
+      resourceType: selectedUser?.resourceType || this.newResource.resourceType || undefined,
+      assignmentName: selectedUser?.fullName || this.newResource.assignmentName || undefined,
       quantity: this.newResource.quantity ?? 1,
       unitsPercent: this.newResource.unitsPercent ?? 100,
       cost: this.newResource.cost ?? 0,
-      assignedUserId: this.newResource.assignedUserId ?? null
+      assignedUserId: Number(this.newResource.assignedUserId)
     };
+
+    console.log('RESOURCE PAYLOAD SENT', payload);
 
     this.service.createTaskResource(this.projectId, this.selectedTask.id, payload).subscribe({
       next: () => {
@@ -2250,6 +2218,7 @@ getDependencyArrows(): DependencyArrow[] {
           cost: 0,
           assignedUserId: null
         };
+
         this.loadTaskResources(this.selectedTask!.id);
         this.loadSchedule();
       },
@@ -3242,16 +3211,6 @@ selectResourceFromSearch(user: { id: number; fullName: string; resourceType: str
   this.showResourceDropdown = false;
   this.resourceSearchResults = [];
 }
-onNewResourceUserChange(userId: number | null): void {
-  const user = this.resourceOptions.find(r => r.id === userId);
-  this.newResource.assignedUserId = userId;
-  if (user) {
-    this.newResource.assignmentName = user.fullName;
-    if (!this.newResource.resourceType) {
-      this.newResource.resourceType = user.resourceType;
-    }
-  }
-}
 
 loadSelectedTaskHistory(): void {
   if (!this.selectedTask) return;
@@ -3271,8 +3230,35 @@ loadSelectedTaskHistory(): void {
   });
 }
 
-setDetailTab(tab: 'general' | 'predecessors' | 'resources' | 'history'): void {
+  loadTaskConsole(): void {
+    if (!this.selectedTask) return;
+
+    this.consoleLoading = true;
+
+    forkJoin({
+      config: this.service.getTaskConsoleConfig(this.projectId, this.selectedTask.id),
+      logs: this.service.getTaskConsoleLogs(this.projectId, this.selectedTask.id)
+    }).subscribe({
+      next: ({ config, logs }) => {
+        this.consoleConfig = config;
+        this.consoleLogs = logs ?? [];
+        this.consoleLoading = false;
+      },
+      error: (err) => {
+        console.error('Failed to load task console', err);
+        this.consoleConfig = null;
+        this.consoleLogs = [];
+        this.consoleLoading = false;
+      }
+    });
+  }
+
+setDetailTab(tab: 'general' | 'predecessors' | 'resources' | 'history' | 'console'): void {
   this.activeDetailTab = tab;
+
+  if (tab === 'console') {
+    this.loadTaskConsole();
+  }
 
   if (tab === 'history') {
     this.loadSelectedTaskHistory();
@@ -3282,5 +3268,58 @@ setDetailTab(tab: 'general' | 'predecessors' | 'resources' | 'history'): void {
 formatHistoryDate(value?: string | null): string {
   return value ? new Date(value).toLocaleString() : '—';
   
+}
+
+toggleConsoleCheckpoint(field: 'checkpoint25' | 'checkpoint50' | 'checkpoint75'): void {
+  if (!this.consoleConfig) return;
+  this.consoleConfig[field] = !this.consoleConfig[field];
+}
+
+setConsoleChannel(channel: 'APP_ALERT' | 'EMAIL' | 'BOTH'): void {
+  if (!this.consoleConfig) return;
+  this.consoleConfig.channel = channel;
+}
+
+toggleConsoleNotify(
+  field: 'notifyPm' | 'notifyOwner' | 'notifyDeptManager' | 'notifyEveryone'
+): void {
+  if (!this.consoleConfig) return;
+  this.consoleConfig[field] = !this.consoleConfig[field];
+}
+
+saveConsoleConfig(): void {
+  if (!this.selectedTask || !this.consoleConfig) return;
+
+  this.service
+    .saveTaskConsoleConfig(this.projectId, this.selectedTask.id, this.consoleConfig)
+    .subscribe({
+      next: (saved) => {
+        this.consoleConfig = saved;
+        this.loadTaskConsole();
+      },
+      error: (err) => console.error('Failed to save console config', err)
+    });
+}
+
+clearConsoleLogs(): void {
+  if (!this.selectedTask) return;
+
+  this.service.clearTaskConsoleLogs(this.projectId, this.selectedTask.id).subscribe({
+    next: () => {
+      this.consoleLogs = [];
+    },
+    error: (err) => console.error('Failed to clear console logs', err)
+  });
+}
+
+onNewResourceUserChange(userId: number | null): void {
+  const user = this.resourceOptions.find(r => r.id === Number(userId));
+
+  this.newResource.assignedUserId = userId ? Number(userId) : null;
+
+  if (user) {
+    this.newResource.assignmentName = user.fullName;
+    this.newResource.resourceType = user.resourceType;
+  }
 }
 }

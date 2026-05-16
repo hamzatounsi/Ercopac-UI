@@ -11,6 +11,8 @@ import {
   API_GM_URL
 } from 'src/app/core/config/api.config';
 import { ProjectTaskHistory } from '../models/project-task-history.model';
+import { TaskConsoleConfig } from '../models/task-console-config.model';
+import { TaskConsoleLog } from '../models/task-console-log.model';
 
 @Injectable({ providedIn: 'root' })
 export class GmProjectTimelineService {
@@ -99,6 +101,35 @@ getResourceUsers(projectId: number): Observable<{ id: number; fullName: string; 
   getTaskHistory(projectId: number, taskId: number): Observable<ProjectTaskHistory[]> {
     return this.http.get<ProjectTaskHistory[]>(
       `${API_GM_URL}/projects/${projectId}/schedule/history/tasks/${taskId}`
+    );
+  }
+
+  getTaskConsoleConfig(projectId: number, taskId: number): Observable<TaskConsoleConfig> {
+    return this.http.get<TaskConsoleConfig>(
+      `${API_GM_URL}/projects/${projectId}/tasks/${taskId}/console`
+    );
+  }
+
+  saveTaskConsoleConfig(
+    projectId: number,
+    taskId: number,
+    payload: TaskConsoleConfig
+  ): Observable<TaskConsoleConfig> {
+    return this.http.put<TaskConsoleConfig>(
+      `${API_GM_URL}/projects/${projectId}/tasks/${taskId}/console`,
+      payload
+    );
+  }
+
+  getTaskConsoleLogs(projectId: number, taskId: number): Observable<TaskConsoleLog[]> {
+    return this.http.get<TaskConsoleLog[]>(
+      `${API_GM_URL}/projects/${projectId}/tasks/${taskId}/console/logs`
+    );
+  }
+
+  clearTaskConsoleLogs(projectId: number, taskId: number): Observable<void> {
+    return this.http.delete<void>(
+      `${API_GM_URL}/projects/${projectId}/tasks/${taskId}/console/logs`
     );
   }
 }

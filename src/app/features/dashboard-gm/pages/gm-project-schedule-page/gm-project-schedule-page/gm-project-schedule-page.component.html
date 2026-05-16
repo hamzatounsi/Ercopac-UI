@@ -533,8 +533,8 @@
             <input
               class="grid-input date-input"
               type="date"
-              [value]="formatDateForInput(task.plannedStart)"
-              (change)="updateLocalTaskField(task, 'plannedStart', $any($event.target).value); saveInlineTask(task)"
+              [value]="formatDateForInput(task.actualStart || task.plannedStart)"
+              (change)="updateLocalTaskField(task, 'actualStart', $any($event.target).value); saveInlineTask(task)"
             />
           </div>
 
@@ -546,8 +546,8 @@
             <input
               class="grid-input date-input"
               type="date"
-              [value]="formatDateForInput(task.plannedEnd)"
-              (change)="updateLocalTaskField(task, 'plannedEnd', $any($event.target).value); saveInlineTask(task)"
+              [value]="formatDateForInput(task.actualEnd || task.plannedEnd)"
+              (change)="updateLocalTaskField(task, 'actualEnd', $any($event.target).value); saveInlineTask(task)"
             />
           </div>
 
@@ -788,6 +788,15 @@
         >
           History
         </button>
+
+        <button
+          type="button"
+          class="sp-tab"
+          [class.active]="activeDetailTab === 'console'"
+          (click)="setDetailTab('console')"
+        >
+          🔔 Console
+        </button>
       </div>
 
       <button type="button" class="sp-close-btn" (click)="closeDrawer()">
@@ -969,10 +978,10 @@
             <div>
               <select
                 class="sp-inline-select"
-                [(ngModel)]="dep.dependencyType"
+                [(ngModel)]="newResource.assignedUserId"
                 [ngModelOptions]="{ standalone: true }"
-                (change)="saveDependency(dep)"
-              >
+                (ngModelChange)="onNewResourceUserChange($event)"
+              > 
                 <option *ngFor="let type of dependencyTypes" [value]="type">{{ type }}</option>
               </select>
             </div>
@@ -1133,54 +1142,23 @@
         </select>
       </div>
 <!-- Search with autocomplete only - no dropdown select -->
-<div class="resource-search-wrap" style="position: relative;">
-  <input
-    class="sp-inline-input resource-search-input"
-    type="text"
-    [(ngModel)]="resourceSearchTerm"
-    [ngModelOptions]="{ standalone: true }"
-    placeholder="Search by name..."
-    (input)="onResourceSearchInput()"
-    (blur)="showResourceDropdown = false"
-    autocomplete="off"
-  />
+    <div>
+      <select
+        class="sp-inline-select"
+        [(ngModel)]="newResource.assignedUserId"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="onNewResourceUserChange($event)"
+      >
+        <option [ngValue]="null">-- Select resource --</option>
 
-  <div
-    *ngIf="showResourceDropdown && resourceSearchResults.length > 0"
-    class="resource-autocomplete-list"
-    style="
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 6px;
-      z-index: 999;
-      max-height: 180px;
-      overflow-y: auto;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    "
-  >
-    <div
-      *ngFor="let user of resourceSearchResults"
-      style="
-        padding: 8px 12px;
-        cursor: pointer;
-        font-size: 12px;
-        color: #e2e8f0;
-        border-bottom: 1px solid #334155;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      "
-      (mousedown)="selectResourceFromSearch(user)"
-    >
-      <span><strong>{{ user.fullName }}</strong></span>
-      <span style="color: #64748b; font-size: 11px;">{{ user.resourceType }}</span>
+        <option
+          *ngFor="let user of filteredResourceOptions"
+          [ngValue]="user.id"
+        >
+          {{ user.fullName }} - {{ user.resourceType }} - {{ user.departmentCode }}
+        </option>
+      </select>
     </div>
-  </div>
-</div>
 
       <div>
         <input
@@ -1258,6 +1236,182 @@
 
         </div>
       </ng-container>
+
+      <ng-container *ngIf="activeDetailTab === 'console'">
+        <div class="console-card" *ngIf="!consoleLoading && consoleConfig; else consoleLoadingTpl">
+
+          <div class="console-section">
+            <div class="console-title">📊 Status</div>
+
+            <div class="console-status-row">
+              <span class="status-pill danger">
+                {{ selectedTask?.percentComplete || 0 }}% complete
+              </span>
+              <span>
+                Task: {{ selectedTask?.name || '—' }}
+              </span>
+            </div>
+
+            <div class="console-progress">
+              <div
+                class="console-progress-fill"
+                [style.width.%]="selectedTask?.percentComplete || 0"
+              ></div>
+            </div>
+          </div>
+
+          <div class="console-section">
+            <div class="console-title">🎯 Checkpoints</div>
+            <p class="console-help">
+              Fire a notification each time the task reaches a selected checkpoint.
+            </p>
+
+            <div class="console-pill-row">
+              <button
+                type="button"
+                class="console-pill"
+                [class.active]="consoleConfig.checkpoint25"
+                (click)="toggleConsoleCheckpoint('checkpoint25')"
+              >
+                25%
+              </button>
+
+              <button
+                type="button"
+                class="console-pill"
+                [class.active]="consoleConfig.checkpoint50"
+                (click)="toggleConsoleCheckpoint('checkpoint50')"
+              >
+                50%
+              </button>
+
+              <button
+                type="button"
+                class="console-pill"
+                [class.active]="consoleConfig.checkpoint75"
+                (click)="toggleConsoleCheckpoint('checkpoint75')"
+              >
+                75%
+              </button>
+            </div>
+          </div>
+
+          <div class="console-section">
+            <div class="console-title">🔔 Channel</div>
+
+            <div class="console-pill-row">
+              <button
+                type="button"
+                class="console-pill"
+                [class.active]="consoleConfig.channel === 'APP_ALERT'"
+                (click)="setConsoleChannel('APP_ALERT')"
+              >
+                App Alert
+              </button>
+
+              <button
+                type="button"
+                class="console-pill"
+                [class.active]="consoleConfig.channel === 'EMAIL'"
+                (click)="setConsoleChannel('EMAIL')"
+              >
+                Email
+              </button>
+
+              <button
+                type="button"
+                class="console-pill"
+                [class.active]="consoleConfig.channel === 'BOTH'"
+                (click)="setConsoleChannel('BOTH')"
+              >
+                Both
+              </button>
+            </div>
+          </div>
+
+          <div class="console-section">
+            <div class="console-title">👥 Notify</div>
+
+            <div class="console-pill-row">
+              <button
+                type="button"
+                class="console-pill"
+                [class.active]="consoleConfig.notifyPm"
+                (click)="toggleConsoleNotify('notifyPm')"
+              >
+                PM
+              </button>
+
+              <button
+                type="button"
+                class="console-pill"
+                [class.active]="consoleConfig.notifyOwner"
+                (click)="toggleConsoleNotify('notifyOwner')"
+              >
+                Owner
+              </button>
+
+              <button
+                type="button"
+                class="console-pill"
+                [class.active]="consoleConfig.notifyDeptManager"
+                (click)="toggleConsoleNotify('notifyDeptManager')"
+              >
+                Dept. Mgr
+              </button>
+
+              <button
+                type="button"
+                class="console-pill"
+                [class.active]="consoleConfig.notifyEveryone"
+                (click)="toggleConsoleNotify('notifyEveryone')"
+              >
+                All
+              </button>
+            </div>
+          </div>
+
+    <div class="console-actions">
+      <button
+        type="button"
+        class="console-save-btn"
+        (click)="saveConsoleConfig()"
+      >
+        💾 Save
+      </button>
+
+      <button
+        type="button"
+        class="console-delete-btn"
+        (click)="clearConsoleLogs()"
+      >
+        🗑 Clear Logs
+      </button>
+    </div>
+
+    <div class="console-section">
+      <div class="console-title">📝 Log</div>
+
+      <div class="console-log-row" *ngFor="let log of consoleLogs">
+        <div class="console-log-date">{{ formatHistoryDate(log.createdAt) }}</div>
+        <div class="console-log-message">{{ log.message }}</div>
+        <div class="console-log-meta">
+          {{ log.severity }} · {{ log.channel }} · {{ log.notifyTarget }}
+        </div>
+      </div>
+
+      <div class="console-empty" *ngIf="consoleLogs.length === 0">
+        No notifications yet.
+      </div>
+    </div>
+  </div>
+
+  <ng-template #consoleLoadingTpl>
+    <div class="console-card">
+      <div class="console-empty">Loading console...</div>
+    </div>
+  </ng-template>
+</ng-container>
     </form>
   </section>
 
