@@ -2774,6 +2774,149 @@
   color: #334155;
 }
 
+.console-card {
+  padding: 18px 24px;
+  background: #ffffff;
+  color: #243b63;
+  min-height: 100%;
+}
+
+.console-section {
+  border-bottom: 1px solid #263b61;
+  padding: 10px 0 16px;
+}
+
+.console-title {
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #263b61;
+  margin-bottom: 8px;
+}
+
+.console-status-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.status-pill {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.status-pill.danger {
+  background: #4c1212;
+  color: #ff8b8b;
+}
+
+.console-progress {
+  margin-top: 12px;
+  height: 10px;
+  border-radius: 999px;
+  background: #17213d;
+  overflow: hidden;
+}
+
+.console-progress-fill {
+  height: 100%;
+  background: #16a34a;
+}
+
+.console-help {
+  font-size: 12px;
+  color: #526c99;
+  margin: 0 0 10px;
+}
+
+.console-pill-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.console-pill {
+  border: 1px solid #1e3761;
+  background: #ffffff;
+  color: #1e3761;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.console-pill.active {
+  background: #0ea5b7;
+  border-color: #0ea5b7;
+  color: #ffffff;
+}
+
+.console-section:nth-child(2) .console-pill.active,
+.console-section:nth-child(3) .console-pill.active {
+  background: #e58000;
+  border-color: #e58000;
+}
+
+.console-actions {
+  display: flex;
+  gap: 8px;
+  padding: 14px 0;
+}
+
+.console-save-btn {
+  border: none;
+  background: #155fc4;
+  color: white;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-weight: 800;
+}
+
+.console-delete-btn {
+  border: 1px solid #b7c4d6;
+  background: #ffffff;
+  border-radius: 4px;
+  padding: 8px 12px;
+}
+
+.console-empty {
+  text-align: center;
+  font-style: italic;
+  color: #34466b;
+  padding: 24px;
+}
+
+.console-log-row {
+  display: grid;
+  grid-template-columns: 150px 1fr 240px;
+  gap: 12px;
+  align-items: center;
+  min-height: 38px;
+  padding: 8px 0;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 12px;
+}
+
+.console-log-date {
+  color: #64748b;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.console-log-message {
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.console-log-meta {
+  color: #2563eb;
+  font-weight: 700;
+}
+
 /* =========================
    RESPONSIVE
 ========================= */

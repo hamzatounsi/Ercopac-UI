@@ -1,6 +1,292 @@
 <div class="resource-page">
+
   <div *ngIf="error" class="page-error">
     {{ error }}
+  </div>
+
+  <!-- TOP TABS -->
+  <div class="page-tabs">
+    <button
+      [class.active]="activeTab === 'resources'"
+      (click)="setTab('resources')"
+    >
+      Resources
+    </button>
+
+    <button
+      [class.active]="activeTab === 'suppliers'"
+      (click)="setTab('suppliers')"
+    >
+      Suppliers
+    </button>
+
+    <button
+      [class.active]="activeTab === 'resourceTypes'"
+      (click)="setTab('resourceTypes')"
+    >
+      Resource Types
+    </button>
+
+    <button
+      [class.active]="activeTab === 'departments'"
+      (click)="setTab('departments')"
+    >
+      Departments
+    </button>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- RESOURCE TYPES CONFIG -->
+  <!-- ========================================================= -->
+
+  <div *ngIf="activeTab === 'resourceTypes'" class="config-layout">
+
+    <section class="config-panel">
+
+      <h2>
+        {{ editingResourceTypeId ? 'Edit Resource Type' : 'Create Resource Type' }}
+      </h2>
+
+      <div class="row-3">
+
+        <div class="form-field">
+          <label>RES.TYPE</label>
+          <input
+            [(ngModel)]="resourceTypeForm.code"
+            placeholder="PM"
+          />
+        </div>
+
+        <div class="form-field">
+          <label>Label</label>
+          <input
+            [(ngModel)]="resourceTypeForm.label"
+            placeholder="Project Manager"
+          />
+        </div>
+
+        <div class="form-field">
+          <label>Department</label>
+
+          <select [(ngModel)]="resourceTypeForm.departmentId">
+            <option [ngValue]="null">—</option>
+
+            <option
+              *ngFor="let dept of departmentsConfig"
+              [ngValue]="dept.id"
+            >
+              {{ dept.code }} - {{ dept.label }}
+            </option>
+          </select>
+        </div>
+
+      </div>
+
+      <div class="row-3">
+
+        <div class="form-field">
+          <label>Colour</label>
+          <input type="color" [(ngModel)]="resourceTypeForm.colour" />
+        </div>
+
+        <div class="form-field">
+          <label>Default €/day</label>
+          <input type="number" [(ngModel)]="resourceTypeForm.defaultRate" />
+        </div>
+
+        <div class="form-field">
+          <label>Assignable</label>
+
+          <select [(ngModel)]="resourceTypeForm.assignable">
+            <option [ngValue]="true">Yes</option>
+            <option [ngValue]="false">No</option>
+          </select>
+        </div>
+
+      </div>
+
+      <div class="drawer-foot inline">
+
+        <button
+          class="save-panel-btn"
+          type="button"
+          (click)="saveResourceType()"
+        >
+          Save
+        </button>
+
+        <button
+          class="delete-panel-btn"
+          type="button"
+          (click)="newResourceType()"
+        >
+          Clear
+        </button>
+
+      </div>
+
+    </section>
+
+    <div class="table-wrap">
+
+      <table class="data-table">
+
+        <thead>
+          <tr>
+            <th>RES.TYPE</th>
+            <th>Label</th>
+            <th>Colour</th>
+            <th>Department</th>
+            <th>Rate</th>
+            <th>Assignable</th>
+            <th>Active</th>
+            <th></th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr *ngFor="let type of resourceTypesConfig">
+
+            <td class="strong">
+              {{ type.code }}
+            </td>
+
+            <td>
+              {{ type.label }}
+            </td>
+
+            <td>
+              <span
+                class="color-pill"
+                [style.background]="type.colour"
+              ></span>
+
+              {{ type.colour }}
+            </td>
+
+            <td>
+              {{ type.departmentCode || '—' }}
+            </td>
+
+            <td>
+              {{ type.defaultRate ?? 0 }}
+            </td>
+
+            <td>
+              {{ type.assignable ? 'Yes' : 'No' }}
+            </td>
+
+            <td>
+              {{ type.active ? 'Active' : 'Inactive' }}
+            </td>
+
+            <td>
+
+              <button
+                class="icon-btn"
+                type="button"
+                (click)="editResourceType(type)"
+              >
+                ✏
+              </button>
+
+              <button
+                class="icon-btn danger"
+                type="button"
+                (click)="deactivateResourceType(type.id)"
+              >
+                ×
+              </button>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- DEPARTMENTS CONFIG -->
+  <!-- ========================================================= -->
+
+  <div *ngIf="activeTab === 'departments'" class="config-layout">
+
+    <section class="config-panel">
+
+      <h2>Department Configuration</h2>
+
+      <div class="row-2">
+
+        <div class="form-field">
+          <label>Department Code</label>
+
+          <input
+            [(ngModel)]="departmentForm.code"
+            placeholder="ME"
+          />
+        </div>
+
+        <div class="form-field">
+          <label>Label</label>
+
+          <input
+            [(ngModel)]="departmentForm.label"
+            placeholder="Mechanical"
+          />
+        </div>
+
+      </div>
+
+      <div class="drawer-foot inline">
+
+        <button
+          class="save-panel-btn"
+          type="button"
+          (click)="saveDepartment()"
+        >
+          Save Department
+        </button>
+
+      </div>
+
+    </section>
+
+    <div class="table-wrap">
+
+      <table class="data-table">
+
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Label</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <tr *ngFor="let dept of departmentsConfig">
+
+            <td class="strong">
+              {{ dept.code }}
+            </td>
+
+            <td>
+              {{ dept.label }}
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
   </div>
 
   <!-- RESOURCES -->

@@ -9,8 +9,14 @@ import { ResourceListItem } from '../../models/resource-list-item.model';
 import { Supplier } from '../../models/supplier.model';
 import { CreateResourceRequest } from '../../models/create-resource-request.model';
 import { UpdateResourceRequest } from '../../models/update-resource-request.model';
+import {
+  ResourceConfigService,
+  DepartmentDto,
+  ResourceTypeConfigDto,
+  SaveResourceTypeRequest
+} from '../../services/resource-config.service';
 
-type PageTab = 'resources' | 'suppliers';
+type PageTab = 'resources' | 'suppliers' | 'resourceTypes' | 'departments';
 type SortDirection = 'asc' | 'desc';
 type ResourceSortColumn =
   | 'id'
@@ -66,6 +72,26 @@ export class GmResourceManagementPageComponent implements OnInit {
   resourceSortColumn: ResourceSortColumn = 'id';
   resourceSortDirection: SortDirection = 'asc';
 
+  departmentsConfig: DepartmentDto[] = [];
+  resourceTypesConfig: ResourceTypeConfigDto[] = [];
+
+  resourceTypeForm: SaveResourceTypeRequest = {
+    code: '',
+    label: '',
+    colour: '#3b82f6',
+    departmentId: null,
+    defaultRate: 0,
+    assignable: true,
+    active: true
+  };
+
+  editingResourceTypeId: number | null = null;
+
+  departmentForm = {
+    code: '',
+    label: ''
+  };
+
   readonly roleOptions = ['DEPARTMENT_MANAGER', 'GENERAL_MANAGER', 'EMPLOYEE'];
 
   readonly internalOptions = [
@@ -83,11 +109,13 @@ export class GmResourceManagementPageComponent implements OnInit {
 
   constructor(
     private gmResourceService: GmResourceService,
-    private gmSupplierService: GmSupplierService
+    private gmSupplierService: GmSupplierService,
+    private resourceConfigService: ResourceConfigService
   ) {}
 
   ngOnInit(): void {
     this.loadMeta();
+    this.loadResourceConfig();
     this.loadResources();
     this.loadSuppliers();
   }
@@ -584,5 +612,122 @@ export class GmResourceManagementPageComponent implements OnInit {
       resourceTypes: [],
       notes: ''
     };
+  }
+
+  loadResourceConfig(): void {
+    this.resourceConfigService.getDepartments().subscribe({
+      next: data => {
+        this.departmentsConfig = data ?? [];
+        this.departmentOptions = this.departmentsConfig.map(d => d.code);
+      },
+      error: () => {}
+    });
+
+    this.resourceConfigService.getResourceTypes().subscribe({
+      next: data => {
+        this.resourceTypesConfig = data ?? [];
+        this.resourceTypeOptions = this.resourceTypesConfig
+          .filter(t => t.active)
+          .map(t => t.code);
+      },
+      error: () => {}
+    });
+  }
+
+  saveDepartment(): void {
+    if (!this.departmentForm.code.trim()) {
+      this.error = 'Department code is required.';
+      return;
+    }
+
+    this.resourceConfigService.createDepartment(this.departmentForm).subscribe({
+      next: () => {
+        this.departmentForm = { code: '', label: '' };
+        this.loadResourceConfig();
+      },
+      error: err => {
+        this.error = err?.error?.message || 'Failed to save department.';
+      }
+    });
+  }
+
+  editResourceType(type: ResourceTypeConfigDto): void {
+    this.editingResourceTypeId = type.id;
+    this.resourceTypeForm = {
+      code: type.code,
+      label: type.label,
+      colour: type.colour || '#3b82f6',
+      departmentId: type.departmentId,
+      defaultRate: type.defaultRate,
+      assignable: type.assignable,
+      active: type.active
+    };
+  }
+
+  newResourceType(): void {
+    this.editingResourceTypeId = null;
+    this.resourceTypeForm = {
+      code: '',
+      label: '',
+      colour: '#3b82f6',
+      departmentId: null,
+      defaultRate: 0,
+      assignable: true,
+      active: true
+    };
+  }
+
+  saveResourceType(): void {
+    if (!this.resourceTypeForm.code.trim()) {
+      this.error = 'Resource type code is required.';
+      return;
+    }
+
+    const request$ = this.editingResourceTypeId
+      ? this.resourceConfigService.updateResourceType(this.editingResourceTypeId, this.resourceTypeForm)
+      : this.resourceConfigService.createResourceType(this.resourceTypeForm);
+
+    request$.subscribe({
+      next: () => {
+        this.newResourceType();
+        this.loadResourceConfig();
+        this.loadMeta();
+      },
+      error: err => {
+        this.error = err?.error?.message || 'Failed to save resource type.';
+      }
+    });
+  }
+
+  deactivateResourceType(id: number): void {
+    this.resourceConfigService.deleteResourceType(id).subscribe({
+      next: () => {
+        this.loadResourceConfig();
+        this.loadMeta();
+      },
+      error: () => {
+        this.error = 'Failed to deactivate resource type.';
+      }
+    });
+  }
+
+  onCreateResourceTypeChange(code: string): void {
+    const type = this.resourceTypesConfig.find(t => t.code === code);
+    if (!type) return;
+
+    this.resourceCreateForm.resourceType = type.code;
+    this.resourceCreateForm.departmentCode = type.departmentCode || this.resourceCreateForm.departmentCode;
+    this.resourceCreateForm.color = type.colour || this.resourceCreateForm.color;
+    this.resourceCreateForm.defaultRate = type.defaultRate ?? this.resourceCreateForm.defaultRate;
+  }
+
+  onUpdateResourceTypeChange(code: string): void {
+    const type = this.resourceTypesConfig.find(t => t.code === code);
+    if (!type) return;
+
+    this.resourceUpdateForm.resourceType = type.code;
+    this.resourceUpdateForm.departmentCode = type.departmentCode || this.resourceUpdateForm.departmentCode;
+    this.resourceUpdateForm.color = type.colour || this.resourceUpdateForm.color;
+    this.resourceUpdateForm.defaultRate = type.defaultRate ?? this.resourceUpdateForm.defaultRate;
   }
 }
