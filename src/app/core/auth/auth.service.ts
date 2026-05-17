@@ -7,7 +7,7 @@ import { jwtDecode } from 'jwt-decode';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 
-  private loginUrl = `${environment.apiUrl}/api/auth/login`;
+  private loginUrl = `${environment.apiUrl}/auth/login`;
 
   constructor(private http: HttpClient) {}
 
