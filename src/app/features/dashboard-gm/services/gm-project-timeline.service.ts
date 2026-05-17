@@ -36,9 +36,11 @@ export class GmProjectTimelineService {
     );
   }
  
-getResourceUsers(projectId: number): Observable<{ id: number; fullName: string; resourceType: string; departmentCode: string }[]> {
-  return this.http.get<any[]>(`/api/projects/${projectId}/tasks/resource-users`);
-}
+  getResourceUsers(projectId: number): Observable<{ id: number; fullName: string; resourceType: string; departmentCode: string }[]> {
+    return this.http.get<any[]>(
+      `${API_PROJECTS_URL}/${projectId}/tasks/resource-users`
+    );
+  }
   copyTaskBelow(projectId: number, taskId: number): Observable<GmProjectScheduleTask> {
     return this.http.post<GmProjectScheduleTask>(
       `${API_PROJECTS_URL}/${projectId}/tasks/copy/${taskId}`,
