@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from 'src/environments/environment';
 
 export interface DepartmentDto {
   id: number;
@@ -39,7 +40,7 @@ export interface SaveResourceTypeRequest {
   providedIn: 'root'
 })
 export class ResourceConfigService {
-  private readonly baseUrl = 'http://localhost:8087/api/resource-config';
+  private baseUrl = `${environment.apiUrl}`;
 
   constructor(private http: HttpClient) {}
 
