@@ -27,6 +27,8 @@ import { ProjectTemplate } from '../../../models/project-template.model';
 import { ProjectTaskHistory } from '../../../models/project-task-history.model';
 import { TaskConsoleConfig } from '../../../models/task-console-config.model';
 import { TaskConsoleLog } from '../../../models/task-console-log.model';
+import { ProjectDashboardRow } from '../../../models/project-dashboard-row.model';
+import { GmDashboardService } from '../../../services/gm-dashboard.service';
 
 export interface TimelineDay {
   label: string;
@@ -85,8 +87,9 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
 
   timelineDays: TimelineDay[] = [];
   dayWidth = 40;
-// ADD these two properties near the other resource properties:
- 
+
+  project: ProjectDashboardRow | null = null;
+
 resourceSearchTerm = '';
 filteredResourceOptions: { id: number; fullName: string; departmentCode: string; resourceType: string }[] = [];
  
@@ -224,6 +227,8 @@ resourceOptions: { id: number; fullName: string; departmentCode: string; resourc
   contextMenuX = 0;
   contextMenuY = 0;
   contextMenuTask: GmProjectScheduleTask | null = null;
+  projectName = '';
+
 
   constructor(
     private route: ActivatedRoute,
@@ -233,7 +238,8 @@ resourceOptions: { id: number; fullName: string; departmentCode: string; resourc
     private baselineService: GmProjectBaselineService,
     private calendarService: GmProjectCalendarService,
     private projectTimelineService: GmProjectTimelineService,
-    private templateService: GmProjectTemplateService
+    private templateService: GmProjectTemplateService,
+    private gmDashboardService: GmDashboardService
   ) {}
 
   ngOnInit(): void {
@@ -242,6 +248,7 @@ resourceOptions: { id: number; fullName: string; departmentCode: string; resourc
     this.setupTaskFormAutoCalculations();
     this.loadSchedule();
     this.loadResourceOptions();
+    this.loadProjectName();
 
     const savedWidth = localStorage.getItem('gmScheduleLeftPaneWidth');
     if (savedWidth) {
@@ -323,7 +330,7 @@ onResourceSearch(): void {
         this.tasks = (res ?? []).sort(
           (a, b) => ((a.displayOrder ?? 0) - (b.displayOrder ?? 0)) || (a.id - b.id)
         );
-
+        
         this.computeStats();
         this.buildTimeline();
         this.loading = false;
@@ -2210,6 +2217,21 @@ getDependencyArrows(): DependencyArrow[] {
 
     this.service.createTaskResource(this.projectId, this.selectedTask.id, payload).subscribe({
       next: () => {
+        if (this.selectedTask && selectedUser) {
+          this.selectedTask.assignedUserId = selectedUser.id;
+          this.selectedTask.assignedUserName = selectedUser.fullName;
+          this.selectedTask.resourceType = selectedUser.resourceType;
+          this.selectedTask.departmentCode = selectedUser.departmentCode;
+
+          this.taskForm.patchValue({
+            assignedUserId: selectedUser.id,
+            resourceType: selectedUser.resourceType,
+            departmentCode: selectedUser.departmentCode
+          }, { emitEvent: false });
+
+          this.saveInlineTask(this.selectedTask);
+        }
+
         this.newResource = {
           resourceType: '',
           assignmentName: '',
@@ -2220,7 +2242,6 @@ getDependencyArrows(): DependencyArrow[] {
         };
 
         this.loadTaskResources(this.selectedTask!.id);
-        this.loadSchedule();
       },
       error: (err) => console.error('Failed to create task resource', err)
     });
@@ -3317,9 +3338,34 @@ onNewResourceUserChange(userId: number | null): void {
 
   this.newResource.assignedUserId = userId ? Number(userId) : null;
 
-  if (user) {
-    this.newResource.assignmentName = user.fullName;
-    this.newResource.resourceType = user.resourceType;
+  if (!user) return;
+
+  this.newResource.assignmentName = user.fullName;
+  this.newResource.resourceType = user.resourceType;
+
+  if (this.selectedTask) {
+    this.selectedTask.assignedUserId = user.id;
+    this.selectedTask.assignedUserName = user.fullName;
+    this.selectedTask.resourceType = user.resourceType;
+    this.selectedTask.departmentCode = user.departmentCode;
+
+    this.taskForm.patchValue({
+      assignedUserId: user.id,
+      resourceType: user.resourceType,
+      departmentCode: user.departmentCode
+    }, { emitEvent: false });
   }
+}
+
+loadProjectName(): void {
+  this.gmDashboardService.getProjects().subscribe({
+    next: (projects) => {
+      this.project = (projects ?? []).find(p => p.id === this.projectId) ?? null;
+      this.projectName = this.project?.name || `Project ${this.projectId}`;
+    },
+    error: () => {
+      this.projectName = `Project ${this.projectId}`;
+    }
+  });
 }
 }

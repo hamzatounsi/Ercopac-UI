@@ -2,6 +2,7 @@ import { environment } from 'src/environments/environment';
 
 export const API_BASE_URL = environment.apiUrl;
 
+export const API_AUTH_URL = `${API_BASE_URL}/auth`;
 export const API_PROJECTS_URL = `${API_BASE_URL}/projects`;
 export const API_TASKS_URL = `${API_BASE_URL}/tasks`;
 export const API_RESOURCES_URL = `${API_BASE_URL}/resources`;

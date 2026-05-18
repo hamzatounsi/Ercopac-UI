@@ -345,30 +345,10 @@
   </section>
 
   <!-- LEGEND -->
-  <section class="legend-strip" *ngIf="!loading && tasks.length">
-    <div class="legend-chip">
-      <span class="legend-double actual"></span>
-      <span>Actual</span>
-    </div>
-    <div class="legend-chip">
-      <span class="legend-double baseline"></span>
-      <span>Baseline</span>
-    </div>
-    <div class="legend-chip">
-      <span class="legend-summary"></span>
-      <span>Summary</span>
-    </div>
-    <div class="legend-chip">
-      <span class="legend-milestone"></span>
-      <span>Milestone</span>
-    </div>
-    <div class="legend-chip">
-      <span class="legend-customer-milestone"></span>
-      <span>Customer milestone</span>
-    </div>
-    <div class="legend-chip today-legend">
-      <span class="legend-today"></span>
-      <span>Today</span>
+  <section class="legend-strip project-title-strip">
+    <div class="legend-chip project-name-chip">
+      <span class="material-symbols-outlined">folder_open</span>
+      <span>{{ projectName }}</span>
     </div>
   </section>
 
