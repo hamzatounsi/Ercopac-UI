@@ -1,18 +1,18 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { environment } from 'src/environments/environment';
 import { tap } from 'rxjs/operators';
 import { jwtDecode } from 'jwt-decode';
+import { API_AUTH_URL } from '../config/api.config';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 
-  private loginUrl = `${environment.apiUrl}/auth/login`;
+  private loginUrl = `${API_AUTH_URL}/login`;
 
   constructor(private http: HttpClient) {}
 
   login(username: string, password: string) {
-    return this.http.post<{ token: string }>(this.loginUrl, { username, password })
+    return this.http.post<any>(this.loginUrl, { username, password })
       .pipe(
         tap(res => {
           localStorage.setItem('token', res.token);
@@ -32,11 +32,11 @@ export class AuthService {
     return !!this.getToken();
   }
 
-    getRoles(): string[] {
+  getRoles(): string[] {
     const token = this.getToken();
     if (!token) return [];
 
     const decoded: any = jwtDecode(token);
     return decoded.roles || [decoded.role];
-    }
+  }
 }

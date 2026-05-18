@@ -54,4 +54,27 @@ export class MyDepartmentService {
   deleteHoliday(holidayId: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/holidays/${holidayId}`);
   }
+
+  getOverviewByDepartment(
+    departmentCode: string,
+    timelineView: string,
+    offset: number,
+    span: number
+  ) {
+    return this.http.get<MyDepartmentResponse>(
+      `${this.baseUrl}/overview-by-department`,
+      {
+        params: {
+          departmentCode,
+          timelineView,
+          offset,
+          span
+        }
+      }
+    );
+  }
+
+  getDepartments() {
+    return this.http.get<string[]>(`${this.baseUrl}/departments`);
+  }
 }

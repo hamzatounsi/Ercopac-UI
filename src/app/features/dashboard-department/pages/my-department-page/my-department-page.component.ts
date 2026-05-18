@@ -129,6 +129,15 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
 
   selectedProjectStatus: ProjectStatusFilter = 'ALL';
 
+  selectedDepartmentFilter = '';
+
+  departmentOptions: string[] = [];
+
+  selectedProjectId: number | null = null;
+  selectedProjectName = '';
+
+  projectOptions: any[] = [];
+
   @ViewChild('timeFilterWrap') timeFilterWrap?: ElementRef<HTMLDivElement>;
   
 
@@ -181,7 +190,7 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
     if (this.isDepartmentManager) {
       this.loadOwnDepartmentOverview();
     } else {
-      this.loadManagers();
+      this.loadDepartments();
     }
   }
 
@@ -376,17 +385,31 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
   return this.timeFilterOptions.find(x => x.value === this.selectedTimeFilter)?.label ?? 'All Time';
   }
 
-  get filteredProjectBlocks(): DepartmentProjectBlock[] {
-    const blocks = this.projectBlocks ?? [];
-    const search = this.activitySearch.trim().toLowerCase();
+  get filteredProjectBlocks(): any[] {
+    let blocks = this.overview?.projectBlocks || [];
 
-    return blocks.filter(block => {
-      const statusOk = this.matchesProjectStatus(block);
-      const timeOk = this.matchesTimeFilter(block);
-      const searchOk = this.matchesSearchFilter(block, search);
+    if (this.selectedProjectId) {
+      blocks = blocks.filter(
+        p => p.projectId === this.selectedProjectId
+      );
+    }
 
-      return statusOk && timeOk && searchOk;
-    });
+    if (this.selectedProjectStatus !== 'ALL') {
+      blocks = blocks.filter(
+        p => (p.status || '').toUpperCase() === this.selectedProjectStatus
+      );
+    }
+
+    if (this.activitySearch?.trim()) {
+      const q = this.activitySearch.toLowerCase();
+
+      blocks = blocks.filter(p =>
+        (p.projectName || '').toLowerCase().includes(q) ||
+        (p.projectCode || '').toLowerCase().includes(q)
+      );
+    }
+
+    return blocks;
   }
 
   get filteredResourceRows(): DepartmentResourceRow[] {
@@ -505,6 +528,7 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
   loadOverview(): void {
     if (this.isDepartmentManager) {
       this.loadOwnDepartmentOverview();
+      this.loadProjectOptions();
       return;
     }
 
@@ -1865,4 +1889,90 @@ private getSelectedTimeRange(today: Date): { start: Date; end: Date } | null {
 }
 
 
+onDepartmentChange(departmentCode: string): void {
+  this.selectedDepartmentFilter = departmentCode;
+
+  this.prepareFullYearTimeline();
+
+  if (!departmentCode) {
+    this.overview = null;
+    this.renderActivityView();
+    return;
+  }
+
+  this.loadOverviewByDepartment();
+}
+
+
+loadOverviewByDepartment(): void {
+  if (!this.selectedDepartmentFilter) return;
+
+  this.loading = true;
+  this.error = '';
+
+  this.myDepartmentService
+    .getOverviewByDepartment(
+      this.selectedDepartmentFilter,
+      this.timelineView,
+      this.offset,
+      this.span
+    )
+    .pipe(finalize(() => (this.loading = false)))
+    .subscribe({
+      next: (response: MyDepartmentResponse) => {
+        this.overview = response.overview;
+        this.syncHolidayMemberSelection();
+        this.renderActivityView();
+        this.loadProjectOptions();
+
+        setTimeout(() => {
+          this.syncResourceScrollBarWidth();
+          this.syncActivityScrollBarWidth();
+          this.bindBottomScrollSync();
+          this.syncActivityLayout();
+        });
+      },
+      error: () => {
+        this.error = 'Failed to load department overview.';
+      }
+    });
+}
+
+loadProjectOptions(): void {
+  const map = new Map<number, any>();
+
+  (this.overview?.projectBlocks || []).forEach(project => {
+    map.set(project.projectId, project);
+  });
+
+  this.projectOptions = Array.from(map.values());
+}
+
+onProjectChange(projectId: string): void {
+  this.selectedProjectId = projectId ? Number(projectId) : null;
+
+  const selected = this.projectOptions.find(
+    p => p.projectId === this.selectedProjectId
+  );
+
+  this.selectedProjectName = selected?.projectName || '';
+
+  this.renderActivityView();
+}
+
+loadDepartments(): void {
+  this.myDepartmentService.getDepartments().subscribe({
+    next: departments => {
+      this.departmentOptions = departments ?? [];
+
+      if (!this.selectedDepartmentFilter && this.departmentOptions.length) {
+        this.selectedDepartmentFilter = this.departmentOptions[0];
+        this.onDepartmentChange(this.selectedDepartmentFilter);
+      }
+    },
+    error: () => {
+      this.error = 'Failed to load departments.';
+    }
+  });
+}
 }

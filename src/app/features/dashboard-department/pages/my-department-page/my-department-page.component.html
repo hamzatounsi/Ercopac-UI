@@ -1,126 +1,89 @@
-<div id="app-hdr">
-  <div class="brand-wrap">
-    <div class="app-name">Projectum<span>ALL</span></div>
-    <div class="app-sub">all around project</div>
-  </div>
-
-  <div class="hdr-sep"></div>
-  <div class="hdr-right" *ngIf="!isDepartmentManager">
-    <span class="mgr-lbl">Manager:</span>
-    <select
-      class="tb-sel"
-      [value]="selectedManagerId ?? ''"
-      (change)="onManagerChange($any($event.target).value)"
-    >
-      <option value="">— select —</option>
-      <option *ngFor="let manager of managers; trackBy: trackByManager" [value]="manager.id">
-        {{ manager.fullName }} · {{ manager.departmentCode || manager.resourceType || '?' }}
-      </option>
-    </select>
-    <span class="dept-badge" [style.display]="selectedDepartmentCode ? 'inline-flex' : 'none'">
-      {{ selectedDepartmentCode }}
-    </span>
-  </div>
-
-  <div class="hdr-right" *ngIf="isDepartmentManager">
-    <span class="dept-badge" [style.display]="selectedDepartmentCode ? 'inline-flex' : 'none'">
-      {{ selectedDepartmentCode }}
-    </span>
-  </div>
-</div>
-
-<div id="toolbar">
-  <div id="view-tabs">
-    <button
-      type="button"
-      class="view-tab"
-      [class.on]="mainView === 'resource'"
-      (click)="setMainView('resource')"
-    >
-      📊 Resources
-    </button>
-
-    <button
-      type="button"
-      class="view-tab"
-      [class.on]="mainView === 'projects'"
-      (click)="setMainView('projects')"
-    >
-      📋 Activities by Project
-    </button>
-  </div>
-  <div class="tb-sep"></div>
-
-  <div class="toolbar-left" *ngIf="mainView === 'resource'">
-    <button class="tb-btn" [class.on]="timelineView === 'day'" (click)="setTimelineView('day')">Day</button>
-    <button class="tb-btn" [class.on]="timelineView === 'week'" (click)="setTimelineView('week')">Week</button>
-
-    <div class="tb-sep"></div>
-
-    <span class="mini-label">Zoom:</span>
-    <button class="nav-btn" (click)="zoom(-1)" title="Zoom out">−</button>
-    <button class="nav-btn" (click)="zoom(+1)" title="Zoom in">+</button>
-
-    <div class="tb-sep"></div>
-
-    <button class="nav-btn" (click)="shift(-26)">«</button>
-    <button class="nav-btn" (click)="shift(-4)">‹</button>
-    <div class="range-lbl">{{ rangeLabel }}</div>
-    <button class="nav-btn" (click)="shift(+4)">›</button>
-    <button class="nav-btn" (click)="shift(+26)">»</button>
-    <button class="tb-btn today-btn" (click)="goToday()">Today</button>
-
-    <div class="tb-sep"></div>
-
-    <button class="tb-btn" (click)="openHolidayModal()">🏖 Add Holiday</button>
-  </div>
-
-  <div class="toolbar-left" *ngIf="mainView === 'projects'">
-    <div class="pa-col-wrap" #paColBtnWrap>
-      <button class="tb-btn" (click)="togglePaColMenu()">
-        ☰ Columns <span class="caret">▾</span>
-      </button>
-
-      <div class="pa-col-menu" [class.open]="paColMenuOpen">
-        <label *ngFor="let col of paToggleableCols" class="pa-col-menu-item">
-          <input
-            type="checkbox"
-            [checked]="col.vis"
-            (change)="togglePaCol(col.id, $any($event.target).checked)"
-          />
-          {{ col.label }}
-        </label>
-      </div>
+<div class="dept-page">
+  <header class="dept-header">
+    <div class="brand">
+      <div class="app-name">Projectum<span>ALL</span></div>
+      <div class="app-sub">Department workload & allocation</div>
     </div>
 
-    <button class="nav-btn" (click)="zoomPaGantt(-1)" title="Zoom out">−</button>
-    <button class="nav-btn" (click)="zoomPaGantt(+1)" title="Zoom in">+</button>
+    <div class="header-select" *ngIf="!isDepartmentManager">
+      <label>Department</label>
+      <select
+        [value]="selectedDepartmentFilter"
+        (change)="onDepartmentChange($any($event.target).value)"
+      >
+        <option value="">Select department</option>
+        <option *ngFor="let dept of departmentOptions" [value]="dept">
+          {{ dept }}
+        </option>
+      </select>
+    </div>
 
-    <div class="tb-sep"></div>
+    <div class="dept-pill" *ngIf="selectedDepartmentCode">
+      {{ selectedDepartmentCode }} Department
+    </div>
+  </header>
+  <nav class="dept-toolbar">
+    <div class="view-tabs">
+      <button type="button" [class.active]="mainView === 'resource'" (click)="setMainView('resource')">
+        Resources
+      </button>
+      <button type="button" [class.active]="mainView === 'projects'" (click)="setMainView('projects')">
+        Activities by Project
+      </button>
+    </div>
 
-    
-  </div>
+    <div class="toolbar-actions" *ngIf="mainView === 'resource'">
+      <button type="button" [class.active]="timelineView === 'day'" (click)="setTimelineView('day')">Day</button>
+      <button type="button" [class.active]="timelineView === 'week'" (click)="setTimelineView('week')">Week</button>
 
-  <div class="toolbar-right">
-    {{ selectedDepartmentCode ? ('Department: ' + selectedDepartmentCode) : '' }}
-  </div>
-</div>
+      <span class="separator"></span>
 
-<!-- Activities filters bar -->
-<div id="activity-filters-bar" *ngIf="mainView === 'projects'">
-  <div class="af-left">
-    <!-- Time filter -->
+      <button type="button" (click)="zoom(-1)">−</button>
+      <button type="button" (click)="zoom(+1)">+</button>
+
+      <span class="separator"></span>
+
+      <button type="button" (click)="shift(-26)">«</button>
+      <button type="button" (click)="shift(-4)">‹</button>
+      <span class="range-label">{{ rangeLabel }}</span>
+      <button type="button" (click)="shift(+4)">›</button>
+      <button type="button" (click)="shift(+26)">»</button>
+
+      <button type="button" class="primary-light" (click)="goToday()">Today</button>
+      <button type="button" class="primary" (click)="openHolidayModal()">Add Holiday</button>
+    </div>
+
+    <div class="toolbar-actions" *ngIf="mainView === 'projects'">
+      <div class="pa-col-wrap" #paColBtnWrap>
+        <button type="button" (click)="togglePaColMenu()">Columns ▾</button>
+
+        <div class="pa-col-menu" [class.open]="paColMenuOpen">
+          <label *ngFor="let col of paToggleableCols">
+            <input
+              type="checkbox"
+              [checked]="col.vis"
+              (change)="togglePaCol(col.id, $any($event.target).checked)"
+            />
+            {{ col.label }}
+          </label>
+        </div>
+      </div>
+
+      <button type="button" (click)="zoomPaGantt(-1)">−</button>
+      <button type="button" (click)="zoomPaGantt(+1)">+</button>
+    </div>
+  </nav>
+
+  <section class="activity-filter-bar" *ngIf="mainView === 'projects'">
+
     <div class="af-dropdown-wrap" #timeFilterWrap>
-      <button class="af-select-btn" (click)="toggleTimeFilterMenu()">
-        <span>◷</span>
-        <span>{{ selectedTimeFilterLabel }}</span>
-        <span class="af-caret">▼</span>
+      <button type="button" class="filter-btn" (click)="toggleTimeFilterMenu()">
+        {{ selectedTimeFilterLabel }} ▼
       </button>
 
       <div class="af-dropdown-menu" [class.open]="timeFilterMenuOpen">
         <button
           type="button"
-          class="af-dropdown-item"
           *ngFor="let item of timeFilterOptions"
           [class.active]="item.value === selectedTimeFilter"
           (click)="selectTimeFilter(item.value)"
@@ -130,169 +93,124 @@
       </div>
     </div>
 
-    <div class="tb-sep"></div>
+    <!-- PROJECT SELECTOR HERE -->
 
-    <!-- Search -->
-    <div class="af-search">
-      <span class="af-search-icon">🔎</span>
-      <input
-        type="text"
-        [ngModel]="activitySearch"
-        (ngModelChange)="onActivitySearchChange($event)"
-        placeholder="Search project, code..."
-      />
+    <div class="project-select-wrap">
+      <label class="project-filter-label">Project</label>
+
+      <select
+        class="project-select"
+        [value]="selectedProjectId ?? ''"
+        (change)="onProjectChange($any($event.target).value)"
+      >
+        <option value="">All Projects</option>
+
+        <option
+          *ngFor="let p of projectOptions"
+          [value]="p.projectId"
+        >
+          {{ p.projectCode }} · {{ p.projectName }}
+        </option>
+      </select>
     </div>
 
-    <div class="tb-sep"></div>
+    <input
+      class="activity-search"
+      type="text"
+      [ngModel]="activitySearch"
+      (ngModelChange)="onActivitySearchChange($event)"
+      placeholder="Search project, code, activity..."
+    />
 
-    <!-- Status filters -->
-    <div class="af-status-wrap">
-      <span class="af-status-label">Status:</span>
-
-      <button
-        type="button"
-        class="af-status-pill"
-        [class.active]="selectedProjectStatus === 'ALL'"
-        (click)="setProjectStatusFilter('ALL')"
-      >
-        All
-      </button>
-
-      <button
-        type="button"
-        class="af-status-pill"
-        [class.active]="selectedProjectStatus === 'ACTIVE'"
-        (click)="setProjectStatusFilter('ACTIVE')"
-      >
-        Active
-      </button>
-
-      <button
-        type="button"
-        class="af-status-pill"
-        [class.active]="selectedProjectStatus === 'PLANNED'"
-        (click)="setProjectStatusFilter('PLANNED')"
-      >
-        Planned
-      </button>
-
-      <button
-        type="button"
-        class="af-status-pill"
-        [class.active]="selectedProjectStatus === 'COMPLETED'"
-        (click)="setProjectStatusFilter('COMPLETED')"
-      >
-        Completed
-      </button>
-
-      <button
-        type="button"
-        class="af-status-pill"
-        [class.active]="selectedProjectStatus === 'STANDBY'"
-        (click)="setProjectStatusFilter('STANDBY')"
-      >
-        Standby
-      </button>
-
-      <span class="af-project-count">{{ filteredProjectBlocks.length }} projects</span>
+    <div class="status-filters">
+      ...
     </div>
-  </div>
-</div>
 
-<div *ngIf="loading" class="page-state">Loading department data...</div>
-<div *ngIf="error" class="page-state error">{{ error }}</div>
+  </section>
 
-<div id="resource-view-wrap" [style.display]="mainView === 'resource' ? 'flex' : 'none'">
-  <div id="main">
-    <div id="name-col">
-      <div id="name-col-hdr">
-        <div class="nch-top">Member</div>
-          <div class="nch-dept">
-            <span>
-              {{ selectedDepartmentCode ? (selectedDepartmentCode + ' Department') : '— select manager —' }}
-            </span>
+  <div *ngIf="loading" class="page-state">Loading department data...</div>
+  <div *ngIf="error" class="page-state error">{{ error }}</div>
 
-            <div class="rs-actions" *ngIf="mainView === 'resource'">
-              <button
-                type="button"
-                class="rs-pill rs-r"
-                [class.off]="!showResources"
-                (click)="showResources = !showResources"
-                title="Resources"
-              >
-                R
-              </button>
+  <section class="empty-state" *ngIf="!loading && !selectedDepartmentCode && !isDepartmentManager">
+    <div class="empty-icon">🏢</div>
+    <h2>Select a department</h2>
+    <p>Choose PM, ME, EE, SW, MFC, INST, or another department to see resources and allocations.</p>
+  </section>
 
-              <button
-                type="button"
-                class="rs-pill rs-s"
-                [class.off]="!showSuppliers"
-                (click)="showSuppliers = !showSuppliers"
-                title="Suppliers"
-              >
-                S
-              </button>
-            </div>
-          </div>
+  <section class="resource-shell" [style.display]="mainView === 'resource' && selectedDepartmentCode ? 'flex' : 'none'">
+    <aside class="member-panel">
+      <div class="member-header">
+        <span>Member</span>
+        <div class="rs-actions">
+          <button type="button" [class.off]="!showResources" (click)="showResources = !showResources">R</button>
+          <button type="button" [class.off]="!showSuppliers" (click)="showSuppliers = !showSuppliers">S</button>
+        </div>
       </div>
 
-      <div id="name-rows">
-        <div class="name-cell" *ngFor="let row of filteredResourceRows; trackBy: trackByMember">
-          <div class="pav" [style.background]="row.member.color || '#6b7280'">
+      <div class="member-subtitle">
+        {{ selectedDepartmentCode }} Resources
+      </div>
+
+      <div class="member-list">
+        <div class="member-row" *ngFor="let row of filteredResourceRows; trackBy: trackByMember">
+          <div class="avatar" [style.background]="row.member.color || '#2563eb'">
             {{ initials(row.member.fullName) }}
           </div>
 
-          <div class="member-meta">
-            <div class="member-name">{{ row.member.fullName }}</div>
-            <div class="member-role">{{ row.member.resourceType || row.member.role || '' }}</div>
+          <div class="member-info">
+            <strong>{{ row.member.fullName }}</strong>
+            <span>{{ row.member.resourceType || row.member.role || 'Resource' }}</span>
+          </div>
+
+          <div class="allocation-count">
+            {{ row.items.length }}
           </div>
         </div>
       </div>
-    </div>
+    </aside>
 
-    <div id="gantt-scroll-wrap" #resourceGanttScrollWrap>
-      <div id="gantt-canvas" [style.width.px]="timelineColumns.length * colWidth">
-        <div id="time-hdr">
-          <div class="th-top">
-            <div class="th-top-cell" *ngFor="let top of topHeaderGroups" [style.width.px]="top.width">
+    <main class="timeline-panel" #resourceGanttScrollWrap>
+      <div class="timeline-canvas" [style.width.px]="timelineColumns.length * colWidth">
+        <div class="timeline-header">
+          <div class="month-row">
+            <div
+              class="month-cell"
+              *ngFor="let top of topHeaderGroups"
+              [style.width.px]="top.width"
+            >
               {{ top.label }}
             </div>
           </div>
 
-          <div class="th-bot">
+          <div class="date-row">
             <div
-              class="th-bot-cell"
+              class="date-cell"
               *ngFor="let col of timelineColumns; trackBy: trackByColumn"
               [style.width.px]="colWidth"
-              [class.wknd]="col.weekend"
-              [class.today-col]="col.today"
+              [class.weekend]="col.weekend"
+              [class.today]="col.today"
             >
               <ng-container *ngIf="timelineView === 'day'; else weekCell">
-                <div class="day-label">{{ col.label }}</div>
+                <strong>{{ col.label }}</strong>
               </ng-container>
 
               <ng-template #weekCell>
-                <div class="week-cell-wrap">
-                  <div class="week-label">{{ col.label }}</div>
-                  <div class="week-sub">{{ col.subLabel }}</div>
-                </div>
+                <strong>{{ col.label }}</strong>
+                <small>{{ col.subLabel }}</small>
               </ng-template>
             </div>
           </div>
         </div>
-
         <div
-          id="today-line"
+          class="today-line"
           *ngIf="timelineView === 'day' && todayLineLeft !== null"
           [style.left.px]="todayLineLeft"
         ></div>
 
-        <div id="gantt-body">
+        <div class="timeline-body">
           <div
-            class="gantt-row"
+            class="timeline-row"
             *ngFor="let row of filteredResourceRows; let i = index; trackBy: trackByMember"
-            [class.even]="i % 2 === 0"
-            [class.odd]="i % 2 !== 0"
             [style.width.px]="timelineColumns.length * colWidth"
           >
             <div
@@ -315,22 +233,19 @@
                 class="task-bar"
                 [style.left.px]="itemLeftPx(item.startDate)"
                 [style.width.px]="itemWidthPx(item.startDate, item.endDate)"
-                [style.background]="row.member.color || '#1565c0'"
-                [attr.title]="(item.projectCode || '') + ' · ' + item.taskName"
+                [style.background]="row.member.color || '#2563eb'"
+                [attr.title]="(item.projectCode || 'PRJ') + ' · ' + item.taskName"
               >
-                <div class="bar-pct" [style.width.%]="item.progressPercent || 0"></div>
-                <div class="bar-lbl">
-                  <strong>{{ item.projectCode || 'PRJ' }}</strong>
-                  <span>{{ item.taskName }}</span>
-                </div>
+                <div class="bar-progress" [style.width.%]="item.progressPercent || 0"></div>
+                <span class="bar-code">{{ item.projectCode || 'PRJ' }}</span>
+                <span class="bar-title">{{ item.taskName }}</span>
               </div>
 
               <div
                 *ngIf="item.holiday"
-                class="hol-bar"
+                class="holiday-bar"
                 [style.left.px]="itemLeftPx(item.startDate)"
                 [style.width.px]="itemWidthPx(item.startDate, item.endDate)"
-                [attr.title]="item.holidayNote || 'Holiday'"
               >
                 🏖 {{ item.holidayNote || 'Holiday' }}
               </div>
@@ -338,90 +253,68 @@
           </div>
         </div>
       </div>
-    </div>
-  </div>
+    </main>
+  </section>
 
-  <div id="res-scroll-bar-wrap">
-    <div id="res-scroll-bar-spacer"></div>
-    <div id="res-scroll-bar" #resourceScrollBar>
-      <div id="res-scroll-bar-inner" class="res-scroll-bar-inner"></div>
-    </div>
-  </div>
-</div>
+  <section class="activity-shell" [style.display]="mainView === 'projects' && selectedDepartmentCode ? 'flex' : 'none'">
+    <div class="activity-main-wrap">
+      <div id="act-table-panel" #actTablePanel>
+        <div id="act-table-content" #actTableContent [innerHTML]="actTableHtmlSafe"></div>
+      </div>
 
-<div id="activity-view-wrap" [style.display]="mainView === 'projects' ? 'flex' : 'none'">
-  <div class="activity-main-wrap">
-    <div id="act-table-panel" #actTablePanel>
-      <div id="act-table-content" #actTableContent [innerHTML]="actTableHtmlSafe"></div>
+      <div id="act-gantt-panel">
+        <div
+          id="act-gantt-content"
+          #activityGanttContent
+          (scroll)="syncActPanels($event)"
+          [innerHTML]="actGanttHtmlSafe"
+        ></div>
+      </div>
     </div>
+  </section>
 
-    <div id="act-gantt-panel">
-      <div
-        id="act-gantt-content"
-        #activityGanttContent
-        (scroll)="syncActPanels($event)"
-        [innerHTML]="actGanttHtmlSafe"
-      ></div>
-    </div>
-  </div>
+  <div id="hol-bg" [class.open]="holidayModalOpen">
+    <div id="hol-modal">
+      <div class="hm-head">
+        <h3>Add Holiday</h3>
+        <button type="button" class="hm-close" (click)="closeHolidayModal()">✕</button>
+      </div>
 
-  <div id="act-scroll-bar-wrap">
-    <div id="act-scroll-bar-spacer" #actScrollBarSpacer></div>
-    <div id="act-scroll-bar-inner-wrap" #activityScrollBarWrap (scroll)="syncActScrollFromBar($event)">
-      <div id="act-scroll-bar-inner" class="act-scroll-bar-inner"></div>
-    </div>
-  </div>
-</div>
-
-<div id="hol-bg" [class.open]="holidayModalOpen">
-  <div id="hol-modal">
-    <div class="hm-head">
-      <h3>Add Holiday</h3>
-      <button class="hm-close" (click)="closeHolidayModal()">✕</button>
-    </div>
-
-    <div class="hm-body">
-      <div class="f">
+      <div class="hm-body">
         <label>Person</label>
         <select class="fi" [value]="holidayMemberId ?? ''" (change)="onHolidayMemberChange($any($event.target).value)">
           <option *ngFor="let member of members" [value]="member.id">{{ member.fullName }}</option>
         </select>
-      </div>
 
-      <div class="frow">
-        <div class="f">
-          <label>From</label>
-          <input class="fi" type="date" [(ngModel)]="holidayFrom" />
-        </div>
-        <div class="f">
-          <label>To</label>
-          <input class="fi" type="date" [(ngModel)]="holidayTo" />
-        </div>
-      </div>
+        <div class="date-grid">
+          <div>
+            <label>From</label>
+            <input class="fi" type="date" [(ngModel)]="holidayFrom" />
+          </div>
 
-      <div class="f">
+          <div>
+            <label>To</label>
+            <input class="fi" type="date" [(ngModel)]="holidayTo" />
+          </div>
+        </div>
+
         <label>Note</label>
         <input class="fi" [(ngModel)]="holidayNote" placeholder="e.g. Annual leave" />
-      </div>
 
-      <div id="hol-list">
-        <ng-container *ngIf="holidayListForSelectedMember.length; else noHols">
-          <div class="hol-recorded-title">Recorded</div>
-          <div class="hi" *ngFor="let h of holidayListForSelectedMember">
+        <div class="holiday-list">
+          <div class="holiday-item" *ngFor="let h of holidayListForSelectedMember">
             <span>🏖 {{ h.fromDate }} → {{ h.toDate }}<span *ngIf="h.note"> · {{ h.note }}</span></span>
-            <button (click)="deleteHoliday(h.id)">✕</button>
+            <button type="button" (click)="deleteHoliday(h.id)">✕</button>
           </div>
-        </ng-container>
 
-        <ng-template #noHols>
-          <p class="no-holidays">No holidays.</p>
-        </ng-template>
+          <p *ngIf="!holidayListForSelectedMember.length">No holidays.</p>
+        </div>
       </div>
-    </div>
 
-    <div class="hm-foot">
-      <button class="btn btn-g" (click)="closeHolidayModal()">Cancel</button>
-      <button class="btn btn-p" (click)="addHoliday()">Add</button>
+      <div class="hm-foot">
+        <button type="button" class="btn light" (click)="closeHolidayModal()">Cancel</button>
+        <button type="button" class="btn primary" (click)="addHoliday()">Add</button>
+      </div>
     </div>
   </div>
 </div>
