@@ -7,7 +7,7 @@ import { CreateOrganisationWithAdminResponse } from '../models/create-organisati
 
 @Injectable({ providedIn: 'root' })
 export class PlatformOrganisationService {
-  private baseUrl = `${API_BASE_URL}/api/platform/organisations`;
+  private baseUrl = `${API_BASE_URL}/platform/organisations`;
 
   constructor(private http: HttpClient) {}
 
