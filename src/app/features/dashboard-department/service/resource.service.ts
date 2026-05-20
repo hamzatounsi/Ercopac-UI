@@ -2,20 +2,18 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-
 import { ResourceListItem } from '../models/resource-list-item.model';
 import { ResourceDetails } from '../models/resource-details.model';
 import { CreateResourceRequest } from '../models/create-resource-request.model';
 import { UpdateResourceRequest } from '../models/update-resource-request.model';
 import { ResourceOption } from '../models/resource-option.model';
 import { PageResponse } from '../models/page-response.model';
-import { API_RESOURCES_URL } from 'src/app/core/config/api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ResourceService {
-  private readonly apiUrl = API_RESOURCES_URL;
+  private readonly apiUrl = 'http://localhost:8090/api/resources';
 
   constructor(private http: HttpClient) {}
 
@@ -31,21 +29,30 @@ export class ResourceService {
   }): Observable<PageResponse<ResourceListItem>> {
     let params = new HttpParams();
 
-    if (filters?.search) params = params.set('search', filters.search);
-    if (filters?.departmentCode) params = params.set('departmentCode', filters.departmentCode);
-    if (filters?.role) params = params.set('role', filters.role);
-
+    if (filters?.search) {
+      params = params.set('search', filters.search);
+    }
+    if (filters?.departmentCode) {
+      params = params.set('departmentCode', filters.departmentCode);
+    }
+    if (filters?.role) {
+      params = params.set('role', filters.role);
+    }
     if (filters?.active !== null && filters?.active !== undefined) {
       params = params.set('active', filters.active);
     }
-
     if (filters?.internalUser !== null && filters?.internalUser !== undefined) {
       params = params.set('internalUser', filters.internalUser);
     }
-
-    if (filters?.page !== undefined) params = params.set('page', filters.page);
-    if (filters?.size !== undefined) params = params.set('size', filters.size);
-    if (filters?.sort) params = params.set('sort', filters.sort);
+    if (filters?.page !== undefined) {
+      params = params.set('page', filters.page);
+    }
+    if (filters?.size !== undefined) {
+      params = params.set('size', filters.size);
+    }
+    if (filters?.sort) {
+      params = params.set('sort', filters.sort);
+    }
 
     return this.http.get<PageResponse<ResourceListItem>>(this.apiUrl, { params });
   }
@@ -69,8 +76,12 @@ export class ResourceService {
   getResourceOptions(departmentCode?: string, role?: string): Observable<ResourceOption[]> {
     let params = new HttpParams();
 
-    if (departmentCode) params = params.set('departmentCode', departmentCode);
-    if (role) params = params.set('role', role);
+    if (departmentCode) {
+      params = params.set('departmentCode', departmentCode);
+    }
+    if (role) {
+      params = params.set('role', role);
+    }
 
     return this.http.get<ResourceOption[]>(`${this.apiUrl}/options`, { params });
   }

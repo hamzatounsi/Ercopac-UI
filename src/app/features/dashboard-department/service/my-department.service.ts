@@ -2,19 +2,16 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-
-
 import { DepartmentManager } from '../models/department-manager.model';
 import { MyDepartmentResponse } from '../models/my-department-response.model';
 import { DepartmentHoliday } from '../models/department-holiday.model';
 import { CreateDepartmentHolidayRequest } from '../models/create-department-holiday-request.model';
-import { API_BASE_URL } from 'src/app/core/config/api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MyDepartmentService {
-  private readonly baseUrl = `${API_BASE_URL}/department-dashboard`;
+  private readonly baseUrl = 'http://localhost:8087/api/department-dashboard';
 
   constructor(private http: HttpClient) {}
 
@@ -63,20 +60,21 @@ export class MyDepartmentService {
     timelineView: string,
     offset: number,
     span: number
-  ): Observable<MyDepartmentResponse> {
-    const params = new HttpParams()
-      .set('departmentCode', departmentCode)
-      .set('timelineView', timelineView)
-      .set('offset', offset)
-      .set('span', span);
-
+  ) {
     return this.http.get<MyDepartmentResponse>(
       `${this.baseUrl}/overview-by-department`,
-      { params }
+      {
+        params: {
+          departmentCode,
+          timelineView,
+          offset,
+          span
+        }
+      }
     );
   }
 
-  getDepartments(): Observable<string[]> {
+  getDepartments() {
     return this.http.get<string[]>(`${this.baseUrl}/departments`);
   }
 }
