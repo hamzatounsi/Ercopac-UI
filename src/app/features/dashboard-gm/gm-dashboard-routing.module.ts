@@ -16,6 +16,7 @@ import { GmProjectRisksPageComponent } from './pages/gm-project-risks-page/gm-pr
 import { GmProjectChangeRequestsPageComponent } from './pages/gm-project-change-requests-page/gm-project-change-requests-page.component';
 import { GmProjectActionsPageComponent } from './pages/gm-project-actions-page/gm-project-actions-page.component';
 import { GmAdminSettingsPageComponent } from './pages/gm-admin-settings-page/gm-admin-settings-page.component';
+import { MyDepartmentPageComponent } from '../dashboard-department/pages/my-department-page/my-department-page.component';
 
 const projectumAccessRoles = [
   'ROLE_PLATFORM_OWNER',
@@ -28,7 +29,10 @@ const projectumAccessRoles = [
 const adminAccessRoles = [
   'ROLE_PLATFORM_OWNER',
   'ROLE_PLATFORM_ADMIN',
-  'ROLE_ORG_ADMIN'
+  'ROLE_ORG_ADMIN',
+  'GENERAL_MANAGER',   // ← ADD
+  'ORG_ADMIN',         // ← ADD
+  'PLATFORM_OWNER'
 ];
 
 const routes: Routes = [
@@ -57,6 +61,7 @@ const routes: Routes = [
         canActivate: [RoleGuard],
         data: { roles: projectumAccessRoles }
       },
+      
       {
         path: 'admin',
         component: GmAdminSettingsPageComponent,
@@ -115,7 +120,12 @@ const routes: Routes = [
         component: GmProjectDetailsComponent,
         canActivate: [RoleGuard],
         data: { roles: projectumAccessRoles }
-      }
+      },{
+  path: 'my-department',
+  component: MyDepartmentPageComponent,
+  canActivate: [RoleGuard],
+  data: { roles: projectumAccessRoles }
+},
     ]
   }
 ];

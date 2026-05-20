@@ -190,7 +190,7 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
     if (this.isDepartmentManager) {
       this.loadOwnDepartmentOverview();
     } else {
-      this.loadDepartments();
+      this.loadManagers();
     }
   }
 
