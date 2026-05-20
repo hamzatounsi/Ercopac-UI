@@ -46,13 +46,28 @@ export class LoginComponent {
           return;
         }
 
+        
+       // GENERAL MANAGER / ORG ADMIN → depends on selected app
         if (role.includes('GENERAL_MANAGER') || role.includes('ORG_ADMIN')) {
-          this.router.navigate(['/gm/projectum']);
+          switch (this.selectedApp) {
+            case 'My Department':
+              this.router.navigate(['/department']);
+              break;
+            case 'My CRM':
+              this.router.navigate(['/crm/dashboard']);
+              break;
+            case 'Projectum':
+              this.router.navigate(['/gm/projectum']);
+              break;
+            default:
+              this.router.navigate(['/gm']);
+              break;
+          }
           return;
         }
 
         if (role.includes('DEPARTMENT_MANAGER')) {
-          this.router.navigate(['/department']);
+           this.router.navigate(['/department']);  
           return;
         }
 

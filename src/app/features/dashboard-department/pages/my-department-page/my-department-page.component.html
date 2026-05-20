@@ -4,23 +4,30 @@
       <div class="app-name">Projectum<span>ALL</span></div>
       <div class="app-sub">Department workload & allocation</div>
     </div>
+<!-- GM: manager dropdown -->
+<div class="header-select" *ngIf="!isDepartmentManager">
+  <label>Manager</label>
+  <select
+    [value]="selectedManagerId ?? ''"
+    (change)="onManagerChange($any($event.target).value)"
+  >
+    <option value="">— select —</option>
+    <option *ngFor="let m of managers; trackBy: trackByManager" [value]="m.id">
+      {{ m.fullName }} · {{ m.departmentCode }}
+    </option>
+  </select>
+</div>
 
-    <div class="header-select" *ngIf="!isDepartmentManager">
-      <label>Department</label>
-      <select
-        [value]="selectedDepartmentFilter"
-        (change)="onDepartmentChange($any($event.target).value)"
-      >
-        <option value="">Select department</option>
-        <option *ngFor="let dept of departmentOptions" [value]="dept">
-          {{ dept }}
-        </option>
-      </select>
-    </div>
 
-    <div class="dept-pill" *ngIf="selectedDepartmentCode">
-      {{ selectedDepartmentCode }} Department
-    </div>
+<!-- DM: just shows his dept name, no dropdown -->
+<div class="header-select" *ngIf="isDepartmentManager">
+  <label>Department</label>
+  <div class="dept-label-static">{{ selectedDepartmentCode }}</div>
+</div>
+<!-- Badge -->
+<div class="dept-pill" *ngIf="selectedDepartmentCode">
+  {{ selectedDepartmentCode }}
+</div>
   </header>
   <nav class="dept-toolbar">
     <div class="view-tabs">

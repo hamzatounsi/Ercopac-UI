@@ -15,6 +15,7 @@ const routes: Routes = [
 
   { path: 'login', component: LoginComponent },
 
+  // GM module — full dashboard
   {
     path: 'gm',
     loadChildren: () =>
@@ -25,6 +26,7 @@ const routes: Routes = [
     }
   },
 
+  // CRM module
   {
     path: 'crm',
     loadChildren: () =>
@@ -32,32 +34,36 @@ const routes: Routes = [
         .then(m => m.DashboardCrmModule)
   },
 
-  {
-    path: 'department',
-    component: DashboardDmComponent,
-    canActivate: [AuthGuard, RoleGuard],
-    data: {
-      roles: ['GENERAL_MANAGER', 'ORG_ADMIN', 'PLATFORM_OWNER']
-    }
-  },
-
+  // DEPARTMENT MANAGER — lands here after login
+{
+  path: 'department',
+  component: MyDepartmentPageComponent,
+  canActivate: [AuthGuard, RoleGuard],
+  data: {
+    roles: ['DEPARTMENT_MANAGER', 'GENERAL_MANAGER', 'ORG_ADMIN', 'PLATFORM_OWNER']
+  }
+},
+  // EMPLOYEE dashboard
   {
     path: 'employee',
     component: DashboardEmployeeComponent,
     canActivate: [AuthGuard, RoleGuard],
     data: {
-      roles: ['GENERAL_MANAGER', 'ORG_ADMIN', 'PLATFORM_OWNER']
+      roles: ['EMPLOYEE']                    // ← fixed: only EMPLOYEE
     }
   },
 
+  // OWNER module
   {
     path: 'owner',
     loadChildren: () =>
-      import('./features/dashboard-owner/dashboard-owner.module').then(m => m.DashboardOwnerModule),
+      import('./features/dashboard-owner/dashboard-owner.module')
+        .then(m => m.DashboardOwnerModule),
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['ROLE_PLATFORM_OWNER', 'ROLE_PLATFORM_ADMIN'] }
+    data: { roles: ['PLATFORM_OWNER', 'PLATFORM_ADMIN'] }
   },
 
+  // GM accessing My Department page directly
   {
     path: 'gm/my-department',
     component: MyDepartmentPageComponent,
@@ -67,6 +73,7 @@ const routes: Routes = [
     }
   },
 
+  // Resource settings
   {
     path: 'department/resources',
     component: ResourceSettingsPageComponent,
