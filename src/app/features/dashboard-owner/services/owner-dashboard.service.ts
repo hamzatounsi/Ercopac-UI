@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_PLATFORM_URL } from 'src/app/core/config/api.config';
 import { OwnerKpi } from '../models/owner-kpi.model';
 import { OwnerOrganisationSummary } from '../models/owner-organisation-summary.model';
 import { OwnerProjectRow } from '../models/owner-project-row.model';
@@ -11,8 +12,8 @@ import { PlatformOrganisation } from '../models/platform-organisation.model';
   providedIn: 'root'
 })
 export class OwnerDashboardService {
-  private readonly baseUrl = 'http://localhost:8087/api/platform/dashboard';
-  private readonly platformOrgUrl = 'http://localhost:8087/api/platform/organisations';
+  private readonly baseUrl = `${API_PLATFORM_URL}/dashboard`;
+  private readonly platformOrgUrl = `${API_PLATFORM_URL}/organisations`;
 
   constructor(private http: HttpClient) {}
 
@@ -33,18 +34,15 @@ export class OwnerDashboardService {
   }
 
   getPlatformOrganisations(): Observable<PlatformOrganisation[]> {
-  return this.http.get<PlatformOrganisation[]>(this.platformOrgUrl);
+    return this.http.get<PlatformOrganisation[]>(this.platformOrgUrl);
   }
 
   getPlatformOrganisation(id: number): Observable<PlatformOrganisation> {
     return this.http.get<PlatformOrganisation>(`${this.platformOrgUrl}/${id}`);
   }
 
-  updatePlatformOrganisation(id: number, body: any) {
-    return this.http.put<PlatformOrganisation>(
-      `${this.platformOrgUrl}/${id}`,
-      body
-    );
+  updatePlatformOrganisation(id: number, body: any): Observable<PlatformOrganisation> {
+    return this.http.put<PlatformOrganisation>(`${this.platformOrgUrl}/${id}`, body);
   }
 
   updatePlatformOrganisationStatus(
@@ -56,4 +54,4 @@ export class OwnerDashboardService {
       {}
     );
   }
-  }
+}

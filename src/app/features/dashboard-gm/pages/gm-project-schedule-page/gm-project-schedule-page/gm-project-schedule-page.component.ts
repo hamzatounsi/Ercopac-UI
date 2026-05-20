@@ -256,38 +256,50 @@ resourceOptions: { id: number; fullName: string; departmentCode: string; resourc
     }
   }
 
-onNewResourceTypeChange(resourceType: string): void {
-  this.newResource.resourceType = resourceType;
-  this.newResource.assignedUserId = null;
-  this.newResource.assignmentName = '';
-  this.filterResources();
-}
- 
-onResourceSearch(): void {
-  this.filterResources();
-}
+  onNewResourceTypeChange(resourceType: string): void {
+    this.newResource.resourceType = resourceType;
+    this.newResource.assignedUserId = null;
+    this.newResource.assignmentName = '';
+
+    // Only filter if user explicitly selected a type
+    if (resourceType && resourceType !== 'ALL') {
+      this.filterResources();
+    } else {
+      this.filteredResourceOptions = [...this.resourceOptions];
+    }
+  }
+  
+  onResourceSearch(): void {
+    this.filterResources();
+  }
  private filterResources(): void {
-  let filtered = [...this.resourceOptions];
+    let filtered = [...this.resourceOptions];
 
-  // Filter by resource type
-  const selectedType = (this.newResource.resourceType ?? '').toUpperCase();
-  if (selectedType) {
-    filtered = filtered.filter(u =>
-      (u.resourceType ?? '').toUpperCase() === selectedType
-    );
+    // ONLY apply resource type filtering
+    // if a resource type was manually selected
+    // by the user in the assignment form
+
+    const selectedType = (this.newResource.resourceType ?? '').trim().toUpperCase();
+
+    if (selectedType && selectedType !== 'ALL') {
+      filtered = filtered.filter(u =>
+        (u.resourceType ?? '').toUpperCase() === selectedType
+      );
+    }
+
+    // Search term filter
+    const term = (this.resourceSearchTerm ?? '').trim().toLowerCase();
+
+    if (term) {
+      filtered = filtered.filter(u =>
+        (u.fullName ?? '').toLowerCase().includes(term) ||
+        (u.resourceType ?? '').toLowerCase().includes(term) ||
+        (u.departmentCode ?? '').toLowerCase().includes(term)
+      );
+    }
+
+    this.filteredResourceOptions = filtered;
   }
-
-  // Filter by search term
-  const term = (this.resourceSearchTerm ?? '').trim().toLowerCase();
-  if (term) {
-    filtered = filtered.filter(u =>
-      (u.fullName ?? '').toLowerCase().includes(term) ||
-      (u.resourceType ?? '').toLowerCase().includes(term)
-    );
-  }
-
-  this.filteredResourceOptions = filtered;
-}
  
   ngAfterViewInit(): void {}
 
@@ -436,11 +448,6 @@ openTaskDrawer(task: GmProjectScheduleTask): void {
   };
   this.resourceSearchTerm = '';
   this.filteredResourceOptions = [...this.resourceOptions];
-
-  // Auto-filter by task's resource type
-  if (task.resourceType) {
-    this.filterResources();
-  }
 
   if (this.selectedTemplateScope === 'selected' && !task) {
     this.selectedTemplateScope = 'all';

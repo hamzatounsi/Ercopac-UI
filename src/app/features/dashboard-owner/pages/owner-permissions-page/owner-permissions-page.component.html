@@ -1,1 +1,118 @@
-<p>owner-permissions-page works!</p>
+<section class="permissions-page">
+  <header class="page-header">
+    <div>
+      <h1>User Permissions</h1>
+      <p>
+        Select an organisation, choose a role, then control module access.
+      </p>
+    </div>
+
+    <div class="header-actions" *ngIf="selectedOrganisation && selectedRole">
+      <button class="grant-btn" type="button" (click)="grantAll()">✓ Grant All</button>
+      <button class="revoke-btn" type="button" (click)="revokeAll()">× Revoke All</button>
+      <button class="save-btn" type="button" (click)="save()" [disabled]="saving">
+        💾 {{ saving ? 'Saving...' : 'Save' }}
+      </button>
+    </div>
+  </header>
+
+  <div class="permissions-layout">
+    <aside class="side-panel">
+      <div class="panel-title">Organisation</div>
+
+      <button
+        type="button"
+        class="org-item"
+        *ngFor="let org of organisations"
+        [class.active]="selectedOrganisation?.id === org.id"
+        (click)="selectOrganisation(org)"
+      >
+        <span class="status-dot" [class.trial]="org.status === 'TRIAL'" [class.suspended]="org.status === 'SUSPENDED'"></span>
+        <span>
+          <strong>{{ org.name }}</strong>
+          <small>{{ org.plan }}</small>
+        </span>
+      </button>
+
+      <div class="panel-title role-title">Select Role</div>
+
+      <button
+        type="button"
+        class="role-item"
+        *ngFor="let role of roles"
+        [class.active]="selectedRole === role"
+        (click)="selectRole(role)"
+      >
+        <span class="role-avatar">{{ role.charAt(0) }}</span>
+        <span>
+          <strong>{{ roleLabel(role) }}</strong>
+          <small>Role permissions</small>
+        </span>
+      </button>
+    </aside>
+
+    <main class="permission-content">
+      <div class="selected-card" *ngIf="selectedOrganisation">
+        <div class="org-avatar">{{ orgInitials(selectedOrganisation) }}</div>
+
+        <div>
+          <h2>{{ selectedOrganisation.name }}</h2>
+          <p>{{ selectedOrganisation.code }} · {{ selectedOrganisation.plan }} · {{ selectedOrganisation.status }}</p>
+        </div>
+
+        <div class="selected-role">
+          {{ roleLabel(selectedRole) }}
+        </div>
+      </div>
+
+      <div class="legend">
+        <span><i class="box full"></i> Full Access</span>
+        <span><i class="box read"></i> Read Only</span>
+        <span><i class="box none"></i> No Access</span>
+        <em>READ = view only · WRITE = create / edit / delete</em>
+      </div>
+
+      <div class="message error" *ngIf="errorMessage">{{ errorMessage }}</div>
+      <div class="message success" *ngIf="successMessage">{{ successMessage }}</div>
+
+      <div class="loading" *ngIf="loading">Loading permissions...</div>
+
+      <section class="permission-group" *ngFor="let group of groupedPermissions()">
+        <div class="group-header">
+          <span>{{ group.group }}</span>
+          <strong>READ</strong>
+          <strong>WRITE</strong>
+        </div>
+
+        <div class="permission-row" *ngFor="let permission of group.items">
+          <div class="module-cell">
+            <span class="module-icon">{{ permission.icon }}</span>
+            <span>{{ permission.label }}</span>
+          </div>
+
+          <span class="access-pill" [class.full]="permission.canRead && permission.canWrite" [class.read]="permission.canRead && !permission.canWrite">
+            {{ accessLabel(permission) }}
+          </span>
+
+          <button
+            type="button"
+            class="check-btn"
+            [class.checked]="permission.canRead"
+            (click)="toggleRead(permission)"
+          >
+            ✓
+          </button>
+
+          <button
+            type="button"
+            class="check-btn"
+            [class.checked]="permission.canWrite"
+            (click)="toggleWrite(permission)"
+          >
+            ✓
+          </button>
+        </div>
+      </section>
+    </main>
+  </div>
+</section>
