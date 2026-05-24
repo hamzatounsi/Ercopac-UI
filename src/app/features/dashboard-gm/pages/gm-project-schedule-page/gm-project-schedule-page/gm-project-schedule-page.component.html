@@ -369,8 +369,8 @@
           <div class="gh col-type" *ngIf="columnVisibility.type">Type</div>
           <div class="gh col-restype" *ngIf="columnVisibility.resourceType">Res.Type</div>
           <div class="gh col-dept" *ngIf="columnVisibility.department">Department</div>
-          <div class="gh col-date" *ngIf="columnVisibility.actualStart">A.Start</div>
-          <div class="gh col-date" *ngIf="columnVisibility.actualFinish">A.Finish</div>
+      <div class="gh col-date" *ngIf="columnVisibility.actualStart">Actual Start</div>
+      <div class="gh col-date" *ngIf="columnVisibility.actualFinish">Actual Finish</div>
           <div class="gh col-dur" *ngIf="columnVisibility.duration">Dur.</div>
           <div class="gh col-progress" *ngIf="columnVisibility.progress">% Done</div>
           <div class="gh col-pred" *ngIf="columnVisibility.predecessors">Pred.</div>
@@ -787,7 +787,9 @@
     <form class="sp-body" [formGroup]="taskForm">
       <ng-container *ngIf="activeDetailTab === 'general'">
         <div class="sp-general-layout">
+
           <div class="sp-general-main">
+
             <div class="sp-card">
               <div class="sp-card-title blue-dot">Task Details</div>
 
@@ -799,10 +801,7 @@
 
                 <div class="sp-field sp-col-duration">
                   <label>Duration (d)</label>
-                  <input
-                    type="number"
-                    formControlName="durationDays"
-                  />
+                  <input type="number" formControlName="durationDays" />
                 </div>
 
                 <div class="sp-field sp-col-priority">
@@ -824,104 +823,111 @@
                     <option [ngValue]="true">Yes</option>
                   </select>
                 </div>
-
-                <div class="sp-field sp-col-restype">
-                  <label>Res. Type</label>
-                  <select formControlName="resourceType">
-                    <option value="">--</option>
-                    <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
-                  </select>
-                </div>
-
-                <div class="sp-field sp-col-dept">
-                  <label>Department</label>
-                  <select formControlName="departmentCode">
-                    <option value="">--</option>
-                    <option *ngFor="let dept of departmentCodes" [value]="dept">{{ dept }}</option>
-                  </select>
-                </div>
               </div>
             </div>
 
             <div class="sp-card">
-              <div class="sp-dates-grid">
+              <div class="sp-dates-grid two-date-modes">
+
                 <div class="sp-date-box baseline">
-                  <div class="sp-card-title amber-dot">Baseline</div>
+                  <div class="sp-card-title amber-dot">Baseline Dates</div>
+
                   <div class="sp-date-row">
                     <div class="sp-field">
-                      <label>Start</label>
+                      <label>Baseline Start</label>
                       <input type="date" formControlName="baselineStart" />
                     </div>
+
                     <div class="sp-field">
-                      <label>Finish</label>
+                      <label>Baseline Finish</label>
                       <input type="date" formControlName="baselineEnd" />
                     </div>
                   </div>
                 </div>
 
-                <div class="sp-date-divider"></div>
+                <div class="sp-date-box actual">
+                  <div class="sp-card-title blue-dot">Actual Dates</div>
 
-                <div class="sp-date-box planned">
-                  <div class="sp-card-title blue-dot">Planned</div>
                   <div class="sp-date-row">
                     <div class="sp-field">
-                      <label>Start</label>
-                      <input type="date" formControlName="plannedStart" />
+                      <label>Actual Start</label>
+                      <input type="date" formControlName="actualStart" />
                     </div>
+
                     <div class="sp-field">
-                      <label>Finish</label>
-                      <input type="date" formControlName="plannedEnd" />
+                      <label>Actual Finish</label>
+                      <input type="date" formControlName="actualEnd" />
                     </div>
                   </div>
                 </div>
+
               </div>
             </div>
+
           </div>
 
           <aside class="sp-general-side">
-            <div class="sp-side-card">
-              <div class="sp-side-card progress-card">
-                <div class="sp-card-title purple-dot">Progress</div>
-                <div class="sp-progress-top">
-                  <div class="sp-progress-value">
-                    {{ taskForm.get('percentComplete')?.value || 0 }}%
-                  </div>
-                </div>
 
-                <input
-                  class="sp-progress-slider"
-                  type="range"
-                  min="0"
-                  max="100"
-                  step="1"
-                  formControlName="percentComplete"
-                  [disabled]="!!selectedTask && isSummary(selectedTask)"
-                  (input)="onProgressSliderInput()"
-                  (change)="onProgressSliderCommit()"
-                />
+            <div class="sp-side-card progress-card">
+              <div class="sp-card-title purple-dot">Progress</div>
+
+              <div class="sp-progress-top">
+                <div class="sp-progress-value">
+                  {{ taskForm.get('percentComplete')?.value || 0 }}%
+                </div>
               </div>
+
+              <input
+                class="sp-progress-slider"
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                formControlName="percentComplete"
+                [disabled]="!!selectedTask && isSummary(selectedTask)"
+                (input)="onProgressSliderInput()"
+                (change)="onProgressSliderCommit()"
+              />
+            </div>
 
             <div class="sp-side-card">
               <div class="sp-card-title orange-dot">Options</div>
+
               <div class="sp-options-grid">
                 <label class="sp-check-pill">
-                  <input type="checkbox" [checked]="taskForm.get('scheduleMode')?.value === 'MANUAL'" />
+                  <input
+                    type="checkbox"
+                    [checked]="taskForm.get('scheduleMode')?.value === 'MANUAL'"
+                    (change)="taskForm.patchValue({ scheduleMode: $any($event.target).checked ? 'MANUAL' : 'AUTO' })"
+                  />
                   <span>Manual</span>
                 </label>
+
                 <label class="sp-check-pill">
-                  <input type="checkbox" [checked]="taskForm.get('active')?.value === false" />
+                  <input
+                    type="checkbox"
+                    [checked]="taskForm.get('active')?.value === false"
+                    (change)="taskForm.patchValue({ active: !$any($event.target).checked })"
+                  />
                   <span>Inactive</span>
                 </label>
+
                 <label class="sp-check-pill">
-                  <input type="checkbox" [checked]="taskForm.get('customerMilestone')?.value === true" />
+                  <input
+                    type="checkbox"
+                    [checked]="taskForm.get('customerMilestone')?.value === true"
+                    (change)="taskForm.patchValue({ customerMilestone: $any($event.target).checked })"
+                  />
                   <span>Customer MS</span>
                 </label>
+
                 <label class="sp-check-pill">
                   <input type="checkbox" [checked]="isMilestone(selectedTask)" [disabled]="true" />
                   <span>Milestone</span>
                 </label>
               </div>
             </div>
+
             <div class="sp-side-card">
               <button
                 type="button"
@@ -933,8 +939,9 @@
                 <span>{{ saving ? 'Saving...' : 'Save Task' }}</span>
               </button>
             </div>
-            </div>
+
           </aside>
+
         </div>
       </ng-container>
 
@@ -958,10 +965,10 @@
             <div>
               <select
                 class="sp-inline-select"
-                [(ngModel)]="newResource.assignedUserId"
+                [(ngModel)]="dep.dependencyType"
                 [ngModelOptions]="{ standalone: true }"
-                (ngModelChange)="onNewResourceUserChange($event)"
-              > 
+                (ngModelChange)="saveDependency(dep)"
+              >
                 <option *ngFor="let type of dependencyTypes" [value]="type">{{ type }}</option>
               </select>
             </div>
@@ -971,7 +978,7 @@
                 type="number"
                 [(ngModel)]="dep.lagDays"
                 [ngModelOptions]="{ standalone: true }"
-                (blur)="saveDependency(dep)"
+                (ngModelChange)="saveDependency(dep)"
               />
             </div>
             <div class="sp-row-actions">
@@ -1032,150 +1039,209 @@
 <!-- Find: <ng-container *ngIf="activeDetailTab === 'resources'"> -->
 <!-- REPLACE with this: -->
 
-<ng-container *ngIf="activeDetailTab === 'resources'">
-  <div class="sp-table-card">
-    <div class="sp-table-head resource-head">
-      <div>#</div>
-      <div>Res.Type</div>
-      <div>Assignment</div>
-      <div>Qty</div>
-      <div>Units (%)</div>
-      <div>Cost (€)</div>
-      <div></div>
-    </div>
+    <ng-container *ngIf="activeDetailTab === 'resources'">
+      <div class="sp-table-card">
+        <div class="sp-table-head resource-head">
+          <div>#</div>
+          <div>Type</div>
+          <div>Assignment</div>
+          <div>Qty</div>
+          <div>Units (%)</div>
+          <div>Cost (€)</div>
+          <div></div>
+        </div>
 
-    <!-- Existing resources -->
-    <div class="sp-table-row resource-row" *ngFor="let res of taskResources; let i = index">
-      <div>
-        <span class="sp-row-badge">{{ i + 1 }}</span>
-      </div>
-      <div>
-        <select
-          class="sp-inline-select"
-          [(ngModel)]="res.resourceType"
-          [ngModelOptions]="{ standalone: true }"
-          (change)="saveResource(res)"
-        >
-          <option value="">--</option>
-          <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
-        </select>
-      </div>
-      <div>
-        <input
-          class="sp-inline-input"
-          type="text"
-          [(ngModel)]="res.assignmentName"
-          [ngModelOptions]="{ standalone: true }"
-          (blur)="saveResource(res)"
-        />
-      </div>
-      <div>
-        <input
-          class="sp-inline-input small"
-          type="number"
-          [(ngModel)]="res.quantity"
-          [ngModelOptions]="{ standalone: true }"
-          (blur)="saveResource(res)"
-        />
-      </div>
-      <div>
-        <input
-          class="sp-inline-input"
-          type="number"
-          [(ngModel)]="res.unitsPercent"
-          [ngModelOptions]="{ standalone: true }"
-          (blur)="saveResource(res)"
-        />
-      </div>
-      <div>
-        <input
-          class="sp-inline-input"
-          type="number"
-          [(ngModel)]="res.cost"
-          [ngModelOptions]="{ standalone: true }"
-          (blur)="saveResource(res)"
-        />
-      </div>
-      <div class="sp-row-actions">
-        <button type="button" class="sp-icon-btn" (click)="removeResource(res.id)">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-      </div>
-    </div>
+        <!-- Existing assignments: resources + suppliers -->
+        <div class="sp-table-row resource-row" *ngFor="let res of taskResources; let i = index">
+          <div>
+            <span class="sp-row-badge">{{ i + 1 }}</span>
+          </div>
 
-    <!-- NEW RESOURCE ROW -->
-    <div class="sp-table-row resource-row new-resource-row">
-      <div>
-        <span class="sp-row-badge">+</span>
-      </div>
+          <div>
+            <select
+              class="sp-inline-select"
+              [(ngModel)]="res.resourceType"
+              [ngModelOptions]="{ standalone: true }"
+              (change)="saveResource(res)"
+            >
+              <option value="">--</option>
+              <option value="SUPPLIER">SUPPLIER</option>
+              <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
+            </select>
+          </div>
 
-      <!-- Resource Type filter -->
-      <div>
-        <select
-          class="sp-inline-select"
-          [(ngModel)]="newResource.resourceType"
-          [ngModelOptions]="{ standalone: true }"
-          (ngModelChange)="onNewResourceTypeChange($event)"
-        >
-          <option value="">--</option>
-          <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
-        </select>
-      </div>
-<!-- Search with autocomplete only - no dropdown select -->
-    <div>
-      <select
-        class="sp-inline-select"
-        [(ngModel)]="newResource.assignedUserId"
-        [ngModelOptions]="{ standalone: true }"
-        (ngModelChange)="onNewResourceUserChange($event)"
-      >
-        <option [ngValue]="null">-- Select resource --</option>
+          <div>
+            <input
+              class="sp-inline-input"
+              type="text"
+              [(ngModel)]="res.assignmentName"
+              [ngModelOptions]="{ standalone: true }"
+              (blur)="saveResource(res)"
+            />
+          </div>
 
-        <option
-          *ngFor="let user of filteredResourceOptions"
-          [ngValue]="user.id"
-        >
-          {{ user.fullName }} - {{ user.resourceType }} - {{ user.departmentCode }}
-        </option>
-      </select>
-    </div>
+          <div>
+            <input
+              class="sp-inline-input small"
+              type="number"
+              [(ngModel)]="res.quantity"
+              [ngModelOptions]="{ standalone: true }"
+              (blur)="saveResource(res)"
+            />
+          </div>
 
-      <div>
-        <input
-          class="sp-inline-input small"
-          type="number"
-          [(ngModel)]="newResource.quantity"
-          [ngModelOptions]="{ standalone: true }"
-        />
-      </div>
-      <div>
-        <input
-          class="sp-inline-input"
-          type="number"
-          [(ngModel)]="newResource.unitsPercent"
-          [ngModelOptions]="{ standalone: true }"
-        />
-      </div>
-      <div>
-        <input
-          class="sp-inline-input"
-          type="number"
-          [(ngModel)]="newResource.cost"
-          [ngModelOptions]="{ standalone: true }"
-        />
-      </div>
-      <div class="sp-row-actions">
-        <button type="button" class="sp-icon-btn" (click)="addResource()">
-          <span class="material-symbols-outlined">add</span>
-        </button>
-      </div>
-    </div>
+          <div>
+            <input
+              class="sp-inline-input"
+              type="number"
+              [(ngModel)]="res.unitsPercent"
+              [ngModelOptions]="{ standalone: true }"
+              (blur)="saveResource(res)"
+            />
+          </div>
 
-    <div *ngIf="!taskResources?.length" class="empty-state-line">
-      No resources assigned to this task yet.
-    </div>
-  </div>
-</ng-container>
+          <div>
+            <input
+              class="sp-inline-input"
+              type="number"
+              [(ngModel)]="res.cost"
+              [ngModelOptions]="{ standalone: true }"
+              (blur)="saveResource(res)"
+            />
+          </div>
+
+          <div class="sp-row-actions">
+            <button type="button" class="sp-icon-btn" (click)="removeResource(res.id)">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Add employee/resource assignment -->
+        <div class="sp-table-row resource-row new-resource-row">
+          <div>
+            <span class="sp-row-badge">+</span>
+          </div>
+
+          <div>
+            <select
+              class="sp-inline-select"
+              [(ngModel)]="newResource.resourceType"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="onNewResourceTypeChange($event)"
+            >
+              <option value="">--</option>
+              <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
+            </select>
+          </div>
+
+          <div>
+            <select
+              class="sp-inline-select"
+              [(ngModel)]="newResource.assignedUserId"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="onNewResourceUserChange($event)"
+            >
+              <option [ngValue]="null">-- Select resource --</option>
+              <option *ngFor="let user of filteredResourceOptions" [ngValue]="user.id">
+                {{ user.fullName }} - {{ user.resourceType }} - {{ user.departmentCode }}
+              </option>
+            </select>
+          </div>
+
+          <div>
+            <input
+              class="sp-inline-input small"
+              type="number"
+              [(ngModel)]="newResource.quantity"
+              [ngModelOptions]="{ standalone: true }"
+            />
+          </div>
+
+          <div>
+            <input
+              class="sp-inline-input"
+              type="number"
+              [(ngModel)]="newResource.unitsPercent"
+              [ngModelOptions]="{ standalone: true }"
+            />
+          </div>
+
+          <div>
+            <input
+              class="sp-inline-input"
+              type="number"
+              [(ngModel)]="newResource.cost"
+              [ngModelOptions]="{ standalone: true }"
+            />
+          </div>
+
+          <div class="sp-row-actions">
+            <button type="button" class="sp-icon-btn" (click)="addResource()">
+              <span class="material-symbols-outlined">add</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Add supplier assignment -->
+        <div class="sp-table-row resource-row new-resource-row supplier-row">
+          <div>
+            <span class="sp-row-badge">S</span>
+          </div>
+
+          <div>
+            <span class="sp-inline-chip">SUPPLIER</span>
+          </div>
+
+          <div>
+            <input
+              class="sp-inline-input"
+              type="text"
+              placeholder="Supplier name"
+              [(ngModel)]="newSupplier.assignmentName"
+              [ngModelOptions]="{ standalone: true }"
+            />
+          </div>
+
+          <div>
+            <input
+              class="sp-inline-input small"
+              type="number"
+              [(ngModel)]="newSupplier.quantity"
+              [ngModelOptions]="{ standalone: true }"
+            />
+          </div>
+
+          <div>
+            <input
+              class="sp-inline-input"
+              type="number"
+              [(ngModel)]="newSupplier.unitsPercent"
+              [ngModelOptions]="{ standalone: true }"
+            />
+          </div>
+
+          <div>
+            <input
+              class="sp-inline-input"
+              type="number"
+              [(ngModel)]="newSupplier.cost"
+              [ngModelOptions]="{ standalone: true }"
+            />
+          </div>
+
+          <div class="sp-row-actions">
+            <button type="button" class="sp-icon-btn" (click)="addSupplierAssignment()">
+              <span class="material-symbols-outlined">add</span>
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="!taskResources?.length" class="empty-state-line">
+          No resources or suppliers assigned to this task yet.
+        </div>
+      </div>
+    </ng-container>
 
       <ng-container *ngIf="activeDetailTab === 'history'">
         <div class="sp-table-card history-card">
@@ -1648,71 +1714,134 @@
         </ng-container>
 
         <ng-container *ngIf="settingsTab === 'baseline'">
-          <section class="drawer-section">
-            <div class="drawer-section-header no-border">
-              <div class="drawer-section-title">
-                <span class="material-symbols-outlined sec-icon">add</span>
-                <span>Set New Baseline</span>
-              </div>
+  <section class="drawer-section">
+    <div class="drawer-section-header no-border">
+      <div class="drawer-section-title">
+        <span class="material-symbols-outlined sec-icon">add</span>
+        <span>Set New Baseline</span>
+      </div>
+    </div>
+
+    <div class="baseline-create-card">
+      <div class="baseline-help-text">
+        Captures the current <strong>planned dates</strong> and
+        <strong>% complete</strong> of all tasks as a snapshot.
+        You can restore any saved baseline to the schedule at any time.
+      </div>
+
+      <div class="template-create-row">
+        <input
+          type="text"
+          class="template-name-input"
+          [(ngModel)]="baselineName"
+          placeholder="Baseline name (e.g. Rev.1, After Design...)"
+        />
+
+        <button
+          type="button"
+          class="primary-action-btn"
+          (click)="saveBaselineWithName()"
+          [disabled]="saving || !baselineName.trim()"
+        >
+          📌 Set Baseline
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="drawer-section">
+    <div class="drawer-section-header">
+      <div class="drawer-section-title">
+        <span class="material-symbols-outlined sec-icon">inventory_2</span>
+        <span>Saved Baselines</span>
+      </div>
+    </div>
+
+    <ng-container *ngIf="baselines && baselines.length > 0; else noBaselines">
+      <div
+        class="baseline-pro-card"
+        [class.active-baseline]="baseline.active"
+        *ngFor="let baseline of baselines; trackBy: trackBaseline"
+      >
+        <div class="baseline-card-top">
+          <div class="baseline-card-icon">📌</div>
+
+          <div class="baseline-card-info">
+            <div class="baseline-card-name">{{ baseline.name }}</div>
+            <div class="baseline-card-meta">
+              Saved {{ baseline.createdAt | date:'dd MMM yyyy' }}
+              · {{ baseline.taskCount || 0 }} tasks
+              · Avg {{ baseline.avgProgress || 0 }}%
+            </div>
+          </div>
+
+          <span class="baseline-status-badge" [class.active]="baseline.active">
+            {{ baseline.active ? 'Applied' : 'Saved' }}
+          </span>
+
+          <button
+            type="button"
+            class="baseline-mini-btn"
+            (click)="toggleBaselineDetails(baseline)"
+          >
+            {{ baseline.expanded ? '▴' : '▾' }}
+          </button>
+
+          <button
+            type="button"
+            class="baseline-mini-btn edit"
+            (click)="renameBaseline(baseline)"
+          >
+            ✏️
+          </button>
+
+          <button
+            type="button"
+            class="baseline-mini-btn danger"
+            (click)="deleteBaseline(baseline.id)"
+          >
+            🗑
+          </button>
+        </div>
+
+        <div class="baseline-detail" [class.open]="baseline.expanded">
+          <div class="baseline-stats-grid">
+            <div class="baseline-stat">
+              <strong>{{ baseline.taskCount || 0 }}</strong>
+              <span>Tasks</span>
             </div>
 
-            <div class="baseline-create-card">
-              <div class="baseline-help-text">
-                Captures the current <strong>planned dates</strong> and <strong>% complete</strong> of all tasks as a snapshot.
-              </div>
-
-              <div class="template-create-row">
-                <input
-                  type="text"
-                  class="template-name-input"
-                  [(ngModel)]="baselineName"
-                  placeholder="Baseline name..."
-                />
-                <button type="button" class="primary-action-btn" (click)="saveBaselineWithName()">
-                  📌 Set Baseline
-                </button>
-              </div>
-            </div>
-          </section>
-
-          <section class="drawer-section">
-            <div class="drawer-section-header">
-              <div class="drawer-section-title">
-                <span class="material-symbols-outlined sec-icon">inventory_2</span>
-                <span>Saved Baselines</span>
-              </div>
+            <div class="baseline-stat">
+              <strong>{{ baseline.avgProgress || 0 }}%</strong>
+              <span>Avg Done</span>
             </div>
 
-            <ng-container *ngIf="baselines && baselines.length > 0; else noBaselines">
-              <div
-                class="drawer-list-card baseline-card"
-                [class.active-baseline]="baseline.active"
-                *ngFor="let baseline of baselines; trackBy: trackBaseline"
-              >
-                <div class="list-card-main">
-                  <div class="list-card-title">{{ baseline.name }}</div>
-                  <div class="list-card-sub">{{ baseline.createdAt }}</div>
-                </div>
+            <div class="baseline-stat">
+              <strong>{{ baseline.completedCount || 0 }}</strong>
+              <span>Complete</span>
+            </div>
+          </div>
 
-                <div class="list-card-actions">
-                  <button type="button" class="icon-square-btn" (click)="restoreBaseline(baseline.id)">
-                    <span class="material-symbols-outlined">restore</span>
-                  </button>
-                  <button type="button" class="icon-square-btn danger" (click)="deleteBaseline(baseline.id)">
-                    <span class="material-symbols-outlined">delete</span>
-                  </button>
-                </div>
-              </div>
-            </ng-container>
+          <button
+            type="button"
+            class="apply-baseline-btn"
+            (click)="applyBaselineToSchedule(baseline)"
+            [disabled]="saving"
+          >
+            ↩ Apply to Schedule
+          </button>
+        </div>
+      </div>
+    </ng-container>
 
-            <ng-template #noBaselines>
-              <div class="drawer-empty-card">
-                <span class="material-symbols-outlined empty-icon">add</span>
-                <div class="empty-title">No baselines saved yet.</div>
-                <div class="empty-subtitle">Set one above to begin tracking.</div>
-              </div>
-            </ng-template>
-          </section>
+    <ng-template #noBaselines>
+      <div class="drawer-empty-card">
+        <span class="material-symbols-outlined empty-icon">add</span>
+        <div class="empty-title">No baselines saved yet.</div>
+        <div class="empty-subtitle">Set one above to begin tracking.</div>
+      </div>
+    </ng-template>
+  </section>
         </ng-container>
       </div>
 
