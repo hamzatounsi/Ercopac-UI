@@ -1,3 +1,11 @@
+export interface RiskExposureItem {
+  riskId: number;
+  riskCode: string;
+  description: string;
+  riskValue: number;
+  riskLevel: string;
+}
+
 export interface RiskSummary {
   total: number;
   critical: number;
@@ -9,4 +17,6 @@ export interface RiskSummary {
   opportunityCount: number;
   riskCount: number;
   netExposureScore: number;
+  riskExposureItems: RiskExposureItem[];      // ← ADD
+  opportunityItems: RiskExposureItem[];        // ← ADD
 }

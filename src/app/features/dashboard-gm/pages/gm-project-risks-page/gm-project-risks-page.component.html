@@ -70,37 +70,113 @@
 
     <button class="tb-btn" (click)="exportRisks()">📤 Export</button>
     <button class="tb-btn" (click)="loadData()">↺ Refresh</button>
+    <button class="tb-btn" (click)="openApprovalMatrix()">⚙️ Settings</button>
 
     <div class="bell-wrap">
       <button class="bell-btn" (click)="toggleBell()">
         🔔
         <span class="bell-badge" *ngIf="pendingApprovals.length > 0">{{ pendingApprovals.length }}</span>
       </button>
-
       <div class="bell-drop" *ngIf="bellOpen">
         <div class="bell-drop-hdr">
           <span>Pending Approvals</span>
           <button type="button" class="bell-close" (click)="bellOpen = false">✕</button>
         </div>
-
         <div class="bell-drop-body">
           <div *ngIf="pendingApprovals.length === 0" class="bell-empty">
             No pending approvals ✓
           </div>
-
-          <div
-            *ngFor="let row of pendingApprovals"
-            class="bell-item"
+          <div *ngFor="let row of pendingApprovals" class="bell-item"
             (click)="openDrawer(row); bellOpen = false">
             <div class="bell-item-top">
               <span class="bell-item-title">{{ formatRiskId(row) }} · {{ row.description }}</span>
               <span class="bell-item-badge">{{ row.state | uppercase }}</span>
             </div>
             <div class="bell-item-sub">
-              RV = {{ getRiskValue(row) }} ({{ getRiskLevelLabel(row) }}) · {{ row.ownerDept || '—' }} · Due: {{ row.dueDate || '—' }}
+              RV = {{ getRiskValue(row) }} ({{ getRiskLevelLabel(row) }}) · {{ row.resourceTypeCode || '—' }} · Due: {{ row.dueDate || '—' }}
             </div>
           </div>
         </div>
+      </div>
+    </div>
+
+  </div><!-- end toolbar -->
+
+  <!-- Approval Matrix Modal -->
+  <div class="am-overlay" *ngIf="approvalMatrixOpen" (click)="closeApprovalMatrix()">
+    <div class="am-modal" (click)="$event.stopPropagation()">
+      <div class="am-hdr">
+        <span>⚙️ Risk Settings — Approval Matrix</span>
+        <button class="am-close" (click)="closeApprovalMatrix()">✕</button>
+      </div>
+      <div class="am-body">
+        <div class="am-section-title">Risk Heatmap (Impact × Probability)</div>
+        <div class="am-heatmap">
+          <div class="am-hm-corner">P ↓ I →</div>
+          <div class="am-hm-col-lbl" *ngFor="let i of [1,2,3,4,5]">{{ i }}</div>
+          <ng-container *ngFor="let cell of heatmap; let idx = index">
+            <div class="am-hm-row-lbl" *ngIf="idx % 5 === 0">{{ cell.prob }}</div>
+            <div class="am-hm-cell" [ngClass]="getHeatmapClass(cell.level)">{{ cell.rv }}</div>
+          </ng-container>
+        </div>
+        <div class="am-legend">
+          <span class="am-leg-item low">Low 1–4</span>
+          <span class="am-leg-item med">Medium 5–9</span>
+          <span class="am-leg-item hi">High 10–16</span>
+          <span class="am-leg-item crit">Critical 17–25</span>
+        </div>
+        <div class="am-section-title" style="margin-top:20px;">
+          Approval Matrix — who approves variance/CR by risk level
+        </div>
+        <p class="am-desc">
+          When a risk state changes to variance or cr, the system looks up this matrix to find the required approver.
+        </p>
+        <div *ngIf="approvalRulesLoading" class="am-loading">Loading rules...</div>
+        <table class="am-table" *ngIf="!approvalRulesLoading">
+          <thead>
+            <tr>
+              <th>Risk Level</th>
+              <th>Min. Risk Value</th>
+              <th>Approver Role</th>
+              <th>Approver (Person)</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let rule of approvalRules">
+              <td>
+                <span class="rv-cell" [ngClass]="getRuleLevelClass(rule.riskLevel)">{{ rule.riskLevel }}</span>
+              </td>
+              <td>{{ rule.minRiskValue }}</td>
+              <td>{{ rule.approverRole }}</td>
+              <td>{{ rule.approverUserName || '—' }}</td>
+              <td><button class="btn-del" (click)="deleteApprovalRule(rule.id)">✕</button></td>
+            </tr>
+            <tr *ngIf="approvalRules.length === 0">
+              <td colspan="5" style="text-align:center;color:#94a3b8;padding:16px;">No rules defined yet.</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="am-add-rule">
+          <div class="am-add-title">+ Add Rule</div>
+          <div class="am-add-row">
+            <select class="am-sel" [(ngModel)]="newRule.riskLevel">
+              <option *ngFor="let l of riskLevelOptions" [value]="l.value">{{ l.label }} (≥{{ l.minRv }})</option>
+            </select>
+            <select class="am-sel" [(ngModel)]="newRule.approverRole">
+              <option *ngFor="let role of approverRoles" [value]="role">{{ role }}</option>
+            </select>
+            <button class="am-add-btn" (click)="addApprovalRule()">+ Add Rule</button>
+          </div>
+        </div>
+        <div class="am-section-title" style="margin-top:20px;">Current User (approver identity)</div>
+        <select class="am-sel" style="min-width:220px;">
+          <option value="">— select your name —</option>
+        </select>
+      </div>
+      <div class="am-foot">
+        <button class="dd-btn ghost" (click)="closeApprovalMatrix()">Cancel</button>
+        <button class="dd-btn primary" (click)="closeApprovalMatrix()">💾 Save Settings</button>
       </div>
     </div>
   </div>
@@ -117,32 +193,26 @@
       <div class="kpi-lbl">Total Risks</div>
       <div class="kpi-val">{{ summary.total }}</div>
     </div>
-
     <div class="kpi-cell crit">
       <div class="kpi-lbl">Critical</div>
       <div class="kpi-val">{{ summary.critical }}</div>
     </div>
-
     <div class="kpi-cell hi">
       <div class="kpi-lbl">High</div>
       <div class="kpi-val">{{ summary.high }}</div>
     </div>
-
     <div class="kpi-cell med">
       <div class="kpi-lbl">Medium</div>
       <div class="kpi-val">{{ summary.medium }}</div>
     </div>
-
     <div class="kpi-cell low">
       <div class="kpi-lbl">Low</div>
       <div class="kpi-val">{{ summary.low }}</div>
     </div>
-
     <div class="kpi-cell var">
       <div class="kpi-lbl">Variance (pending)</div>
       <div class="kpi-val">{{ summary.pendingVariance }}</div>
     </div>
-
     <div class="kpi-cell open">
       <div class="kpi-lbl">Open Risks</div>
       <div class="kpi-val">{{ summary.openRisks }}</div>
@@ -155,29 +225,28 @@
         <thead>
           <tr>
             <th [ngClass]="getSortClass('id')" (click)="sortBy('id')" style="width:60px;">ID</th>
-            <th [ngClass]="getSortClass('description')" (click)="sortBy('description')" style="min-width:220px;">Description</th>
-            <th [ngClass]="getSortClass('riskType')" (click)="sortBy('riskType')" style="width:100px;">Type</th>
-            <th [ngClass]="getSortClass('state')" (click)="sortBy('state')" style="width:100px;">State</th>
-            <th [ngClass]="getSortClass('inputDate')" (click)="sortBy('inputDate')" style="width:110px;">Input Date</th>
-            <th [ngClass]="getSortClass('dueDate')" (click)="sortBy('dueDate')" style="width:110px;">Due Date</th>
-            <th [ngClass]="getSortClass('ownerDept')" (click)="sortBy('ownerDept')" style="width:80px;">Dept</th>
-            <th [ngClass]="getSortClass('owner')" (click)="sortBy('owner')" style="width:120px;">Owner</th>
-            <th [ngClass]="getSortClass('wbsCode')" (click)="sortBy('wbsCode')" style="width:120px;">WBS</th>
-            <th [ngClass]="getSortClass('impact')" (click)="sortBy('impact')" style="width:60px;">Impact</th>
-            <th [ngClass]="getSortClass('probability')" (click)="sortBy('probability')" style="width:60px;">Prob.</th>
+            <th [ngClass]="getSortClass('description')" (click)="sortBy('description')" style="min-width:200px;">Description</th>
+            <th style="width:110px;">Type</th>
+            <th style="width:110px;">State</th>
+            <th style="width:110px;">Input Date</th>
+            <th style="width:110px;">Due Date</th>
+            <th style="width:100px;">Res. Type</th>
+            <th style="width:120px;">Owner</th>
+            <th style="width:100px;">WBS</th>
+            <th style="width:70px;">Impact</th>
+            <th style="width:70px;">Prob.%</th>
             <th [ngClass]="getSortClass('riskValue')" (click)="sortBy('riskValue')" style="width:60px;">RV</th>
             <th [ngClass]="getSortClass('varianceStatus')" (click)="sortBy('varianceStatus')" style="width:110px;">Var. Status</th>
-            <th style="min-width:180px;">Mitigation</th>
+            <th style="min-width:160px;">Mitigation</th>
             <th style="width:40px;"></th>
           </tr>
         </thead>
-
         <tbody>
-          <tr
-            *ngFor="let row of filteredRows"
+          <tr *ngFor="let row of filteredRows"
             [class.selected]="selectedRisk?.id === row.id"
             (click)="selectRow(row)"
             (dblclick)="openDrawer(row)">
+
             <td class="risk-id-cell">{{ formatRiskId(row) }}</td>
 
             <td>
@@ -185,24 +254,68 @@
             </td>
 
             <td>
-              <span class="rt-badge" [ngClass]="getTypeClass(row.riskType)">
-                {{ row.riskType === 'opportunity' ? '↑ Opportunity' : '↓ Risk' }}
-              </span>
+              <select class="r-sel" [(ngModel)]="row.riskType"
+                (change)="saveRow(row)" (click)="$event.stopPropagation()">
+                <option value="risk">↓ Risk</option>
+                <option value="opportunity">↑ Opportunity</option>
+              </select>
             </td>
 
             <td>
-              <span class="state-badge" [ngClass]="getStateClass(row.state)">
-                {{ row.state }}
-              </span>
+              <select class="r-sel" [(ngModel)]="row.state"
+                (change)="saveRow(row)" (click)="$event.stopPropagation()">
+                <option *ngFor="let s of states" [value]="s">{{ s }}</option>
+              </select>
             </td>
 
-            <td>{{ row.inputDate || '—' }}</td>
-            <td>{{ row.dueDate || '—' }}</td>
-            <td>{{ row.ownerDept || '—' }}</td>
-            <td>{{ row.owner || '—' }}</td>
-            <td>{{ row.wbsCode || '—' }}</td>
-            <td>{{ row.impact }}</td>
-            <td>{{ row.probability }}</td>
+            <td>
+              <input class="r-inp" type="date" [(ngModel)]="row.inputDate"
+                (change)="saveRow(row)" (click)="$event.stopPropagation()">
+            </td>
+
+            <td>
+              <input class="r-inp" type="date" [(ngModel)]="row.dueDate"
+                (change)="saveRow(row)" (click)="$event.stopPropagation()">
+            </td>
+
+        <td>
+  <select class="r-sel"
+    [(ngModel)]="row.resourceTypeId"
+    (ngModelChange)="onRowResourceTypeChange(row, $event)"
+    (click)="$event.stopPropagation()">
+    <option [ngValue]="null">—</option>
+    <option *ngFor="let rt of resourceTypes" [ngValue]="rt.id">{{ rt.code }}</option>
+  </select>
+</td>
+
+            <td>
+  <select class="r-sel"
+    [(ngModel)]="row.ownerUserId"
+    (ngModelChange)="onRowOwnerChange(row, $event)"
+    (click)="$event.stopPropagation()">
+    <option [ngValue]="null">—</option>
+    <option *ngFor="let u of getRowUsers(row)" [ngValue]="u.id">{{ u.fullName }}</option>
+  </select>
+</td>
+
+            <td>
+              <select class="r-sel" [(ngModel)]="row.wbsCode"
+                (change)="saveRow(row)" (click)="$event.stopPropagation()">
+                <option value="">—</option>
+                <option *ngFor="let wbs of wbsCodes" [value]="wbs">{{ wbs }}</option>
+              </select>
+            </td>
+
+            <td>
+              <input class="r-inp short" type="text" [(ngModel)]="row.impact"
+                (change)="saveRow(row)" (click)="$event.stopPropagation()">
+            </td>
+
+            <td>
+              <input class="r-inp short" type="number" [(ngModel)]="row.probability"
+                min="10" max="100" step="10"
+                (change)="saveRow(row)" (click)="$event.stopPropagation()">
+            </td>
 
             <td>
               <span class="rv-cell" [ngClass]="getRiskClass(row)">{{ getRiskValue(row) }}</span>
@@ -210,8 +323,7 @@
 
             <td>
               <span *ngIf="row.varianceStatus; else noVariance"
-                    class="variance-badge"
-                    [ngClass]="getVarianceClass(row.varianceStatus)">
+                class="variance-badge" [ngClass]="getVarianceClass(row.varianceStatus)">
                 {{ row.varianceStatus }}
               </span>
               <ng-template #noVariance>—</ng-template>
@@ -237,9 +349,7 @@
       <button id="rp-toggle" (click)="toggleRiskPosition()">
         <span [class.rotated]="riskPositionCollapsed">‹</span>
       </button>
-
       <div id="rp-hdr">⚖️ Risk Position</div>
-
       <div id="rp-body" *ngIf="!riskPositionCollapsed">
         <div class="rp-sec">Risk Exposure</div>
         <div class="rp-kpi red">
@@ -247,7 +357,6 @@
           <div class="rp-kpi-val">{{ getOpenRisksCount() }}</div>
           <div class="rp-kpi-sub">Negative exposure side</div>
         </div>
-
         <div class="rp-bar-row" *ngFor="let row of getTopRisks()">
           <div class="rp-bar-lbl" [title]="row.description">{{ row.description }}</div>
           <div class="rp-bar-track">
@@ -255,14 +364,12 @@
           </div>
           <div class="rp-bar-val">{{ getRiskValue(row) }}</div>
         </div>
-
         <div class="rp-sec">Opportunity Upside</div>
         <div class="rp-kpi green">
           <div class="rp-kpi-lbl">Opportunity Count (+)</div>
           <div class="rp-kpi-val">{{ getOpenOpportunitiesCount() }}</div>
           <div class="rp-kpi-sub">Positive upside side</div>
         </div>
-
         <div class="rp-bar-row" *ngFor="let row of getTopOpportunities()">
           <div class="rp-bar-lbl" [title]="row.description">{{ row.description }}</div>
           <div class="rp-bar-track">
@@ -270,19 +377,16 @@
           </div>
           <div class="rp-bar-val">{{ getRiskValue(row) }}</div>
         </div>
-
         <div class="rp-sec">Net Position</div>
         <div class="rp-kpi blue">
           <div class="rp-kpi-lbl">Net Exposure Score</div>
           <div class="rp-kpi-val">{{ getNetExposure() }}</div>
           <div class="rp-kpi-sub">Risks minus opportunities</div>
         </div>
-
         <div class="rp-sec">Heat Rules</div>
         <div id="heatmap">
           <div class="hm-lbl"></div>
           <div class="hm-lbl">1</div><div class="hm-lbl">2</div><div class="hm-lbl">3</div><div class="hm-lbl">4</div><div class="hm-lbl">5</div>
-
           <div class="hm-lbl">5</div><div class="hm-cell crit">5</div><div class="hm-cell crit">10</div><div class="hm-cell crit">15</div><div class="hm-cell crit">20</div><div class="hm-cell crit">25</div>
           <div class="hm-lbl">4</div><div class="hm-cell low">4</div><div class="hm-cell hi">8</div><div class="hm-cell hi">12</div><div class="hm-cell hi">16</div><div class="hm-cell crit">20</div>
           <div class="hm-lbl">3</div><div class="hm-cell low">3</div><div class="hm-cell med">6</div><div class="hm-cell med">9</div><div class="hm-cell hi">12</div><div class="hm-cell hi">15</div>
@@ -306,118 +410,112 @@
       </div>
       <button class="dd-close" (click)="closeDrawer()">✕</button>
     </div>
-
     <div class="dd-body">
       <div class="dd-sec">Basic Info</div>
-
       <div class="dd-field">
         <div class="dd-lbl">Description</div>
         <textarea class="dd-ta" [(ngModel)]="selectedRisk.description"></textarea>
       </div>
-
       <div class="dd-field">
         <div class="dd-lbl">Type</div>
         <select class="dd-sel" [(ngModel)]="selectedRisk.riskType">
           <option *ngFor="let t of types" [value]="t">{{ t }}</option>
         </select>
       </div>
-
       <div class="dd-field">
         <div class="dd-lbl">State</div>
         <select class="dd-sel" [(ngModel)]="selectedRisk.state">
           <option *ngFor="let s of states" [value]="s">{{ s }}</option>
         </select>
       </div>
-
       <div class="dd-field">
         <div class="dd-lbl">Input Date</div>
         <input class="dd-inp" type="date" [(ngModel)]="selectedRisk.inputDate">
       </div>
-
       <div class="dd-field">
         <div class="dd-lbl">Due Date</div>
         <input class="dd-inp" type="date" [(ngModel)]="selectedRisk.dueDate">
       </div>
-
-      <div class="dd-field">
-        <div class="dd-lbl">WBS</div>
-        <input class="dd-inp" [(ngModel)]="selectedRisk.wbsCode">
-      </div>
-
       <div class="dd-field">
         <div class="dd-lbl">Mitigation</div>
         <textarea class="dd-ta" [(ngModel)]="selectedRisk.mitigation"></textarea>
       </div>
-
       <div class="dd-sec">Ownership</div>
-
       <div class="dd-field">
-        <div class="dd-lbl">Department</div>
-        <select class="dd-sel" [(ngModel)]="selectedRisk.ownerDept">
+        <div class="dd-lbl">Resource Type</div>
+        <select class="dd-sel"
+          [value]="selectedRisk.resourceTypeId ?? ''"
+          (change)="onResourceTypeSelectChange($event)">
           <option value="">—</option>
-          <option *ngFor="let d of departments" [value]="d">{{ d }}</option>
+          <option *ngFor="let rt of resourceTypes" [value]="rt.id">
+            {{ rt.code }}{{ rt.label ? ' — ' + rt.label : '' }}
+          </option>
         </select>
       </div>
-
       <div class="dd-field">
         <div class="dd-lbl">Owner</div>
-        <input class="dd-inp" [(ngModel)]="selectedRisk.owner">
+        <select class="dd-sel"
+          [value]="selectedRisk.ownerUserId ?? ''"
+          (change)="onOwnerUserChange($any($event.target).value)">
+          <option value="">—</option>
+          <option *ngFor="let u of usersByResourceType" [value]="u.id">{{ u.fullName }}</option>
+        </select>
+        <small *ngIf="!selectedRisk.resourceTypeId" style="color:#94a3b8;font-size:11px;">
+          Select a resource type first
+        </small>
       </div>
-
+      <div class="dd-field">
+        <div class="dd-lbl">WBS</div>
+        <select class="dd-sel" [(ngModel)]="selectedRisk.wbsCode">
+          <option value="">—</option>
+          <option *ngFor="let wbs of wbsCodes" [value]="wbs">{{ wbs }}</option>
+        </select>
+      </div>
       <div class="dd-sec">Risk Assessment</div>
-
       <div class="dd-field">
         <div class="dd-lbl">Impact</div>
-        <select class="dd-sel" [(ngModel)]="selectedRisk.impact">
-          <option *ngFor="let n of [1,2,3,4,5]" [ngValue]="n">{{ n }}</option>
-        </select>
+        <input class="dd-inp" type="text" [(ngModel)]="selectedRisk.impact"
+          placeholder="e.g. High, Critical, 5...">
       </div>
-
       <div class="dd-field">
-        <div class="dd-lbl">Probability</div>
-        <select class="dd-sel" [(ngModel)]="selectedRisk.probability">
-          <option *ngFor="let n of [1,2,3,4,5]" [ngValue]="n">{{ n }}</option>
-        </select>
+        <div class="dd-lbl">Probability (%)</div>
+        <input class="dd-inp" type="number" [(ngModel)]="selectedRisk.probability"
+          min="10" max="100" step="10">
       </div>
-
       <div class="dd-field">
         <div class="dd-lbl">Risk Value</div>
-        <div class="dd-calc" [ngClass]="getRiskClass(selectedRisk)">
+        <div class="dd-rv-display" [ngClass]="getRiskClass(selectedRisk)">
           {{ getRiskValue(selectedRisk) }} — {{ getRiskLevelLabel(selectedRisk) }}
         </div>
       </div>
-
       <div class="dd-sec">Notes</div>
-
       <div class="dd-field">
         <div class="dd-lbl">Notes</div>
         <textarea class="dd-ta" [(ngModel)]="selectedRisk.notes"></textarea>
       </div>
-
       <div class="dd-approval" *ngIf="needsApproval(selectedRisk)">
         <div class="dd-approval-title">
           ⚠️ {{ selectedRisk.state === 'cr' ? 'Change Request Approval Required' : 'Variance Approval Required' }}
         </div>
-
-        <div class="dd-approval-text">
+        <div class="dd-approval-status">
           <ng-container *ngIf="selectedRisk.varianceStatus === 'approved'; else pendingApproval">
             ✓ Approved by {{ selectedRisk.approvedBy || '—' }} on {{ selectedRisk.approvedAt || '—' }}
           </ng-container>
           <ng-template #pendingApproval>
-            ⏳ Pending approval
+            <div>Status: ⏳ <strong>Pending approval</strong></div>
+            <div>Required approver: <strong>{{ getRequiredApprover(selectedRisk) }}</strong></div>
           </ng-template>
         </div>
-
         <div class="dd-approval-actions" *ngIf="selectedRisk.varianceStatus !== 'approved'">
           <button class="approve-btn approve" (click)="approveSelectedRisk()">✓ Approve</button>
           <button class="approve-btn reject" (click)="rejectSelectedRisk()">✕ Reject / Revert</button>
         </div>
       </div>
     </div>
-
     <div class="dd-foot">
       <button class="dd-btn ghost" (click)="closeDrawer()">Cancel</button>
-      <button class="dd-btn primary" (click)="saveSelectedRisk()">💾 Save</button>
+      <button class="dd-btn primary" (click)="testSave()">💾 Save</button>
     </div>
   </div>
+
 </div>
