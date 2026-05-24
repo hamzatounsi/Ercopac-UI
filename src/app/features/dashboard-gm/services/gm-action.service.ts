@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { API_PROJECTS_URL } from 'src/app/core/config/api.config';
-import { ActionItem } from '../models/action-item.model';
+import { ActionAttachment, ActionItem } from '../models/action-item.model';
 import { ActionSummary } from '../models/action-summary.model';
 
 @Injectable({
@@ -41,4 +41,34 @@ export class GmActionService {
   getAvailableAssignees(projectId: number): Observable<string[]> {
     return this.http.get<string[]>(`${this.baseUrl}/${projectId}/actions/assignees`);
   }
+
+  uploadAttachments(projectId: number, actionId: number, files: File[]) {
+    const formData = new FormData();
+
+    files.forEach(file => {
+      formData.append('files', file);
+    });
+
+    return this.http.post<ActionAttachment[]>(
+      `${this.baseUrl}/${projectId}/actions/${actionId}/attachments`,
+      formData
+    );
+  }
+
+  downloadAttachment(projectId: number, actionId: number, attachmentId: number) {
+    return this.http.get(
+      `${this.baseUrl}/${projectId}/actions/${actionId}/attachments/${attachmentId}/download`,
+      {
+        responseType: 'blob',
+        observe: 'response'
+      }
+    );
+  }
+
+  deleteAttachment(projectId: number, actionId: number, attachmentId: number) {
+    return this.http.delete<void>(
+      `${this.baseUrl}/${projectId}/actions/${actionId}/attachments/${attachmentId}`
+    );
+  }
+
 }
