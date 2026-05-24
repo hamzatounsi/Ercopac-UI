@@ -431,24 +431,38 @@
 
         <!-- ATTACHMENTS TAB -->
         <ng-container *ngIf="detailTab === 'attachments'">
-          <div class="empty-mini" *ngIf="isNewAction">
-            Save the action first to manage attachments.
+          <div class="attachment-uploader">
+            <input
+              type="file"
+              multiple
+              #fileInput
+              (change)="uploadActionAttachments($event)"
+              accept=".pdf,.csv,.xlsx,.xls,.doc,.docx,.png,.jpg,.jpeg,.txt,.json"
+            >
+
+            <button class="tb-btn add" type="button" (click)="fileInput.click()">
+              ＋ Attach files
+            </button>
+
+            <small>Allowed: PDF, CSV, Excel, Word, images, text, JSON</small>
           </div>
 
-          <ng-container *ngIf="!isNewAction">
-            <div class="empty-mini" *ngIf="selectedAction.attachments.length === 0">
-              No attachments yet.
+          <div class="attach-item" *ngFor="let a of selectedAction.attachments; trackBy: trackAttachment">
+            <div>
+              <strong>{{ a.fileName }}</strong>
+              <small>{{ formatFileSize(a.fileSize || 0) }}</small>
             </div>
 
-            <div class="attach-item" *ngFor="let a of selectedAction.attachments; trackBy: trackAttachment">
-              <div>{{ a.fileName }}</div>
-              <small>{{ a.fileSize || 0 }} bytes</small>
-            </div>
+            <div class="attach-actions">
+              <button type="button" class="row-btn edit" (click)="downloadActionAttachment(a)">
+                Download
+              </button>
 
-            <div class="attach-placeholder">
-              Attachment upload UI ready. Backend upload endpoint can be added next.
+              <button type="button" class="row-btn" (click)="deleteActionAttachment(a)">
+                ✕
+              </button>
             </div>
-          </ng-container>
+          </div>
         </ng-container>
       </div>
 

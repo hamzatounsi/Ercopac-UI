@@ -610,4 +610,105 @@ addAssigneeToSelected(name: string): void {
       });
     }
   }
+
+  uploadActionAttachments(event: Event): void {
+    if (!this.selectedAction || this.isNewAction) return;
+
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+
+    if (files.length === 0) return;
+
+    this.saving = true;
+    this.error = null;
+
+    this.actionService.uploadAttachments(this.projectId, this.selectedAction.id, files).subscribe({
+      next: (attachments) => {
+        this.saving = false;
+
+        if (this.selectedAction) {
+          this.selectedAction.attachments = attachments;
+        }
+
+        input.value = '';
+        this.loadData();
+        this.detailTab = 'attachments';
+      },
+      error: (err) => {
+        console.error(err);
+        this.error = 'Failed to upload attachments.';
+        this.saving = false;
+        input.value = '';
+      }
+    });
+  }
+
+  downloadActionAttachment(attachment: ActionAttachment): void {
+    if (!this.selectedAction) return;
+
+    this.actionService
+      .downloadAttachment(this.projectId, this.selectedAction.id, attachment.id)
+      .subscribe({
+        next: (response) => {
+          const blob = response.body;
+          if (!blob) return;
+
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+
+          link.href = url;
+          link.download = attachment.fileName;
+          link.click();
+
+          window.URL.revokeObjectURL(url);
+        },
+        error: (err) => {
+          console.error(err);
+          this.error = 'Failed to download attachment.';
+        }
+      });
+  }
+
+  deleteActionAttachment(attachment: ActionAttachment): void {
+    if (!this.selectedAction) return;
+    if (!confirm('Delete this attachment?')) return;
+
+    this.saving = true;
+
+    this.actionService
+      .deleteAttachment(this.projectId, this.selectedAction.id, attachment.id)
+      .subscribe({
+        next: () => {
+          this.saving = false;
+
+          if (this.selectedAction) {
+            this.selectedAction.attachments = this.selectedAction.attachments
+              .filter(a => a.id !== attachment.id);
+          }
+
+          this.loadData();
+          this.detailTab = 'attachments';
+        },
+        error: (err) => {
+          console.error(err);
+          this.error = 'Failed to delete attachment.';
+          this.saving = false;
+        }
+      });
+  }
+
+  formatFileSize(bytes: number): string {
+    if (!bytes) return '0 B';
+
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let size = bytes;
+    let unitIndex = 0;
+
+    while (size >= 1024 && unitIndex < units.length - 1) {
+      size = size / 1024;
+      unitIndex++;
+    }
+
+    return `${size.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+  }
 }
