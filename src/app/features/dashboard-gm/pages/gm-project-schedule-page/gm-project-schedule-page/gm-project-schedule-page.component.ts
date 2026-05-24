@@ -7,7 +7,7 @@ import {
   ViewChild
 } from '@angular/core';
 import { forkJoin, of, combineLatest, Observable } from 'rxjs';
-import { switchMap, startWith } from 'rxjs/operators';
+import { catchError, finalize, startWith, switchMap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
@@ -55,6 +55,9 @@ export interface DependencyArrow {
   segments: DependencySegment[];
   arrowLeft: number;
   arrowTop: number;
+  labelLeft: number;
+  labelTop: number;
+  labelText: string;
 }
 
 export interface TimelineMonth {
@@ -77,6 +80,8 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
   projectId!: number;
   loading = false;
   saving = false;
+  private formAutoSaveTimer: any = null;
+  private suppressFormAutoSave = false;
 
   tasks: GmProjectScheduleTask[] = [];
   selectedTask: GmProjectScheduleTask | null = null;
@@ -143,13 +148,7 @@ showResourceDropdown = false;
   calendars: ProjectCalendar[] = [];
 
   baselineName = '';
-  baselines: {
-    id: number;
-    name: string;
-    createdAt: string;
-    tasks: GmProjectScheduleTask[];
-    active?: boolean;
-  }[] = [];
+  baselines: ProjectBaseline[] = [];
 
   dependencyTypes = ['FS', 'SS', 'FF', 'SF'];
 
@@ -157,6 +156,15 @@ showResourceDropdown = false;
     predecessorTaskId: null as number | null,
     dependencyType: 'FS',
     lagDays: 0
+  };
+
+  newSupplier: any = {
+    resourceType: 'SUPPLIER',
+    assignmentName: '',
+    quantity: 1,
+    unitsPercent: 100,
+    cost: 0,
+    assignedUserId: null
   };
 
 resourceOptions: { id: number; fullName: string; departmentCode: string; resourceType: string }[] = [];
@@ -202,8 +210,9 @@ resourceOptions: { id: number; fullName: string; departmentCode: string; resourc
   dragState: {
     taskId: number;
     startClientX: number;
-    originalPlannedStart: string | null;
-    originalPlannedEnd: string | null;
+    originalStart: string | null;
+    originalEnd: string | null;
+    mode: 'baseline' | 'actual';
     deltaDays: number;
   } | null = null;
 
@@ -342,12 +351,13 @@ resourceOptions: { id: number; fullName: string; departmentCode: string; resourc
         this.tasks = (res ?? []).sort(
           (a, b) => ((a.displayOrder ?? 0) - (b.displayOrder ?? 0)) || (a.id - b.id)
         );
-        
+
+        this.tasks.forEach(task => this.normalizeTaskDates(task));
+        this.recalculateWbsCodes();
+        this.recalculateSummaryDates();
         this.computeStats();
         this.buildTimeline();
         this.loading = false;
-        this.recalculateWbsCodes();
-        this.recalculateSummaryDates();
 
 
         this.loadBaselines();
@@ -359,7 +369,7 @@ resourceOptions: { id: number; fullName: string; departmentCode: string; resourc
           this.selectedTask = refreshed;
 
           if (refreshed) {
-            this.taskForm.patchValue(this.toFormValue(refreshed));
+            this.patchTaskForm(refreshed);
             this.loadTaskResources(refreshed.id);
           } else {
             this.taskResources = [];
@@ -404,14 +414,17 @@ resourceOptions: { id: number; fullName: string; departmentCode: string; resourc
   }
 
   private toFormValue(task: GmProjectScheduleTask) {
+    const baselineStart = task.baselineStart ?? task.plannedStart ?? '';
+    const baselineEnd = task.baselineEnd ?? task.plannedEnd ?? '';
+
     return {
       name: task.name ?? '',
       description: task.description ?? '',
-      durationDays: task.durationDays ?? 0,
-      baselineStart: task.baselineStart ?? '',
-      baselineEnd: task.baselineEnd ?? '',
-      plannedStart: task.plannedStart ?? '',
-      plannedEnd: task.plannedEnd ?? '',
+      durationDays: this.calculateDurationDays(baselineStart, baselineEnd, this.isMilestone(task)),
+      baselineStart,
+      baselineEnd,
+      plannedStart: baselineStart,
+      plannedEnd: baselineEnd,
       actualStart: task.actualStart ?? '',
       actualEnd: task.actualEnd ?? '',
       percentComplete: task.percentComplete ?? 0,
@@ -428,18 +441,65 @@ resourceOptions: { id: number; fullName: string; departmentCode: string; resourc
       color: task.color ?? '',
       assignedUserId: task.assignedUserId ?? null,
       resourceType: task.resourceType ?? ''
-      
     };
   }
+
+  private patchTaskForm(task: GmProjectScheduleTask): void {
+    this.normalizeTaskDates(task);
+    this.suppressFormAutoSave = true;
+    this.taskForm.patchValue(this.toFormValue(task), { emitEvent: false });
+    this.suppressFormAutoSave = false;
+  }
+
+  private calculateDurationDays(
+    start?: string | null,
+    end?: string | null,
+    milestone = false
+  ): number {
+    if (milestone) return 0;
+    if (!start || !end) return 1;
+
+    const startDate = this.toDateOnly(start);
+    const endDate = this.toDateOnly(end);
+
+    return Math.max(
+      1,
+      Math.floor((endDate.getTime() - startDate.getTime()) / 86400000) + 1
+    );
+  }
+
+  private normalizeTaskDates(task: GmProjectScheduleTask): void {
+  task.baselineStart = task.baselineStart ?? task.plannedStart ?? undefined;
+  task.baselineEnd = task.baselineEnd ?? task.plannedEnd ?? task.baselineStart ?? undefined;
+
+  task.plannedStart = task.plannedStart ?? task.baselineStart ?? undefined;
+  task.plannedEnd = task.plannedEnd ?? task.baselineEnd ?? task.plannedStart ?? undefined;
+
+  if (this.isMilestone(task)) {
+    task.durationDays = 0;
+
+    if (task.baselineStart) task.baselineEnd = task.baselineStart;
+    if (task.plannedStart) task.plannedEnd = task.plannedStart;
+    if (task.actualStart) task.actualEnd = task.actualStart;
+  } else {
+    task.durationDays = this.calculateDurationDays(
+      task.plannedStart ?? task.baselineStart,
+      task.plannedEnd ?? task.baselineEnd,
+      false
+    );
+  }
+}
+
 openTaskDrawer(task: GmProjectScheduleTask): void {
   this.closeContextMenu();
+  this.normalizeTaskDates(task);
   this.selectedTask = task;
   this.drawerOpen = true;
   this.activeDetailTab = 'general';
-  this.taskForm.patchValue(this.toFormValue(task));
+  this.patchTaskForm(task);
   this.newDependency = { predecessorTaskId: null, dependencyType: 'FS', lagDays: 0 };
   this.newResource = {
-    resourceType: task.resourceType || '',  // ← PRE-FILL from task
+    resourceType: task.resourceType || '',
     assignmentName: '',
     quantity: 1,
     unitsPercent: 100,
@@ -534,7 +594,7 @@ openTaskDrawer(task: GmProjectScheduleTask): void {
       status: 'todo',
       customerVisible: false,
       insertedDate: this.getTodayDateString(),
-      dueDate: task.plannedEnd || task.plannedStart || null,
+      dueDate: task.baselineEnd || task.baselineStart || task.plannedEnd || task.plannedStart || null,
       assignees: task.assignedUserName ? [task.assignedUserName] : []
     };
 
@@ -652,8 +712,10 @@ outdentTask(): void {
       name: 'New Task',
       description: '',
       durationDays: 1,
-      plannedStart: source.plannedStart || this.getTodayDateString(),
-      plannedEnd: source.plannedStart || this.getTodayDateString(),
+      baselineStart: source.baselineStart || source.plannedStart || this.getTodayDateString(),
+      baselineEnd: source.baselineStart || source.plannedStart || this.getTodayDateString(),
+      plannedStart: source.baselineStart || source.plannedStart || this.getTodayDateString(),
+      plannedEnd: source.baselineStart || source.plannedStart || this.getTodayDateString(),
       percentComplete: 0,
       priority: 500,
       scheduleMode: 'AUTO',
@@ -902,10 +964,10 @@ copyTaskBelowContext(): void {
       name: partial?.name ?? 'New Task',
       description: partial?.description ?? '',
       durationDays: partial?.durationDays ?? 1,
-      baselineStart: partial?.baselineStart ?? undefined,
-      baselineEnd: partial?.baselineEnd ?? undefined,
-      plannedStart: partial?.plannedStart ?? this.getTodayDateString(),
-      plannedEnd: partial?.plannedEnd ?? this.getTodayDateString(),
+      baselineStart: partial?.baselineStart ?? partial?.plannedStart ?? this.getTodayDateString(),
+      baselineEnd: partial?.baselineEnd ?? partial?.plannedEnd ?? partial?.plannedStart ?? this.getTodayDateString(),
+      plannedStart: partial?.baselineStart ?? partial?.plannedStart ?? this.getTodayDateString(),
+      plannedEnd: partial?.baselineEnd ?? partial?.plannedEnd ?? partial?.plannedStart ?? this.getTodayDateString(),
       actualStart: partial?.actualStart ?? undefined,
       actualEnd: partial?.actualEnd ?? undefined,
       percentComplete: partial?.percentComplete ?? 0,
@@ -1007,6 +1069,12 @@ copyTaskBelowContext(): void {
 
   setMode(mode: 'baseline' | 'actual'): void {
     this.activeMode = mode;
+
+    if (this.selectedTask) {
+      this.patchTaskForm(this.selectedTask);
+    }
+
+    this.buildTimeline();
   }
 
   setZoom(zoom: '2W' | '1M' | '2M' | 'Day'): void {
@@ -1046,19 +1114,53 @@ copyTaskBelowContext(): void {
 
   updateLocalTaskField(task: GmProjectScheduleTask, field: keyof GmProjectScheduleTask, value: any): void {
     (task as any)[field] = value;
+
+    if (field === 'taskType' && String(value).toUpperCase() === 'MILESTONE') {
+      task.durationDays = 0;
+      if (task.baselineStart) task.baselineEnd = task.baselineStart;
+      if (task.actualStart) task.actualEnd = task.actualStart;
+    }
+
+    if (field === 'baselineStart' || field === 'baselineEnd' || field === 'durationDays' || field === 'taskType') {
+      if (field === 'durationDays' && task.baselineStart && !this.isMilestone(task)) {
+        const duration = Math.max(1, Number(value || 1));
+        task.baselineEnd = this.addDaysToDateString(task.baselineStart, duration - 1);
+      }
+
+      this.normalizeTaskDates(task);
+    }
+
+    if (field === 'actualStart' && this.isMilestone(task)) {
+      task.actualEnd = task.actualStart;
+    }
+
     this.computeStats();
     this.buildTimeline();
 
     if (this.selectedTask?.id === task.id) {
       this.selectedTask = task;
-      this.taskForm.patchValue(this.toFormValue(task), { emitEvent: false });
+      this.patchTaskForm(task);
     }
+
+    this.queueTaskAutoSave(task);
+  }
+
+  private queueTaskAutoSave(task: GmProjectScheduleTask): void {
+    clearTimeout(this.formAutoSaveTimer);
+    this.formAutoSaveTimer = setTimeout(() => this.saveInlineTask(task), 600);
   }
 
   getPredecessorText(task: GmProjectScheduleTask): string {
     if (!task.dependencies?.length) return '—';
+
     return task.dependencies
-      .map(dep => `${dep.predecessorTaskId}:${dep.dependencyType || 'FS'}`)
+      .map(dep => {
+        const type = dep.dependencyType || 'FS';
+        const lag = dep.lagDays ?? 0;
+        const lagText = lag === 0 ? '' : lag > 0 ? `+${lag}d` : `${lag}d`;
+
+        return `${dep.predecessorTaskId}${type}${lagText}`;
+      })
       .join(', ');
   }
 
@@ -1084,11 +1186,11 @@ copyTaskBelowContext(): void {
 
     const value = this.taskForm.value;
 
-    if (value.plannedStart && value.plannedEnd && value.plannedEnd < value.plannedStart) return;
     if (value.baselineStart && value.baselineEnd && value.baselineEnd < value.baselineStart) return;
     if (value.actualStart && value.actualEnd && value.actualEnd < value.actualStart) return;
 
     Object.assign(this.selectedTask, value);
+    this.normalizeTaskDates(this.selectedTask);
 
     this.pushHistory();
     this.saving = true;
@@ -1101,6 +1203,7 @@ copyTaskBelowContext(): void {
 
         if (index !== -1) {
           this.tasks[index] = { ...this.tasks[index], ...updated };
+          this.normalizeTaskDates(this.tasks[index]);
           this.selectedTask = this.tasks[index];
         }
 
@@ -1108,8 +1211,6 @@ copyTaskBelowContext(): void {
         this.computeStats();
         this.buildTimeline();
         this.syncSelectedTaskReference();
-
-        this.loadSchedule();
       },
       error: (err) => {
         console.error('Failed to update task', err);
@@ -1120,7 +1221,7 @@ copyTaskBelowContext(): void {
   }
 
   saveInlineTask(task: GmProjectScheduleTask): void {
-    this.pushHistory();
+    this.normalizeTaskDates(task);
 
     const payload = this.buildTaskUpdatePayload(task);
 
@@ -1130,57 +1231,37 @@ copyTaskBelowContext(): void {
 
         if (index !== -1) {
           this.tasks[index] = { ...this.tasks[index], ...updated };
+          this.normalizeTaskDates(this.tasks[index]);
         }
 
-        this.computeStats();
-        this.buildTimeline();
-        this.syncSelectedTaskReference();
+        this.refreshScheduleUi();
         this.editedRows[task.id] = {};
-
-        this.loadSchedule();
       },
       error: err => {
-        console.error('Failed to update inline task', err);
+        console.error('Failed to autosave task', err);
         this.loadSchedule();
       }
     });
   }
 
   private saveDraggedTask(task: GmProjectScheduleTask): void {
-    task.plannedStart = this.normalizeDateString(task.plannedStart) ?? undefined;
-    task.plannedEnd = this.normalizeDateString(task.plannedEnd) ?? undefined;
-
-    if (!task.plannedStart || !task.plannedEnd) return;
-
-    const start = this.toDateOnly(task.plannedStart);
-    const end = this.toDateOnly(task.plannedEnd);
-
-    task.durationDays = this.isMilestone(task)
-      ? 0
-      : Math.max(1, Math.floor((end.getTime() - start.getTime()) / 86400000) + 1);
+    if (this.activeMode === 'baseline') {
+      this.normalizeTaskDates(task);
+    } else if (this.isMilestone(task) && task.actualStart) {
+      task.actualEnd = task.actualStart;
+    }
 
     const payload = this.buildTaskUpdatePayload(task);
 
     this.service.updateTask(this.projectId, task.id, payload).subscribe({
-      next: (updated) => {
-        const index = this.tasks.findIndex(t => t.id === task.id);
-
-        if (index !== -1) {
-          this.tasks[index] = { ...this.tasks[index], ...updated };
-        }
-
-        this.computeStats();
-        this.buildTimeline();
-        this.syncSelectedTaskReference();
-
-        this.loadSchedule();
-      },
-      error: (err) => {
+      next: () => this.loadSchedule(),
+      error: err => {
         console.error('Failed to save dragged task', err);
         this.loadSchedule();
       }
     });
   }
+  
   
  
   // ---------------- History ----------------
@@ -1228,7 +1309,7 @@ copyTaskBelowContext(): void {
     this.selectedTask = refreshed;
 
     if (refreshed && this.taskForm) {
-      this.taskForm.patchValue(this.toFormValue(refreshed));
+      this.patchTaskForm(refreshed);
     }
   }
 
@@ -1263,22 +1344,63 @@ copyTaskBelowContext(): void {
     reader.onload = () => {
       try {
         const parsed = JSON.parse(reader.result as string);
-        if (!parsed || !Array.isArray(parsed.tasks)) return;
 
-        this.pushHistory();
-        this.tasks = this.cloneTasks(parsed.tasks);
-        this.computeStats();
-        this.buildTimeline();
-        this.syncSelectedTaskReference();
-        this.closeDrawer();
+        const importedTasks: GmProjectScheduleTask[] = Array.isArray(parsed)
+          ? parsed
+          : parsed.tasks;
+
+        if (!Array.isArray(importedTasks) || importedTasks.length === 0) {
+          alert('Invalid schedule file');
+          return;
+        }
+
+        this.saving = true;
+
+        const payload = importedTasks.map((task, index) => {
+          const baselineStart = task.baselineStart ?? task.plannedStart;
+          const baselineEnd = task.baselineEnd ?? task.plannedEnd ?? baselineStart;
+
+          return this.buildTaskUpdatePayload({
+            ...task,
+            id: task.id ?? 0,
+            projectId: this.projectId,
+            displayOrder: task.displayOrder ?? index + 1,
+            baselineStart,
+            baselineEnd,
+            plannedStart: baselineStart,
+            plannedEnd: baselineEnd
+          });
+        });
+
+        this.service.importSchedule(this.projectId, payload).subscribe({
+          next: () => {
+            this.saving = false;
+            this.loadSchedule();
+          },
+          error: err => {
+            this.saving = false;
+            console.error('Import failed', err);
+            alert('Import failed');
+          }
+        });
       } catch (error) {
-        console.error('Import failed', error);
+        this.saving = false;
+        console.error('Invalid JSON', error);
+        alert('Invalid JSON file');
       } finally {
         input.value = '';
       }
     };
 
     reader.readAsText(file);
+  }
+
+
+  private refreshScheduleUi(): void {
+    this.tasks.forEach(task => this.normalizeTaskDates(task));
+    this.computeStats();
+    this.buildTimeline();
+    this.syncSelectedTaskReference();
   }
 
   // ---------------- WBS / indent ----------------
@@ -1338,27 +1460,28 @@ private recalculateWbsCodes(): void {
 
     if (!children.length) return;
 
-    const plannedStarts = children
-      .map(t => t.plannedStart)
+    const baselineStarts = children
+      .map(t => t.baselineStart ?? t.plannedStart)
       .filter((d): d is string => !!d);
 
-    const plannedEnds = children
-      .map(t => t.plannedEnd)
+    const baselineEnds = children
+      .map(t => t.baselineEnd ?? t.plannedEnd)
       .filter((d): d is string => !!d);
 
-    if (plannedStarts.length) {
-      summary.plannedStart = plannedStarts.sort()[0];
-    }
+    const actualStarts = children
+      .map(t => t.actualStart)
+      .filter((d): d is string => !!d);
 
-    if (plannedEnds.length) {
-      summary.plannedEnd = plannedEnds.sort()[plannedEnds.length - 1];
-    }
+    const actualEnds = children
+      .map(t => t.actualEnd)
+      .filter((d): d is string => !!d);
 
-    if (summary.plannedStart && summary.plannedEnd) {
-      const start = this.toDateOnly(summary.plannedStart).getTime();
-      const end = this.toDateOnly(summary.plannedEnd).getTime();
-      summary.durationDays = Math.max(1, Math.floor((end - start) / 86400000) + 1);
-    }
+    if (baselineStarts.length) summary.baselineStart = baselineStarts.sort()[0];
+    if (baselineEnds.length) summary.baselineEnd = baselineEnds.sort()[baselineEnds.length - 1];
+    if (actualStarts.length) summary.actualStart = actualStarts.sort()[0];
+    if (actualEnds.length) summary.actualEnd = actualEnds.sort()[actualEnds.length - 1];
+
+    this.normalizeTaskDates(summary);
   });
 }
 
@@ -1550,54 +1673,9 @@ getRowId(task?: GmProjectScheduleTask | null): string {
 
   // ---------------- Baselines ----------------
 
-  saveBaselineWithName(): void {
-    const name = this.baselineName?.trim() || `Baseline ${this.baselines.length + 1}`;
-    const snapshotTasks = this.tasks.map(task => ({
-      ...task,
-      baselineStart: task.plannedStart,
-      baselineEnd: task.plannedEnd
-    }));
 
-    this.baselineService.createBaseline(this.projectId, {
-      name,
-      snapshotJson: JSON.stringify(snapshotTasks)
-    }).subscribe({
-      next: () => {
-        this.baselineName = '';
-        this.loadBaselines();
-      },
-      error: (err) => {
-        console.error('Failed to save baseline', err);
-      }
-    });
-  }
 
-  restoreBaseline(baselineId: number): void {
-    const baseline = this.baselines.find(b => b.id === baselineId);
-    if (!baseline) return;
-
-    this.pushHistory();
-
-    const baselineMap = new Map<number, GmProjectScheduleTask>();
-    baseline.tasks.forEach(task => baselineMap.set(task.id, task));
-
-    this.tasks = this.tasks.map(task => {
-      const bt = baselineMap.get(task.id);
-      if (!bt) return task;
-
-      return {
-        ...task,
-        baselineStart: bt.baselineStart ?? bt.plannedStart ?? task.baselineStart,
-        baselineEnd: bt.baselineEnd ?? bt.plannedEnd ?? task.baselineEnd
-      };
-    });
-
-    this.baselines.forEach(b => (b.active = b.id === baselineId));
-
-    this.computeStats();
-    this.buildTimeline();
-    this.syncSelectedTaskReference();
-  }
+  
 
   deleteBaseline(baselineId: number): void {
     this.baselineService.deleteBaseline(this.projectId, baselineId).subscribe({
@@ -1691,10 +1769,11 @@ getRowId(task?: GmProjectScheduleTask | null): string {
     const dates: Date[] = [];
 
     this.tasks.forEach(task => {
-      if (task.baselineStart) dates.push(this.toDateOnly(task.baselineStart));
-      if (task.baselineEnd) dates.push(this.toDateOnly(task.baselineEnd));
-      if (task.plannedStart) dates.push(this.toDateOnly(task.plannedStart));
-      if (task.plannedEnd) dates.push(this.toDateOnly(task.plannedEnd));
+      const baselineStart = task.baselineStart ?? task.plannedStart;
+      const baselineEnd = task.baselineEnd ?? task.plannedEnd;
+
+      if (baselineStart) dates.push(this.toDateOnly(baselineStart));
+      if (baselineEnd) dates.push(this.toDateOnly(baselineEnd));
       if (task.actualStart) dates.push(this.toDateOnly(task.actualStart));
       if (task.actualEnd) dates.push(this.toDateOnly(task.actualEnd));
     });
@@ -1818,9 +1897,6 @@ getRowId(task?: GmProjectScheduleTask | null): string {
     return index;
   }
 
-  trackBaseline(index: number, baseline: { id: number }): number {
-    return baseline.id;
-  }
 
   getTodayLineLeft(): number {
     return this.getLeftFromDate(this.getTodayDateString());
@@ -1828,10 +1904,22 @@ getRowId(task?: GmProjectScheduleTask | null): string {
 
 
   getBarLeft(task: GmProjectScheduleTask): number {
+    if (this.activeMode === 'actual') {
+      return this.getLeftFromDate(task.actualStart ?? task.plannedStart);
+    }
+
     return this.getLeftFromDate(task.plannedStart);
   }
 
   getBarWidth(task: GmProjectScheduleTask): number {
+    if (this.activeMode === 'actual') {
+      return this.getWidthFromDates(
+        task.actualStart ?? task.plannedStart,
+        task.actualEnd ?? task.plannedEnd,
+        task.taskType
+      );
+    }
+
     return this.getWidthFromDates(task.plannedStart, task.plannedEnd, task.taskType);
   }
 
@@ -1856,7 +1944,7 @@ getRowId(task?: GmProjectScheduleTask | null): string {
   }
 
   hasBaseline(task: GmProjectScheduleTask): boolean {
-    return !!task.baselineStart && !!task.baselineEnd;
+    return !!(task.baselineStart ?? task.plannedStart) && !!(task.baselineEnd ?? task.plannedEnd);
   }
 
   hasActualDates(task: GmProjectScheduleTask): boolean {
@@ -1876,13 +1964,19 @@ getRowId(task?: GmProjectScheduleTask | null): string {
     event.stopPropagation();
     event.preventDefault();
 
+    const startField = this.activeMode === 'actual' ? 'actualStart' : 'baselineStart';
+    const endField = this.activeMode === 'actual' ? 'actualEnd' : 'baselineEnd';
+
     this.dragState = {
       taskId: task.id,
       startClientX: event.clientX,
-      originalPlannedStart: task.plannedStart ?? null,
-      originalPlannedEnd: task.plannedEnd ?? null,
-      deltaDays: 0
+      originalStart: (task as any)[startField] ?? null,
+      originalEnd: (task as any)[endField] ?? null,
+      deltaDays: 0,
+      mode: this.activeMode
     };
+
+    if (!this.dragState.originalStart || !this.dragState.originalEnd) return;
 
     document.body.classList.add('resizing-pane');
 
@@ -1896,31 +1990,24 @@ getRowId(task?: GmProjectScheduleTask | null): string {
 
       this.dragState.deltaDays = deltaDays;
 
-      const newStart = this.addDaysToDateString(this.dragState.originalPlannedStart!, deltaDays);
-      const newEnd = this.addDaysToDateString(this.dragState.originalPlannedEnd!, deltaDays);
+      if (!this.dragState.originalStart || !this.dragState.originalEnd) {
+        return;
+      }
+
+      const newStart = this.addDaysToDateString(this.dragState.originalStart, deltaDays);
+      const newEnd = this.addDaysToDateString(this.dragState.originalEnd, deltaDays);
       const clamped = this.clampDragDates(task, newStart, newEnd);
 
-      task.plannedStart = clamped.start;
-      task.plannedEnd = clamped.end;
+      (task as any)[startField] = clamped.start;
+      (task as any)[endField] = clamped.end;
 
-      const start = this.toDateOnly(task.plannedStart);
-      const end = this.toDateOnly(task.plannedEnd);
-
-      task.durationDays = Math.max(
-        1,
-        Math.floor((end.getTime() - start.getTime()) / 86400000) + 1
-      );
+      if (this.activeMode === 'baseline') {
+        this.normalizeTaskDates(task);
+      }
 
       if (this.selectedTask?.id === task.id) {
         this.selectedTask = task;
-        this.taskForm.patchValue(
-          {
-            plannedStart: task.plannedStart,
-            plannedEnd: task.plannedEnd,
-            durationDays: task.durationDays
-          },
-          { emitEvent: false }
-        );
+        this.patchTaskForm(task);
       }
 
       this.buildTimeline();
@@ -1934,8 +2021,8 @@ getRowId(task?: GmProjectScheduleTask | null): string {
       if (!this.dragState) return;
 
       const changed =
-        task.plannedStart !== this.dragState.originalPlannedStart ||
-        task.plannedEnd !== this.dragState.originalPlannedEnd;
+        (task as any)[startField] !== this.dragState.originalStart ||
+        (task as any)[endField] !== this.dragState.originalEnd;
 
       this.dragState = null;
 
@@ -1978,24 +2065,24 @@ getRowId(task?: GmProjectScheduleTask | null): string {
   // ---------------- Dependencies ----------------
 
   saveDependency(dep: TaskDependencyDto): void {
-    if (!this.selectedTask || !dep.id) return;
-
-    if (!dep.predecessorTaskId || dep.predecessorTaskId === this.selectedTask.id) {
-      console.error('Invalid predecessor.');
-      return;
-    }
+    if (!dep.id || !this.selectedTask) return;
 
     const payload: TaskDependencyDto = {
       id: dep.id,
       predecessorTaskId: dep.predecessorTaskId,
       successorTaskId: this.selectedTask.id,
-      dependencyType: (dep.dependencyType || 'FS').toUpperCase(),
-      lagDays: dep.lagDays ?? 0
+      dependencyType: dep.dependencyType || 'FS',
+      lagDays: Number(dep.lagDays ?? 0)
     };
 
     this.service.updateDependency(this.projectId, dep.id, payload).subscribe({
-      next: () => this.loadSchedule(),
-      error: (err) => console.error('Failed to update dependency', err)
+      next: () => {
+        this.loadSchedule();
+      },
+      error: err => {
+        console.error('Failed to update dependency', err);
+        this.loadSchedule();
+      }
     });
   }
 getDependencyArrows(): DependencyArrow[] {
@@ -2011,14 +2098,14 @@ getDependencyArrows(): DependencyArrow[] {
     const si = indexMap.get(successor.id);
     if (si == null || !successor.dependencies?.length) continue;
  
-    if (!successor.plannedStart && !successor.plannedEnd) continue;
+    if (!(successor.baselineStart ?? successor.plannedStart) && !(successor.baselineEnd ?? successor.plannedEnd)) continue;
  
     for (const dep of successor.dependencies) {
       const pi = indexMap.get(dep.predecessorTaskId);
       if (pi == null) continue;
  
       const predecessor = visible[pi];
-      if (!predecessor.plannedStart && !predecessor.plannedEnd) continue;
+      if (!(predecessor.baselineStart ?? predecessor.plannedStart) && !(predecessor.baselineEnd ?? predecessor.plannedEnd)) continue;
  
       const type = (dep.dependencyType || 'FS').toUpperCase();
  
@@ -2071,10 +2158,16 @@ getDependencyArrows(): DependencyArrow[] {
         height: 2                           // ← KEY FIX: was 0
       });
  
+      const lag = Number(dep.lagDays ?? 0);
+      const lagText = lag === 0 ? '' : lag > 0 ? ` +${lag}d` : ` ${lag}d`;
+
       arrows.push({
         segments: segs,
         arrowLeft: endX - 5,
-        arrowTop:  endY - 5
+        arrowTop: endY - 5,
+        labelLeft: Math.min(startX, endX) + Math.abs(endX - startX) / 2,
+        labelTop: Math.min(startY, endY) - 16,
+        labelText: `${type}${lagText}`
       });
     }
   }
@@ -2486,29 +2579,6 @@ getDependencyArrows(): DependencyArrow[] {
 
   // ---------------- Loading settings data ----------------
 
-  loadBaselines(): void {
-    this.baselineService.getBaselines(this.projectId).subscribe({
-      next: (res: any) => {
-        const baselineArray: ProjectBaseline[] = Array.isArray(res)
-          ? res
-          : Array.isArray(res?.content)
-            ? res.content
-            : [];
-
-        this.baselines = baselineArray.map((b: ProjectBaseline) => ({
-          id: b.id,
-          name: b.name,
-          createdAt: b.createdAt ? new Date(b.createdAt).toLocaleString() : '',
-          tasks: this.parseBaselineTasks(b.snapshotJson),
-          active: false
-        }));
-      },
-      error: (err) => {
-        console.error('Failed to load baselines', err);
-        this.baselines = [];
-      }
-    });
-  }
 
   private parseBaselineTasks(snapshotJson: string): GmProjectScheduleTask[] {
     try {
@@ -2673,59 +2743,60 @@ getDependencyArrows(): DependencyArrow[] {
   }
 
   private getTaskDurationDays(task: GmProjectScheduleTask): number {
-    if (this.isMilestone(task)) return 0;
-
-    if (task.plannedStart && task.plannedEnd) {
-      const start = this.toDateOnly(task.plannedStart).getTime();
-      const end = this.toDateOnly(task.plannedEnd).getTime();
-      return Math.max(1, Math.floor((end - start) / 86400000) + 1);
-    }
-
-    return Math.max(1, task.durationDays ?? 1);
+    return this.calculateDurationDays(
+      task.baselineStart ?? task.plannedStart,
+      task.baselineEnd ?? task.plannedEnd,
+      this.isMilestone(task)
+    );
   }
 
  
 private buildTaskUpdatePayload(task: GmProjectScheduleTask): GmUpdateProjectTaskRequest {
-  return {
-    parentId:          task.parentId ?? null,      // ← NEW
-    name:              task.name ?? '',
-    description:       task.description ?? '',
-    durationDays:      task.durationDays ?? 0,
-    baselineStart:     task.baselineStart ?? undefined,
-    baselineEnd:       task.baselineEnd ?? undefined,
-    plannedStart:      task.plannedStart ?? undefined,
-    plannedEnd:        task.plannedEnd ?? undefined,
-    actualStart:       task.actualStart ?? undefined,
-    actualEnd:         task.actualEnd ?? undefined,
-    percentComplete:   task.percentComplete ?? 0,
-    allocationPercent: task.allocationPercent ?? undefined,
-    priority:          task.priority ?? 0,
-    taskType:          task.taskType ?? 'ACTIVITY',
-    wbsCode:           task.wbsCode ?? '',
-    departmentCode:    task.departmentCode ?? '',
-    resourceType:      task.resourceType ?? undefined,
-    active:            task.active ?? true,
-    displayOrder:      task.displayOrder ?? 0,
-    outlineLevel:      task.outlineLevel ?? 1,     // ← NEW
-    customerMilestone: task.customerMilestone ?? false,
-    scheduleMode:      task.scheduleMode ?? 'AUTO',
-    status:            task.status ?? undefined,
-    color:             task.color ?? undefined,
-    assignedUserId:    task.assignedUserId ?? undefined
-  };
-}
- 
+    this.normalizeTaskDates(task);
+
+    return {
+      parentId: task.parentId ?? null,
+      name: task.name ?? '',
+      description: task.description ?? '',
+      durationDays: task.durationDays ?? 0,
+
+      baselineStart: task.baselineStart ?? undefined,
+      baselineEnd: task.baselineEnd ?? undefined,
+
+      plannedStart: task.plannedStart ?? task.baselineStart ?? undefined,
+      plannedEnd: task.plannedEnd ?? task.baselineEnd ?? undefined,
+
+      actualStart: task.actualStart ?? undefined,
+      actualEnd: task.actualEnd ?? undefined,
+
+      percentComplete: task.percentComplete ?? 0,
+      allocationPercent: task.allocationPercent ?? undefined,
+      priority: task.priority ?? 0,
+      taskType: task.taskType ?? 'ACTIVITY',
+      wbsCode: task.wbsCode ?? '',
+      departmentCode: task.departmentCode ?? '',
+      resourceType: task.resourceType ?? '',
+      active: task.active ?? true,
+      displayOrder: task.displayOrder ?? 0,
+      outlineLevel: task.outlineLevel ?? 1,
+      customerMilestone: task.customerMilestone ?? false,
+      scheduleMode: task.scheduleMode ?? 'AUTO',
+      status: task.status ?? '',
+      color: task.color ?? '',
+      assignedUserId: task.assignedUserId ?? undefined
+    };
+  }
 
   private recalculateTaskFromPredecessors(task: GmProjectScheduleTask): boolean {
     const deps = (task.dependencies ?? []).filter(dep => !!dep.predecessorTaskId);
     if (!deps.length) return false;
 
-    if ((task.scheduleMode || 'AUTO').toUpperCase() === 'MANUAL') {
-      return false;
-    }
+    if ((task.scheduleMode || 'AUTO').toUpperCase() === 'MANUAL') return false;
 
-    const oldStart = task.plannedStart ?? null;
-    const oldEnd = task.plannedEnd ?? null;
+    this.normalizeTaskDates(task);
+
+    const oldStart = task.baselineStart ?? null;
+    const oldEnd = task.baselineEnd ?? null;
     const duration = this.getTaskDurationDays(task);
 
     let requiredStart: string | null = null;
@@ -2735,44 +2806,30 @@ private buildTaskUpdatePayload(task: GmProjectScheduleTask): GmUpdateProjectTask
       const predecessor = this.tasks.find(t => t.id === dep.predecessorTaskId);
       if (!predecessor) continue;
 
+      this.normalizeTaskDates(predecessor);
+
       const lag = dep.lagDays ?? 0;
       const type = (dep.dependencyType || 'FS').toUpperCase();
 
-      const predStart = predecessor.plannedStart ? this.normalizeDateString(predecessor.plannedStart) : null;
-      const predEnd = predecessor.plannedEnd ? this.normalizeDateString(predecessor.plannedEnd) : predStart;
+      const predStart = predecessor.baselineStart ? this.normalizeDateString(predecessor.baselineStart) : null;
+      const predEnd = predecessor.baselineEnd ? this.normalizeDateString(predecessor.baselineEnd) : predStart;
 
       if (!predStart && !predEnd) continue;
 
       switch (type) {
-        case 'SS': {
-          if (predStart) {
-            const candidateStart = this.addDaysToDateString(predStart, lag);
-            requiredStart = this.maxDateString(requiredStart, candidateStart);
-          }
+        case 'SS':
+          if (predStart) requiredStart = this.maxDateString(requiredStart, this.addDaysToDateString(predStart, lag));
           break;
-        }
-        case 'FF': {
-          if (predEnd) {
-            const candidateEnd = this.addDaysToDateString(predEnd, lag);
-            requiredEnd = this.maxDateString(requiredEnd, candidateEnd);
-          }
+        case 'FF':
+          if (predEnd) requiredEnd = this.maxDateString(requiredEnd, this.addDaysToDateString(predEnd, lag));
           break;
-        }
-        case 'SF': {
-          if (predStart) {
-            const candidateEnd = this.addDaysToDateString(predStart, lag);
-            requiredEnd = this.maxDateString(requiredEnd, candidateEnd);
-          }
+        case 'SF':
+          if (predStart) requiredEnd = this.maxDateString(requiredEnd, this.addDaysToDateString(predStart, lag));
           break;
-        }
         case 'FS':
-        default: {
-          if (predEnd) {
-            const candidateStart = this.addDaysToDateString(predEnd, lag);
-            requiredStart = this.maxDateString(requiredStart, candidateStart);
-          }
+        default:
+          if (predEnd) requiredStart = this.maxDateString(requiredStart, this.addDaysToDateString(predEnd, lag));
           break;
-        }
       }
     }
 
@@ -2782,26 +2839,23 @@ private buildTaskUpdatePayload(task: GmProjectScheduleTask): GmUpdateProjectTask
     if (this.isMilestone(task)) {
       const milestoneDate = requiredStart || requiredEnd || oldStart || oldEnd;
       if (!milestoneDate) return false;
-
       newStart = milestoneDate;
       newEnd = milestoneDate;
-    } else {
-      if (requiredStart && requiredEnd) {
-        const startFromEnd = this.addDaysToDateString(requiredEnd, -(duration - 1));
-        newStart = this.maxDateString(requiredStart, startFromEnd);
-        newEnd = this.addDaysToDateString(newStart!, duration - 1);
+    } else if (requiredStart && requiredEnd) {
+      const startFromEnd = this.addDaysToDateString(requiredEnd, -(duration - 1));
+      newStart = this.maxDateString(requiredStart, startFromEnd);
+      newEnd = this.addDaysToDateString(newStart!, duration - 1);
 
-        if (this.compareDateStrings(newEnd, requiredEnd) < 0) {
-          newEnd = requiredEnd;
-          newStart = this.addDaysToDateString(newEnd, -(duration - 1));
-        }
-      } else if (requiredStart) {
-        newStart = requiredStart;
-        newEnd = this.addDaysToDateString(newStart, duration - 1);
-      } else if (requiredEnd) {
+      if (this.compareDateStrings(newEnd, requiredEnd) < 0) {
         newEnd = requiredEnd;
         newStart = this.addDaysToDateString(newEnd, -(duration - 1));
       }
+    } else if (requiredStart) {
+      newStart = requiredStart;
+      newEnd = this.addDaysToDateString(newStart, duration - 1);
+    } else if (requiredEnd) {
+      newEnd = requiredEnd;
+      newStart = this.addDaysToDateString(newEnd, -(duration - 1));
     }
 
     newStart = this.normalizeDateString(newStart);
@@ -2810,17 +2864,9 @@ private buildTaskUpdatePayload(task: GmProjectScheduleTask): GmUpdateProjectTask
     const changed = newStart !== oldStart || newEnd !== oldEnd;
     if (!changed) return false;
 
-    task.plannedStart = newStart ?? undefined;
-    task.plannedEnd = newEnd ?? undefined;
-
-    if (!this.isMilestone(task) && newStart && newEnd) {
-      const start = this.toDateOnly(newStart).getTime();
-      const end = this.toDateOnly(newEnd).getTime();
-      task.durationDays = Math.max(1, Math.floor((end - start) / 86400000) + 1);
-    } else if (this.isMilestone(task)) {
-      task.durationDays = 0;
-    }
-
+    task.baselineStart = newStart ?? undefined;
+    task.baselineEnd = newEnd ?? undefined;
+    this.normalizeTaskDates(task);
     return true;
   }
 
@@ -2874,65 +2920,72 @@ private buildTaskUpdatePayload(task: GmProjectScheduleTask): GmUpdateProjectTask
   }
 
   private setupTaskFormAutoCalculations(): void {
+  const baselineStartCtrl = this.taskForm.get('baselineStart');
+  const baselineEndCtrl = this.taskForm.get('baselineEnd');
   const plannedStartCtrl = this.taskForm.get('plannedStart');
   const plannedEndCtrl = this.taskForm.get('plannedEnd');
   const taskTypeCtrl = this.taskForm.get('taskType');
   const durationCtrl = this.taskForm.get('durationDays');
 
-  if (!plannedStartCtrl || !plannedEndCtrl || !taskTypeCtrl || !durationCtrl) {
-    return;
-  }
+  if (!baselineStartCtrl || !baselineEndCtrl || !taskTypeCtrl || !durationCtrl) return;
 
   combineLatest([
-    plannedStartCtrl.valueChanges.pipe(startWith(plannedStartCtrl.value)),
-    plannedEndCtrl.valueChanges.pipe(startWith(plannedEndCtrl.value)),
+    baselineStartCtrl.valueChanges.pipe(startWith(baselineStartCtrl.value)),
+    baselineEndCtrl.valueChanges.pipe(startWith(baselineEndCtrl.value)),
     taskTypeCtrl.valueChanges.pipe(startWith(taskTypeCtrl.value))
-  ]).subscribe(([plannedStart, plannedEnd, taskType]) => {
+  ]).subscribe(([baselineStart, baselineEnd, taskType]) => {
     const normalizedType = String(taskType || 'ACTIVITY').toUpperCase();
 
     if (normalizedType === 'MILESTONE') {
-      if (plannedStart && plannedEnd !== plannedStart) {
-        plannedEndCtrl.patchValue(plannedStart, { emitEvent: false });
+      if (baselineStart && baselineEnd !== baselineStart) {
+        baselineEndCtrl.patchValue(baselineStart, { emitEvent: false });
       }
       durationCtrl.patchValue(0, { emitEvent: false });
+      plannedStartCtrl?.patchValue(baselineStart || '', { emitEvent: false });
+      plannedEndCtrl?.patchValue(baselineStart || '', { emitEvent: false });
       return;
     }
 
-    if (!plannedStart || !plannedEnd) {
-      return;
-    }
-
-    const start = this.toDateOnly(plannedStart);
-    const end = this.toDateOnly(plannedEnd);
-
-    if (end < start) {
-      durationCtrl.patchValue(0, { emitEvent: false });
-      return;
-    }
-
-    const duration =
-      Math.floor((end.getTime() - start.getTime()) / 86400000) + 1;
-
+    const duration = this.calculateDurationDays(baselineStart, baselineEnd, false);
     durationCtrl.patchValue(duration, { emitEvent: false });
+    plannedStartCtrl?.patchValue(baselineStart || '', { emitEvent: false });
+    plannedEndCtrl?.patchValue(baselineEnd || '', { emitEvent: false });
   });
-    durationCtrl.valueChanges.subscribe((durationValue) => {
+
+  durationCtrl.valueChanges.subscribe((durationValue) => {
     if (!this.selectedTask) return;
 
-    const plannedStart = plannedStartCtrl.value;
+    const baselineStart = baselineStartCtrl.value;
     const taskType = String(taskTypeCtrl.value || 'ACTIVITY').toUpperCase();
 
-    if (!plannedStart) return;
+    if (!baselineStart) return;
 
     if (taskType === 'MILESTONE') {
       durationCtrl.patchValue(0, { emitEvent: false });
-      plannedEndCtrl.patchValue(plannedStart, { emitEvent: false });
+      baselineEndCtrl.patchValue(baselineStart, { emitEvent: false });
+      plannedStartCtrl?.patchValue(baselineStart, { emitEvent: false });
+      plannedEndCtrl?.patchValue(baselineStart, { emitEvent: false });
       return;
     }
 
     const duration = Math.max(1, Number(durationValue || 1));
-    const newEnd = this.addDaysToDateString(plannedStart, duration - 1);
+    const newEnd = this.addDaysToDateString(baselineStart, duration - 1);
 
-    plannedEndCtrl.patchValue(newEnd, { emitEvent: false });
+    baselineEndCtrl.patchValue(newEnd, { emitEvent: false });
+    plannedStartCtrl?.patchValue(baselineStart, { emitEvent: false });
+    plannedEndCtrl?.patchValue(newEnd, { emitEvent: false });
+  });
+
+  this.taskForm.valueChanges.subscribe(() => {
+    if (!this.selectedTask || this.suppressFormAutoSave) return;
+
+    clearTimeout(this.formAutoSaveTimer);
+    this.formAutoSaveTimer = setTimeout(() => {
+      if (!this.selectedTask || this.taskForm.invalid) return;
+      Object.assign(this.selectedTask, this.taskForm.value);
+      this.normalizeTaskDates(this.selectedTask);
+      this.saveInlineTask(this.selectedTask);
+    }, 900);
   });
 }
 
@@ -3021,8 +3074,8 @@ exportAsMsProjectXml(): void {
       <ID>${index + 1}</ID>
       <Name>${this.escapeXml(task.name)}</Name>
       <OutlineNumber>${this.escapeXml(task.wbsCode || '')}</OutlineNumber>
-      <Start>${this.escapeXml(this.formatDateForExport(task.plannedStart))}</Start>
-      <Finish>${this.escapeXml(this.formatDateForExport(task.plannedEnd))}</Finish>
+      <Start>${this.escapeXml(this.formatDateForExport(task.baselineStart ?? task.plannedStart))}</Start>
+      <Finish>${this.escapeXml(this.formatDateForExport(task.baselineEnd ?? task.plannedEnd))}</Finish>
       <Duration>${this.escapeXml(task.durationDays ?? 0)}</Duration>
       <PercentComplete>${this.escapeXml(task.percentComplete ?? 0)}</PercentComplete>
       <Priority>${this.escapeXml(task.priority ?? 500)}</Priority>
@@ -3053,8 +3106,8 @@ exportAsPdfReport(): void {
       <td>${this.escapeXml(task.name ?? '')}</td>
       <td>${task.taskType ?? ''}</td>
       <td>${task.departmentCode ?? ''}</td>
-      <td>${task.plannedStart ?? ''}</td>
-      <td>${task.plannedEnd ?? ''}</td>
+      <td>${task.baselineStart ?? task.plannedStart ?? ''}</td>
+      <td>${task.baselineEnd ?? task.plannedEnd ?? ''}</td>
       <td>${task.durationDays ?? ''}</td>
       <td>${task.percentComplete ?? 0}%</td>
     </tr>
@@ -3121,8 +3174,8 @@ exportAsExcelCsv(): void {
     'Department',
     'Resource Type',
     'Customer Milestone',
-    'Planned Start',
-    'Planned End',
+    'Baseline Start',
+    'Baseline End',
     'Baseline Start',
     'Baseline End',
     'Actual Start',
@@ -3142,10 +3195,10 @@ exportAsExcelCsv(): void {
     task.departmentCode ?? '',
     task.resourceType ?? '',
     task.customerMilestone ? 'Yes' : 'No',
-    task.plannedStart ?? '',
-    task.plannedEnd ?? '',
-    task.baselineStart ?? '',
-    task.baselineEnd ?? '',
+    task.baselineStart ?? task.plannedStart ?? '',
+    task.baselineEnd ?? task.plannedEnd ?? '',
+    task.baselineStart ?? task.plannedStart ?? '',
+    task.baselineEnd ?? task.plannedEnd ?? '',
     task.actualStart ?? '',
     task.actualEnd ?? '',
     task.durationDays ?? '',
@@ -3374,5 +3427,196 @@ loadProjectName(): void {
       this.projectName = `Project ${this.projectId}`;
     }
   });
+}
+
+addSupplierAssignment(): void {
+
+  if (!this.selectedTask) {
+    return;
+  }
+
+  const supplierName =
+    this.newSupplier.assignmentName?.trim();
+
+  if (!supplierName) {
+    return;
+  }
+
+  const payload = {
+    resourceType: 'SUPPLIER',
+    assignmentName: supplierName,
+    quantity: this.newSupplier.quantity ?? 1,
+    unitsPercent: this.newSupplier.unitsPercent ?? 100,
+    cost: this.newSupplier.cost ?? 0,
+    assignedUserId: null
+  };
+
+  this.service.createTaskResource(
+    this.projectId,
+    this.selectedTask.id,
+    payload
+  ).subscribe({
+    next: () => {
+
+      this.newSupplier = {
+        resourceType: 'SUPPLIER',
+        assignmentName: '',
+        quantity: 1,
+        unitsPercent: 100,
+        cost: 0,
+        assignedUserId: null
+      };
+
+      this.loadTaskResources(this.selectedTask!.id);
+
+      this.loadSchedule();
+    },
+    error: err => {
+      console.error(
+        'Failed to create supplier assignment',
+        err
+      );
+    }
+  });
+}
+
+activeBaselineId: number | null = null;
+
+private enrichBaseline(baseline: ProjectBaseline): ProjectBaseline {
+  let tasks: GmProjectScheduleTask[] = [];
+
+  try {
+    tasks = JSON.parse(baseline.snapshotJson || '[]');
+  } catch {
+    tasks = [];
+  }
+
+  const taskCount = tasks.length;
+  const avgProgress = taskCount
+    ? Math.round(tasks.reduce((sum, t) => sum + Number(t.percentComplete || 0), 0) / taskCount)
+    : 0;
+
+  const completedCount = tasks.filter(t => Number(t.percentComplete || 0) >= 100).length;
+
+  return {
+    ...baseline,
+    taskCount,
+    avgProgress,
+    completedCount,
+    active: baseline.id === this.activeBaselineId
+  };
+}
+
+loadBaselines(): void {
+  this.baselineService.getBaselines(this.projectId).subscribe({
+    next: res => {
+      this.baselines  = (res || []).map(b => this.enrichBaseline(b));
+    },
+    error: err => console.error('Failed to load baselines', err)
+  });
+}
+
+saveBaselineWithName(): void {
+  const name = this.baselineName?.trim();
+
+  if (!name) {
+    alert('Please enter a baseline name');
+    return;
+  }
+
+  const snapshotTasks = this.tasks.map(task => ({
+    ...task,
+    baselineStart: task.plannedStart ?? task.baselineStart,
+    baselineEnd: task.plannedEnd ?? task.baselineEnd
+  }));
+
+  this.saving = true;
+
+  this.baselineService.createBaseline(this.projectId, {
+    name,
+    snapshotJson: JSON.stringify(snapshotTasks)
+  }).subscribe({
+    next: saved => {
+      this.baselineName = '';
+      this.activeBaselineId = saved.id;
+      this.saving = false;
+      this.loadBaselines();
+    },
+    error: err => {
+      this.saving = false;
+      console.error('Failed to save baseline', err);
+    }
+  });
+}
+
+applyBaselineToSchedule(baseline: ProjectBaseline): void {
+  let baselineTasks: GmProjectScheduleTask[] = [];
+
+  try {
+    baselineTasks = JSON.parse(baseline.snapshotJson || '[]');
+  } catch {
+    alert('Invalid baseline snapshot');
+    return;
+  }
+
+  if (!baselineTasks.length) return;
+
+  this.saving = true;
+  this.pushHistory();
+
+  const currentById = new Map(this.tasks.map(t => [t.id, t]));
+
+  const requests = baselineTasks
+    .filter(bt => currentById.has(bt.id))
+    .map(bt => {
+      const current = currentById.get(bt.id)!;
+
+      const updated: GmProjectScheduleTask = {
+        ...current,
+        baselineStart: bt.baselineStart,
+        baselineEnd: bt.baselineEnd,
+        plannedStart: bt.plannedStart ?? bt.baselineStart,
+        plannedEnd: bt.plannedEnd ?? bt.baselineEnd,
+        percentComplete: bt.percentComplete ?? current.percentComplete
+      };
+
+      return this.service.updateTask(
+        this.projectId,
+        updated.id,
+        this.buildTaskUpdatePayload(updated)
+      );
+    });
+
+  forkJoin(requests)
+    .pipe(finalize(() => this.saving = false))
+    .subscribe({
+      next: () => {
+        this.activeBaselineId = baseline.id;
+        this.loadSchedule();
+        this.loadBaselines();
+      },
+      error: err => {
+        console.error('Failed to apply baseline', err);
+        this.loadSchedule();
+      }
+    });
+}
+
+renameBaseline(baseline: ProjectBaseline): void {
+  const name = prompt('New baseline name:', baseline.name);
+  if (!name?.trim()) return;
+
+  this.baselineService.renameBaseline(this.projectId, baseline.id, name.trim()).subscribe({
+    next: () => this.loadBaselines(),
+    error: err => console.error('Failed to rename baseline', err)
+  });
+}
+
+toggleBaselineDetails(baseline: ProjectBaseline): void {
+  baseline.expanded = !baseline.expanded;
+}
+
+trackBaseline(_: number, baseline: ProjectBaseline): number {
+  return baseline.id;
 }
 }

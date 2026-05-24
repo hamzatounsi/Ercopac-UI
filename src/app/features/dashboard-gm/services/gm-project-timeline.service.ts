@@ -134,4 +134,11 @@ export class GmProjectTimelineService {
       `${API_GM_URL}/projects/${projectId}/tasks/${taskId}/console/logs`
     );
   }
+
+  importSchedule(projectId: number, tasks: GmUpdateProjectTaskRequest[]) {
+    return this.http.post<GmProjectScheduleTask[]>(
+      `${API_PROJECTS_URL}/${projectId}/schedule/import`,
+      { tasks }
+    );
+  }
 }
