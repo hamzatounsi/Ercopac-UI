@@ -5,7 +5,8 @@ import { Observable } from 'rxjs';
 import { API_PROJECTS_URL } from 'src/app/core/config/api.config';
 import { ChangeRequest } from '../models/change-request.model';
 import { ChangeRequestSummary } from '../models/change-request-summary.model';
-
+import { HttpResponse } from '@angular/common/http';
+import { ChangeRequestAttachment } from '../models/change-request.model';
 @Injectable({
   providedIn: 'root'
 })
@@ -33,4 +34,25 @@ export class GmChangeRequestService {
   delete(projectId: number, id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${projectId}/change-requests/${id}`);
   }
+  uploadAttachments(projectId: number, crId: number, files: File[]): Observable<ChangeRequestAttachment[]> {
+  const formData = new FormData();
+  files.forEach(file => formData.append('files', file));
+  return this.http.post<ChangeRequestAttachment[]>(
+    `${this.baseUrl}/${projectId}/change-requests/${crId}/attachments`,
+    formData
+  );
+}
+
+downloadAttachment(projectId: number, crId: number, attachmentId: number): Observable<HttpResponse<Blob>> {
+  return this.http.get(
+    `${this.baseUrl}/${projectId}/change-requests/${crId}/attachments/${attachmentId}/download`,
+    { observe: 'response', responseType: 'blob' }
+  );
+}
+
+deleteAttachment(projectId: number, crId: number, attachmentId: number): Observable<void> {
+  return this.http.delete<void>(
+    `${this.baseUrl}/${projectId}/change-requests/${crId}/attachments/${attachmentId}`
+  );
+}
 }

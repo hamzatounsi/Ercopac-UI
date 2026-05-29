@@ -1,6 +1,7 @@
 import { Component, HostListener, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { GmRiskService } from '../../services/gm-risk.service';
+import { GmDashboardService } from '../../services/gm-dashboard.service';
 import { RiskItem } from '../../models/risk-item.model';
 import { RiskSummary } from '../../models/risk-summary.model';
 import { RiskApprovalRule, UpsertRiskApprovalRuleRequest } from '../../models/risk-approval-rule.model';
@@ -29,6 +30,7 @@ type SortColumn =
 export class GmProjectRisksPageComponent implements OnInit {
 
   projectId!: number;
+  projectName = '';
 
   loading = false;
   saving = false;
@@ -63,12 +65,10 @@ export class GmProjectRisksPageComponent implements OnInit {
   readonly types = ['risk', 'opportunity'];
   readonly departments = ['PM', 'ME', 'EE', 'SW', 'PRC', 'MFC', 'QA', 'HSE', 'INST', 'FIN', 'CS', 'SALES'];
 
-  // Resource Type / Owner / WBS
   resourceTypes: ResourceTypeDto[] = [];
   usersByResourceType: any[] = [];
   wbsCodes: string[] = [];
 
-  // Approval Matrix
   approvalMatrixOpen = false;
   approvalRules: RiskApprovalRule[] = [];
   approvalRulesLoading = false;
@@ -98,20 +98,53 @@ export class GmProjectRisksPageComponent implements OnInit {
   readonly heatmap: { impact: number; prob: number; rv: number; level: string }[] =
     this.buildHeatmap();
 
+  private rowUsersCache: Map<number, any[]> = new Map();
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private riskService: GmRiskService
+    private riskService: GmRiskService,
+    private dashboardService: GmDashboardService
   ) {}
 
   ngOnInit(): void {
     this.projectId = Number(this.route.snapshot.paramMap.get('id'));
-    this.loadData();
-    this.loadResourceTypes();
+    this.loadProjectName();
     this.loadWbsCodes();
+    this.loadResourceTypesFirst();
   }
 
-  // ─── Data loading ───────────────────────────────────────────
+  // ─── Project name ────────────────────────────────────────────
+
+ loadProjectName(): void {
+  this.dashboardService.getProjects().subscribe({
+    next: (projects) => {
+      console.log('PROJECTS:', JSON.stringify(projects?.slice(0,2)));
+      console.log('LOOKING FOR ID:', this.projectId, typeof this.projectId);
+      const project = (projects ?? []).find((p: any) => p.id === this.projectId);
+      console.log('FOUND PROJECT:', project);
+      this.projectName = project?.name || `Project #${this.projectId}`;
+    },
+    error: (err) => {
+      console.error('LOAD PROJECT NAME ERROR:', err);
+      this.projectName = `Project #${this.projectId}`;
+    }
+  });
+}
+
+  // ─── Data loading ────────────────────────────────────────────
+
+  loadResourceTypesFirst(): void {
+    this.riskService.getResourceTypes(this.projectId).subscribe({
+      next: (types) => {
+        this.resourceTypes = types ?? [];
+        this.loadData();
+      },
+      error: () => {
+        this.loadData();
+      }
+    });
+  }
 
   loadData(): void {
     this.loading = true;
@@ -120,7 +153,7 @@ export class GmProjectRisksPageComponent implements OnInit {
     this.riskService.getRisks(this.projectId).subscribe({
       next: (rows) => {
         this.rows = rows ?? [];
-        this.preloadRowUsers();  
+        this.preloadRowUsers();
         this.loadSummaryAndPending();
       },
       error: (err) => {
@@ -155,58 +188,7 @@ export class GmProjectRisksPageComponent implements OnInit {
       }
     });
   }
-testSave(): void {
-  console.log('TEST SAVE CALLED', this.selectedRisk?.id);
-  this.saveSelectedRisk();
-}
-// Cache for users per resource type
-private rowUsersCache: Map<number, any[]> = new Map();
 
-private preloadRowUsers(): void {
-  const resourceTypeIds = [...new Set(
-    this.rows
-      .map(r => r.resourceTypeId)
-      .filter((id): id is number => !!id)
-  )];
-
-  for (const id of resourceTypeIds) {
-    if (!this.rowUsersCache.has(id)) {
-      this.riskService.getUsersByResourceType(this.projectId, id).subscribe({
-        next: (users) => { this.rowUsersCache.set(id, users ?? []); },
-        error: () => {}
-      });
-    }
-  }
-}
-
-getRowUsers(row: RiskItem): any[] {
-  if (!row.resourceTypeId) return [];
-  return this.rowUsersCache.get(row.resourceTypeId) || [];
-}
-onRowResourceTypeChange(row: RiskItem, id: number | null): void {
-  const rt = id ? this.resourceTypes.find(r => r.id === id) || null : null;
-
-  row.resourceTypeId = id;
-  row.resourceTypeCode = rt?.code || null;
-  row.ownerUserId = null;
-  row.ownerUserName = null;
-
-  if (id && !this.rowUsersCache.has(id)) {
-    this.riskService.getUsersByResourceType(this.projectId, id).subscribe({
-      next: (users) => { this.rowUsersCache.set(id, users ?? []); },
-      error: () => {}
-    });
-  }
-  this.saveRow(row, false);
-}
-
-onRowOwnerChange(row: RiskItem, id: number | null): void {
-  const users = row.resourceTypeId ? this.rowUsersCache.get(row.resourceTypeId) || [] : [];
-  const user = users.find(u => u.id === id);
-  row.ownerUserId = id;
-  row.ownerUserName = user?.fullName || null;
-  this.saveRow(row, false);
-}
   loadResourceTypes(): void {
     this.riskService.getResourceTypes(this.projectId).subscribe({
       next: (types) => { this.resourceTypes = types ?? []; },
@@ -221,7 +203,55 @@ onRowOwnerChange(row: RiskItem, id: number | null): void {
     });
   }
 
-  // ─── Filters & Sort ─────────────────────────────────────────
+  // ─── Row users cache ─────────────────────────────────────────
+
+  private preloadRowUsers(): void {
+    const resourceTypeIds = [...new Set(
+      this.rows
+        .map(r => r.resourceTypeId)
+        .filter((id): id is number => !!id)
+    )];
+
+    for (const id of resourceTypeIds) {
+      if (!this.rowUsersCache.has(id)) {
+        this.riskService.getUsersByResourceType(this.projectId, id).subscribe({
+          next: (users) => { this.rowUsersCache.set(id, users ?? []); },
+          error: () => {}
+        });
+      }
+    }
+  }
+
+  getRowUsers(row: RiskItem): any[] {
+    if (!row.resourceTypeId) return [];
+    return this.rowUsersCache.get(row.resourceTypeId) || [];
+  }
+
+  onRowResourceTypeChange(row: RiskItem, id: number | null): void {
+    const rt = id ? this.resourceTypes.find(r => r.id === id) || null : null;
+    row.resourceTypeId = id;
+    row.resourceTypeCode = rt?.code || null;
+    row.ownerUserId = null;
+    row.ownerUserName = null;
+
+    if (id && !this.rowUsersCache.has(id)) {
+      this.riskService.getUsersByResourceType(this.projectId, id).subscribe({
+        next: (users) => { this.rowUsersCache.set(id, users ?? []); },
+        error: () => {}
+      });
+    }
+    this.saveRow(row, false);
+  }
+
+  onRowOwnerChange(row: RiskItem, id: number | null): void {
+    const users = row.resourceTypeId ? this.rowUsersCache.get(row.resourceTypeId) || [] : [];
+    const user = users.find(u => u.id === id);
+    row.ownerUserId = id;
+    row.ownerUserName = user?.fullName || null;
+    this.saveRow(row, false);
+  }
+
+  // ─── Filters & Sort ──────────────────────────────────────────
 
   applyFilters(): void {
     const search = this.searchTerm.trim().toLowerCase();
@@ -305,83 +335,92 @@ onRowOwnerChange(row: RiskItem, id: number | null): void {
     this.applyFilters();
   }
 
-  // ─── CRUD ───────────────────────────────────────────────────
-addRisk(): void {
-  const payload = {
-    riskType: 'risk',
-    state: 'new',
-    description: 'New risk',
-    inputDate: new Date().toISOString().slice(0, 10),
-    dueDate: null,
-    mitigation: '',
-    resourceTypeId: null,
-    ownerUserId: null,
-    wbsCode: '',
-    impact: '1',
-    probability: 10,
-    notes: ''
-  };
+  // ─── CRUD ─────────────────────────────────────────────────────
 
-  this.saving = true;
-  this.riskService.createRisk(this.projectId, payload).subscribe({
-    next: (created) => {
-      console.log('CREATED:', created.id);
-      this.saving = false;
-      this.rows = [...this.rows, created];
-      this.applyFilters();
-      this.openDrawer(created);
-    },
-    error: (err) => {
-      console.error(err);
-      this.error = 'Failed to add risk.';
-      this.saving = false;
-    }
-  });
-}
-saveRow(row: RiskItem, refreshDrawer = true): void {
-  this.saving = true;
+  addRisk(): void {
+    const payload = {
+      riskType: 'risk',
+      state: 'new',
+      description: 'New risk',
+      inputDate: new Date().toISOString().slice(0, 10),
+      dueDate: null,
+      mitigation: '',
+      resourceTypeId: null,
+      ownerUserId: null,
+      wbsCode: '',
+      impact: '1',
+      probability: 10,
+      notes: ''
+    };
 
-  const payload = {
-    riskType: row.riskType,
-    state: row.state,
-    description: row.description,
-    inputDate: row.inputDate,
-    dueDate: row.dueDate || null,
-    mitigation: row.mitigation || '',
-    resourceTypeId: row.resourceTypeId || null,
-    ownerUserId: row.ownerUserId || null,
-    wbsCode: row.wbsCode || '',
-    impact: row.impact ? String(row.impact) : '1',
-    probability: row.probability ? Number(row.probability) : 10,
-    varianceStatus: row.varianceStatus || null,
-    notes: row.notes || ''
-  };
-
-  this.riskService.updateRisk(this.projectId, row.id, payload).subscribe({
-    next: (updated) => {
-      console.log('SAVED SUCCESSFULLY:', updated.id);
-      const idx = this.rows.findIndex(r => r.id === updated.id);
-      if (idx !== -1) this.rows[idx] = updated;
-      this.applyFilters();
-      this.saving = false;
-      if (refreshDrawer && this.selectedRisk?.id === updated.id) {
-        this.selectedRisk = { ...updated };
-        // reload users for resource type if set
-        if (updated.resourceTypeId) {
-          this.riskService.getUsersByResourceType(this.projectId, updated.resourceTypeId).subscribe({
-            next: (users) => { this.usersByResourceType = users ?? []; },
-            error: () => {}
-          });
-        }
+    this.saving = true;
+    this.riskService.createRisk(this.projectId, payload).subscribe({
+      next: (created) => {
+        this.saving = false;
+        this.rows = [...this.rows, created];
+        this.applyFilters();
+        this.openDrawer(created);
+      },
+      error: (err) => {
+        console.error(err);
+        this.error = 'Failed to add risk.';
+        this.saving = false;
       }
-    },
-    error: (err) => {
-      console.error('SAVE ERROR:', err.status, err.error);
-      this.error = 'Failed to save risk.';
-      this.saving = false;
-    }
-  });
-}
+    });
+  }
+
+  saveRow(row: RiskItem, refreshDrawer = true): void {
+    this.saving = true;
+
+    const payload = {
+      riskType: row.riskType,
+      state: row.state,
+      description: row.description,
+      inputDate: row.inputDate,
+      dueDate: row.dueDate || null,
+      mitigation: row.mitigation || '',
+      resourceTypeId: row.resourceTypeId || null,
+      ownerUserId: row.ownerUserId || null,
+      wbsCode: row.wbsCode || '',
+      impact: row.impact ? String(row.impact) : '1',
+      probability: row.probability ? Number(row.probability) : 10,
+      varianceStatus: row.varianceStatus || null,
+      notes: row.notes || ''
+    };
+
+    this.riskService.updateRisk(this.projectId, row.id, payload).subscribe({
+      next: (updated) => {
+        const idx = this.rows.findIndex(r => r.id === updated.id);
+        if (idx !== -1) this.rows[idx] = updated;
+        this.applyFilters();
+        this.saving = false;
+        if (refreshDrawer && this.selectedRisk?.id === updated.id) {
+          this.selectedRisk = { ...updated };
+          if (updated.resourceTypeId) {
+            if (this.rowUsersCache.has(updated.resourceTypeId)) {
+              this.usersByResourceType = this.rowUsersCache.get(updated.resourceTypeId) || [];
+            } else {
+              this.riskService.getUsersByResourceType(this.projectId, updated.resourceTypeId).subscribe({
+                next: (users) => {
+                  this.rowUsersCache.set(updated.resourceTypeId!, users ?? []);
+                  this.usersByResourceType = users ?? [];
+                },
+                error: () => {}
+              });
+            }
+          } else {
+            this.usersByResourceType = [];
+          }
+        }
+      },
+      error: (err) => {
+        console.error('SAVE ERROR:', err.status, err.error);
+        this.error = 'Failed to save risk.';
+        this.saving = false;
+      }
+    });
+  }
+
   deleteRow(row: RiskItem): void {
     if (!confirm('Delete this risk?')) return;
 
@@ -444,7 +483,7 @@ saveRow(row: RiskItem, refreshDrawer = true): void {
     this.applyFilters();
   }
 
-  // ─── Drawer ─────────────────────────────────────────────────
+  // ─── Drawer ───────────────────────────────────────────────────
 
   selectRow(row: RiskItem): void {
     this.selectedRisk = { ...row };
@@ -457,12 +496,14 @@ saveRow(row: RiskItem, refreshDrawer = true): void {
       this.loadApprovalRules();
     }
     if (row.resourceTypeId) {
-      const rt = this.resourceTypes.find(r => r.id === row.resourceTypeId) || null;
-      if (rt) {
-        this.onResourceTypeChange(rt);
+      if (this.rowUsersCache.has(row.resourceTypeId)) {
+        this.usersByResourceType = this.rowUsersCache.get(row.resourceTypeId) || [];
       } else {
         this.riskService.getUsersByResourceType(this.projectId, row.resourceTypeId).subscribe({
-          next: (users) => { this.usersByResourceType = users ?? []; },
+          next: (users) => {
+            this.rowUsersCache.set(row.resourceTypeId!, users ?? []);
+            this.usersByResourceType = users ?? [];
+          },
           error: () => { this.usersByResourceType = []; }
         });
       }
@@ -482,14 +523,27 @@ saveRow(row: RiskItem, refreshDrawer = true): void {
     this.saveRow(this.selectedRisk, true);
   }
 
-  // ─── Resource Type / Owner / WBS ────────────────────────────
+  testSave(): void {
+    this.saveSelectedRisk();
+  }
+
+  // ─── Resource Type / Owner ────────────────────────────────────
 
   onResourceTypeSelectChange(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
     const id = value ? Number(value) : null;
     const rt = id ? this.resourceTypes.find(r => r.id === id) || null : null;
-     console.log('RESOURCE TYPE CHANGED:', id, rt);  // ← ADD
     this.onResourceTypeChange(rt);
+
+    if (this.selectedRisk) {
+      const rowInList = this.filteredRows.find(r => r.id === this.selectedRisk!.id);
+      if (rowInList) {
+        rowInList.resourceTypeId = id;
+        rowInList.resourceTypeCode = rt?.code || null;
+        rowInList.ownerUserId = null;
+        rowInList.ownerUserName = null;
+      }
+    }
   }
 
   onResourceTypeChange(resourceType: ResourceTypeDto | null): void {
@@ -511,23 +565,35 @@ saveRow(row: RiskItem, refreshDrawer = true): void {
       this.selectedRisk.ownerUserName = null;
     }
 
-    this.riskService.getUsersByResourceType(this.projectId, resourceType.id).subscribe({
-      next: (users) => { this.usersByResourceType = users ?? []; },
-      error: () => { this.usersByResourceType = []; }
-    });
+    if (this.rowUsersCache.has(resourceType.id)) {
+      this.usersByResourceType = this.rowUsersCache.get(resourceType.id) || [];
+    } else {
+      this.riskService.getUsersByResourceType(this.projectId, resourceType.id).subscribe({
+        next: (users) => {
+          this.rowUsersCache.set(resourceType.id, users ?? []);
+          this.usersByResourceType = users ?? [];
+        },
+        error: () => { this.usersByResourceType = []; }
+      });
+    }
   }
 
   onOwnerUserChange(userId: string): void {
     const id = userId ? Number(userId) : null;
     const user = this.usersByResourceType.find(u => u.id === id);
-      console.log('OWNER CHANGED:', id, user);  // ← ADD
     if (this.selectedRisk) {
       this.selectedRisk.ownerUserId = id;
       this.selectedRisk.ownerUserName = user?.fullName || null;
+
+      const rowInList = this.filteredRows.find(r => r.id === this.selectedRisk!.id);
+      if (rowInList) {
+        rowInList.ownerUserId = id;
+        rowInList.ownerUserName = user?.fullName || null;
+      }
     }
   }
 
-  // ─── Approval Matrix ────────────────────────────────────────
+  // ─── Approval Matrix ──────────────────────────────────────────
 
   openApprovalMatrix(): void {
     this.approvalMatrixOpen = true;
@@ -592,15 +658,10 @@ saveRow(row: RiskItem, refreshDrawer = true): void {
     return matching[0]?.approverRole || '—';
   }
 
-  // ─── Helpers ────────────────────────────────────────────────
+  // ─── Helpers ──────────────────────────────────────────────────
 
-  toggleBell(): void {
-    this.bellOpen = !this.bellOpen;
-  }
-
-  toggleRiskPosition(): void {
-    this.riskPositionCollapsed = !this.riskPositionCollapsed;
-  }
+  toggleBell(): void { this.bellOpen = !this.bellOpen; }
+  toggleRiskPosition(): void { this.riskPositionCollapsed = !this.riskPositionCollapsed; }
 
   exportRisks(): void {
     const rows = this.filteredRows.map((row) => ({
@@ -638,11 +699,11 @@ saveRow(row: RiskItem, refreshDrawer = true): void {
   }
 
   getRiskValue(row: RiskItem): number {
-  const impactNum = parseInt(row.impact || '1', 10);
-  const prob = row.probability || 10;
-  if (isNaN(impactNum)) return prob;
-  return impactNum * prob;
-}
+    const impactNum = parseInt(row.impact || '1', 10);
+    const prob = row.probability || 10;
+    if (isNaN(impactNum)) return prob;
+    return impactNum * prob;
+  }
 
   getRiskLevel(row: RiskItem): 'low' | 'med' | 'hi' | 'crit' {
     const rv = this.getRiskValue(row);
@@ -660,17 +721,9 @@ saveRow(row: RiskItem, refreshDrawer = true): void {
     return 'Low';
   }
 
-  getRiskClass(row: RiskItem): string {
-    return 'rv-' + this.getRiskLevel(row);
-  }
-
-  getStateClass(state: string | null | undefined): string {
-    return 'st-' + (state || 'new');
-  }
-
-  getTypeClass(type: string | null | undefined): string {
-    return type === 'opportunity' ? 'rt-opportunity' : 'rt-risk';
-  }
+  getRiskClass(row: RiskItem): string { return 'rv-' + this.getRiskLevel(row); }
+  getStateClass(state: string | null | undefined): string { return 'st-' + (state || 'new'); }
+  getTypeClass(type: string | null | undefined): string { return type === 'opportunity' ? 'rt-opportunity' : 'rt-risk'; }
 
   getVarianceClass(status: string | null | undefined): string {
     if (status === 'approved') return 'vs-approved';
@@ -683,18 +736,9 @@ saveRow(row: RiskItem, refreshDrawer = true): void {
     return this.sortDirection === 'asc' ? 'sort-asc' : 'sort-desc';
   }
 
-  getNetExposure(): number {
-    if (!this.summary) return 0;
-    return this.summary.netExposureScore;
-  }
-
-  getOpenRisksCount(): number {
-    return this.rows.filter(r => r.state !== 'closed' && r.riskType !== 'opportunity').length;
-  }
-
-  getOpenOpportunitiesCount(): number {
-    return this.rows.filter(r => r.state !== 'closed' && r.riskType === 'opportunity').length;
-  }
+  getNetExposure(): number { return this.summary?.netExposureScore ?? 0; }
+  getOpenRisksCount(): number { return this.rows.filter(r => r.state !== 'closed' && r.riskType !== 'opportunity').length; }
+  getOpenOpportunitiesCount(): number { return this.rows.filter(r => r.state !== 'closed' && r.riskType === 'opportunity').length; }
 
   getTopRisks(): RiskItem[] {
     if (this.summary?.riskExposureItems?.length) {

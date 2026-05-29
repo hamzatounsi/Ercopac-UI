@@ -1,3 +1,10 @@
+<app-projectum-project-header></app-projectum-project-header>
+
+<!-- ADD THIS: -->
+<div class="project-bar">
+  <span class="project-lbl">📂 Project:</span>
+  <span class="project-chip">{{ projectName || 'Project #' + projectId }}</span>
+</div>
 <div class="actions-shell">
   <app-gm-project-side-panel
     [projectId]="projectId"

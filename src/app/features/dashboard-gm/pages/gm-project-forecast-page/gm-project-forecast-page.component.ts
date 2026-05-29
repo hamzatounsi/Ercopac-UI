@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { GmForecastService } from '../../services/gm-forecast.service';
 import { ForecastRow } from '../../models/forecast-row.model';
 import { ForecastSummary } from '../../models/forecast-summary.model';
-
+import { GmDashboardService } from '../../services/gm-dashboard.service';
 @Component({
   selector: 'app-gm-project-forecast-page',
   templateUrl: './gm-project-forecast-page.component.html',
@@ -15,7 +15,9 @@ export class GmProjectForecastPageComponent implements OnInit {
   loading = false;
   saving = false;
   error: string | null = null;
-
+projectName = '';
+projectLabel = '';
+projectShortName = '';
   rows: ForecastRow[] = [];
   filteredRows: ForecastRow[] = [];
   summary: ForecastSummary | null = null;
@@ -27,14 +29,31 @@ export class GmProjectForecastPageComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private forecastService: GmForecastService
+    private forecastService: GmForecastService,
+     private dashboardService: GmDashboardService  // ←
+
   ) {}
 
   ngOnInit(): void {
     this.projectId = Number(this.route.snapshot.paramMap.get('id'));
+    this.loadProjectName(); // ← ADD
     this.loadData();
   }
-
+loadProjectName(): void {
+  this.dashboardService.getProjects().subscribe({
+    next: (projects) => {
+      const project = (projects ?? []).find((p: any) => p.id === this.projectId);
+      this.projectName = project?.name || `Project #${this.projectId}`;
+      this.projectLabel = project?.name || `Project #${this.projectId}`;
+      this.projectShortName = project?.shortName || project?.code || `#${this.projectId}`;
+    },
+    error: () => {
+      this.projectName = `Project #${this.projectId}`;
+      this.projectLabel = `Project #${this.projectId}`;
+      this.projectShortName = `#${this.projectId}`;
+    }
+  });
+}
   loadData(): void {
     this.loading = true;
     this.error = null;
@@ -64,8 +83,7 @@ export class GmProjectForecastPageComponent implements OnInit {
     });
   }
 
-  projectLabel = 'A-26002 - Barilla Novara';
-projectShortName = 'Barilla Novara';
+
 
 getTypeLabel(row: ForecastRow): string {
   const text = `${row.description || ''}`.toLowerCase();

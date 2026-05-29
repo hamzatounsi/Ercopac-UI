@@ -1,3 +1,9 @@
+<app-projectum-project-header></app-projectum-project-header>
+
+<div class="project-bar">
+  <span class="project-lbl">📂 Project:</span>
+  <span class="project-chip">{{ projectName || 'Project #' + projectId }}</span>
+</div>
 <div class="cr-shell">
 <app-gm-project-side-panel
     [projectId]="projectId"
@@ -209,13 +215,27 @@
           <div class="dd-lbl">Note</div>
           <textarea class="dd-ta" [(ngModel)]="selectedCr.note" (change)="saveRow(selectedCr)"></textarea>
         </div>
+<div class="dd-sec">Files</div>
 
-        <div class="dd-sec">Files</div>
-        <div class="att-empty" *ngIf="!selectedCr.attachments?.length">No files attached yet.</div>
-        <div class="att-item" *ngFor="let att of selectedCr.attachments">
-          <div class="att-name">{{ att.fileName }}</div>
-          <div class="att-size">{{ att.fileSize || 0 }} bytes</div>
-        </div>
+<div class="attachment-uploader">
+  <input type="file" multiple #crFileInput
+    (change)="uploadCrAttachment($event)"
+    accept=".pdf,.csv,.xlsx,.xls,.doc,.docx,.png,.jpg,.jpeg,.txt,.json">
+  <button class="tb-btn add" type="button" (click)="crFileInput.click()">
+    ＋ Attach files
+  </button>
+</div>
+
+<div class="att-empty" *ngIf="!selectedCr.attachments?.length">No files attached yet.</div>
+
+<div class="att-item" *ngFor="let att of selectedCr.attachments">
+  <div class="att-name">{{ att.fileName }}</div>
+  <div class="att-size">{{ formatFileSize(att.fileSize) }}</div>
+  <div class="att-actions">
+    <button class="row-btn edit" (click)="downloadCrAttachment(att)">⬇ Download</button>
+    <button class="row-btn" (click)="deleteCrAttachment(att)">✕</button>
+  </div>
+</div>
 
         <div class="dd-sec">History</div>
         <div class="hist-empty" *ngIf="!selectedCr.history?.length">No history yet.</div>

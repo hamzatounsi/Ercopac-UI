@@ -48,14 +48,14 @@
   </div>
 
   <!-- PROJECT BAR -->
-  <div class="project-strip">
-    <div class="project-label">📁 Project:</div>
-    <div class="project-select">
-      <span class="project-code">{{ projectLabel }}</span>
-      <span class="project-caret">▾</span>
-    </div>
-    <div class="project-chip">{{ projectShortName }}</div>
+<div class="project-strip">
+  <div class="project-label">📁 Project:</div>
+  <div class="project-select">
+    <span class="project-code">{{ projectLabel }}</span>
+    <span class="project-caret">▾</span>
   </div>
+  <div class="project-chip">{{ projectShortName }}</div>
+</div>
 
   <div *ngIf="error" class="error-box">
     {{ error }}

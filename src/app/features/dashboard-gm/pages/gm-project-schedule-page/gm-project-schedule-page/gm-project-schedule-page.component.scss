@@ -3220,3 +3220,21 @@
     justify-content: center;
   }
 }
+/* Force left header to match gantt header total height exactly */
+.left-header {
+  min-height: 46px !important; /* 20px month + 26px week = 46px */
+}
+
+.group-header-row {
+  min-height: 46px !important;
+  height: 46px !important;
+}
+
+/* Center the text vertically in the taller header */
+.gh {
+  min-height: 46px !important;
+  height: 46px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
