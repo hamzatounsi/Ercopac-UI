@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { GmActionService } from '../../services/gm-action.service';
 import { ActionAttachment, ActionComment, ActionItem } from '../../models/action-item.model';
 import { ActionSummary } from '../../models/action-summary.model';
-
+import { GmDashboardService } from '../../services/gm-dashboard.service';
 type DetailTab = 'details' | 'comments' | 'attachments';
 type ViewMode = 'list' | 'kanban';
 
@@ -18,7 +18,7 @@ export class GmProjectActionsPageComponent implements OnInit {
   loading = false;
   saving = false;
   error: string | null = null;
-
+projectName = '';
   rows: ActionItem[] = [];
   filteredRows: ActionItem[] = [];
   summary: ActionSummary | null = null;
@@ -45,17 +45,29 @@ export class GmProjectActionsPageComponent implements OnInit {
   readonly actionTypes: Array<'action' | 'issue'> = ['action', 'issue'];
   readonly priorities: Array<'high' | 'medium' | 'low'> = ['high', 'medium', 'low'];
   readonly statuses: Array<'todo' | 'doing' | 'review' | 'blocked' | 'done'> = ['todo', 'doing', 'review', 'blocked', 'done'];
-
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private actionService: GmActionService
-  ) {}
+constructor(
+  private route: ActivatedRoute,
+  private router: Router,
+  private actionService: GmActionService,
+  private dashboardService: GmDashboardService  // ← ADD
+) {}
 
   ngOnInit(): void {
     this.projectId = Number(this.route.snapshot.paramMap.get('id'));
+     this.loadProjectName();
     this.loadData();
   }
+  loadProjectName(): void {
+  this.dashboardService.getProjects().subscribe({
+    next: (projects) => {
+      const project = (projects ?? []).find((p: any) => p.id === this.projectId);
+      this.projectName = project?.name || `Project #${this.projectId}`;
+    },
+    error: () => {
+      this.projectName = `Project #${this.projectId}`;
+    }
+  });
+}
 
   loadData(): void {
     this.loading = true;

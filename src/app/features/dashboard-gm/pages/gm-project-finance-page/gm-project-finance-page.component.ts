@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Chart } from 'chart.js/auto';
 import * as XLSX from 'xlsx';
-
+import { GmDashboardService } from '../../services/gm-dashboard.service';
 import { GmFinanceService } from '../../services/gm-finance.service';
 import { FinanceEntry } from '../../models/finance-entry.model';
 import { FinanceSummary } from '../../models/finance-summary.model';
@@ -36,7 +36,7 @@ export class GmProjectFinancePageComponent implements OnInit {
   rows: FinanceEntry[] = [];
   filteredRows: FinanceEntry[] = [];
   summary: FinanceSummary | null = null;
-
+projectName = '';
   searchTerm = '';
   levelFilter = '';
   currency: 'EUR' | 'USD' = 'EUR';
@@ -63,17 +63,28 @@ export class GmProjectFinancePageComponent implements OnInit {
     'PM', 'ME', 'EE', 'PC', 'PLC', 'PRC', 'MFC.M', 'MFC.E', 'QA', 'HSE',
     'MEC', 'ELECT', 'FIN', 'CS', 'SALES', 'CUST'
   ];
+constructor(
+  private route: ActivatedRoute,
+  private financeService: GmFinanceService,
+  private dashboardService: GmDashboardService  // ← ADD
+) {}
 
-  constructor(
-    private route: ActivatedRoute,
-    private financeService: GmFinanceService
-  ) {}
-
-  ngOnInit(): void {
-    this.projectId = Number(this.route.snapshot.paramMap.get('id'));
-    this.loadData();
-  }
-
+ ngOnInit(): void {
+  this.projectId = Number(this.route.snapshot.paramMap.get('id'));
+  this.loadProjectName(); // ← ADD
+  this.loadData();
+}
+loadProjectName(): void {
+  this.dashboardService.getProjects().subscribe({
+    next: (projects) => {
+      const project = (projects ?? []).find((p: any) => p.id === this.projectId);
+      this.projectName = project?.name || `Project #${this.projectId}`;
+    },
+    error: () => {
+      this.projectName = `Project #${this.projectId}`;
+    }
+  });
+}
   loadData(): void {
     this.loading = true;
     this.error = null;

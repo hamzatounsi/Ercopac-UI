@@ -55,13 +55,9 @@
 
   <!-- PROJECT SELECTOR BAR -->
   <div class="project-selector-wrap">
-    <span class="proj-label">📁 Project:</span>
-    <div class="project-selector-box">
-      <span class="project-selector-value">{{ projectId }}</span>
-      <span class="project-selector-arrow">⌄</span>
-    </div>
-    <span class="project-chip">{{ projectId }}</span>
-  </div>
+  <span class="proj-label">📁 Project:</span>
+  <span class="project-chip">{{ projectName || 'Project #' + projectId }}</span>
+</div>
 
   <!-- KPI STRIP -->
   <div class="kpi-strip" *ngIf="summary">
@@ -391,7 +387,7 @@
               </div>
 
               <div class="callout">
-                This will generate finance rows for project <strong>{{ projectId }}</strong> from the current template.
+                This will generate finance rows for project <strong>{{ projectName  }}</strong> from the current template.
               </div>
             </div>
           </ng-container>
