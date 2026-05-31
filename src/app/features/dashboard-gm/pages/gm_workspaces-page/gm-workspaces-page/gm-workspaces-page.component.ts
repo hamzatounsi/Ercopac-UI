@@ -37,4 +37,9 @@ export class GmWorkspacesPageComponent {
       || roles.includes('ROLE_OWNER')
       || roles.includes('OWNER');
   }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
 }

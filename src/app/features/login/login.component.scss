@@ -385,6 +385,7 @@
   background: #ecfdf5;
   border-color: #a7f3d0;
   color: #065f46;
+  box-shadow: 0 12px 30px rgba(16, 185, 129, 0.18);
 }
 
 .footer {
@@ -394,6 +395,43 @@
   text-align: center;
   color: #636b75;
   font-size: 12px;
+}
+
+.password-field {
+  position: relative;
+  width: 100%;
+}
+
+.password-field input {
+  padding-right: 46px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+
+  width: 30px;
+  height: 30px;
+
+  border: none;
+  background: transparent;
+
+  cursor: pointer;
+  font-size: 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  opacity: 0.65;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.password-toggle:hover {
+  opacity: 1;
+  transform: translateY(-50%) scale(1.08);
 }
 
 @media (max-width: 900px) {

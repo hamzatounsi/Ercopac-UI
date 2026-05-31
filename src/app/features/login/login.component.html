@@ -159,14 +159,26 @@
 
         <div class="form-group">
           <label>Password</label>
-          <input
-            type="password"
-            [(ngModel)]="password"
-            name="password"
-            required
-            placeholder="••••••••"
-            autocomplete="current-password"
-          />
+
+          <div class="password-field">
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              [(ngModel)]="password"
+              name="password"
+              required
+              placeholder="••••••••"
+              autocomplete="current-password"
+            />
+
+            <button
+              type="button"
+              class="password-toggle"
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+            >
+              {{ showPassword ? '👁' : '🔒' }}
+            </button>
+          </div>
         </div>
 
         <button class="btn" type="submit" [disabled]="f.invalid">

@@ -5,16 +5,28 @@
     </div>
 
     <nav class="top-nav">
-      <a class="top-link active" href="javascript:void(0)">Apps</a>
-      <a class="top-link" href="javascript:void(0)">Industries</a>
-      <a class="top-link" href="javascript:void(0)">Community</a>
-      <a class="top-link" href="javascript:void(0)">Prices</a>
-      <a class="top-link" href="javascript:void(0)">Help</a>
+      <a class="top-link active">Apps</a>
+      <a class="top-link">Industries</a>
+      <a class="top-link">Community</a>
+      <a class="top-link">Prices</a>
+      <a class="top-link">Help</a>
     </nav>
 
     <div class="top-actions">
-      <a class="signin-link" href="javascript:void(0)">Register</a>
-      <button class="trial-btn" type="button">Try it now for free!</button>
+
+        <button
+          class="signin-link"
+          type="button"
+          (click)="logout()">
+          Logout
+        </button>
+      <button class="signin-link" type="button">
+        Workspace
+      </button>
+
+      <button class="trial-btn" type="button">
+        Logged in
+      </button>
     </div>
   </header>
 
@@ -23,27 +35,29 @@
       <div class="hero-kicker">Projectum Workspace</div>
 
       <h1 class="hero-title">
-        All around 
+        All around
         <span class="hero-highlight">project</span>
       </h1>
+
       <p class="hero-desc">
         Simple, efficient and enterprise-ready!
+      </p>
     </div>
 
     <div class="hero-curve"></div>
   </section>
 
-
   <section class="apps-section">
     <div class="apps-grid">
+
       <button class="app-card live" type="button" (click)="openProjectum()">
         <div class="app-icon-wrap projectum-bg">
-          <div class="tile-icon projectum-icon">
-            <svg viewBox="0 0 64 64" class="icon-svg" aria-hidden="true">
+          <div class="tile-icon">
+            <svg viewBox="0 0 64 64" class="icon-svg">
               <rect x="10" y="18" width="22" height="28" rx="7" fill="#2F80ED"></rect>
               <rect x="30" y="12" width="24" height="34" rx="8" fill="#56CCF2"></rect>
-              <path d="M18 26h28" stroke="#ffffff" stroke-width="4" stroke-linecap="round"></path>
-              <path d="M18 34h20" stroke="#ffffff" stroke-width="4" stroke-linecap="round"></path>
+              <path d="M18 26h28" stroke="#fff" stroke-width="4" stroke-linecap="round"></path>
+              <path d="M18 34h20" stroke="#fff" stroke-width="4" stroke-linecap="round"></path>
             </svg>
           </div>
         </div>
@@ -52,8 +66,8 @@
 
       <button class="app-card live" type="button" (click)="openMyDepartment()">
         <div class="app-icon-wrap department-bg">
-          <div class="tile-icon department-icon">
-            <svg viewBox="0 0 64 64" class="icon-svg" aria-hidden="true">
+          <div class="tile-icon">
+            <svg viewBox="0 0 64 64" class="icon-svg">
               <rect x="10" y="24" width="14" height="24" rx="4" fill="#4F8EF7"></rect>
               <rect x="26" y="16" width="14" height="32" rx="4" fill="#2D6CDF"></rect>
               <rect x="42" y="10" width="12" height="38" rx="4" fill="#8BB8FF"></rect>
@@ -62,10 +76,11 @@
         </div>
         <div class="app-name">My Department</div>
       </button>
-   <button class="app-card live" type="button" (click)="openCrm()">
+
+      <button class="app-card live" type="button" (click)="openCrm()">
         <div class="app-icon-wrap crm-bg">
-          <div class="tile-icon crm-icon">
-            <svg viewBox="0 0 64 64" class="icon-svg" aria-hidden="true">
+          <div class="tile-icon">
+            <svg viewBox="0 0 64 64" class="icon-svg">
               <circle cx="24" cy="24" r="9" fill="#22c7b8"></circle>
               <circle cx="41" cy="20" r="7" fill="#14a3ff"></circle>
               <path d="M16 46c2-7 8-11 15-11 8 0 14 4 17 11" fill="#7b61ff"></path>
@@ -74,78 +89,44 @@
         </div>
         <div class="app-name">My CRM</div>
       </button>
+
       <button *ngIf="canSeeAdmin()" class="app-card live" type="button" (click)="openAdmin()">
-        <div class="app-icon-wrap admin-bg">
-          <div class="tile-icon admin-icon">
-            <svg viewBox="0 0 64 64" class="icon-svg" aria-hidden="true">
-              <rect x="16" y="28" width="32" height="24" rx="7" fill="#1565c0"></rect>
-              <path
-                d="M22 28v-6c0-6 4-10 10-10s10 4 10 10v6"
-                fill="none"
-                stroke="#ffffff"
-                stroke-width="5"
-                stroke-linecap="round"
-              ></path>
-              <circle cx="32" cy="40" r="4" fill="#2F80ED"></circle>
-              <path d="M32 43v5" stroke="#ffffff" stroke-width="3" stroke-linecap="round"></path>
-            </svg>
-          </div>
-        </div>
-
-        <div class="app-name">Admin</div>
-      </button>
-
-      
-      <button class="app-card" type="button" disabled>
         <div class="app-icon-wrap company-bg">
-          <div class="tile-icon company-icon">
-            <svg viewBox="0 0 64 64" class="icon-svg" aria-hidden="true">
-              <circle cx="22" cy="24" r="10" fill="#36A2EB"></circle>
-              <circle cx="40" cy="22" r="8" fill="#1E5EFF"></circle>
-              <path d="M14 46c3-8 10-12 18-12s15 4 18 12" fill="#5AA9FF"></path>
+          <div class="tile-icon">
+            <svg viewBox="0 0 64 64" class="icon-svg">
+              <rect x="14" y="18" width="36" height="34" rx="6" fill="#2F80ED"></rect>
+              <path d="M22 28h6M36 28h6M22 38h6M36 38h6" stroke="#fff" stroke-width="4" stroke-linecap="round"></path>
+              <path d="M26 18v-6h12v6" stroke="#56CCF2" stroke-width="4" stroke-linecap="round"></path>
             </svg>
           </div>
         </div>
-        <div class="app-name">Company Dashboard</div>
+        <div class="app-name">Admin</div>
       </button>
 
       <button class="app-card" type="button" disabled>
         <div class="app-icon-wrap expense-bg">
-          <div class="tile-icon expense-icon">
-            <svg viewBox="0 0 64 64" class="icon-svg" aria-hidden="true">
+          <div class="tile-icon">
+            <svg viewBox="0 0 64 64" class="icon-svg">
               <rect x="16" y="12" width="32" height="40" rx="8" fill="#ff8a00"></rect>
-              <path d="M24 24h16M24 32h12M24 40h10" stroke="#ffffff" stroke-width="4" stroke-linecap="round"></path>
+              <path d="M24 24h16M24 32h12M24 40h10" stroke="#fff" stroke-width="4" stroke-linecap="round"></path>
             </svg>
           </div>
         </div>
         <div class="app-name">My Expenses</div>
       </button>
 
-   
-
       <button class="app-card" type="button" disabled>
         <div class="app-icon-wrap ticket-bg">
-          <div class="tile-icon ticket-icon">
-            <svg viewBox="0 0 64 64" class="icon-svg" aria-hidden="true">
+          <div class="tile-icon">
+            <svg viewBox="0 0 64 64" class="icon-svg">
               <path d="M14 24a6 6 0 0 0 6-6h24a6 6 0 0 0 6 6v16a6 6 0 0 0-6 6H20a6 6 0 0 0-6-6V24z" fill="#9b59b6"></path>
-              <path d="M32 18v28" stroke="#ffffff" stroke-width="4" stroke-dasharray="4 4" stroke-linecap="round"></path>
+              <path d="M32 18v28" stroke="#fff" stroke-width="4" stroke-dasharray="4 4" stroke-linecap="round"></path>
             </svg>
           </div>
         </div>
         <div class="app-name">My Ticketing</div>
       </button>
 
-      <button class="app-card" type="button" disabled>
-        <div class="app-icon-wrap ticket-bg">
-          <div class="tile-icon ticket-icon">
-            <svg viewBox="0 0 64 64" class="icon-svg" aria-hidden="true">
-              <path d="M14 24a6 6 0 0 0 6-6h24a6 6 0 0 0 6 6v16a6 6 0 0 0-6 6H20a6 6 0 0 0-6-6V24z" fill="#9b59b6"></path>
-              <path d="M32 18v28" stroke="#ffffff" stroke-width="4" stroke-dasharray="4 4" stroke-linecap="round"></path>
-            </svg>
-          </div>
-        </div>
-        <div class="app-name">My CS</div>
-      </button>
     </div>
   </section>
 </div>
