@@ -1,5 +1,4 @@
 <div class="finance-shell">
-
   <app-gm-project-side-panel
     [projectId]="projectId"
     currentPage="finance">
@@ -7,202 +6,242 @@
 
   <app-projectum-project-header></app-projectum-project-header>
 
-  <!-- TOP TOOLBAR -->
-  <div class="erp-toolbar">
-    <button class="tb-btn green">🔌 Connect ERP</button>
-    <button class="tb-btn" (click)="loadData()">↺ Refresh</button>
+  <section class="finance-hero">
+    <div>
+      <div class="hero-kicker">Project Finance Control</div>
+      <h1>{{ projectName || 'Project #' + projectId }}</h1>
+      <p>Budget, actual cost, forecast, EAC, variance and CPI tracking.</p>
+    </div>
 
-    <div class="tb-sep"></div>
+    <div class="hero-actions">
+      <button class="hero-btn ghost" type="button" (click)="loadData()">
+        <span class="material-symbols-outlined">refresh</span>
+        Refresh
+      </button>
+
+      <button class="hero-btn primary" type="button" (click)="openSettings()">
+        <span class="material-symbols-outlined">settings</span>
+        Finance Settings
+      </button>
+    </div>
+  </section>
+
+  <section class="erp-toolbar">
+    <button class="tb-btn success" type="button">
+      <span class="material-symbols-outlined">hub</span>
+      Connect ERP
+    </button>
 
     <label class="tb-btn file-btn">
-      📥 Import JSON/CSV
+      <span class="material-symbols-outlined">upload_file</span>
+      Import Excel
       <input type="file" (change)="onFileUpload($event)" accept=".xlsx,.xls" hidden />
     </label>
 
-    <button class="tb-btn">📤 Export</button>
+    <button class="tb-btn" type="button">
+      <span class="material-symbols-outlined">download</span>
+      Export
+    </button>
 
-    <div class="tb-sep"></div>
+    <div class="toolbar-spacer"></div>
 
-    <span class="tb-label">Level:</span>
     <select class="tb-sel" [(ngModel)]="levelFilter" (change)="applyFilters()">
-      <option value="">All</option>
-      <option value="1">L1</option>
-      <option value="2">L2</option>
-      <option value="3">L3</option>
-      <option value="4">L4</option>
+      <option value="">All Levels</option>
+      <option value="1">Level 1</option>
+      <option value="2">Level 2</option>
+      <option value="3">Level 3</option>
+      <option value="4">Level 4</option>
     </select>
 
     <input
       class="tb-search"
       [(ngModel)]="searchTerm"
       (input)="applyFilters()"
-      placeholder="🔍 Search WBS, description..."
+      placeholder="Search WBS or description..."
     />
 
-    <span class="tb-label">Currency:</span>
-    <select class="tb-sel currency-sel" [(ngModel)]="currency">
+    <select class="tb-sel currency-sel" [(ngModel)]="currency" (change)="createCharts()">
       <option value="EUR">EUR €</option>
       <option value="USD">USD $</option>
     </select>
-
-    <button class="tb-gear" (click)="openSettings()" title="Finance settings">⚙️</button>
 
     <div class="erp-status">
       <span class="erp-dot"></span>
       <span>Local data</span>
     </div>
-  </div>
+  </section>
 
-  <!-- PROJECT SELECTOR BAR -->
-  <div class="project-selector-wrap">
-  <span class="proj-label">📁 Project:</span>
-  <span class="project-chip">{{ projectName || 'Project #' + projectId }}</span>
-</div>
-
-  <!-- KPI STRIP -->
-  <div class="kpi-strip" *ngIf="summary">
-    <div class="kpi-cell sales">
-      <div class="kpi-lbl">TOTAL SALES</div>
-      <div class="kpi-val">{{ formatMoney(summary.totalSales) }}</div>
-      <div class="kpi-sub">Contract value</div>
+  <section class="kpi-strip" *ngIf="summary">
+    <div class="kpi-card sales">
+      <span>Total Sales</span>
+      <strong>{{ formatMoney(summary.totalSales) }}</strong>
+      <small>Contract value</small>
     </div>
 
-    <div class="kpi-cell budget">
-      <div class="kpi-lbl">TOTAL BUDGET</div>
-      <div class="kpi-val">{{ formatMoney(summary.totalBudget) }}</div>
-      <div class="kpi-sub">Approved cost</div>
+    <div class="kpi-card budget">
+      <span>Total Budget</span>
+      <strong>{{ formatMoney(summary.totalBudget) }}</strong>
+      <small>Approved cost</small>
     </div>
 
-    <div class="kpi-cell commit">
-      <div class="kpi-lbl">COMMITMENT</div>
-      <div class="kpi-val">{{ formatMoney(summary.totalCommitment) }}</div>
-      <div class="kpi-sub">Ordered (PO)</div>
+    <div class="kpi-card commit">
+      <span>Commitment</span>
+      <strong>{{ formatMoney(summary.totalCommitment) }}</strong>
+      <small>Ordered PO</small>
     </div>
 
-    <div class="kpi-cell ac">
-      <div class="kpi-lbl">ACTUAL COST (AC)</div>
-      <div class="kpi-val">{{ formatMoney(summary.totalActualCost) }}</div>
-      <div class="kpi-sub">Already spent</div>
+    <div class="kpi-card actual">
+      <span>Actual Cost</span>
+      <strong>{{ formatMoney(summary.totalActualCost) }}</strong>
+      <small>Already spent</small>
     </div>
 
-    <div class="kpi-cell forecast">
-      <div class="kpi-lbl">FORECAST (F)</div>
-      <div class="kpi-val">{{ formatMoney(summary.totalForecast) }}</div>
-      <div class="kpi-sub">Cost to complete</div>
+    <div class="kpi-card forecast">
+      <span>Forecast</span>
+      <strong>{{ formatMoney(summary.totalForecast) }}</strong>
+      <small>Cost to complete</small>
     </div>
 
-    <div class="kpi-cell eac">
-      <div class="kpi-lbl">EAC (AC + F)</div>
-      <div class="kpi-val">{{ formatMoney(summary.totalEac) }}</div>
-      <div class="kpi-sub">Estimate at completion</div>
+    <div class="kpi-card eac">
+      <span>EAC</span>
+      <strong>{{ formatMoney(summary.totalEac) }}</strong>
+      <small>Estimate at completion</small>
     </div>
 
-    <div class="kpi-cell variance" [class.pos]="summary.totalVariance > 0" [class.neg]="summary.totalVariance < 0">
-      <div class="kpi-lbl">VARIANCE (BUDGET − EAC)</div>
-      <div class="kpi-val">{{ formatMoney(summary.totalVariance) }}</div>
-      <div class="kpi-sub">{{ summary.totalVariance >= 0 ? 'Under budget' : 'Over budget' }}</div>
+    <div
+      class="kpi-card variance"
+      [class.positive]="summary.totalVariance >= 0"
+      [class.negative]="summary.totalVariance < 0">
+      <span>Variance</span>
+      <strong>{{ formatMoney(summary.totalVariance) }}</strong>
+      <small>{{ summary.totalVariance >= 0 ? 'Under budget' : 'Over budget' }}</small>
     </div>
-  </div>
+  </section>
 
-  <!-- BODY -->
-  <div class="main-area">
-    <div class="table-wrap">
-      <div *ngIf="loading" class="empty-row">⏳ Loading finance data...</div>
-      <div *ngIf="error" class="error-box">⚠️ {{ error }}</div>
+  <section class="main-area">
+    <main class="finance-main">
+      <div class="section-head">
+        <div>
+          <h2>WBS Cost Breakdown</h2>
+          <p>{{ filteredRows.length }} rows displayed</p>
+        </div>
 
-      <table id="wbs-table" *ngIf="!loading && !error">
-        <thead>
-          <tr>
-            <th (click)="sortBy('wbsCode')">WBS CODE</th>
-            <th (click)="sortBy('description')">DESCRIPTION</th>
-            <th (click)="sortBy('level')">LVL</th>
-            <th (click)="sortBy('sales')">SALES</th>
-            <th (click)="sortBy('budget')">BUDGET</th>
-            <th (click)="sortBy('commitment')">COMMITMENT</th>
-            <th (click)="sortBy('actualCost')">AC</th>
-            <th (click)="sortBy('forecast')">FORECAST (F)</th>
-            <th (click)="sortBy('eac')">EAC</th>
-            <th (click)="sortBy('variance')">VARIANCE</th>
-            <th (click)="sortBy('cpi')">CPI</th>
-            <th (click)="sortBy('percentAc')">% AC</th>
-            <th (click)="sortBy('owner')">OWNER</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          <tr *ngIf="filteredRows.length === 0">
-            <td colspan="13" class="empty-row">No finance data found</td>
-          </tr>
-
-          <tr *ngFor="let row of filteredRows" [ngClass]="'row-l' + row.level">
-            <td class="wbs-code">{{ row.wbsCode }}</td>
-            <td class="desc-cell" [style.paddingLeft.px]="row.level > 1 ? (row.level - 1) * 18 + 10 : 10">
-              {{ row.description }}
-            </td>
-            <td class="lvl-cell">L{{ row.level }}</td>
-            <td>{{ row.sales ? formatMoney(row.sales) : '—' }}</td>
-            <td>{{ formatMoney(row.budget) }}</td>
-            <td>{{ row.commitment ? formatMoney(row.commitment) : '0' }}</td>
-            <td>{{ row.actualCost ? formatMoney(row.actualCost) : '0' }}</td>
-            <td>{{ row.forecast ? formatMoney(row.forecast) : '0' }}</td>
-            <td>{{ row.eac ? formatMoney(row.eac) : '—' }}</td>
-            <td [ngClass]="getVarianceClass(row.variance)">
-              {{ row.variance ? formatMoney(row.variance) : '—' }}
-            </td>
-            <td>
-              <span class="cpi-badge" [ngClass]="getCpiClass(row.cpi)">
-                {{ row.cpi ? (row.cpi | number:'1.0-2') : '—' }}
-              </span>
-            </td>
-            <td>
-              <div class="ac-cell">
-                <div class="ac-track">
-                  <div
-                    class="ac-fill"
-                    [style.width.%]="row.percentAc || 0"
-                    [ngClass]="getProgressClass(row.percentAc)">
-                  </div>
-                </div>
-                <span class="ac-value">{{ row.percentAc ? (row.percentAc | number:'1.0-0') : 0 }}%</span>
-              </div>
-            </td>
-            <td class="owner-cell">{{ row.owner || '—' }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- RIGHT SIDEBAR -->
-    <div class="chart-sidebar">
-      <div class="chart-sidebar-hdr">📊 Cost Analysis</div>
-
-      <div class="chart-section">
-        <div class="chart-title">BUDGET VS EAC BY PROJECT</div>
-        <div class="mini-chart-placeholder">26002</div>
+        <button class="small-action" type="button" (click)="recalculate()">
+          <span class="material-symbols-outlined">calculate</span>
+          Recalculate
+        </button>
       </div>
 
-      <div class="chart-section">
-        <div class="chart-title">COST BREAKDOWN</div>
-        <div class="donut-wrap">
-          <div class="donut-canvas-wrap">
-            <canvas #donutChart></canvas>
-          </div>
-          <div class="donut-legend">
-            <div><span class="dot ac-dot"></span> AC: {{ summary ? formatMoney(summary.totalActualCost) : '—' }}</div>
-            <div><span class="dot fc-dot"></span> Forecast: {{ summary ? formatMoney(summary.totalForecast) : '—' }}</div>
-            <div><span class="dot rem-dot"></span> Remaining Budget: —</div>
-          </div>
+      <div *ngIf="loading" class="state-box">Loading finance data...</div>
+      <div *ngIf="error" class="state-box error">{{ error }}</div>
+
+      <div class="table-card" *ngIf="!loading && !error">
+        <table class="finance-table">
+          <thead>
+            <tr>
+              <th (click)="sortBy('wbsCode')">WBS</th>
+              <th (click)="sortBy('description')">Description</th>
+              <th (click)="sortBy('level')">Lvl</th>
+              <th (click)="sortBy('sales')">Sales</th>
+              <th (click)="sortBy('budget')">Budget</th>
+              <th (click)="sortBy('commitment')">Commitment</th>
+              <th (click)="sortBy('actualCost')">AC</th>
+              <th (click)="sortBy('forecast')">Forecast</th>
+              <th (click)="sortBy('eac')">EAC</th>
+              <th (click)="sortBy('variance')">Variance</th>
+              <th (click)="sortBy('cpi')">CPI</th>
+              <th (click)="sortBy('percentAc')">% AC</th>
+              <th (click)="sortBy('owner')">Owner</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngIf="filteredRows.length === 0">
+              <td colspan="13" class="empty-row">No finance rows found.</td>
+            </tr>
+
+            <tr *ngFor="let row of filteredRows" [ngClass]="'row-l' + row.level">
+              <td class="wbs-code">{{ row.wbsCode }}</td>
+
+              <td
+                class="desc-cell"
+                [style.paddingLeft.px]="row.level > 1 ? (row.level - 1) * 18 + 14 : 14">
+                {{ row.description }}
+              </td>
+
+              <td class="lvl-cell">L{{ row.level }}</td>
+              <td>{{ row.sales ? formatMoney(row.sales) : '—' }}</td>
+              <td>{{ formatMoney(row.budget) }}</td>
+              <td>{{ row.commitment ? formatMoney(row.commitment) : '0' }}</td>
+              <td>{{ row.actualCost ? formatMoney(row.actualCost) : '0' }}</td>
+              <td>{{ row.forecast ? formatMoney(row.forecast) : '0' }}</td>
+              <td>{{ row.eac ? formatMoney(row.eac) : '—' }}</td>
+
+              <td [ngClass]="getVarianceClass(row.variance)">
+                {{ row.variance ? formatMoney(row.variance) : '—' }}
+              </td>
+
+              <td>
+                <span class="cpi-badge" [ngClass]="getCpiClass(row.cpi)">
+                  {{ row.cpi ? (row.cpi | number:'1.0-2') : '—' }}
+                </span>
+              </td>
+
+              <td>
+                <div class="ac-cell">
+                  <div class="ac-track">
+                    <div
+                      class="ac-fill"
+                      [style.width.%]="safePercent(row.percentAc)"
+                      [ngClass]="getProgressClass(row.percentAc)">
+                    </div>
+                  </div>
+                  <span class="ac-value">{{ row.percentAc ? (row.percentAc | number:'1.0-0') : 0 }}%</span>
+                </div>
+              </td>
+
+              <td class="owner-cell">{{ row.owner || '—' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+
+    <aside class="finance-sidebar">
+      <div class="side-card">
+        <div class="side-title">Cost Breakdown</div>
+        <div class="donut-box">
+          <canvas #donutChart></canvas>
+        </div>
+
+        <div class="legend" *ngIf="summary">
+          <div><span class="dot ac-dot"></span>Actual Cost: {{ formatMoney(summary.totalActualCost) }}</div>
+          <div><span class="dot fc-dot"></span>Forecast: {{ formatMoney(summary.totalForecast) }}</div>
+          <div><span class="dot rem-dot"></span>Budget: {{ formatMoney(summary.totalBudget) }}</div>
         </div>
       </div>
 
-      <div class="chart-section">
-        <div class="chart-title">MARGIN OVERVIEW</div>
-        <div class="mini-chart-placeholder no-data">No sales data</div>
+      <div class="side-card">
+        <div class="side-title">Budget vs EAC</div>
+        <div class="bar-box">
+          <canvas #barChart></canvas>
+        </div>
       </div>
-    </div>
-  </div>
 
-  <!-- SETTINGS MODAL -->
+      <div class="side-card insight" *ngIf="summary">
+        <div class="side-title">Finance Insight</div>
+        <p>
+          Project is
+          <strong [class.good]="summary.totalVariance >= 0" [class.bad]="summary.totalVariance < 0">
+            {{ summary.totalVariance >= 0 ? 'under budget' : 'over budget' }}
+          </strong>
+          by {{ formatMoney(summary.totalVariance) }}.
+        </p>
+      </div>
+    </aside>
+  </section>
+
+  <!-- KEEP YOUR SETTINGS MODAL SAME AS BEFORE -->
   <div class="settings-overlay" *ngIf="settingsOpen">
     <div class="settings-modal">
       <div class="settings-header">

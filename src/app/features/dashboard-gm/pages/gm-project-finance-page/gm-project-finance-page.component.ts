@@ -180,7 +180,9 @@ loadProjectName(): void {
   }
 
   createCharts(): void {
-    if (!this.summary || !this.donutChartRef || !this.barChartRef) return;
+    if (!this.summary || !this.donutChartRef?.nativeElement || !this.barChartRef?.nativeElement) {
+          return;
+        }
 
     const s = this.summary;
 
@@ -215,6 +217,14 @@ loadProjectName(): void {
         maintainAspectRatio: false
       }
     });
+  }
+
+  safePercent(value: number | null | undefined): number {
+    if (value == null || Number.isNaN(value)) {
+      return 0;
+    }
+
+    return Math.max(0, Math.min(100, value));
   }
 
   onFileUpload(event: Event): void {

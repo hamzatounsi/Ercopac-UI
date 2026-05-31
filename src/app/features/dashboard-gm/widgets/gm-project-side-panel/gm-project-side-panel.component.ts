@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { Router } from '@angular/router';
+import { AuthService } from 'src/app/core/auth/auth.service';
 
 @Component({
   selector: 'app-gm-project-side-panel',
@@ -13,14 +14,10 @@ export class GmProjectSidePanelComponent {
 
   expanded = false;
 
-  constructor(private router: Router) {}
+  constructor(private auth: AuthService , private router: Router) {}
 
-  open(): void {
-    this.expanded = true;
-  }
-
-  close(): void {
-    this.expanded = false;
+  togglePanel(): void {
+    this.expanded = !this.expanded;
   }
 
   goToProjectum(): void {
@@ -49,5 +46,10 @@ export class GmProjectSidePanelComponent {
 
   goToCr(): void {
     this.router.navigate(['/gm/projects', this.projectId, 'change-requests']);
+  }
+
+  logout(): void {
+    this.auth.logout();
+    this.router.navigate(['/login']);
   }
 }

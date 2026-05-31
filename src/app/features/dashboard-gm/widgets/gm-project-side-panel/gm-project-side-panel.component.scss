@@ -5,29 +5,74 @@
   pointer-events: none;
 }
 
-.side-hover-zone {
+/* Toggle arrow button */
+.side-toggle-btn {
   position: fixed;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 14px;
-  z-index: 1601;
+  top: 50%;
+  left: -6px;
+  transform: translateY(-50%);
+
+  width: 18px;
+  height: 72px;
+
+  z-index: 1700;
+
+  border: none;
+  border-radius: 0 12px 12px 0;
+
+  background: #2563eb;
+  color: white;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
   pointer-events: auto;
+
+  opacity: .15;
+
+  transition:
+    left .28s ease,
+    opacity .2s ease,
+    width .2s ease,
+    transform .2s ease,
+    background .2s ease;
 }
 
+.side-toggle-btn:hover {
+  opacity: 1;
+  width: 32px;
+
+}
+
+.side-toggle-btn.open {
+  left: 234px; /* panel width - small overlap */
+}
+
+.side-toggle-btn span {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* Side panel */
 .project-side-panel {
   position: fixed;
   top: 0;
   left: 0;
   width: 240px;
   height: 100vh;
+
   background: #ffffff;
   border-right: 1px solid #dbe3ec;
   box-shadow: 10px 0 30px rgba(15, 23, 42, 0.12);
+
   transform: translateX(-100%);
-  transition: transform 0.24s ease;
+  transition: transform 0.28s ease;
+
   display: flex;
   flex-direction: column;
+
   pointer-events: auto;
 }
 
@@ -56,6 +101,7 @@
 .panel-nav {
   display: flex;
   flex-direction: column;
+  flex: 1;
   padding: 12px 10px;
   gap: 6px;
 }
@@ -77,14 +123,18 @@
   border: 1px solid transparent;
   background: transparent;
   border-radius: 12px;
+
   display: flex;
   align-items: center;
   gap: 10px;
+
   padding: 0 12px;
+
   font-family: inherit;
   font-size: 13px;
   font-weight: 700;
   color: #334155;
+
   cursor: pointer;
   transition: all 0.16s ease;
 }
@@ -106,4 +156,39 @@
   display: inline-flex;
   justify-content: center;
   flex-shrink: 0;
+}
+
+.logout-btn {
+  margin-top: auto;
+
+  width: 100%;
+  height: 44px;
+
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+
+  background: #fff5f5;
+  color: #dc2626;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: all 0.18s ease;
+}
+
+.logout-btn:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+
+.logout-btn .material-symbols-outlined {
+  font-size: 18px;
 }
