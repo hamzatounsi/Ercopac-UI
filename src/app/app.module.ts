@@ -1,6 +1,3 @@
-// Path: src/app/app.module.ts
-// REPLACE YOUR ENTIRE FILE WITH THIS — do not add anything else
-
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
@@ -15,9 +12,6 @@ import { DashboardDmComponent } from './features/dashboard-dm/dashboard-dm.compo
 import { DashboardEmployeeComponent } from './features/dashboard-employee/dashboard-employee.component';
 import { DashboardDepartmentModule } from './features/dashboard-department/dashboard-department.module';
 
-// ── DO NOT import CrmLayoutComponent here ─────────────────────
-// It belongs to DashboardCrmModule (lazy loaded).
-// DO NOT import any dashboard-crm components here.
 
 @NgModule({
   declarations: [

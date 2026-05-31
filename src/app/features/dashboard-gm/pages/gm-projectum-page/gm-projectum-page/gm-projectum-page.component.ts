@@ -45,6 +45,8 @@ export class GmProjectumPageComponent implements OnInit {
   saving = false;
   error: string | null = null;
 
+  readonly Math = Math;
+
   searchTerm = '';
   selectedCountry = '';
   selectedPm = '';
@@ -509,6 +511,47 @@ export class GmProjectumPageComponent implements OnInit {
 
     return 'OTHER';
   }
+
+  private get kpiRows(): ProjectDashboardRow[] {
+  if (this.selectedProject) {
+    return [this.selectedProject];
+  }
+
+  return this.filteredProjects.length ? this.filteredProjects : this.projects;
+}
+
+private toNumber(value: number | null | undefined): number {
+  return Number(value ?? 0);
+}
+
+private isActiveProject(project: ProjectDashboardRow): boolean {
+  return (project.projectPhase || '').toUpperCase() === 'ACTIVE';
+}
+
+private isCompletedProject(project: ProjectDashboardRow): boolean {
+  return ['COMPLETED', 'ARCHIVED'].includes((project.projectPhase || '').toUpperCase());
+}
+
+private isProjectOverdue(project: ProjectDashboardRow): boolean {
+  if (!project.plannedEnd || this.isCompletedProject(project)) {
+    return false;
+  }
+
+  const endDate = new Date(project.plannedEnd);
+  const today = new Date();
+
+  today.setHours(0, 0, 0, 0);
+  endDate.setHours(0, 0, 0, 0);
+
+  return endDate < today;
+}
+
+private average(values: number[]): number {
+  if (!values.length) return 0;
+
+  const total = values.reduce((sum, value) => sum + value, 0);
+  return Math.round(total / values.length);
+}
 
   // ===== UI HELPERS =====
 

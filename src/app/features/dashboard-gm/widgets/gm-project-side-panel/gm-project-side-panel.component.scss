@@ -3,6 +3,21 @@
   position: relative;
   z-index: 1600;
   pointer-events: auto;
+
+  opacity: .15;
+
+  transition:
+    left .28s ease,
+    opacity .2s ease,
+    width .2s ease,
+    transform .2s ease,
+    background .2s ease;
+}
+
+.side-toggle-btn:hover {
+  opacity: 1;
+  width: 32px;
+
 }
 
 
