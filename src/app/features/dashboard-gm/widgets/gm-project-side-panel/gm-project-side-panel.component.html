@@ -1,25 +1,6 @@
-<button
-  type="button"
-  class="side-toggle-btn"
-  [class.open]="expanded"
-  (click)="togglePanel()">
-  <span class="material-symbols-outlined">
-    {{ expanded ? 'chevron_left' : 'chevron_right' }}
-  </span>
-</button>
-
-<aside
-  class="project-side-panel"
-  [class.open]="expanded"
->
-  <div class="panel-top">
-    <div class="panel-title">Project Navigation</div>
-    <div class="panel-subtitle">all around project</div>
-  </div>
-
+<aside class="project-side-panel">
   <nav class="panel-nav">
 
-    <!-- PROJECTS -->
     <button type="button" class="panel-link" (click)="goToProjectum()">
       <span class="panel-icon">🏠</span>
       <span>Projects</span>
@@ -29,7 +10,6 @@
       Project {{ projectId || '—' }}
     </div>
 
-    <!-- GANTT -->
     <button
       type="button"
       class="panel-link"
@@ -39,7 +19,6 @@
       <span>Gantt</span>
     </button>
 
-    <!-- ACTIONS -->
     <button
       type="button"
       class="panel-link"
@@ -49,7 +28,6 @@
       <span>Actions</span>
     </button>
 
-    <!-- FINANCE -->
     <button
       type="button"
       class="panel-link"
@@ -59,7 +37,6 @@
       <span>Finance</span>
     </button>
 
-    <!-- FORECAST -->
     <button
       type="button"
       class="panel-link"
@@ -69,7 +46,6 @@
       <span>Forecast</span>
     </button>
 
-    <!-- RISK -->
     <button
       type="button"
       class="panel-link"
@@ -79,7 +55,6 @@
       <span>Risk</span>
     </button>
 
-    <!-- CR -->
     <button
       type="button"
       class="panel-link"
