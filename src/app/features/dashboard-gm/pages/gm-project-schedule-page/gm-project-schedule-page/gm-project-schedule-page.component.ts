@@ -383,8 +383,9 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
       baselineEnd,
       plannedStart: baselineStart,
       plannedEnd: baselineEnd,
-      actualStart: task.actualStart ?? '',
-      actualEnd: task.actualEnd ?? '',
+          actualStart: task.actualStart ?? '',   // ← already correct
+    actualEnd: task.actualEnd ?? '',   
+      
       percentComplete: task.percentComplete ?? 0,
       allocationPercent: task.allocationPercent ?? 100,
       priority: task.priority ?? 500,
@@ -469,8 +470,15 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
       cost: 0,
       assignedUserId: null
     };
-    this.resourceSearchTerm = '';
-    this.filteredResourceOptions = [...this.resourceOptions];
+   this.resourceSearchTerm = '';
+if (task.resourceType) {
+  this.newResource.resourceType = task.resourceType;
+  this.filteredResourceOptions = this.resourceOptions.filter(
+    u => (u.resourceType ?? '').toUpperCase() === (task.resourceType ?? '').toUpperCase()
+  );
+} else {
+  this.filteredResourceOptions = [...this.resourceOptions];
+}
 
     if (this.selectedTemplateScope === 'selected' && !task) {
       this.selectedTemplateScope = 'all';
@@ -478,7 +486,11 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
 
     this.loadTaskResources(task.id);
   }
-
+getTaskWbsById(taskId?: number | null): string {
+  if (!taskId) return '—';
+  const task = this.tasks.find(t => t.id === taskId);
+  return task?.wbsCode ?? String(taskId);
+}
   closeDrawer(): void {
     this.drawerOpen = false;
     this.selectedTask = null;
@@ -901,15 +913,17 @@ indentTask(): void {
     this.formAutoSaveTimer = setTimeout(() => this.saveInlineTask(task), 600);
   }
 
-  getPredecessorText(task: GmProjectScheduleTask): string {
-    if (!task.dependencies?.length) return '—';
-    return task.dependencies.map(dep => {
-      const type = dep.dependencyType || 'FS';
-      const lag = dep.lagDays ?? 0;
-      const lagText = lag === 0 ? '' : lag > 0 ? `+${lag}d` : `${lag}d`;
-      return `${dep.predecessorTaskId}${type}${lagText}`;
-    }).join(', ');
-  }
+ getPredecessorText(task: GmProjectScheduleTask): string {
+  if (!task.dependencies?.length) return '—';
+  return task.dependencies.map(dep => {
+    const predTask = this.tasks.find(t => t.id === dep.predecessorTaskId);
+    const ref = predTask?.wbsCode ?? dep.predecessorTaskId;
+    const type = dep.dependencyType || 'FS';
+    const lag = dep.lagDays ?? 0;
+    const lagText = lag === 0 ? '' : lag > 0 ? `+${lag}d` : `${lag}d`;
+    return `${ref}${type}${lagText}`;
+  }).join(', ');
+}
 
   getEditableValue(task: GmProjectScheduleTask, field: keyof GmProjectScheduleTask): any {
     const edited = this.editedRows[task.id];
@@ -1714,6 +1728,8 @@ indentTask(): void {
     if (this.columnVisibility.duration) cols.push('70px');
     if (this.columnVisibility.progress) cols.push('80px');
     if (this.columnVisibility.predecessors) cols.push('110px');
+    if (this.columnVisibility.baselineStart) cols.push('95px');
+if (this.columnVisibility.baselineEnd) cols.push('95px');
     return cols.join(' ');
   }
 
@@ -1731,6 +1747,8 @@ indentTask(): void {
     if (this.columnVisibility.duration) total += 70;
     if (this.columnVisibility.progress) total += 80;
     if (this.columnVisibility.predecessors) total += 110;
+    if (this.columnVisibility.baselineStart) total += 95;
+if (this.columnVisibility.baselineEnd) total += 95;
     return total;
   }
 
