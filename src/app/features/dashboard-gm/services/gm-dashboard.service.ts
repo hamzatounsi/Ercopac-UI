@@ -52,6 +52,7 @@ export interface UpsertProjectRequest {
   projectBudget?: number;
   estimatedCost?: number;
   comment?: string;
+  applicationType?: 'PROJECTUM' | 'MY_CS';
 }
 
 @Injectable({
@@ -63,8 +64,10 @@ private readonly projectsUrl = API_PROJECTS_URL;
 
   constructor(private http: HttpClient) {}
 
-  getProjects(): Observable<ProjectDashboardRow[]> {
-    return this.http.get<ProjectDashboardRow[]>(`${this.baseUrl}/projects`);
+  getProjects(applicationType: 'PROJECTUM' | 'MY_CS' = 'PROJECTUM'): Observable<ProjectDashboardRow[]> {
+    return this.http.get<ProjectDashboardRow[]>(
+      `${this.baseUrl}/projects?applicationType=${applicationType}`
+    );
   }
 
   getPortfolioKpis(): Observable<PortfolioKpiResponse> {

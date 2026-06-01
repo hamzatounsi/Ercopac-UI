@@ -1,0 +1,482 @@
+<div class="mycs-shell">
+  <app-projectum-project-header>
+    <div class="mycs-brand-pill">
+      <span class="material-symbols-outlined">support_agent</span>
+      <span>MY CS Workspace</span>
+    </div>
+
+    <button type="button" class="btn btn-primary new-project-btn" (click)="openCreateModal()">
+      ＋ New CS Project
+    </button>
+
+    <button class="main-menu-btn" routerLink="/gm">
+      <span class="material-symbols-outlined">home</span>
+      <span>Main Menu</span>
+    </button>
+  </app-projectum-project-header>
+
+  <section class="mycs-hero">
+    <div class="hero-stats">
+      <div>
+        <strong>{{ filteredProjects.length }}</strong>
+        <span>Projects</span>
+      </div>
+      <div>
+        <strong>{{ scheduleAverageProgress }}%</strong>
+        <span>Avg progress</span>
+      </div>
+      <div>
+        <strong>{{ overdueCount }}</strong>
+        <span>Overdue</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="kpi-section">
+    <div class="kpi-header">
+      <div>
+        <div class="kpi-title">{{ activeKpiTitle }}</div>
+        <div class="kpi-scope">{{ activeKpiSubtitle }}</div>
+      </div>
+
+      <div class="kpi-header-right">
+        <button *ngIf="selectedProjectId" type="button" class="kpi-filter-badge" (click)="clearSelection()">
+          ✕ Clear filter
+        </button>
+        <span class="kpi-hint">Click a CS project to focus KPIs</span>
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-group">
+        <div class="kpi-group-title">Schedule Pulse</div>
+
+        <div class="kpi-rows">
+          <div class="kpi-item main">
+            <div class="kpi-v">{{ scheduleAverageProgress }}%</div>
+            <div class="kpi-l">Avg Progress</div>
+            <div class="kpi-bar-wrap">
+              <div class="kpi-bar" [style.width.%]="Math.min(scheduleAverageProgress, 100)"></div>
+            </div>
+          </div>
+
+          <div class="kpi-item">
+            <div class="kpi-v">{{ scheduleActiveProjects }}</div>
+            <div class="kpi-l">Active</div>
+          </div>
+
+          <div class="kpi-item">
+            <div class="kpi-v">{{ scheduleTotalTasks }}</div>
+            <div class="kpi-l">Tasks</div>
+          </div>
+
+          <div class="kpi-item">
+            <div class="kpi-v">{{ scheduleCompletedTasks }}</div>
+            <div class="kpi-l">Completed</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="kpi-group">
+        <div class="kpi-group-title">Customer Scope</div>
+
+        <div class="kpi-rows">
+          <div class="kpi-item">
+            <div class="kpi-v">{{ customers.length }}</div>
+            <div class="kpi-l">Customers</div>
+          </div>
+
+          <div class="kpi-item">
+            <div class="kpi-v">{{ countriesCount }}</div>
+            <div class="kpi-l">Countries</div>
+          </div>
+
+          <div class="kpi-item">
+            <div class="kpi-v">{{ managersCount || '—' }}</div>
+            <div class="kpi-l">Owners</div>
+          </div>
+
+          <div class="kpi-item">
+            <div class="kpi-v">{{ formatCurrency(financeBudget) }}</div>
+            <div class="kpi-l">Budget</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="kpi-group">
+        <div class="kpi-group-title">Attention</div>
+
+        <div class="kpi-rows">
+          <div class="kpi-item">
+            <div class="kpi-v risk-high">{{ highRiskCount }}</div>
+            <div class="kpi-l">High Risk</div>
+          </div>
+
+          <div class="kpi-item">
+            <div class="kpi-v risk-med">{{ mediumRiskCount }}</div>
+            <div class="kpi-l">Medium</div>
+          </div>
+
+          <div class="kpi-item">
+            <div class="kpi-v risk-low">{{ lowRiskCount }}</div>
+            <div class="kpi-l">Low</div>
+          </div>
+
+          <div class="kpi-item">
+            <div class="kpi-v">{{ overdueCount }}</div>
+            <div class="kpi-l">Overdue</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="content">
+    <div class="filters-card">
+      <input
+        class="fi-inp"
+        type="text"
+        [(ngModel)]="searchTerm"
+        (input)="onSearch()"
+        placeholder="Search CS project, code, customer…"
+      />
+
+      <select class="fi-sel" [(ngModel)]="selectedCountry" (change)="onFilterChange()">
+        <option value="">All Countries</option>
+        <option *ngFor="let country of countries" [value]="country">{{ country }}</option>
+      </select>
+
+      <select class="fi-sel" [(ngModel)]="selectedPm" (change)="onFilterChange()">
+        <option value="">All Owners</option>
+        <option *ngFor="let pm of projectManagers" [value]="pm">{{ pm }}</option>
+      </select>
+
+      <select class="fi-sel" [(ngModel)]="selectedCustomer" (change)="onFilterChange()">
+        <option value="">All Customers</option>
+        <option *ngFor="let customer of customers" [value]="customer">{{ customer }}</option>
+      </select>
+
+      <select class="fi-sel" [(ngModel)]="selectedStatus" (change)="onFilterChange()">
+        <option value="">All Status</option>
+        <option *ngFor="let status of statusOptions" [value]="status">{{ status }}</option>
+      </select>
+
+      <select class="fi-sel" [(ngModel)]="selectedRisk" (change)="onFilterChange()">
+        <option value="">All Risk</option>
+        <option *ngFor="let risk of riskOptions" [value]="risk">{{ risk }}</option>
+      </select>
+
+      <div class="row-count">{{ filteredProjects.length }} of {{ projects.length }}</div>
+    </div>
+
+    <div class="sec-head">
+      <div>
+        <h2>CS Project List</h2>
+        <p>Open a project to manage its schedule.</p>
+      </div>
+      <span class="count-badge">{{ filteredProjects.length }}</span>
+    </div>
+
+    <div *ngIf="error" class="page-error">{{ error }}</div>
+
+    <div class="table-card">
+      <table class="proj-table">
+        <thead>
+          <tr>
+            <th (click)="setSort('code')">Code</th>
+            <th (click)="setSort('name')">CS Project</th>
+            <th (click)="setSort('customer')">Customer</th>
+            <th (click)="setSort('country')">Country</th>
+            <th (click)="setSort('projectType')">Type</th>
+            <th (click)="setSort('projectManagerName')">Owner</th>
+            <th (click)="setSort('projectPhase')">Status</th>
+            <th (click)="setSort('plannedStart')">Start</th>
+            <th (click)="setSort('plannedEnd')">End</th>
+            <th (click)="setSort('progressPercent')">Progress</th>
+            <th (click)="setSort('riskLevel')">Priority</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngIf="loading">
+            <td colspan="12" class="empty-state">Loading MY CS projects...</td>
+          </tr>
+
+          <tr
+            *ngFor="let project of filteredProjects"
+            [class.selected-row]="selectedProjectId === project.id"
+            (click)="selectProject(project)">
+            <td class="mono">{{ project.code || '—' }}</td>
+
+            <td>
+              <div class="project-name">{{ project.name || '—' }}</div>
+              <div class="project-sub">{{ project.category || 'Customer Success' }}</div>
+            </td>
+
+            <td>{{ project.customer || '—' }}</td>
+            <td>{{ project.country || '—' }}</td>
+            <td>{{ project.projectType || 'Service' }}</td>
+            <td>{{ project.projectManagerName || '—' }}</td>
+
+            <td>
+              <span class="status-badge" [ngClass]="getStatusClass(project)">
+                {{ getStatusLabel(project) }}
+              </span>
+            </td>
+
+            <td>{{ formatDate(project.plannedStart) }}</td>
+            <td>{{ formatDate(project.plannedEnd) }}</td>
+
+            <td>
+              <div class="prog-wrap">
+                <div class="prog-bar">
+                  <div class="prog-fill" [style.width.%]="project.progressPercent || 0"></div>
+                </div>
+                <span class="prog-n">{{ project.progressPercent || 0 }}%</span>
+              </div>
+            </td>
+
+            <td>
+              <span [ngClass]="getRiskClass(project)">{{ getRiskLabel(project) }}</span>
+            </td>
+
+            <td class="actions-cell" (click)="$event.stopPropagation()">
+              <div class="table-actions">
+                <button type="button" class="btn btn-sm btn-primary btn-open" [disabled]="!project.id" (click)="openProject(project.id)">
+                  <span class="material-symbols-outlined">calendar_month</span>
+                  <span>Schedule</span>
+                </button>
+
+                <button type="button" class="btn btn-sm btn-light btn-team" (click)="openTeamModal(project, $event)">
+                  <span class="material-symbols-outlined">group</span>
+                  <span>Team</span>
+                </button>
+
+                <button type="button" class="btn btn-sm btn-light btn-edit" (click)="openEditModal(project, $event)">
+                  <span class="material-symbols-outlined">edit</span>
+                  <span>Edit</span>
+                </button>
+
+                <button type="button" class="btn btn-sm btn-icon btn-template" (click)="applyStandardTemplate(project.id, $event)" title="Apply CS template">
+                  <span class="material-symbols-outlined">bolt</span>
+                </button>
+
+                <button type="button" class="btn btn-sm btn-icon btn-cube" (click)="archiveProject(project, $event)" title="Archive CS project">
+                  <span class="material-symbols-outlined">archive</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngIf="!loading && filteredProjects.length === 0">
+            <td colspan="12" class="empty-state">No MY CS projects found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PROJECT MODAL -->
+  <div class="modal-bg" *ngIf="modalOpen" (click)="closeModal()">
+    <div class="project-modal" (click)="$event.stopPropagation()">
+
+      <div class="project-modal-header">
+        <div>
+          <div class="modal-kicker">
+            {{ editingProjectId ? 'Edit project' : 'Create new project' }}
+          </div>
+          <h3>{{ editingProjectId ? 'Update project information' : 'New Project Setup' }}</h3>
+          <p>Define the project identity, planning, ownership, budget and risk level.</p>
+        </div>
+
+        <button class="modal-close" type="button" (click)="closeModal()">✕</button>
+      </div>
+
+      <div class="project-modal-body">
+
+        <section class="form-section full">
+          <div class="section-title">Project Identity</div>
+
+          <div class="form-grid">
+            <div class="mf span-2">
+              <label>Project Name *</label>
+              <input class="mi" [(ngModel)]="projectForm.name" placeholder="e.g. Line Expansion Project" />
+            </div>
+
+            <div class="mf span-2">
+              <label>Project Code *</label>
+              <input class="mi" [(ngModel)]="projectForm.code" placeholder="e.g. PRJ-26001" />
+            </div>
+
+            <div class="mf span-2">
+              <label>Customer</label>
+              <input class="mi" [(ngModel)]="projectForm.customer" placeholder="Customer name" />
+            </div>
+
+            <div class="mf span-2">
+              <label>Country</label>
+              <input class="mi" [(ngModel)]="projectForm.country" placeholder="Germany, France..." />
+            </div>
+
+            <div class="mf span-2">
+              <label>Type</label>
+              <select class="mi" [(ngModel)]="projectForm.projectType">
+                <option value="">Select type</option>
+                <option *ngFor="let type of typeOptions" [value]="type">{{ type }}</option>
+              </select>
+            </div>
+
+            <div class="mf span-2">
+              <label>Category</label>
+              <input class="mi" [(ngModel)]="projectForm.category" placeholder="Internal, Client, Service..." />
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section full">
+          <div class="section-title">Planning & Status</div>
+
+          <div class="form-grid">
+            <div class="mf span-2">
+              <label>Status</label>
+              <select class="mi" [(ngModel)]="projectForm.projectPhase">
+                <option *ngFor="let status of statusOptions" [value]="status">{{ status }}</option>
+              </select>
+            </div>
+
+            <div class="mf span-2">
+              <label>Risk Level</label>
+              <select class="mi" [(ngModel)]="projectForm.riskLevel">
+                <option value="">Select risk</option>
+                <option *ngFor="let risk of riskOptions" [value]="risk">{{ risk }}</option>
+              </select>
+            </div>
+
+            <div class="mf span-2">
+              <label>Start Date</label>
+              <input class="mi" type="date" [(ngModel)]="projectForm.plannedStart" />
+            </div>
+
+            <div class="mf span-2">
+              <label>End Date</label>
+              <input class="mi" type="date" [(ngModel)]="projectForm.plannedEnd" />
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section full">
+          <div class="section-title">Ownership</div>
+
+          <div class="form-grid">
+            <div class="mf span-2">
+              <label>Project Manager</label>
+              <input class="mi" [(ngModel)]="projectForm.projectManagerName" placeholder="PM name" />
+            </div>
+
+            <div class="mf span-2">
+              <label>Program Manager</label>
+              <input class="mi" [(ngModel)]="projectForm.programManagerName" placeholder="Program manager" />
+            </div>
+
+            <div class="mf span-2">
+              <label>Sales Manager</label>
+              <input class="mi" [(ngModel)]="projectForm.salesManagerName" placeholder="Sales manager" />
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section full">
+          <div class="section-title">Finance</div>
+
+          <div class="form-grid">
+            <div class="mf span-2">
+              <label>Budget (€)</label>
+              <input class="mi" type="number" [(ngModel)]="projectForm.projectBudget" placeholder="0" />
+            </div>
+
+            <div class="mf  span-2">
+              <label>Estimated Cost (€)</label>
+              <input class="mi" type="number" [(ngModel)]="projectForm.estimatedCost" placeholder="0" />
+            </div>
+
+            <div class="mf full">
+              <label>Description / Notes</label>
+              <textarea class="mi textarea" [(ngModel)]="projectForm.comment" placeholder="Optional project notes..."></textarea>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <div class="project-modal-footer">
+        <button class="btn btn-light" type="button" (click)="closeModal()">Cancel</button>
+
+        <button
+          class="btn btn-primary"
+          type="button"
+          [disabled]="saving || !projectForm.name || !projectForm.code"
+          (click)="saveProject()">
+          {{ saving ? 'Saving...' : editingProjectId ? 'Save Changes' : 'Create Project' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TEAM MODAL -->
+  <div class="modal-bg team-modal-bg" *ngIf="teamModalOpen" (click)="closeTeamModal()">
+    <div class="team-modal" (click)="$event.stopPropagation()">
+      <div class="team-modal-hdr">
+        <div>
+          <div class="team-modal-title">👥 Team Assignment</div>
+          <div class="team-modal-proj">
+            {{ teamProject?.code }} · {{ teamProject?.name }}
+          </div>
+        </div>
+
+        <button class="team-close" type="button" (click)="closeTeamModal()">✕</button>
+      </div>
+
+      <div class="team-modal-body">
+        <div class="team-dept-row" *ngFor="let dept of teamDepartments">
+          <div class="team-dept-lbl" [ngClass]="dept.colorClass">
+            {{ dept.label }}
+          </div>
+
+          <div class="team-res-wrap">
+            <span class="team-assigned-chip" *ngFor="let resource of getAssignedResources(dept.code)">
+              {{ resource.fullName }}
+              <button
+                type="button"
+                class="team-chip-del"
+                (click)="removeTeamMember(dept.code, resource.id!)">
+                ✕
+              </button>
+            </span>
+
+            <select class="team-res-sel" [(ngModel)]="selectedTeamResource[dept.code]">
+              <option [ngValue]="null">+ Add member...</option>
+              <option
+                *ngFor="let resource of getResourcesForDepartment(dept.code)"
+                [ngValue]="resource.id">
+                {{ resource.fullName }}{{ resource.jobTitle ? ' · ' + resource.jobTitle : '' }}
+              </option>
+            </select>
+
+            <button type="button" class="btn btn-light btn-sm" (click)="addTeamMember(dept.code)">
+              Add
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="team-modal-ftr">
+        <button class="btn btn-light btn-sm" type="button" (click)="closeTeamModal()">Cancel</button>
+        <button class="btn btn-primary btn-sm" type="button" (click)="saveTeamAssignments()">
+          💾 Save Team
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

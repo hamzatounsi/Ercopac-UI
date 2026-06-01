@@ -19,7 +19,11 @@ export class GmWorkspacesPageComponent {
   }
   openCrm(): void {
   this.router.navigate(['/crm/dashboard']);
-}
+  }
+
+  openMyCs(): void {
+    this.router.navigate(['/gm/my-cs']);
+  }
 
   openAdmin(): void {
     this.router.navigate(['/gm/admin']);
