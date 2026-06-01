@@ -17,6 +17,7 @@ import { GmProjectChangeRequestsPageComponent } from './pages/gm-project-change-
 import { GmProjectActionsPageComponent } from './pages/gm-project-actions-page/gm-project-actions-page.component';
 import { GmAdminSettingsPageComponent } from './pages/gm-admin-settings-page/gm-admin-settings-page.component';
 import { MyDepartmentPageComponent } from '../dashboard-department/pages/my-department-page/my-department-page.component';
+import { MyCsProjectsPageComponent } from './pages/my-cs-projects-page/my-cs-projects-page.component';
 
 const projectumAccessRoles = [
   'ROLE_PLATFORM_OWNER',
@@ -121,11 +122,23 @@ const routes: Routes = [
         canActivate: [RoleGuard],
         data: { roles: projectumAccessRoles }
       },{
-  path: 'my-department',
-  component: MyDepartmentPageComponent,
-  canActivate: [RoleGuard],
-  data: { roles: projectumAccessRoles }
-},
+        path: 'my-department',
+        component: MyDepartmentPageComponent,
+        canActivate: [RoleGuard],
+        data: { roles: projectumAccessRoles }
+      },
+      {
+        path: 'my-cs',
+        component: MyCsProjectsPageComponent,
+        canActivate: [RoleGuard],
+        data: { roles: projectumAccessRoles }
+      },
+      {
+        path: 'my-cs/projects/:id/schedule',
+        component: GmProjectSchedulePageComponent,
+        canActivate: [RoleGuard],
+        data: { roles: projectumAccessRoles }
+      }
     ]
   }
 ];

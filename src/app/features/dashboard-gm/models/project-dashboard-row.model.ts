@@ -32,4 +32,5 @@ export interface ProjectDashboardRow {
 
   archived?: boolean;
   timeHealth?: HealthStatus;
+  applicationType?: 'PROJECTUM' | 'MY_CS' | string;
 }

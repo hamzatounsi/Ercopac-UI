@@ -48,7 +48,13 @@ export class LoginComponent {
               this.msg = 'Login successful ✅';
 
               setTimeout(() => {
-                this.router.navigate(['/gm']);
+                if (this.selectedApp === 'MY_CS') {
+                    this.router.navigate(['/gm/my-cs']);
+                  } else if (this.selectedApp === 'My Department') {
+                    this.router.navigate(['/gm/my-department']);
+                  } else {
+                    this.router.navigate(['/gm']);
+                  }
               }, 900);
 
               return;
