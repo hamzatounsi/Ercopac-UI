@@ -40,4 +40,25 @@ export class AuthService {
     const decoded: any = jwtDecode(token);
     return decoded.roles || [decoded.role];
   }
+
+  getOrganisationName(): string {
+    const token = localStorage.getItem('token');
+    console.log(JSON.parse(atob(localStorage.getItem('token')!.split('.')[1])));
+
+    if (!token) {
+      return '';
+    }
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+
+      return payload.organisationName
+        || payload.orgName
+        || payload.organizationName
+        || payload.organisation
+        || '';
+    } catch {
+      return '';
+    }
+  }
 }
