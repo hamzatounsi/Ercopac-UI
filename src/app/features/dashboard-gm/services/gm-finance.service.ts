@@ -1,21 +1,27 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+
 import { FinanceEntry } from '../models/finance-entry.model';
 import { FinanceSummary } from '../models/finance-summary.model';
 import {
   FinanceSettings,
   ApplyFinanceTemplateRequest,
-  ApplyFinanceTemplateResult
+  ApplyFinanceTemplateResult,
+  FinanceWbsTemplateRow
 } from '../models/finance-settings.model';
-import { API_FINANCE_SETTINGS_URL, API_PROJECTS_URL } from 'src/app/core/config/api.config';
+
+import {
+  API_FINANCE_SETTINGS_URL,
+  API_PROJECTS_URL
+} from 'src/app/core/config/api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GmFinanceService {
-private readonly baseUrl = API_PROJECTS_URL;
-private readonly settingsUrl = API_FINANCE_SETTINGS_URL;
+  private readonly baseUrl = API_PROJECTS_URL;
+  private readonly settingsUrl = API_FINANCE_SETTINGS_URL;
 
   constructor(private http: HttpClient) {}
 
@@ -27,11 +33,11 @@ private readonly settingsUrl = API_FINANCE_SETTINGS_URL;
     return this.http.get<FinanceSummary>(`${this.baseUrl}/${projectId}/finance/summary`);
   }
 
-  importFinance(projectId: number, rows: any[]) {
+  importFinance(projectId: number, rows: any[]): Observable<any> {
     return this.http.post(`${this.baseUrl}/${projectId}/finance/import`, rows);
   }
 
-  recalculateLabour(projectId: number) {
+  recalculateLabour(projectId: number): Observable<any> {
     return this.http.post(`${this.baseUrl}/${projectId}/finance/recalculate-labour`, {});
   }
 
@@ -43,7 +49,25 @@ private readonly settingsUrl = API_FINANCE_SETTINGS_URL;
     return this.http.put<FinanceSettings>(this.settingsUrl, payload);
   }
 
-  applyFinanceTemplate(payload: ApplyFinanceTemplateRequest): Observable<ApplyFinanceTemplateResult> {
-    return this.http.post<ApplyFinanceTemplateResult>(`${this.settingsUrl}/apply-template`, payload);
+  applyFinanceTemplate(
+    payload: ApplyFinanceTemplateRequest
+  ): Observable<ApplyFinanceTemplateResult> {
+    return this.http.post<ApplyFinanceTemplateResult>(
+      `${this.settingsUrl}/apply-template`,
+      payload
+    );
+  }
+
+  importWbsTemplate(
+    rows: FinanceWbsTemplateRow[],
+    replaceExisting = true
+  ): Observable<FinanceSettings> {
+    return this.http.post<FinanceSettings>(
+      `${this.settingsUrl}/import-wbs`,
+      {
+        rows,
+        replaceExisting
+      }
+    );
   }
 }

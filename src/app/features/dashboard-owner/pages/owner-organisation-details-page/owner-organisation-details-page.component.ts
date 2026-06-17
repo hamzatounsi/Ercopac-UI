@@ -172,6 +172,8 @@ export class OwnerOrganisationDetailsPageComponent implements OnInit {
       domain: this.organisation.domain,
       plan: this.organisation.plan,
 
+      status: this.organisation.status,
+
       userLimit: this.organisation.userLimit,
 
       orgAdminLicenceLimit: this.organisation.orgAdminLicenceLimit,

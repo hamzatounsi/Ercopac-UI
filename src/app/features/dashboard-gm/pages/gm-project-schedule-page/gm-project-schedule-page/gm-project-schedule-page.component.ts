@@ -240,6 +240,8 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
 
   activeBaselineId: number | null = null;
 
+  isMyCsSchedule = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -253,6 +255,8 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
+    this.isMyCsSchedule = this.router.url.includes('/my-cs/');
+
     this.projectId = Number(this.route.snapshot.paramMap.get('id'));
     this.initForm();
     this.setupTaskFormAutoCalculations();

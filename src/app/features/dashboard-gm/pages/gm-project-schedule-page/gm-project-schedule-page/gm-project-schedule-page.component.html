@@ -1,4 +1,4 @@
-<div class="pm-shell">
+<div class="pm-shell" [class.mycs-schedule]="isMyCsSchedule">
   <!-- APP HEADER -->
   <app-projectum-project-header>
     <div class="mode-switch light-mode-switch">
@@ -16,7 +16,11 @@
   </app-projectum-project-header>
 
   <!-- SIDE PANEL -->
-  <app-gm-project-side-panel [projectId]="projectId" currentPage="gantt"></app-gm-project-side-panel>
+  <app-gm-project-side-panel
+    *ngIf="!isMyCsSchedule"
+    [projectId]="projectId"
+    currentPage="gantt">
+  </app-gm-project-side-panel>
 
   <!-- TOOLBAR -->
   <section class="top-toolbar modern-toolbar" *ngIf="!loading">
@@ -143,7 +147,7 @@
   <section class="legend-strip project-title-strip">
     <div class="legend-chip project-name-chip">
       <span class="material-symbols-outlined">folder_open</span>
-      <span>{{ projectName }}</span>
+      <span>{{ isMyCsSchedule ? 'MY CS · ' + projectName : projectName }}</span>
     </div>
   </section>
 

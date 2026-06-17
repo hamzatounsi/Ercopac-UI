@@ -58,6 +58,11 @@ projectName = '';
     hourlyRates: []
   };
 
+  importLoading = false;
+  importReplaceExisting = true;
+  importPreviewRows: FinanceWbsTemplateRow[] = [];
+  importMessage: string | null = null;
+
   readonly rowTypeOptions: FinanceWbsRowType[] = ['SUMMARY', 'HOUR', 'COST'];
   readonly resourceTypeOptions: string[] = [
     'PM', 'ME', 'EE', 'PC', 'PLC', 'PRC', 'MFC.M', 'MFC.E', 'QA', 'HSE',
@@ -402,4 +407,161 @@ loadProjectName(): void {
   trackByIndex(index: number): number {
     return index;
   }
+
+  onWbsTemplateFileUpload(event: Event): void {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+
+  if (!file) return;
+
+  this.importMessage = null;
+  this.settingsError = null;
+
+  const fileName = file.name.toLowerCase();
+
+  if (fileName.endsWith('.json')) {
+    this.readWbsJson(file);
+  } else if (fileName.endsWith('.csv')) {
+    this.readWbsCsv(file);
+  } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+    this.readWbsExcel(file);
+  } else {
+    this.settingsError = 'Unsupported file type. Please import JSON, CSV, XLS or XLSX.';
+  }
+
+  input.value = '';
+}
+
+private readWbsJson(file: File): void {
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(String(reader.result));
+      const rows = Array.isArray(parsed) ? parsed : parsed.rows;
+
+      this.importPreviewRows = this.normalizeImportedWbsRows(rows ?? []);
+      this.importMessage = `${this.importPreviewRows.length} WBS rows ready to import.`;
+    } catch {
+      this.settingsError = 'Invalid JSON file.';
+    }
+  };
+
+  reader.readAsText(file);
+}
+
+private readWbsCsv(file: File): void {
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    const text = String(reader.result ?? '');
+    const workbook = XLSX.read(text, { type: 'string' });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet);
+
+    this.importPreviewRows = this.normalizeImportedWbsRows(rows as any[]);
+    this.importMessage = `${this.importPreviewRows.length} WBS rows ready to import.`;
+  };
+
+  reader.readAsText(file);
+}
+
+private readWbsExcel(file: File): void {
+  const reader = new FileReader();
+
+  reader.onload = (e: ProgressEvent<FileReader>) => {
+    const binary = e.target?.result;
+    if (!binary) return;
+
+    const workbook = XLSX.read(binary, { type: 'binary' });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet);
+
+    this.importPreviewRows = this.normalizeImportedWbsRows(rows as any[]);
+    this.importMessage = `${this.importPreviewRows.length} WBS rows ready to import.`;
+  };
+
+  reader.readAsBinaryString(file);
+}
+
+private normalizeImportedWbsRows(rows: any[]): FinanceWbsTemplateRow[] {
+  return (rows ?? [])
+    .map((r, index) => {
+      const codeTemplate =
+        r['WBS CODE'] ??
+        r['WBS'] ??
+        r['Code'] ??
+        r['codeTemplate'] ??
+        r['wbsCode'] ??
+        '';
+
+      const description =
+        r['DESCRIPTION'] ??
+        r['Description'] ??
+        r['description'] ??
+        '';
+
+      const typeRaw = String(
+        r['TYPE'] ??
+        r['Type'] ??
+        r['type'] ??
+        'COST'
+      ).toUpperCase();
+
+      const type: FinanceWbsRowType =
+        typeRaw === 'SUMMARY' || typeRaw === 'HOUR' || typeRaw === 'COST'
+          ? typeRaw as FinanceWbsRowType
+          : 'COST';
+
+      return {
+        sortOrder: index + 1,
+        level: Number(r['LVL'] ?? r['Level'] ?? r['level'] ?? this.detectWbsLevel(codeTemplate)),
+        codeTemplate: String(codeTemplate).trim(),
+        description: String(description).trim(),
+        type,
+        ownerKey: r['OWNER KEY'] ?? r['Owner Key'] ?? r['ownerKey'] ?? null,
+        hourRate: r['HOUR RATE'] ?? r['Hour Rate'] ?? r['hourRate'] ?? null
+      };
+    })
+    .filter(row => row.codeTemplate && row.description);
+}
+
+private detectWbsLevel(code: string): number {
+  if (!code) return 1;
+  if (code.includes('.')) return code.split('.').length;
+  if (code.includes('-')) return Math.max(1, code.split('-').length - 1);
+  return 1;
+}
+
+confirmImportWbsTemplate(): void {
+  if (this.importPreviewRows.length === 0) {
+    this.settingsError = 'Please select a valid WBS file first.';
+    return;
+  }
+
+  this.importLoading = true;
+  this.settingsError = null;
+
+  this.financeService.importWbsTemplate(
+    this.importPreviewRows,
+    this.importReplaceExisting
+  ).subscribe({
+    next: (saved) => {
+      this.financeSettings = {
+        defaultHourlyRate: saved.defaultHourlyRate ?? 65,
+        templateRows: [...(saved.templateRows ?? [])].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)),
+        ownerMappings: [...(saved.ownerMappings ?? [])],
+        hourlyRates: [...(saved.hourlyRates ?? [])]
+      };
+
+      this.importLoading = false;
+      this.importMessage = `Imported ${this.financeSettings.templateRows.length} WBS template rows successfully.`;
+      this.activeSettingsTab = 'wbs';
+    },
+    error: () => {
+      this.importLoading = false;
+      this.settingsError = 'Failed to import WBS template.';
+    }
+  });
+}
 }

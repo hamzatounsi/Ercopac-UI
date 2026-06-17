@@ -401,14 +401,70 @@
               <div class="section-top">
                 <div>
                   <h2>📥 Import WBS</h2>
-                  <p>Load JSON/CSV template later or use built-in template flow.</p>
+                  <p>Import a finance WBS template from JSON, CSV, XLS or XLSX.</p>
+                </div>
+
+                <div class="section-actions">
+                  <button
+                    class="btn primary"
+                    type="button"
+                    (click)="confirmImportWbsTemplate()"
+                    [disabled]="importLoading || importPreviewRows.length === 0">
+                    {{ importLoading ? 'Importing...' : 'Import Template' }}
+                  </button>
                 </div>
               </div>
 
               <div class="settings-card centered-card">
                 <div class="import-icon">📁</div>
-                <div class="import-title">Drop JSON or CSV here</div>
-                <div class="import-sub">Import UI placeholder ready. Backend settings already connected.</div>
+                <div class="import-title">Choose WBS Template File</div>
+                <div class="import-sub">
+                  Accepted columns: WBS CODE, DESCRIPTION, LVL, TYPE, OWNER KEY, HOUR RATE
+                </div>
+
+                <label class="btn ghost" style="margin-top: 16px;">
+                  Select File
+                  <input
+                    type="file"
+                    hidden
+                    accept=".json,.csv,.xlsx,.xls"
+                    (change)="onWbsTemplateFileUpload($event)" />
+                </label>
+
+                <label class="form-row" style="justify-content: center; margin-top: 16px;">
+                  <input type="checkbox" [(ngModel)]="importReplaceExisting" />
+                  Replace existing WBS template
+                </label>
+
+                <div *ngIf="importMessage" class="callout" style="margin-top: 16px;">
+                  {{ importMessage }}
+                </div>
+              </div>
+
+              <div class="settings-table-wrap" *ngIf="importPreviewRows.length > 0">
+                <table class="settings-table">
+                  <thead>
+                    <tr>
+                      <th>LVL</th>
+                      <th>WBS CODE</th>
+                      <th>DESCRIPTION</th>
+                      <th>TYPE</th>
+                      <th>OWNER KEY</th>
+                      <th>HOUR RATE</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    <tr *ngFor="let row of importPreviewRows; trackBy: trackByIndex">
+                      <td>{{ row.level }}</td>
+                      <td class="mono">{{ row.codeTemplate }}</td>
+                      <td>{{ row.description }}</td>
+                      <td>{{ row.type }}</td>
+                      <td>{{ row.ownerKey || '—' }}</td>
+                      <td>{{ row.hourRate || '—' }}</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
 

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/core/auth/auth.service';
 
@@ -7,8 +7,21 @@ import { AuthService } from 'src/app/core/auth/auth.service';
   templateUrl: './gm-workspaces-page.component.html',
   styleUrls: ['./gm-workspaces-page.component.scss']
 })
-export class GmWorkspacesPageComponent {
-  constructor(private router: Router, private authService: AuthService) {}
+export class GmWorkspacesPageComponent implements OnInit {
+  currentOrganisationName = 'Current Organisation';
+
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {}
+
+  ngOnInit(): void {
+    const orgName = this.authService.getOrganisationName();
+
+    if (orgName && orgName.trim()) {
+      this.currentOrganisationName = orgName;
+    }
+  }
 
   openProjectum(): void {
     this.router.navigate(['/gm/projectum']);
@@ -17,8 +30,9 @@ export class GmWorkspacesPageComponent {
   openMyDepartment(): void {
     this.router.navigate(['/gm/my-department']);
   }
+
   openCrm(): void {
-  this.router.navigate(['/crm/dashboard']);
+    this.router.navigate(['/crm/dashboard']);
   }
 
   openMyCs(): void {
@@ -28,7 +42,7 @@ export class GmWorkspacesPageComponent {
   openAdmin(): void {
     this.router.navigate(['/gm/admin']);
   }
-  
+
   canSeeAdmin(): boolean {
     const roles = this.authService.getRoles();
 

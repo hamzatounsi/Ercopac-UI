@@ -3238,3 +3238,132 @@
   align-items: center;
   justify-content: center;
 }
+
+/* =========================
+   MY CS Schedule Variant
+========================= */
+
+.pm-shell.mycs-schedule {
+  background: #f7fcfd;
+}
+
+.pm-shell.mycs-schedule .modern-toolbar {
+  background: #0f766e;
+  border-bottom-color: #14b8a6;
+}
+
+.pm-shell.mycs-schedule .action-cluster {
+  background: #0b5f58;
+  border-color: #14b8a6;
+}
+
+.pm-shell.mycs-schedule .toolbar-main-btn,
+.pm-shell.mycs-schedule .toolbar-icon-square,
+.pm-shell.mycs-schedule .toolbar-select-btn,
+.pm-shell.mycs-schedule .zoom-step-btn,
+.pm-shell.mycs-schedule .zoom-chip {
+  color: #ccfbf1;
+  border-color: rgba(204, 251, 241, 0.25);
+}
+
+.pm-shell.mycs-schedule .toolbar-main-btn:hover,
+.pm-shell.mycs-schedule .toolbar-icon-square:hover,
+.pm-shell.mycs-schedule .toolbar-select-btn:hover,
+.pm-shell.mycs-schedule .zoom-step-btn:hover,
+.pm-shell.mycs-schedule .zoom-chip:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.pm-shell.mycs-schedule .zoom-chip.active,
+.pm-shell.mycs-schedule .mode-btn.active {
+  background: #14b8a6;
+  color: #ffffff;
+}
+
+.pm-shell.mycs-schedule .legend-strip {
+  background: #ecfeff;
+  border-bottom-color: #99f6e4;
+}
+
+.pm-shell.mycs-schedule .project-name-chip {
+  color: #0f766e;
+  font-weight: 800;
+}
+
+.pm-shell.mycs-schedule .left-header,
+.pm-shell.mycs-schedule .left-header .col-id,
+.pm-shell.mycs-schedule .left-header .col-wbs,
+.pm-shell.mycs-schedule .gh,
+.pm-shell.mycs-schedule .gantt-header-top,
+.pm-shell.mycs-schedule .month-header-scroll,
+.pm-shell.mycs-schedule .month-row,
+.pm-shell.mycs-schedule .month-cell,
+.pm-shell.mycs-schedule .timeline-header-scroll,
+.pm-shell.mycs-schedule .timeline-week-cell {
+  background: #0f3f3b;
+  border-color: #145f58;
+}
+
+.pm-shell.mycs-schedule .gh,
+.pm-shell.mycs-schedule .timeline-week-code,
+.pm-shell.mycs-schedule .timeline-week-start,
+.pm-shell.mycs-schedule .month-cell {
+  color: #ccfbf1;
+}
+
+.pm-shell.mycs-schedule .gantt-bar {
+  background: #5eead4;
+  border-color: #0f766e;
+}
+
+.pm-shell.mycs-schedule .gantt-bar-progress {
+  background: linear-gradient(90deg, #0f766e, #14b8a6);
+}
+
+.pm-shell.mycs-schedule .gantt-label {
+  color: #083f3a;
+}
+
+.pm-shell.mycs-schedule .table-row:hover,
+.pm-shell.mycs-schedule .gantt-row:hover {
+  background: #ecfeff !important;
+}
+
+.pm-shell.mycs-schedule .table-row.selected-row,
+.pm-shell.mycs-schedule .gantt-row.selected-row {
+  background: #ccfbf1 !important;
+  border-left-color: #14b8a6 !important;
+}
+
+.pm-shell.mycs-schedule .pct-fill {
+  background: #14b8a6;
+}
+
+.pm-shell.mycs-schedule .settings-drawer-header {
+  background: #0f3f3b;
+  border-bottom-color: #145f58;
+}
+
+.pm-shell.mycs-schedule .settings-tab-btn.active {
+  color: #0f766e;
+  border-bottom-color: #14b8a6;
+}
+
+.pm-shell.mycs-schedule .primary-action-btn,
+.pm-shell.mycs-schedule .apply-baseline-btn {
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+}
+
+.pm-shell.mycs-schedule .sp-task-chip {
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+}
+
+.pm-shell.mycs-schedule .sp-tab {
+  color: #0f766e;
+}
+
+.pm-shell.mycs-schedule .sp-tab.active {
+  color: #0f766e;
+  border-bottom-color: #14b8a6;
+}
