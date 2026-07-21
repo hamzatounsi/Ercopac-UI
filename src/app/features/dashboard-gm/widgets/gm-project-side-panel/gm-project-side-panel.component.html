@@ -14,14 +14,14 @@
 >
   <div class="panel-top">
     <div class="panel-title">Project Navigation</div>
-    <div class="panel-subtitle">all around project</div>
+    <div class="panel-subtitle">Projectum workspace</div>
   </div>
 
   <nav class="panel-nav">
 
     <!-- PROJECTS -->
     <button type="button" class="panel-link" (click)="goToProjectum()">
-      <span class="panel-icon">🏠</span>
+      <span class="panel-icon material-symbols-outlined">dashboard</span>
       <span>Projects</span>
     </button>
 
@@ -35,7 +35,7 @@
       class="panel-link"
       [class.active]="currentPage === 'gantt'"
       (click)="goToSchedule()">
-      <span class="panel-icon">📊</span>
+      <span class="panel-icon material-symbols-outlined">timeline</span>
       <span>Gantt</span>
     </button>
 
@@ -45,7 +45,7 @@
       class="panel-link"
       [class.active]="currentPage === 'actions'"
       (click)="goToActions()">
-      <span class="panel-icon">✅</span>
+      <span class="panel-icon material-symbols-outlined">assignment_turned_in</span>
       <span>Actions</span>
     </button>
 
@@ -55,7 +55,7 @@
       class="panel-link"
       [class.active]="currentPage === 'finance'"
       (click)="goToFinance()">
-      <span class="panel-icon">💰</span>
+      <span class="panel-icon material-symbols-outlined">payments</span>
       <span>Finance</span>
     </button>
 
@@ -65,7 +65,7 @@
       class="panel-link"
       [class.active]="currentPage === 'forecast'"
       (click)="goToForecast()">
-      <span class="panel-icon">📈</span>
+      <span class="panel-icon material-symbols-outlined">trending_up</span>
       <span>Forecast</span>
     </button>
 
@@ -75,7 +75,7 @@
       class="panel-link"
       [class.active]="currentPage === 'risk'"
       (click)="goToRisks()">
-      <span class="panel-icon">⚠️</span>
+      <span class="panel-icon material-symbols-outlined">warning</span>
       <span>Risk</span>
     </button>
 
@@ -85,7 +85,7 @@
       class="panel-link"
       [class.active]="currentPage === 'cr'"
       (click)="goToCr()">
-      <span class="panel-icon">📝</span>
+      <span class="panel-icon material-symbols-outlined">contract_edit</span>
       <span>CR</span>
     </button>
 

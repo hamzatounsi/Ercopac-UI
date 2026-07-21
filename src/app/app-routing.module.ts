@@ -4,6 +4,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { LoginComponent } from './features/login/login.component';
 import { DashboardDmComponent } from './features/dashboard-dm/dashboard-dm.component';
 import { DashboardEmployeeComponent } from './features/dashboard-employee/dashboard-employee.component';
+import { ForbiddenComponent } from './features/forbidden/forbidden.component';
 import { MyDepartmentPageComponent } from './features/dashboard-department/pages/my-department-page/my-department-page.component';
 import { ResourceSettingsPageComponent } from './features/dashboard-department/pages/resource-settings-page/resource-settings-page.component';
 
@@ -15,6 +16,21 @@ const routes: Routes = [
 
   { path: 'login', component: LoginComponent },
 
+  {
+    path: 'reset-password',
+    component: LoginComponent
+  },
+
+  // Organisation administration is isolated from operational workspaces.
+  {
+    path: 'org-admin',
+    loadChildren: () =>
+      import('./features/dashboard-org-admin/org-admin.module')
+        .then(m => m.OrgAdminModule),
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['ORG_ADMIN'] }
+  },
+
   // GM module — full dashboard
   {
     path: 'gm',
@@ -22,7 +38,7 @@ const routes: Routes = [
       import('./features/dashboard-gm/gm-dashboard.module').then(m => m.GmDashboardModule),
     canActivate: [AuthGuard, RoleGuard],
     data: {
-      roles: ['GENERAL_MANAGER', 'ORG_ADMIN', 'PLATFORM_OWNER']
+      roles: ['GENERAL_MANAGER', 'PLATFORM_OWNER']
     }
   },
 
@@ -31,7 +47,11 @@ const routes: Routes = [
     path: 'crm',
     loadChildren: () =>
       import('./features/dashboard-crm/dashboard-crm.module')
-        .then(m => m.DashboardCrmModule)
+        .then(m => m.DashboardCrmModule),
+    canActivate: [AuthGuard, RoleGuard],
+    data: {
+      roles: ['GENERAL_MANAGER', 'PLATFORM_OWNER']
+    }
   },
 
   // DEPARTMENT MANAGER — lands here after login
@@ -40,7 +60,7 @@ const routes: Routes = [
   component: MyDepartmentPageComponent,
   canActivate: [AuthGuard, RoleGuard],
   data: {
-    roles: ['DEPARTMENT_MANAGER', 'GENERAL_MANAGER', 'ORG_ADMIN', 'PLATFORM_OWNER']
+    roles: ['DEPARTMENT_MANAGER', 'GENERAL_MANAGER', 'PLATFORM_OWNER']
   }
 },
   // EMPLOYEE dashboard
@@ -60,7 +80,7 @@ const routes: Routes = [
       import('./features/dashboard-owner/dashboard-owner.module')
         .then(m => m.DashboardOwnerModule),
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['PLATFORM_OWNER', 'PLATFORM_ADMIN'] }
+    data: { roles: ['PLATFORM_OWNER'] }
   },
 
   // GM accessing My Department page directly
@@ -69,7 +89,7 @@ const routes: Routes = [
     component: MyDepartmentPageComponent,
     canActivate: [AuthGuard, RoleGuard],
     data: {
-      roles: ['GENERAL_MANAGER', 'ORG_ADMIN', 'PLATFORM_OWNER']
+      roles: ['GENERAL_MANAGER', 'PLATFORM_OWNER']
     }
   },
 
@@ -80,6 +100,8 @@ const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['GENERAL_MANAGER', 'DEPARTMENT_MANAGER'] }
   },
+
+  { path: 'forbidden', component: ForbiddenComponent },
 
   { path: '**', redirectTo: 'login' }
 ];

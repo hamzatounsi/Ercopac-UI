@@ -1,0 +1,70 @@
+<section *ngIf="loading" class="oa-state" aria-live="polite">
+  <span class="oa-spinner" aria-hidden="true"></span>
+  <div><strong>Loading organisation overview</strong><span>Checking users, departments, and configuration.</span></div>
+</section>
+
+<section *ngIf="!loading && errorMessage" class="oa-state error" role="alert">
+  <span class="material-symbols-outlined" aria-hidden="true">cloud_off</span>
+  <div><strong>Overview unavailable</strong><span>{{ errorMessage }}</span></div>
+  <button type="button" (click)="load()">Try again</button>
+</section>
+
+<ng-container *ngIf="!loading && overview as data">
+  <div class="oa-overview-actions">
+    <span class="oa-status" [class.active]="data.organisation.status === 'ACTIVE' || data.organisation.status === 'TRIAL'">
+      <i aria-hidden="true"></i>{{ data.organisation.status | titlecase }} organisation
+    </span>
+    <button type="button" (click)="load(true)" [disabled]="refreshing">
+      <span class="material-symbols-outlined" aria-hidden="true">refresh</span>
+      {{ refreshing ? 'Refreshing…' : 'Refresh data' }}
+    </button>
+  </div>
+
+  <section class="oa-hero-card">
+    <div>
+      <span class="eyebrow">{{ data.organisation.code }}</span>
+      <h2>{{ data.organisation.name }}</h2>
+      <p>{{ data.organisation.country || 'Country not configured' }}<span aria-hidden="true">·</span>{{ data.organisation.domain || 'Domain not configured' }}</p>
+    </div>
+    <div class="oa-capacity">
+      <div><span>Active user capacity</span><strong>{{ data.activeUsers }} / {{ data.organisation.userLimit }}</strong></div>
+      <div class="oa-progress" role="progressbar" aria-label="Active user capacity" [attr.aria-valuenow]="data.activeUsers" aria-valuemin="0" [attr.aria-valuemax]="data.organisation.userLimit">
+        <span [style.width.%]="capacityPercent(data.activeUsers, data.organisation.userLimit)"></span>
+      </div>
+      <small>{{ data.organisation.plan | titlecase }} plan · Platform-controlled</small>
+    </div>
+  </section>
+
+  <section class="oa-metrics" aria-label="Organisation statistics">
+    <article><span class="material-symbols-outlined users" aria-hidden="true">group</span><div><small>Total users</small><strong>{{ data.totalUsers }}</strong><span>{{ data.activeUsers }} active</span></div></article>
+    <article><span class="material-symbols-outlined active" aria-hidden="true">person_check</span><div><small>Active accounts</small><strong>{{ data.activeUsers }}</strong><span>{{ data.inactiveUsers }} inactive</span></div></article>
+    <article><span class="material-symbols-outlined departments" aria-hidden="true">account_tree</span><div><small>Departments</small><strong>{{ data.departments }}</strong><span>Organisation structure</span></div></article>
+    <article><span class="material-symbols-outlined security" aria-hidden="true">lock_reset</span><div><small>Reset requests</small><strong>{{ data.pendingPasswordResets }}</strong><span>{{ data.pendingPasswordResets ? 'Review required' : 'No pending requests' }}</span></div></article>
+  </section>
+
+  <div class="oa-overview-grid">
+    <section class="oa-card">
+      <header><div><h2>Users by role</h2><p>Active users compared with licensed capacity.</p></div><a routerLink="/org-admin/users">Manage users</a></header>
+      <div class="oa-role-list">
+        <div class="oa-role-row" *ngFor="let role of data.usersByRole">
+          <div><strong>{{ role.label }}</strong><span>{{ role.total }} total · {{ role.active }} active</span></div>
+          <div class="oa-role-bar"><span [style.width.%]="capacityPercent(role.active, roleCapacity(role.role))"></span></div>
+          <b>{{ role.active }} / {{ roleCapacity(role.role) }}</b>
+        </div>
+      </div>
+    </section>
+
+    <section class="oa-card warnings">
+      <header><div><h2>Setup & attention</h2><p>Real configuration checks for this organisation.</p></div></header>
+      <div class="oa-complete" *ngIf="data.configurationWarnings.length === 0">
+        <span class="material-symbols-outlined" aria-hidden="true">verified</span>
+        <div><strong>Configuration looks healthy</strong><span>No immediate administration actions were detected.</span></div>
+      </div>
+      <ul *ngIf="data.configurationWarnings.length > 0">
+        <li *ngFor="let warning of data.configurationWarnings">
+          <span class="material-symbols-outlined" aria-hidden="true">warning</span><span>{{ warning }}</span>
+        </li>
+      </ul>
+    </section>
+  </div>
+</ng-container>

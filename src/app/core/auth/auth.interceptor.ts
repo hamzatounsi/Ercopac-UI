@@ -6,13 +6,14 @@ import {
   HttpRequest
 } from '@angular/common/http';
 
-import { Observable } from 'rxjs';
+import { catchError, Observable, throwError } from 'rxjs';
 import { AuthService } from './auth.service';
+import { Router } from '@angular/router';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
 
-  constructor(private auth: AuthService) {}
+  constructor(private auth: AuthService, private router: Router) {}
 
   intercept(
     req: HttpRequest<any>,
@@ -23,7 +24,10 @@ export class AuthInterceptor implements HttpInterceptor {
     if (
       req.url.includes('/api/auth/login') ||
       req.url.includes('/api/auth/register') ||
-      req.url.includes('/api/auth/refresh')
+      req.url.includes('/api/auth/refresh') ||
+      req.url.includes('/api/auth/password-reset/request') ||
+      req.url.includes('/api/auth/password-reset/reset') ||
+      req.url.includes('/api/auth/password-reset/check-approved')
     ) {
       return next.handle(req);
     }
@@ -42,6 +46,17 @@ export class AuthInterceptor implements HttpInterceptor {
       }
     });
 
-    return next.handle(cloned);
+    return next.handle(cloned).pipe(
+      catchError(error => {
+        if (error?.status === 401) {
+          const returnUrl = this.router.url.startsWith('/login') ? undefined : this.router.url;
+          this.auth.logout();
+          void this.router.navigate(['/login'], {
+            queryParams: { sessionExpired: true, returnUrl }
+          });
+        }
+        return throwError(() => error);
+      })
+    );
   }
 }

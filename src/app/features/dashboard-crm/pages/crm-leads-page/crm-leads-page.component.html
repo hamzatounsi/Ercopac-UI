@@ -63,7 +63,7 @@
           <!-- Status — colored badge -->
           <td>
             <span class="status-badge" [ngClass]="'sts-' + lead.status">
-              {{ statusLabels[lead.status]?.label || lead.status }}
+              {{ statusLabels[lead.status].label || lead.status }}
             </span>
           </td>
 
@@ -144,7 +144,7 @@
           <label>Lead status</label>
           <select [(ngModel)]="form.status">
             <option *ngFor="let s of statuses" [value]="s">
-              {{ statusLabels[s]?.label }}
+              {{ statusLabels[s].label }}
             </option>
           </select>
         </div>

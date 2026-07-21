@@ -6,12 +6,13 @@ import { DepartmentManager } from '../models/department-manager.model';
 import { MyDepartmentResponse } from '../models/my-department-response.model';
 import { DepartmentHoliday } from '../models/department-holiday.model';
 import { CreateDepartmentHolidayRequest } from '../models/create-department-holiday-request.model';
+import { API_DEPARTMENT_DASHBOARD_URL } from 'src/app/core/config/api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MyDepartmentService {
-  private readonly baseUrl = 'http://localhost:8087/api/department-dashboard';
+  private readonly baseUrl = API_DEPARTMENT_DASHBOARD_URL;
 
   constructor(private http: HttpClient) {}
 

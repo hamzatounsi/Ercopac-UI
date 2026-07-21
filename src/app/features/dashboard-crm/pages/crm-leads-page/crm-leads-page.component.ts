@@ -2,6 +2,7 @@
 
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { API_RESOURCES_URL } from 'src/app/core/config/api.config';
 import { CrmService } from '../../services/crm.service';
 import {
   CrmLead, CrmLeadStatus, CrmLeadSource,
@@ -78,16 +79,9 @@ export class CrmLeadsPageComponent implements OnInit {
   }
 
   loadUsers(): void {
-    // Load org users for owner dropdown
-    this.http.get<OrgUser[]>(`/api/projects/organisations/${this.orgId}/resources/users`).subscribe({
+    this.http.get<OrgUser[]>(`${API_RESOURCES_URL}/options`).subscribe({
       next: users => this.users = users,
-      error: () => {
-        // Fallback — try generic users endpoint
-        this.http.get<any[]>(`/api/resources/users`).subscribe({
-          next: users => this.users = users.map(u => ({ id: u.id, fullName: u.fullName })),
-          error: err => console.error('Could not load users', err)
-        });
-      }
+      error: err => console.error('Could not load users', err)
     });
   }
 
@@ -180,3 +174,4 @@ export class CrmLeadsPageComponent implements OnInit {
 
   cancel(): void { this.showForm = false; this.errorMsg = ''; }
 }
+

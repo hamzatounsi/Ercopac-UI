@@ -1,0 +1,361 @@
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { FormBuilder, Validators } from '@angular/forms';
+import { Observable, Subject, catchError, concatMap, finalize, forkJoin, from, of, takeUntil, toArray } from 'rxjs';
+import {
+  CustomerConfig,
+  ProjectCategoryConfig,
+  ProjectTypeConfig,
+  SaveCustomerConfig,
+  SaveProjectCategoryConfig,
+  SaveProjectTypeConfig
+} from '../../models/org-admin.models';
+import { adminErrorMessage, OrgAdminService } from '../../services/org-admin.service';
+import { AdminToastService } from '../../shared/admin-toast.service';
+
+type ConfigurationTab = 'categories' | 'types' | 'customers';
+type ConfigurationKind = 'category' | 'type' | 'customer';
+
+interface DeleteTarget {
+  kind: ConfigurationKind;
+  id: number;
+  name: string;
+  projectsUsing: number;
+}
+
+@Component({
+  selector: 'app-org-admin-resource-configuration',
+  templateUrl: './org-admin-resource-configuration.component.html',
+  styleUrls: ['./org-admin-resource-configuration.component.scss']
+})
+export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
+
+  activeTab: ConfigurationTab = 'categories';
+  categories: ProjectCategoryConfig[] = [];
+  projectTypes: ProjectTypeConfig[] = [];
+  customers: CustomerConfig[] = [];
+  search = '';
+  loading = true;
+  saving = false;
+  deleting = false;
+  importing = false;
+  errorMessage = '';
+  dialogKind: ConfigurationKind | null = null;
+  editingId: number | null = null;
+  deleteTarget: DeleteTarget | null = null;
+
+  readonly categoryForm = this.formBuilder.nonNullable.group({
+    name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
+    code: ['', [Validators.required, Validators.pattern(/^[A-Za-z0-9_-]{2,30}$/)]],
+    description: ['', Validators.maxLength(500)],
+    icon: ['category', Validators.maxLength(80)],
+    color: ['#1565c0', Validators.pattern(/^#[0-9A-Fa-f]{6}$/)],
+    active: [true]
+  });
+
+  readonly typeForm = this.formBuilder.nonNullable.group({
+    name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
+    code: ['', [Validators.required, Validators.pattern(/^[A-Za-z0-9_-]{2,30}$/)]],
+    description: ['', Validators.maxLength(500)],
+    icon: ['description', Validators.maxLength(80)],
+    color: ['#0f766e', Validators.pattern(/^#[0-9A-Fa-f]{6}$/)],
+    billable: [false],
+    active: [true]
+  });
+
+  readonly customerForm = this.formBuilder.nonNullable.group({
+    customerCode: ['', [Validators.required, Validators.pattern(/^[A-Za-z0-9_-]{2,40}$/)]],
+    name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(150)]],
+    country: ['', Validators.maxLength(80)],
+    town: ['', Validators.maxLength(100)],
+    address: ['', Validators.maxLength(250)],
+    vatTaxId: ['', Validators.maxLength(80)],
+    contactPerson: ['', Validators.maxLength(150)],
+    email: ['', [Validators.email, Validators.maxLength(180)]],
+    phone: ['', Validators.maxLength(50)],
+    erpId: ['', Validators.maxLength(80)],
+    active: [true]
+  });
+
+  constructor(
+    private readonly formBuilder: FormBuilder,
+    private readonly adminService: OrgAdminService,
+    private readonly toast: AdminToastService
+  ) {}
+
+  ngOnInit(): void {
+    this.load();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  @HostListener('document:keydown.escape')
+  closeOnEscape(): void {
+    if (!this.saving && !this.deleting) {
+      this.closeDialog();
+      this.deleteTarget = null;
+    }
+  }
+
+  load(): void {
+    this.loading = true;
+    this.errorMessage = '';
+    forkJoin({
+      categories: this.adminService.getCategories(),
+      projectTypes: this.adminService.getProjectTypes(),
+      customers: this.adminService.getCustomers()
+    }).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.loading = false)
+    ).subscribe({
+      next: response => {
+        this.categories = response.categories;
+        this.projectTypes = response.projectTypes;
+        this.customers = response.customers;
+      },
+      error: error => this.errorMessage = adminErrorMessage(error, 'Could not load resource configuration.')
+    });
+  }
+
+  setTab(tab: ConfigurationTab): void {
+    this.activeTab = tab;
+    this.search = '';
+  }
+
+  get filteredCategories(): ProjectCategoryConfig[] {
+    const query = this.normalizedSearch;
+    return this.categories.filter(item => !query || `${item.code} ${item.name} ${item.description || ''}`.toLowerCase().includes(query));
+  }
+
+  get filteredProjectTypes(): ProjectTypeConfig[] {
+    const query = this.normalizedSearch;
+    return this.projectTypes.filter(item => !query || `${item.code} ${item.name} ${item.description || ''}`.toLowerCase().includes(query));
+  }
+
+  get filteredCustomers(): CustomerConfig[] {
+    const query = this.normalizedSearch;
+    return this.customers.filter(item => !query || [
+      item.customerCode, item.name, item.country, item.town, item.contactPerson, item.email, item.erpId
+    ].filter(Boolean).join(' ').toLowerCase().includes(query));
+  }
+
+  openCategory(item?: ProjectCategoryConfig): void {
+    this.dialogKind = 'category';
+    this.editingId = item?.id ?? null;
+    this.categoryForm.reset({
+      name: item?.name ?? '', code: item?.code ?? '', description: item?.description ?? '',
+      icon: item?.icon ?? 'category', color: item?.color ?? '#1565c0', active: item?.active ?? true
+    });
+  }
+
+  openProjectType(item?: ProjectTypeConfig): void {
+    this.dialogKind = 'type';
+    this.editingId = item?.id ?? null;
+    this.typeForm.reset({
+      name: item?.name ?? '', code: item?.code ?? '', description: item?.description ?? '',
+      icon: item?.icon ?? 'description', color: item?.color ?? '#0f766e',
+      billable: item?.billable ?? false, active: item?.active ?? true
+    });
+  }
+
+  openCustomer(item?: CustomerConfig): void {
+    this.dialogKind = 'customer';
+    this.editingId = item?.id ?? null;
+    this.customerForm.reset({
+      customerCode: item?.customerCode ?? '', name: item?.name ?? '', country: item?.country ?? '',
+      town: item?.town ?? '', address: item?.address ?? '', vatTaxId: item?.vatTaxId ?? '',
+      contactPerson: item?.contactPerson ?? '', email: item?.email ?? '', phone: item?.phone ?? '',
+      erpId: item?.erpId ?? '', active: item?.active ?? true
+    });
+  }
+
+  closeDialog(): void {
+    if (this.saving) return;
+    this.dialogKind = null;
+    this.editingId = null;
+  }
+
+  saveCategory(): void {
+    if (this.categoryForm.invalid || this.saving) {
+      this.categoryForm.markAllAsTouched();
+      return;
+    }
+    const value = this.categoryForm.getRawValue();
+    const payload: SaveProjectCategoryConfig = {
+      ...value,
+      name: value.name.trim(),
+      code: value.code.trim().toUpperCase(),
+      description: this.optional(value.description),
+      icon: this.optional(value.icon),
+      color: this.optional(value.color)
+    };
+    this.saveConfiguration(this.adminService.saveCategory(this.editingId, payload), 'category');
+  }
+
+  saveProjectType(): void {
+    if (this.typeForm.invalid || this.saving) {
+      this.typeForm.markAllAsTouched();
+      return;
+    }
+    const value = this.typeForm.getRawValue();
+    const payload: SaveProjectTypeConfig = {
+      ...value,
+      name: value.name.trim(),
+      code: value.code.trim().toUpperCase(),
+      description: this.optional(value.description),
+      icon: this.optional(value.icon),
+      color: this.optional(value.color)
+    };
+    this.saveConfiguration(this.adminService.saveProjectType(this.editingId, payload), 'type');
+  }
+
+  saveCustomer(): void {
+    if (this.customerForm.invalid || this.saving) {
+      this.customerForm.markAllAsTouched();
+      return;
+    }
+    const value = this.customerForm.getRawValue();
+    const payload: SaveCustomerConfig = {
+      customerCode: value.customerCode.trim().toUpperCase(),
+      name: value.name.trim(),
+      country: this.optional(value.country), town: this.optional(value.town),
+      address: this.optional(value.address), vatTaxId: this.optional(value.vatTaxId),
+      contactPerson: this.optional(value.contactPerson), email: this.optional(value.email)?.toLowerCase() ?? null,
+      phone: this.optional(value.phone), erpId: this.optional(value.erpId), active: value.active
+    };
+    this.saveConfiguration(this.adminService.saveCustomer(this.editingId, payload), 'customer');
+  }
+
+  requestDelete(kind: ConfigurationKind, item: ProjectCategoryConfig | ProjectTypeConfig | CustomerConfig): void {
+    this.deleteTarget = {
+      kind,
+      id: item.id,
+      name: item.name,
+      projectsUsing: item.projectsUsing
+    };
+  }
+
+  confirmDelete(): void {
+    if (!this.deleteTarget || this.deleting) return;
+    const target = this.deleteTarget;
+    const request = target.kind === 'category'
+      ? this.adminService.deleteCategory(target.id)
+      : target.kind === 'type'
+        ? this.adminService.deleteProjectType(target.id)
+        : this.adminService.deleteCustomer(target.id);
+
+    this.deleting = true;
+    request.pipe(finalize(() => this.deleting = false)).subscribe({
+      next: () => {
+        if (target.kind === 'category') this.categories = this.categories.filter(item => item.id !== target.id);
+        if (target.kind === 'type') this.projectTypes = this.projectTypes.filter(item => item.id !== target.id);
+        if (target.kind === 'customer') this.customers = this.customers.filter(item => item.id !== target.id);
+        this.deleteTarget = null;
+        this.toast.show(`${this.kindLabel(target.kind)} deleted.`, 'success');
+      },
+      error: error => this.toast.show(adminErrorMessage(error, `Could not delete ${this.kindLabel(target.kind).toLowerCase()}.`), 'error')
+    });
+  }
+
+  importCustomers(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file || this.importing) return;
+
+    const reader = new FileReader();
+    reader.onload = () => this.processCustomerCsv(String(reader.result || ''));
+    reader.onerror = () => this.toast.show('Could not read the selected CSV file.', 'error');
+    reader.readAsText(file);
+  }
+
+  private processCustomerCsv(text: string): void {
+    const rows = this.parseCustomerCsv(text);
+    if (!rows.length) {
+      this.toast.show('No valid customer rows were found. Include customerCode and name columns.', 'info');
+      return;
+    }
+
+    let failures = 0;
+    this.importing = true;
+    from(rows).pipe(
+      concatMap(row => {
+        const existing = this.customers.find(item => item.customerCode.toLowerCase() === row.customerCode.toLowerCase());
+        return this.adminService.saveCustomer(existing?.id ?? null, row).pipe(
+          catchError(() => { failures++; return of(null); })
+        );
+      }),
+      toArray(),
+      finalize(() => this.importing = false)
+    ).subscribe(() => {
+      const imported = rows.length - failures;
+      if (imported) this.toast.show(`${imported} customer record(s) imported.`, 'success');
+      if (failures) this.toast.show(`${failures} row(s) could not be imported. Review duplicates and validation.`, 'info');
+      this.load();
+    });
+  }
+
+  private parseCustomerCsv(text: string): SaveCustomerConfig[] {
+    const lines = text.split(/\r?\n/).filter(line => line.trim());
+    if (lines.length < 2) return [];
+    const headers = this.csvValues(lines[0])
+      .map(value => value.toLowerCase().replace(/[^a-z0-9_]/g, ''));
+    return lines.slice(1).map(line => {
+      const values = this.csvValues(line);
+      const row = Object.fromEntries(headers.map((header, index) => [header, values[index] || '']));
+      return {
+        customerCode: (row['customercode'] || row['customer_code'] || row['id'] || '').trim().toUpperCase(),
+        name: (row['name'] || row['customer_name'] || '').trim(),
+        country: this.optional(row['country']), town: this.optional(row['town'] || row['city']),
+        address: this.optional(row['address']), vatTaxId: this.optional(row['vattaxid'] || row['vat_tax_id'] || row['vat']),
+        contactPerson: this.optional(row['contactperson'] || row['contact_person'] || row['contact']),
+        email: this.optional(row['email'])?.toLowerCase() ?? null, phone: this.optional(row['phone']),
+        erpId: this.optional(row['erpid'] || row['erp_id']), active: true
+      };
+    }).filter(row => !!row.customerCode && !!row.name);
+  }
+
+  private csvValues(line: string): string[] {
+    return line.split(',').map(value => value.trim().replace(/^"|"$/g, ''));
+  }
+
+  private saveConfiguration<T extends ProjectCategoryConfig | ProjectTypeConfig | CustomerConfig>(
+    request: Observable<T>,
+    kind: ConfigurationKind
+  ): void {
+    const editing = this.editingId !== null;
+    this.saving = true;
+    request.pipe(finalize(() => this.saving = false)).subscribe({
+      next: item => {
+        if (kind === 'category') this.categories = this.upsert(this.categories, item as ProjectCategoryConfig);
+        if (kind === 'type') this.projectTypes = this.upsert(this.projectTypes, item as ProjectTypeConfig);
+        if (kind === 'customer') this.customers = this.upsert(this.customers, item as CustomerConfig);
+        this.dialogKind = null;
+        this.editingId = null;
+        this.toast.show(`${this.kindLabel(kind)} ${editing ? 'updated' : 'created'}.`, 'success');
+      },
+      error: error => this.toast.show(adminErrorMessage(error, `Could not save ${this.kindLabel(kind).toLowerCase()}.`), 'error')
+    });
+  }
+
+  private upsert<T extends { id: number; name: string }>(items: T[], item: T): T[] {
+    return [...items.filter(existing => existing.id !== item.id), item]
+      .sort((left, right) => left.name.localeCompare(right.name));
+  }
+
+  private kindLabel(kind: ConfigurationKind): string {
+    return kind === 'category' ? 'Category' : kind === 'type' ? 'Project type' : 'Customer';
+  }
+
+  private optional(value: string | null | undefined): string | null {
+    const normalized = value?.trim();
+    return normalized ? normalized : null;
+  }
+
+  private get normalizedSearch(): string {
+    return this.search.trim().toLowerCase();
+  }
+}

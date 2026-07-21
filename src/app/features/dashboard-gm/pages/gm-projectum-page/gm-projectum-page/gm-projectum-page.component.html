@@ -1,17 +1,9 @@
 <div class="projectum-shell">
 
-  <app-projectum-project-header>
-      <button type="button" class="btn btn-primary new-project-btn" (click)="openCreateModal()">
-        ＋ New Project
-      </button>
-        <button
-        class="main-menu-btn"
-        routerLink="/gm"
-      >
-        <span class="material-symbols-outlined">home</span>
-        <span>Main Menu</span>
-      </button>
-  </app-projectum-project-header>
+  <section class="portfolio-hero">
+    <div><span class="eyebrow">Portfolio control center</span><h1>Projectum Portfolio</h1><p>Live delivery, schedule and financial visibility across your active portfolio.</p></div>
+    <div class="portfolio-actions"><span *ngIf="lastRefreshed">Updated {{ lastRefreshed | date:'shortTime' }}</span><button type="button" class="refresh-btn" (click)="refreshPortfolio()" [disabled]="loading" aria-label="Refresh portfolio data"><span class="material-symbols-outlined">refresh</span>Refresh</button><button type="button" class="btn btn-primary new-project-btn" (click)="openCreateModal()">＋ New Project</button></div>
+  </section>
   <!-- KPI SECTION -->
   <section class="kpi-section">
     <div class="kpi-header">
@@ -120,6 +112,52 @@
     </div>
   </section>
 
+<button class="ai-floating-btn" type="button" (click)="aiOpen = true">
+  <span class="material-symbols-outlined">auto_awesome</span>
+  AI Assistant
+</button>
+
+<div class="ai-drawer-backdrop" *ngIf="aiOpen" (click)="aiOpen = false"></div>
+
+<aside class="ai-drawer" *ngIf="aiOpen">
+  <div class="ai-drawer-header">
+    <div>
+      <div class="ai-kicker">Projectum AI</div>
+      <h3>AI Assistant</h3>
+      <p>{{ selectedProject ? selectedProject.code + ' · ' + selectedProject.name : 'Select a project first' }}</p>
+    </div>
+
+    <button type="button" class="ai-close" (click)="aiOpen = false">✕</button>
+  </div>
+  <div class="ai-toast" *ngIf="aiNotification">
+    <span class="material-symbols-outlined">notifications</span>
+    {{ aiNotification }}
+  </div>
+
+  <div class="ai-actions">
+    <button type="button" (click)="askAi('Summarize this project status.')">Summary</button>
+    <button type="button" (click)="askAi('Analyze the main risks and suggest recommendations.')">Risks</button>
+    <button type="button" (click)="askAi('Generate a professional project status report.')">Report</button>
+    <button type="button" (click)="askAi('Suggest corrective actions for this project.')">Actions</button>
+  </div>
+
+  <textarea
+    [(ngModel)]="aiQuestion"
+    placeholder="Ask about the selected project..."
+    rows="4">
+  </textarea>
+
+  <button class="ai-submit" type="button" (click)="askAi()" [disabled]="aiLoading">
+    {{ aiLoading ? 'Analyzing...' : 'Ask AI' }}
+  </button>
+
+  <div class="ai-error" *ngIf="aiError">{{ aiError }}</div>
+
+  <div class="ai-answer" *ngIf="aiAnswer">
+    <pre>{{ aiAnswer }}</pre>
+  </div>
+</aside>
+
   <!-- CONTENT -->
   <div class="content">
     <div class="filters-row">
@@ -165,8 +203,8 @@
     </div>
 
     <div class="sec-head">
-      <h2>Projects</h2>
-      <span class="count-badge">{{ filteredProjects.length }}</span>
+      <div><span class="eyebrow">Portfolio register</span><h2>Projects</h2></div>
+      <span class="count-badge">{{ filteredProjects.length }} projects</span>
     </div>
 
     <div *ngIf="error" class="page-error">{{ error }}</div>

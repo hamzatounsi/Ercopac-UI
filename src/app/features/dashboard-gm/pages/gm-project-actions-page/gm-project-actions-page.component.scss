@@ -4,7 +4,7 @@
 }
 
 .actions-shell {
-  --bg:#f8fafc;
+  --bg:#f5f8fc;
   --surface:#fff;
   --surface-2:#f8fafc;
   --border:#e2e8f0;
@@ -31,6 +31,7 @@
   gap: 8px;
   padding: 10px 20px 0;
   flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 .stat-pill {
@@ -388,6 +389,7 @@
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 10px 12px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, .05);
 }
 
 .sum-lbl {
@@ -412,6 +414,7 @@
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: auto;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, .05);
 }
 
 .list-table {
@@ -487,6 +490,7 @@
   font-size: 10px;
   font-weight: 700;
   white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
 }
 
 .tp-action { background: #dbeafe; color: var(--accent); }
@@ -786,6 +790,7 @@
 .modal-hdr {
   padding: 14px 16px;
   border-bottom: 1px solid var(--border);
+  background: #f8fafc;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -862,6 +867,7 @@
   padding: 16px;
   overflow: auto;
   flex: 1;
+  background: #ffffff;
 }
 
 .field { margin-bottom: 12px; }
@@ -889,6 +895,7 @@
   border-radius: 8px;
   padding: 8px 10px;
   font: inherit;
+  background: #f8fafc;
 }
 
 .field textarea {
@@ -938,6 +945,7 @@
   border-radius: 10px;
   padding: 10px;
   margin-bottom: 8px;
+  background: #ffffff;
 }
 
 .comment-author {
@@ -960,6 +968,7 @@
   border-radius: 8px;
   padding: 8px 10px;
   margin-bottom: 8px;
+  background: #f8fafc;
 }
 
 @media (max-width: 1200px) {

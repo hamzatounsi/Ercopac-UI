@@ -1,0 +1,73 @@
+<div class="security-page">
+  <div class="security-header">
+    <div>
+      <h2>Security Center</h2>
+      <p>Manage account security and password reset requests.</p>
+    </div>
+
+    <button class="refresh-btn" type="button" (click)="loadRequests()">
+      Refresh
+    </button>
+  </div>
+
+  <section class="security-card">
+    <div class="card-title-row">
+      <div>
+        <h3>Password Reset Requests</h3>
+        <p>Pending requests from organisation users.</p>
+      </div>
+
+      <span class="counter">{{ requests.length }} pending</span>
+    </div>
+
+    <div *ngIf="loading" class="empty-state">
+      Loading requests...
+    </div>
+
+    <div *ngIf="!loading && requests.length === 0" class="empty-state">
+      No pending password reset requests.
+    </div>
+
+    <table *ngIf="!loading && requests.length > 0" class="security-table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Email</th>
+          <th>Requested At</th>
+          <th>Status</th>
+          <th class="actions-col">Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let request of requests">
+          <td>
+            <strong>{{ request.fullName }}</strong>
+          </td>
+
+          <td>{{ request.email }}</td>
+
+          <td>{{ request.requestedAt | date:'short' }}</td>
+
+          <td>
+            <span class="status-pill">
+              {{ request.status }}
+            </span>
+          </td>
+
+          <td class="actions-col">
+            <button class="approve-btn" type="button" (click)="approve(request.id)">
+              Approve
+            </button>
+
+            <button class="reject-btn" type="button" (click)="reject(request.id)">
+              Reject
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="message" *ngIf="msg">{{ msg }}</p>
+  </section>
+</div>

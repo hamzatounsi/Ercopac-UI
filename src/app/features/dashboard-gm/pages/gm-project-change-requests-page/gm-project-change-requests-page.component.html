@@ -1,5 +1,3 @@
-<app-projectum-project-header></app-projectum-project-header>
-
 <div class="project-bar">
   <span class="project-lbl">📂 Project:</span>
   <span class="project-chip">{{ projectName || 'Project #' + projectId }}</span>
@@ -9,9 +7,6 @@
     [projectId]="projectId"
     currentPage="cr">
   </app-gm-project-side-panel>
-
-  <app-projectum-project-header></app-projectum-project-header>
-
   <div id="toolbar">
     <button class="tb-btn add" (click)="addCr()">＋ Add CR</button>
 
@@ -123,7 +118,7 @@
               <input class="cr-inp long" [(ngModel)]="row.note" (change)="saveRow(row)">
             </td>
 
-            <td class="num">{{ row.attachments?.length || 0 }}</td>
+            <td class="num">{{ $any(row.attachments)?.length || 0 }}</td>
 
             <td>
               <button class="btn-del" (click)="deleteRow(row); $event.stopPropagation()">✕</button>

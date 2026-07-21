@@ -4,6 +4,43 @@ import { tap } from 'rxjs/operators';
 import { jwtDecode } from 'jwt-decode';
 import { API_AUTH_URL } from '../config/api.config';
 
+export type AppRole =
+  | 'PLATFORM_OWNER'
+  | 'ORG_ADMIN'
+  | 'GENERAL_MANAGER'
+  | 'DEPARTMENT_MANAGER'
+  | 'EMPLOYEE';
+
+interface JwtPayload {
+  sub?: string;
+  userId?: number;
+  role?: string;
+  roles?: string[];
+  organisationId?: number;
+  organisationName?: string;
+  orgName?: string;
+  organizationName?: string;
+  organisation?: string;
+  exp?: number;
+  fullName?: string;
+  name?: string;
+  username?: string;
+}
+
+export interface LoginResponse {
+  token: string | null;
+  userId: number;
+  email: string;
+  role: AppRole;
+  organisationId: number | null;
+  organisationCode: string | null;
+  organisationName: string | null;
+  passwordResetRequired: boolean;
+  resetStatus: string | null;
+  resetToken: string | null;
+  message: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 
@@ -12,10 +49,12 @@ export class AuthService {
   constructor(private http: HttpClient) {}
 
   login(username: string, password: string) {
-    return this.http.post<any>(this.loginUrl, { username, password })
+    return this.http.post<LoginResponse>(this.loginUrl, { username, password })
       .pipe(
         tap(res => {
-          localStorage.setItem('token', res.token);
+          if (res.token) {
+            localStorage.setItem('token', res.token);
+          }
         })
       );
   }
@@ -30,27 +69,40 @@ export class AuthService {
   }
 
   isLoggedIn(): boolean {
-    return !!this.getToken();
+    return this.isTokenValid();
   }
 
-  getRoles(): string[] {
+  isTokenValid(): boolean {
     const token = this.getToken();
-    if (!token) return [];
+    if (!token) return false;
 
-    const decoded: any = jwtDecode(token);
-    return decoded.roles || [decoded.role];
+    try {
+      const decoded = jwtDecode<JwtPayload>(token);
+      return typeof decoded.exp === 'number' && decoded.exp * 1000 > Date.now();
+    } catch {
+      return false;
+    }
+  }
+
+  getRoles(): AppRole[] {
+    const payload = this.getPayload();
+    if (!payload) return [];
+
+    const roles = payload.roles || (payload.role ? [payload.role] : []);
+    return roles
+      .map(role => role.replace(/^ROLE_/, '') as AppRole)
+      .filter((role, index, values) => values.indexOf(role) === index);
   }
 
   getOrganisationName(): string {
     const token = localStorage.getItem('token');
-    console.log(JSON.parse(atob(localStorage.getItem('token')!.split('.')[1])));
 
     if (!token) {
       return '';
     }
 
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const payload = jwtDecode<JwtPayload>(token);
 
       return payload.organisationName
         || payload.orgName
@@ -59,6 +111,68 @@ export class AuthService {
         || '';
     } catch {
       return '';
+    }
+  }
+
+  getCurrentUsername(): string {
+    const token = this.getToken();
+    if (!token) return '';
+
+    try {
+      const payload = jwtDecode<JwtPayload>(token);
+      return payload.fullName || payload.name || payload.username || payload.sub || '';
+    } catch {
+      return '';
+    }
+  }
+
+  getCurrentRole(): AppRole | '' {
+    return this.getRoles()[0] || '';
+  }
+
+  getCurrentUserId(): number | null {
+    return this.getPayload()?.userId ?? null;
+  }
+
+  getOrganisationId(): number | null {
+    return this.getPayload()?.organisationId ?? null;
+  }
+
+  getHomeRoute(): string {
+    switch (this.getCurrentRole()) {
+      case 'PLATFORM_OWNER': return '/owner';
+      case 'ORG_ADMIN': return '/org-admin';
+      case 'GENERAL_MANAGER': return '/gm';
+      case 'DEPARTMENT_MANAGER': return '/department';
+      case 'EMPLOYEE': return '/employee';
+      default: return '/login';
+    }
+  }
+
+  resetPassword(token: string, newPassword: string) {
+    return this.http.post<any>(`${API_AUTH_URL}/password-reset/reset`, {
+      token,
+      newPassword
+    });
+  }
+
+  requestPasswordReset(email: string) {
+    return this.http.post<any>(`${API_AUTH_URL}/password-reset/request`, { email });
+  }
+
+  checkApprovedReset(email: string) {
+    return this.http.post<any>(`${API_AUTH_URL}/password-reset/check-approved`, {
+      email
+    });
+  }
+
+  private getPayload(): JwtPayload | null {
+    const token = this.getToken();
+    if (!token) return null;
+    try {
+      return jwtDecode<JwtPayload>(token);
+    } catch {
+      return null;
     }
   }
 }

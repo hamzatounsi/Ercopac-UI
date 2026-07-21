@@ -1,0 +1,51 @@
+<div class="users-toolbar">
+  <div class="search-field"><span class="material-symbols-outlined" aria-hidden="true">search</span><label class="sr-only" for="user-search">Search users</label><input id="user-search" [formControl]="searchControl" placeholder="Search name, email, or employee code" /></div>
+  <form class="filters" [formGroup]="filterForm">
+    <label><span class="sr-only">Filter by role</span><select formControlName="role"><option value="">All roles</option><option *ngFor="let role of roles" [value]="role.role">{{ role.label }}</option></select></label>
+    <label><span class="sr-only">Filter by department</span><select formControlName="departmentId"><option [ngValue]="null">All departments</option><option *ngFor="let department of departments" [ngValue]="department.id">{{ department.name }}</option></select></label>
+    <label><span class="sr-only">Filter by status</span><select formControlName="status"><option value="">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select></label>
+  </form>
+  <button class="primary" type="button" (click)="openCreate()"><span class="material-symbols-outlined" aria-hidden="true">person_add</span>Add user</button>
+</div>
+
+<section *ngIf="loading" class="state">Loading user administration…</section>
+<section *ngIf="!loading && errorMessage && !users.length" class="state error" role="alert">{{ errorMessage }} <button type="button" (click)="loadMetadata()">Try again</button></section>
+
+<section *ngIf="!loading" class="table-card" [attr.aria-busy]="loadingUsers">
+  <header><div><h2>Organisation users</h2><p>{{ totalElements }} account{{ totalElements === 1 ? '' : 's' }} in this organisation</p></div><span *ngIf="loadingUsers" class="loading-label"><i></i>Refreshing</span></header>
+  <div class="inline-error" *ngIf="errorMessage && users.length" role="alert">{{ errorMessage }} <button type="button" (click)="loadUsers()">Retry</button></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th><button type="button" (click)="setSort('fullName')">User <span *ngIf="sort === 'fullName'">{{ direction === 'asc' ? '↑' : '↓' }}</span></button></th><th><button type="button" (click)="setSort('role')">Role <span *ngIf="sort === 'role'">{{ direction === 'asc' ? '↑' : '↓' }}</span></button></th><th>Department</th><th>Employee code</th><th><button type="button" (click)="setSort('active')">Status <span *ngIf="sort === 'active'">{{ direction === 'asc' ? '↑' : '↓' }}</span></button></th><th class="actions-heading">Actions</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let user of users; trackBy: trackUser">
+          <td data-label="User"><div class="user-cell"><span class="avatar" aria-hidden="true">{{ user.fullName.charAt(0) | uppercase }}</span><div><strong>{{ user.fullName }}</strong><span>{{ user.email }}</span></div></div></td>
+          <td data-label="Role"><span class="role-badge" [class.admin]="user.role === 'ORG_ADMIN'">{{ roleLabel(user.role) }}</span><small *ngIf="user.jobTitle">{{ user.jobTitle }}</small></td>
+          <td data-label="Department"><strong class="department">{{ user.departmentName || 'Unassigned' }}</strong><span class="muted">{{ user.departmentCode || '—' }}</span></td>
+          <td data-label="Employee code">{{ user.employeeCode || '—' }}</td>
+          <td data-label="Status"><span class="status" [class.inactive]="!user.active"><i aria-hidden="true"></i>{{ user.active ? 'Active' : 'Inactive' }}</span></td>
+          <td data-label="Actions" class="actions"><button type="button" (click)="openEdit(user)" [attr.aria-label]="'Edit ' + user.fullName"><span class="material-symbols-outlined" aria-hidden="true">edit</span></button><button type="button" (click)="requestStatusChange(user)" [disabled]="user.id === currentUserId" [attr.aria-label]="(user.active ? 'Deactivate ' : 'Activate ') + user.fullName"><span class="material-symbols-outlined" aria-hidden="true">{{ user.active ? 'person_off' : 'person_check' }}</span></button></td>
+        </tr>
+      </tbody>
+    </table>
+    <div *ngIf="!loadingUsers && users.length === 0" class="empty"><span class="material-symbols-outlined" aria-hidden="true">group_off</span><strong>No users match these filters</strong><span>Try another search or create a new organisation user.</span><button type="button" (click)="openCreate()">Add user</button></div>
+  </div>
+  <footer *ngIf="totalPages > 0"><span>Page {{ page + 1 }} of {{ totalPages }}</span><div><button type="button" (click)="previousPage()" [disabled]="page === 0">Previous</button><button type="button" (click)="nextPage()" [disabled]="page + 1 >= totalPages">Next</button></div></footer>
+</section>
+
+<div class="backdrop" *ngIf="drawerOpen" (click)="closeDrawer()"></div>
+<aside class="drawer" *ngIf="drawerOpen" role="dialog" aria-modal="true" [attr.aria-labelledby]="'user-dialog-title'">
+  <header><div><span class="eyebrow">Organisation account</span><h2 id="user-dialog-title">{{ editingUser ? 'Edit user' : 'Add user' }}</h2><p>{{ editingUser ? 'Update identity, role, department, and account status.' : 'Create an account inside this organisation.' }}</p></div><button type="button" (click)="closeDrawer()" aria-label="Close user form"><span class="material-symbols-outlined" aria-hidden="true">close</span></button></header>
+  <form [formGroup]="userForm" (ngSubmit)="saveUser()" novalidate>
+    <div class="form-error" *ngIf="formError" role="alert">{{ formError }}</div>
+    <fieldset><legend>Identity</legend><div class="field"><label for="user-full-name">Full name <b>*</b></label><input id="user-full-name" formControlName="fullName" autocomplete="name" /><small *ngIf="userForm.controls.fullName.touched && userForm.controls.fullName.invalid">Full name is required.</small></div><div class="field"><label for="user-email">Email address <b>*</b></label><input id="user-email" formControlName="email" type="email" autocomplete="email" /><small *ngIf="userForm.controls.email.touched && userForm.controls.email.invalid">Enter a valid email address.</small></div><div class="field" *ngIf="!editingUser"><label for="user-password">Temporary password <b>*</b></label><input id="user-password" formControlName="password" type="password" autocomplete="new-password" /><small *ngIf="userForm.controls.password.touched && userForm.controls.password.invalid">Use at least 8 characters or the configured minimum.</small><span>Share the temporary password through a secure channel.</span></div><div class="field"><label for="employee-code">Employee code</label><input id="employee-code" formControlName="employeeCode" /></div></fieldset>
+    <fieldset><legend>Access & assignment</legend><div class="field-row"><div class="field"><label for="user-role">Role <b>*</b></label><select id="user-role" formControlName="role"><option *ngFor="let role of roles" [ngValue]="role.role">{{ role.label }}</option></select></div><div class="field"><label for="user-department">Department</label><select id="user-department" formControlName="departmentId"><option [ngValue]="null">Unassigned</option><option *ngFor="let department of departments" [ngValue]="department.id">{{ department.name }}</option></select></div></div><div class="field"><label for="job-title">Job title</label><input id="job-title" formControlName="jobTitle" /></div><label class="switch-row"><span><strong>Active account</strong><small>User can sign in while this setting is enabled.</small></span><input type="checkbox" formControlName="active" /></label></fieldset>
+    <footer><button class="secondary" type="button" (click)="closeDrawer()" [disabled]="saving">Cancel</button><button class="primary" type="submit" [disabled]="saving || userForm.invalid">{{ saving ? 'Saving…' : (editingUser ? 'Save changes' : 'Create user') }}</button></footer>
+  </form>
+</aside>
+
+<div class="modal-backdrop" *ngIf="pendingStatusUser as user">
+  <section class="confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="status-confirm-title">
+    <span class="confirm-icon material-symbols-outlined" aria-hidden="true">{{ user.active ? 'person_off' : 'person_check' }}</span><h2 id="status-confirm-title">{{ user.active ? 'Deactivate' : 'Activate' }} {{ user.fullName }}?</h2><p>{{ user.active ? 'The user will immediately lose access when their current token is checked again.' : 'The user will be able to sign in again, subject to organisation licence limits.' }}</p><div><button type="button" class="secondary" (click)="pendingStatusUser = null" [disabled]="saving">Cancel</button><button type="button" [class.danger]="user.active" [class.primary]="!user.active" (click)="confirmStatusChange()" [disabled]="saving">{{ saving ? 'Updating…' : (user.active ? 'Deactivate user' : 'Activate user') }}</button></div>
+  </section>
+</div>

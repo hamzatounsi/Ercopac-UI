@@ -1,13 +1,4 @@
 <div class="admin-page">
-  <app-projectum-project-header>
-        <button
-        class="main-menu-btn"
-        routerLink="/gm"
-      >
-        <span class="material-symbols-outlined">home</span>
-        <span>Main Menu</span>
-      </button>
-  </app-projectum-project-header>
   <!-- TABS -->
   <div class="tab-bar">
     <button (click)="setTab('licences')" [class.active]="activeTab==='licences'">
@@ -29,6 +20,10 @@
     <button (click)="setTab('resources')" [class.active]="activeTab==='resources'">
       👥 Resources
     </button>
+
+    <button (click)="setTab('security')" [class.active]="activeTab==='security'">
+      🛡️ Security
+    </button>
   </div>
 
   <!-- CONTENT -->
@@ -45,6 +40,8 @@
     <app-types-tab *ngIf="activeTab==='types'"></app-types-tab>
 
     <app-customers-tab *ngIf="activeTab==='customers'"></app-customers-tab>
+
+    <app-security-tab *ngIf="activeTab==='security'"></app-security-tab>
 
   </div>
 

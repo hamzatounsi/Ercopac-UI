@@ -1,0 +1,31 @@
+<section *ngIf="loading" class="oa-state">Loading organisation profile…</section>
+<section *ngIf="!loading && !profile" class="oa-state error" role="alert">{{ errorMessage }} <button type="button" (click)="load()">Try again</button></section>
+
+<div *ngIf="!loading && profile as organisation" class="profile-grid">
+  <form class="oa-card" [formGroup]="form" (ngSubmit)="save()" novalidate>
+    <header><div><h2>Public organisation details</h2><p>These fields are available to people working inside your organisation.</p></div><span class="material-symbols-outlined" aria-hidden="true">edit_note</span></header>
+    <div class="error-banner" *ngIf="errorMessage" role="alert">{{ errorMessage }}</div>
+    <div class="field full">
+      <label for="organisation-name">Organisation name <b aria-hidden="true">*</b></label>
+      <input id="organisation-name" formControlName="name" autocomplete="organization" [attr.aria-invalid]="form.controls.name.invalid && form.controls.name.touched" />
+      <small *ngIf="form.controls.name.touched && form.controls.name.hasError('required')">Organisation name is required.</small>
+      <small *ngIf="form.controls.name.touched && form.controls.name.hasError('minlength')">Use at least 2 characters.</small>
+    </div>
+    <div class="field-row">
+      <div class="field"><label for="organisation-country">Country</label><input id="organisation-country" formControlName="country" autocomplete="country-name" /><small *ngIf="form.controls.country.touched && form.controls.country.invalid">Use no more than 80 characters.</small></div>
+      <div class="field"><label for="organisation-domain">Company domain</label><div class="input-prefix"><span aria-hidden="true">https://</span><input id="organisation-domain" formControlName="domain" inputmode="url" placeholder="example.com" /></div><small *ngIf="form.controls.domain.touched && form.controls.domain.invalid">Enter a valid domain such as example.com.</small></div>
+    </div>
+    <footer><button type="button" class="secondary" (click)="cancel()" [disabled]="saving || !form.dirty">Discard changes</button><button type="submit" class="primary" [disabled]="saving || form.invalid || !form.dirty"><span class="material-symbols-outlined" aria-hidden="true">save</span>{{ saving ? 'Saving…' : 'Save profile' }}</button></footer>
+  </form>
+
+  <aside class="oa-card account-card">
+    <header><div><h2>Account information</h2><p>Controlled by the Projectum platform.</p></div><span class="status" [class.active]="organisation.status === 'ACTIVE' || organisation.status === 'TRIAL'">{{ organisation.status | titlecase }}</span></header>
+    <dl>
+      <div><dt>Organisation code</dt><dd>{{ organisation.code }}</dd></div>
+      <div><dt>Plan</dt><dd>{{ organisation.plan | titlecase }}</dd></div>
+      <div><dt>Created</dt><dd>{{ organisation.createdAt | date:'mediumDate' }}</dd></div>
+      <div><dt>Active user limit</dt><dd>{{ organisation.userLimit }}</dd></div>
+    </dl>
+    <div class="info-note"><span class="material-symbols-outlined" aria-hidden="true">info</span><p>Status, plan, limits, billing, and platform flags can only be changed by the Platform Owner.</p></div>
+  </aside>
+</div>

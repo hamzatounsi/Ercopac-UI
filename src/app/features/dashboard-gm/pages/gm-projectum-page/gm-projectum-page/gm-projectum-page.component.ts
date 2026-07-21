@@ -11,6 +11,7 @@ import { ProjectDashboardRow } from '../../../models/project-dashboard-row.model
 import { HealthStatus } from '../../../models/health-status.model';
 import { ResourceListItem } from '../../../models/resource-list-item.model';
 import { GmProjectTemplateService } from '../../../services/gm-project-template.service';
+import { GmAiAssistantService } from '../../../services/gm-ai-assistant.service';
 
 type SortColumn =
   | 'code'
@@ -42,6 +43,7 @@ export class GmProjectumPageComponent implements OnInit {
   filteredProjects: ProjectDashboardRow[] = [];
 
   loading = false;
+  lastRefreshed: Date | null = null;
   saving = false;
   error: string | null = null;
 
@@ -66,6 +68,11 @@ export class GmProjectumPageComponent implements OnInit {
 
   modalOpen = false;
   editingProjectId: number | null = null;
+
+  aiQuestion = '';
+  aiAnswer = '';
+  aiLoading = false;
+  aiError = '';
 
   // TEAM MODAL
   teamModalOpen = false;
@@ -110,18 +117,22 @@ export class GmProjectumPageComponent implements OnInit {
   readonly statusOptions = ['PLANNED', 'ACTIVE', 'COMPLETED', 'STANDBY', 'ARCHIVED'];
   readonly typeOptions = ['Greenfield', 'Brownfield', 'Retrofit', 'Consulting', 'R&D', 'Service'];
   readonly riskOptions = ['LOW', 'MEDIUM', 'HIGH'];
+  aiOpen = false;
+  aiNotification = '';
 
   constructor(
     private gmDashboardService: GmDashboardService,
     private gmResourceService: GmResourceService,
     private router: Router,
-    private gmProjectTemplateService: GmProjectTemplateService
+    private gmProjectTemplateService: GmProjectTemplateService,
+    private aiService: GmAiAssistantService
   ) {}
 
   ngOnInit(): void {
     this.loadInitialData();
     this.loadResourcesForTeam();
     this.loadTeamAssignmentsFromStorage();
+    this.requestNotificationPermission();
   }
 
   get countries(): string[] {
@@ -146,8 +157,7 @@ export class GmProjectumPageComponent implements OnInit {
           .filter((project): project is ProjectDashboardRow & { id: number } => project.id != null)
           .map(project => ({
             ...project,
-            timeHealth: this.normalizeHealthStatus(project.timeHealth),
-            progressPercent: project.progressPercent ?? this.deriveProgress(project)
+            timeHealth: this.normalizeHealthStatus(project.timeHealth)
           }));
 
         this.gmDashboardService.getPortfolioKpis().subscribe({
@@ -157,6 +167,7 @@ export class GmProjectumPageComponent implements OnInit {
             this.selectedProject = null;
             this.selectedProjectId = null;
             this.applyFiltersAndSort();
+            this.lastRefreshed = new Date();
             this.loading = false;
           },
           error: () => {
@@ -170,6 +181,10 @@ export class GmProjectumPageComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  refreshPortfolio(): void {
+    if (!this.loading) this.loadInitialData();
   }
 
   loadResourcesForTeam(): void {
@@ -235,6 +250,67 @@ export class GmProjectumPageComponent implements OnInit {
 
   onFilterChange(): void {
     this.applyFiltersAndSort();
+  }
+
+  askAi(question?: string): void {
+    const project = this.selectedProject;
+
+    if (!project?.id) {
+      this.aiError = 'Please select a project first.';
+      return;
+    }
+
+    const finalQuestion = question || this.aiQuestion;
+
+    if (!finalQuestion.trim()) {
+      return;
+    }
+
+    this.aiLoading = true;
+    this.aiError = '';
+    this.aiAnswer = '';
+
+    this.aiService.askProjectAssistant(project.id, finalQuestion).subscribe({
+      next: (res) => {
+        this.aiAnswer = res.answer;
+        this.aiLoading = false;
+        this.notifyAiFinished('AI analysis finished.');
+      },
+      error: () => {
+        this.aiError = 'AI assistant is currently unavailable.';
+        this.aiLoading = false;
+        this.notifyAiFinished('AI analysis failed.');
+      }
+    });
+  }
+
+
+private notifyAiFinished(message: string): void {
+    this.aiNotification = message;
+
+    setTimeout(() => {
+      this.aiNotification = '';
+    }, 4000);
+
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('Projectum AI', {
+        body: message
+      });
+    }
+  }
+
+  requestNotificationPermission(): void {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }
+
+  showAiNotification(message: string): void {
+    this.aiNotification = message;
+
+    setTimeout(() => {
+      this.aiNotification = '';
+    }, 4000);
   }
 
   setSort(column: SortColumn): void {
@@ -730,17 +806,6 @@ private average(values: number[]): number {
     }
   }
 
-  private deriveProgress(project: ProjectDashboardRow): number {
-    if (project.completedTasks && project.totalTasks && project.totalTasks > 0) {
-      return Math.round((project.completedTasks / project.totalTasks) * 100);
-    }
-
-    if (project.timeHealth === 'GREEN') return 70;
-    if (project.timeHealth === 'YELLOW') return 40;
-    if (project.timeHealth === 'RED') return 15;
-    return 0;
-  }
-
   private normalizeHealthStatus(status?: string): HealthStatus {
     switch (status) {
       case 'GREEN':
@@ -770,7 +835,6 @@ private average(values: number[]): number {
 
     this.gmProjectTemplateService.applyStandardTemplate(projectId).subscribe({
       next: (res) => {
-        console.log('Standard template applied:', res);
         alert(`Standard template applied successfully.\nTasks created: ${res.tasksCreated}\nDependencies created: ${res.dependenciesCreated}`);
       },
       error: (err) => {

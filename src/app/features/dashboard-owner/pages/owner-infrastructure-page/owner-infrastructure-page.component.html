@@ -1,1 +1,32 @@
-<p>owner-infrastructure-page works!</p>
+<section class="enterprise-module-page">
+  <header class="enterprise-module-header">
+    <div>
+      <div class="enterprise-eyebrow">Platform operations</div>
+      <h1>Infrastructure</h1>
+      <p>Operational overview for system health, integrations, queue status, AI services and database availability.</p>
+    </div>
+    <span class="enterprise-status-pill"><span class="material-symbols-outlined">dns</span> Monitoring planned</span>
+  </header>
+
+  <div class="enterprise-panel-grid">
+    <article class="enterprise-panel">
+      <h2>Operations readiness</h2>
+      <p>This screen is prepared as a platform operations cockpit. Live health checks should be wired to backend monitoring endpoints before production use.</p>
+      <div class="enterprise-metric-row">
+        <div class="enterprise-metric-card"><span>API</span><strong>Healthy</strong></div>
+        <div class="enterprise-metric-card"><span>Database</span><strong>PostgreSQL</strong></div>
+        <div class="enterprise-metric-card"><span>AI</span><strong>Ollama</strong></div>
+      </div>
+    </article>
+
+    <aside class="enterprise-checklist">
+      <h2>Production signals</h2>
+      <ul>
+        <li>Backend uptime and response time.</li>
+        <li>Database connection pool pressure.</li>
+        <li>AI service availability and latency.</li>
+        <li>Failed job and integration queues.</li>
+      </ul>
+    </aside>
+  </div>
+</section>

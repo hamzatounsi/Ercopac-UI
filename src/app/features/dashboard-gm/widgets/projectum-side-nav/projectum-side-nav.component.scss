@@ -1,40 +1,41 @@
 .projectum-side-nav {
   display: flex;
   flex-direction: column;
-  gap: 0.7rem;
+  gap: var(--pm-space-2);
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--pm-space-3);
   border: 1px solid transparent;
-  border-radius: 16px;
-  padding: 0.95rem 1rem;
-  background: #f8fafc;
-  color: #334155;
+  border-radius: var(--pm-radius);
+  padding: 12px var(--pm-space-4);
+  background: var(--pm-surface-muted);
+  color: var(--pm-text);
   font-weight: 700;
   text-decoration: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
 
   .material-symbols-outlined {
     font-size: 20px;
-    color: #64748b;
+    color: var(--pm-text-muted);
   }
 
   &:hover {
-    background: #f1f5f9;
-    border-color: #e2e8f0;
+    background: var(--pm-surface);
+    border-color: var(--pm-border-strong);
   }
 
   &.active {
-    background: #dff7f5;
-    color: #0f8f88;
-    border-color: rgba(15, 143, 136, 0.2);
+    background: var(--pm-primary-soft);
+    color: var(--pm-primary);
+    border-color: rgba(40, 95, 147, 0.22);
+    box-shadow: var(--pm-shadow-sm);
 
     .material-symbols-outlined {
-      color: #0f8f88;
+      color: var(--pm-primary);
     }
   }
 
@@ -46,10 +47,11 @@
 
 .soon-pill {
   margin-left: auto;
-  font-size: 0.72rem;
+  font-size: 11px;
   font-weight: 800;
-  padding: 0.22rem 0.5rem;
+  padding: 3px 8px;
   border-radius: 999px;
-  background: #e2e8f0;
-  color: #64748b;
+  background: var(--pm-surface);
+  color: var(--pm-text-muted);
+  border: 1px solid var(--pm-border);
 }

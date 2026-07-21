@@ -96,6 +96,8 @@
   margin-top: 4px;
   font-size: 11px;
   color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .panel-nav {
@@ -156,6 +158,8 @@
   display: inline-flex;
   justify-content: center;
   flex-shrink: 0;
+  font-size: 18px;
+  color: currentColor;
 }
 
 .logout-btn {

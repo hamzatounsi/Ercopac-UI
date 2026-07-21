@@ -21,18 +21,12 @@ import { MyCsProjectsPageComponent } from './pages/my-cs-projects-page/my-cs-pro
 
 const projectumAccessRoles = [
   'ROLE_PLATFORM_OWNER',
-  'ROLE_PLATFORM_ADMIN',
-  'ROLE_ORG_ADMIN',
   'ROLE_GENERAL_MANAGER',
-  'ROLE_PMO'
+  'ROLE_DEPARTMENT_MANAGER'
 ];
 
 const adminAccessRoles = [
   'ROLE_PLATFORM_OWNER',
-  'ROLE_PLATFORM_ADMIN',
-  'ROLE_ORG_ADMIN',
-  'GENERAL_MANAGER',   // ← ADD
-  'ORG_ADMIN',         // ← ADD
   'PLATFORM_OWNER'
 ];
 
@@ -67,7 +61,7 @@ const routes: Routes = [
         path: 'admin',
         component: GmAdminSettingsPageComponent,
         canActivate: [RoleGuard],
-        data: { roles: adminAccessRoles }
+        data: { roles: ['PLATFORM_OWNER'] }
       },
 
       { path: 'projects/:id', redirectTo: 'projects/:id/schedule', pathMatch: 'full' },

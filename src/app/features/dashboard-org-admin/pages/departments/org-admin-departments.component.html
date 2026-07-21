@@ -1,0 +1,26 @@
+<div class="page-actions"><div><strong>{{ departments.length }} department{{ departments.length === 1 ? '' : 's' }}</strong><span>Codes and assignments stay scoped to this organisation.</span></div><button class="primary" type="button" (click)="openCreate()"><span class="material-symbols-outlined" aria-hidden="true">add</span>New department</button></div>
+<section *ngIf="loading" class="state">Loading organisation structure…</section>
+<section *ngIf="!loading && errorMessage" class="state error" role="alert">{{ errorMessage }} <button type="button" (click)="load()">Try again</button></section>
+
+<section *ngIf="!loading && !errorMessage && departments.length" class="table-card">
+  <table><thead><tr><th>Department</th><th>Code</th><th>Manager</th><th>Assigned users</th><th>Created</th><th class="right">Actions</th></tr></thead><tbody><tr *ngFor="let department of departments"><td data-label="Department"><div class="department-cell"><span class="material-symbols-outlined" aria-hidden="true">account_tree</span><strong>{{ department.name }}</strong></div></td><td data-label="Code"><code>{{ department.code }}</code></td><td data-label="Manager"><span [class.unassigned]="!department.managerName">{{ department.managerName || 'Not assigned' }}</span></td><td data-label="Assigned users"><span class="count">{{ department.userCount }}</span></td><td data-label="Created">{{ department.createdAt | date:'mediumDate' }}</td><td data-label="Actions" class="actions"><button type="button" (click)="openEdit(department)" [attr.aria-label]="'Edit ' + department.name"><span class="material-symbols-outlined" aria-hidden="true">edit</span></button><button type="button" (click)="pendingDelete = department" [attr.aria-label]="'Delete ' + department.name"><span class="material-symbols-outlined" aria-hidden="true">delete</span></button></td></tr></tbody></table>
+</section>
+
+<section *ngIf="!loading && !errorMessage && !departments.length" class="empty"><span class="material-symbols-outlined" aria-hidden="true">account_tree</span><h2>Create your organisation structure</h2><p>Departments make user assignment, management responsibility, and resource configuration consistent.</p><button class="primary" type="button" (click)="openCreate()">Create first department</button></section>
+
+<div class="modal-backdrop" *ngIf="dialogOpen">
+  <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="department-dialog-title">
+    <header><div><span class="eyebrow">Organisation structure</span><h2 id="department-dialog-title">{{ editingDepartment ? 'Edit department' : 'New department' }}</h2></div><button type="button" (click)="closeDialog()" aria-label="Close department form"><span class="material-symbols-outlined" aria-hidden="true">close</span></button></header>
+    <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+      <div *ngIf="formError" class="form-error" role="alert">{{ formError }}</div>
+      <div class="field-row"><div class="field"><label for="department-code">Department code <b>*</b></label><input id="department-code" formControlName="code" placeholder="e.g. OPS" /><small *ngIf="form.controls.code.touched && form.controls.code.invalid">Use 2–30 letters, numbers, hyphens, or underscores.</small></div><div class="field"><label for="department-name">Department name <b>*</b></label><input id="department-name" formControlName="name" placeholder="e.g. Operations" /><small *ngIf="form.controls.name.touched && form.controls.name.invalid">Use 2–100 characters.</small></div></div>
+      <div class="field"><label for="department-manager">Department manager</label><select id="department-manager" formControlName="managerId"><option [ngValue]="null">No manager assigned</option><option *ngFor="let manager of managers" [ngValue]="manager.id">{{ manager.fullName }} · {{ manager.email }}</option></select><span>Only active users with the Department Manager role are available.</span></div>
+      <div class="form-note" *ngIf="editingDepartment && editingDepartment.userCount"><span class="material-symbols-outlined" aria-hidden="true">sync</span><p>Changing the department code will update {{ editingDepartment.userCount }} linked user assignment{{ editingDepartment.userCount === 1 ? '' : 's' }} and related tasks.</p></div>
+      <footer><button class="secondary" type="button" (click)="closeDialog()" [disabled]="saving">Cancel</button><button class="primary" type="submit" [disabled]="saving || form.invalid">{{ saving ? 'Saving…' : (editingDepartment ? 'Save changes' : 'Create department') }}</button></footer>
+    </form>
+  </section>
+</div>
+
+<div class="modal-backdrop" *ngIf="pendingDelete as department">
+  <section class="confirm" role="alertdialog" aria-modal="true" aria-labelledby="delete-department-title"><span class="material-symbols-outlined" aria-hidden="true">delete_forever</span><h2 id="delete-department-title">Delete {{ department.name }}?</h2><p>Deletion is blocked if users or project tasks still reference this department. This action cannot be undone once allowed.</p><div><button class="secondary" type="button" (click)="pendingDelete = null" [disabled]="saving">Cancel</button><button class="danger" type="button" (click)="deleteDepartment()" [disabled]="saving">{{ saving ? 'Checking…' : 'Delete department' }}</button></div></section>
+</div>

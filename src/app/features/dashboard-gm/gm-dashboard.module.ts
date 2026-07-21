@@ -28,6 +28,7 @@ import { LicencesTabComponent } from './pages/gm-admin-settings-page/components/
 import { TypesTabComponent } from './pages/gm-admin-settings-page/components/types-tab/types-tab.component';
 import { CustomersTabComponent } from './pages/gm-admin-settings-page/components/customers-tab/customers-tab.component';
 import { MyCsProjectsPageComponent } from './pages/my-cs-projects-page/my-cs-projects-page.component';
+import { SecurityTabComponent } from './pages/gm-admin-settings-page/components/security-tab/security-tab.component';
 
 
 
@@ -57,6 +58,7 @@ import { MyCsProjectsPageComponent } from './pages/my-cs-projects-page/my-cs-pro
     TypesTabComponent,
     CustomersTabComponent,
     MyCsProjectsPageComponent,
+    SecurityTabComponent,
   ],
   imports: [
     CommonModule,

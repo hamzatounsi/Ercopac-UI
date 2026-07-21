@@ -9,17 +9,17 @@
     </div>
 
     <nav class="sidebar-nav">
-      <a routerLink="/owner/organisations" routerLinkActive="active" class="nav-item">🏢 <span>Organisations</span></a>
-      <a routerLink="/owner/billing" routerLinkActive="active" class="nav-item">💳 <span>Billing & Plans</span></a>
-      <a routerLink="/owner/analytics" routerLinkActive="active" class="nav-item">📊 <span>Platform Analytics</span></a>
-      <a routerLink="/owner/infrastructure" routerLinkActive="active" class="nav-item">🖥 <span>Infrastructure</span></a>
-      <a routerLink="/owner/support" routerLinkActive="active" class="nav-item">🎯 <span>Support Tickets</span></a>
-      <a routerLink="/owner/permissions" routerLinkActive="active" class="nav-item">🔐 <span>Permissions</span></a>
-      <a routerLink="/owner/settings" routerLinkActive="active" class="nav-item">⚙ <span>Platform Settings</span></a>
+      <a routerLink="/owner/organisations" routerLinkActive="active" class="nav-item"><span class="material-symbols-outlined">business</span><span>Organisations</span></a>
+      <a routerLink="/owner/billing" routerLinkActive="active" class="nav-item"><span class="material-symbols-outlined">credit_card</span><span>Billing & Plans</span></a>
+      <a routerLink="/owner/analytics" routerLinkActive="active" class="nav-item"><span class="material-symbols-outlined">analytics</span><span>Platform Analytics</span></a>
+      <a routerLink="/owner/infrastructure" routerLinkActive="active" class="nav-item"><span class="material-symbols-outlined">dns</span><span>Infrastructure</span></a>
+      <a routerLink="/owner/support" routerLinkActive="active" class="nav-item"><span class="material-symbols-outlined">support_agent</span><span>Support Tickets</span></a>
+      <a routerLink="/owner/permissions" routerLinkActive="active" class="nav-item"><span class="material-symbols-outlined">admin_panel_settings</span><span>Permissions</span></a>
+      <a routerLink="/owner/settings" routerLinkActive="active" class="nav-item"><span class="material-symbols-outlined">settings</span><span>Platform Settings</span></a>
     </nav>
 
     <div class="sidebar-bottom">
-      <button class="signout-btn">🚪 Sign Out</button>
+      <button class="signout-btn" type="button" (click)="logout()"><span class="material-symbols-outlined">logout</span><span>Sign Out</span></button>
 
       <div class="owner-card">
         <div class="owner-card-icon">P</div>

@@ -1,6 +1,12 @@
 import { Component } from '@angular/core';
 
-type Tab = 'licences' | 'categories' | 'types' | 'customers';
+type Tab =
+  | 'resources'
+  | 'licences'
+  | 'categories'
+  | 'types'
+  | 'customers'
+  | 'security';
 
 @Component({
   selector: 'app-gm-admin-settings-page',
@@ -8,9 +14,9 @@ type Tab = 'licences' | 'categories' | 'types' | 'customers';
   styleUrls: ['./gm-admin-settings-page.component.scss']
 })
 export class GmAdminSettingsPageComponent {
-  activeTab: 'resources' | 'licences' | 'categories' | 'types' | 'customers' = 'resources';
+  activeTab: Tab = 'resources';
 
-  setTab(tab: 'resources' | 'licences' | 'categories' | 'types' | 'customers'): void {
+  setTab(tab: Tab): void {
     this.activeTab = tab;
   }
 }

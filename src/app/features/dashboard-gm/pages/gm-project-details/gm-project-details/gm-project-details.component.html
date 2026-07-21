@@ -256,6 +256,41 @@
               </div>
             </div>
           </section>
+
+          <section class="ai-insights-card">
+            <div class="ai-header">
+              <div><h2>AI Project Assistant</h2><p>Project context: <strong>{{ project.code }}</strong> · Status, schedule, finance and actions.</p></div>
+              <span class="ai-status" [class.busy]="aiLoading">{{ aiLoading ? 'Working' : 'Ready' }}</span>
+            </div>
+
+            <div class="ai-quick-actions">
+              <button type="button" [disabled]="aiLoading" (click)="askAi('Summarize the current project status')">Project status</button>
+              <button type="button" [disabled]="aiLoading" (click)="askAi('What are the main schedule risks?')">Schedule risks</button>
+              <button type="button" [disabled]="aiLoading" (click)="askAi('Compare forecast and actual cost')">Cost comparison</button>
+              <button type="button" [disabled]="aiLoading" (click)="askAi('What should management focus on this week?')">Management focus</button>
+            </div>
+
+            <textarea
+              [(ngModel)]="aiQuestion"
+              placeholder="Ask something about this project..."
+              rows="4" maxlength="1000" aria-label="Question for the project AI assistant" (keydown)="onAiKeydown($event)">
+            </textarea>
+
+            <div class="ai-input-meta"><span>{{ aiQuestion.length }}/1000</span><span>Enter to ask · Shift+Enter for a new line</span></div>
+
+            <button class="ai-submit-btn" type="button" (click)="askAi()" [disabled]="aiLoading">
+              {{ aiLoading ? 'Analyzing…' : 'Ask AI' }}
+            </button>
+
+            <div class="ai-error" *ngIf="aiError">
+              <span>{{ aiError }}</span><button type="button" (click)="retryAi()" *ngIf="aiLastQuestion && !aiLoading">Retry</button>
+            </div>
+
+            <div class="ai-answer" *ngIf="aiAnswer">
+              <div class="ai-answer-head"><h3>AI Answer</h3><div><small *ngIf="aiUpdatedAt">Updated {{ aiUpdatedAt | date:'shortTime' }}</small><button type="button" (click)="copyAiAnswer()" aria-label="Copy AI answer">Copy</button><button type="button" (click)="clearAi()">Clear</button></div></div>
+              <pre>{{ aiAnswer }}</pre>
+            </div>
+          </section>
         </div>
       </main>
     </div>

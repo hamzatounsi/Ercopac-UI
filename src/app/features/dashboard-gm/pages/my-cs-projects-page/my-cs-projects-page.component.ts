@@ -772,7 +772,6 @@ private average(values: number[]): number {
 
     this.gmProjectTemplateService.applyStandardTemplate(projectId).subscribe({
       next: (res) => {
-        console.log('Standard template applied:', res);
         alert(`Standard template applied successfully.\nTasks created: ${res.tasksCreated}\nDependencies created: ${res.dependenciesCreated}`);
       },
       error: (err) => {

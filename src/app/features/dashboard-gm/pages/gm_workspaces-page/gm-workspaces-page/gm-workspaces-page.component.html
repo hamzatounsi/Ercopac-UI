@@ -1,148 +1,112 @@
 <div class="workspace-page">
-  <header class="topbar">
+  <header class="workspace-topbar">
     <div class="brand-block">
-      <div class="brand-mark">projectum</div>
+      <div class="brand-icon">
+        <span class="material-symbols-outlined">hub</span>
+      </div>
+      <div>
+        <div class="brand-title">Projectum</div>
+        <div class="brand-subtitle">Enterprise SaaS workspace</div>
+      </div>
     </div>
 
-    <nav class="top-nav">
-      <a class="top-link active">Apps</a>
-      <a class="top-link">Industries</a>
-      <a class="top-link">Community</a>
-      <a class="top-link">Prices</a>
-      <a class="top-link">Help</a>
-    </nav>
-
-    <div class="top-actions">
-
-        <button
-          class="signin-link"
-          type="button"
-          (click)="logout()">
-          Logout
-        </button>
-      <button class="signin-link" type="button">
-        Workspace
-      </button>
-
-      <button class="trial-btn" type="button">
-        Logged in
-      </button>
+    <div class="topbar-right">
       <div class="org-chip">
         <span class="org-chip-label">Organisation</span>
         <span class="org-chip-name">{{ currentOrganisationName }}</span>
       </div>
+      <button class="logout-btn" type="button" (click)="logout()">
+        <span class="material-symbols-outlined">logout</span>
+        <span>Sign out</span>
+      </button>
     </div>
   </header>
 
-  <section class="hero-section">
-    <div class="hero-inner">
-      <div class="hero-kicker">Projectum Workspace</div>
+  <main class="workspace-main">
+    <section class="workspace-hero">
+      <div>
+        <div class="eyebrow">Workspace launcher</div>
+        <h1>Select a workspace</h1>
+        <p>Open the business area you need. Available modules are controlled by your role and organisation permissions.</p>
+      </div>
 
-      <h1 class="hero-title">
-        All around
-        <span class="hero-highlight">project</span>
-      </h1>
-
-      <p class="hero-desc">
-        Simple, efficient and enterprise-ready!
-      </p>
-    </div>
-
-    <div class="hero-curve"></div>
-  </section>
-
-  <section class="apps-section">
-    <div class="apps-grid">
-
-      <button class="app-card live" type="button" (click)="openProjectum()">
-        <div class="app-icon-wrap projectum-bg">
-          <div class="tile-icon">
-            <svg viewBox="0 0 64 64" class="icon-svg">
-              <rect x="10" y="18" width="22" height="28" rx="7" fill="#2F80ED"></rect>
-              <rect x="30" y="12" width="24" height="34" rx="8" fill="#56CCF2"></rect>
-              <path d="M18 26h28" stroke="#fff" stroke-width="4" stroke-linecap="round"></path>
-              <path d="M18 34h20" stroke="#fff" stroke-width="4" stroke-linecap="round"></path>
-            </svg>
-          </div>
+      <div class="workspace-summary">
+        <div>
+          <strong>5</strong>
+          <span>active modules</span>
         </div>
-        <div class="app-name">Projectum</div>
-      </button>
-
-      <button class="app-card live" type="button" (click)="openMyDepartment()">
-        <div class="app-icon-wrap department-bg">
-          <div class="tile-icon">
-            <svg viewBox="0 0 64 64" class="icon-svg">
-              <rect x="10" y="24" width="14" height="24" rx="4" fill="#4F8EF7"></rect>
-              <rect x="26" y="16" width="14" height="32" rx="4" fill="#2D6CDF"></rect>
-              <rect x="42" y="10" width="12" height="38" rx="4" fill="#8BB8FF"></rect>
-            </svg>
-          </div>
+        <div>
+          <strong>2</strong>
+          <span>planned modules</span>
         </div>
-        <div class="app-name">My Department</div>
-      </button>
+      </div>
+    </section>
 
-      <button class="app-card live" type="button" (click)="openCrm()">
-        <div class="app-icon-wrap crm-bg">
-          <div class="tile-icon">
-            <svg viewBox="0 0 64 64" class="icon-svg">
-              <circle cx="24" cy="24" r="9" fill="#22c7b8"></circle>
-              <circle cx="41" cy="20" r="7" fill="#14a3ff"></circle>
-              <path d="M16 46c2-7 8-11 15-11 8 0 14 4 17 11" fill="#7b61ff"></path>
-            </svg>
-          </div>
+    <section class="apps-panel">
+      <div class="panel-head">
+        <div>
+          <h2>Applications</h2>
+          <p>Role-aware access to Projectum business modules.</p>
         </div>
-        <div class="app-name">My CRM</div>
-      </button>
+      </div>
 
-      <button *ngIf="canSeeAdmin()" class="app-card live" type="button" (click)="openAdmin()">
-        <div class="app-icon-wrap company-bg">
-          <div class="tile-icon">
-            <svg viewBox="0 0 64 64" class="icon-svg">
-              <rect x="14" y="18" width="36" height="34" rx="6" fill="#2F80ED"></rect>
-              <path d="M22 28h6M36 28h6M22 38h6M36 38h6" stroke="#fff" stroke-width="4" stroke-linecap="round"></path>
-              <path d="M26 18v-6h12v6" stroke="#56CCF2" stroke-width="4" stroke-linecap="round"></path>
-            </svg>
-          </div>
-        </div>
-        <div class="app-name">Admin</div>
-      </button>
+      <div class="apps-grid">
+        <button class="app-card live" type="button" (click)="openProjectum()">
+          <span class="app-icon projectum"><span class="material-symbols-outlined">account_tree</span></span>
+          <span class="app-meta">Portfolio & delivery</span>
+          <strong>Projectum</strong>
+          <small>Projects, schedules, finance, forecasts, risks and actions.</small>
+          <span class="app-open">Open <span class="material-symbols-outlined">arrow_forward</span></span>
+        </button>
 
-      <button class="app-card live" type="button" (click)="openMyCs()">
-        <div class="app-icon-wrap mycs-bg">
-          <div class="tile-icon">
-            <svg viewBox="0 0 64 64" class="icon-svg">
-              <rect x="12" y="14" width="40" height="36" rx="8" fill="#2563eb"></rect>
-              <path d="M22 26h20M22 34h14" stroke="#fff" stroke-width="4" stroke-linecap="round"></path>
-              <circle cx="45" cy="43" r="7" fill="#22c55e"></circle>
-            </svg>
-          </div>
-        </div>
-        <div class="app-name">MY CS</div>
-      </button>
+        <button class="app-card live" type="button" (click)="openMyDepartment()">
+          <span class="app-icon department"><span class="material-symbols-outlined">groups</span></span>
+          <span class="app-meta">Operations</span>
+          <strong>My Department</strong>
+          <small>Department workload, resources, holidays and planning.</small>
+          <span class="app-open">Open <span class="material-symbols-outlined">arrow_forward</span></span>
+        </button>
 
-      <button class="app-card" type="button" disabled>
-        <div class="app-icon-wrap expense-bg">
-          <div class="tile-icon">
-            <svg viewBox="0 0 64 64" class="icon-svg">
-              <rect x="16" y="12" width="32" height="40" rx="8" fill="#ff8a00"></rect>
-              <path d="M24 24h16M24 32h12M24 40h10" stroke="#fff" stroke-width="4" stroke-linecap="round"></path>
-            </svg>
-          </div>
-        </div>
-        <div class="app-name">My Expenses</div>
-      </button>
+        <button class="app-card live" type="button" (click)="openCrm()">
+          <span class="app-icon crm"><span class="material-symbols-outlined">handshake</span></span>
+          <span class="app-meta">Commercial</span>
+          <strong>My CRM</strong>
+          <small>Leads, opportunities, pipeline and commercial activity.</small>
+          <span class="app-open">Open <span class="material-symbols-outlined">arrow_forward</span></span>
+        </button>
 
-      <button class="app-card" type="button" disabled>
-        <div class="app-icon-wrap ticket-bg">
-          <div class="tile-icon">
-            <svg viewBox="0 0 64 64" class="icon-svg">
-              <path d="M14 24a6 6 0 0 0 6-6h24a6 6 0 0 0 6 6v16a6 6 0 0 0-6 6H20a6 6 0 0 0-6-6V24z" fill="#9b59b6"></path>
-              <path d="M32 18v28" stroke="#fff" stroke-width="4" stroke-dasharray="4 4" stroke-linecap="round"></path>
-            </svg>
-          </div>
-        </div>
-        <div class="app-name">My Ticketing</div>
-      </button>
-    </div>
-  </section>
+        <button *ngIf="canSeeAdmin()" class="app-card live" type="button" (click)="openAdmin()">
+          <span class="app-icon admin"><span class="material-symbols-outlined">admin_panel_settings</span></span>
+          <span class="app-meta">Administration</span>
+          <strong>Admin</strong>
+          <small>Resources, licences, customers, categories and security.</small>
+          <span class="app-open">Open <span class="material-symbols-outlined">arrow_forward</span></span>
+        </button>
+
+        <button class="app-card live" type="button" (click)="openMyCs()">
+          <span class="app-icon mycs"><span class="material-symbols-outlined">support_agent</span></span>
+          <span class="app-meta">Customer success</span>
+          <strong>MY CS</strong>
+          <small>Customer success project workspace and planning.</small>
+          <span class="app-open">Open <span class="material-symbols-outlined">arrow_forward</span></span>
+        </button>
+
+        <button class="app-card disabled" type="button" disabled>
+          <span class="app-icon expenses"><span class="material-symbols-outlined">receipt_long</span></span>
+          <span class="app-meta">Coming soon</span>
+          <strong>My Expenses</strong>
+          <small>Expense claims and approvals will be available later.</small>
+          <span class="app-open muted">Unavailable</span>
+        </button>
+
+        <button class="app-card disabled" type="button" disabled>
+          <span class="app-icon tickets"><span class="material-symbols-outlined">confirmation_number</span></span>
+          <span class="app-meta">Coming soon</span>
+          <strong>My Ticketing</strong>
+          <small>Support requests and internal ticket tracking.</small>
+          <span class="app-open muted">Unavailable</span>
+        </button>
+      </div>
+    </section>
+  </main>
 </div>

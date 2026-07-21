@@ -46,14 +46,7 @@ export class GmWorkspacesPageComponent implements OnInit {
   canSeeAdmin(): boolean {
     const roles = this.authService.getRoles();
 
-    return roles.includes('ROLE_PLATFORM_OWNER')
-      || roles.includes('PLATFORM_OWNER')
-      || roles.includes('ROLE_PLATFORM_ADMIN')
-      || roles.includes('PLATFORM_ADMIN')
-      || roles.includes('ROLE_ORG_ADMIN')
-      || roles.includes('ORG_ADMIN')
-      || roles.includes('ROLE_OWNER')
-      || roles.includes('OWNER');
+    return roles.includes('PLATFORM_OWNER');
   }
 
   logout(): void {
