@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
+import { AuthService } from 'src/app/core/auth/auth.service';
 
 @Component({
   selector: 'app-owner-layout',
@@ -7,4 +9,10 @@ import { Component } from '@angular/core';
 })
 export class OwnerLayoutComponent {
 
+  constructor(private auth: AuthService, private router: Router) {}
+
+  logout(): void {
+    this.auth.logout();
+    this.router.navigate(['/login']);
+  }
 }

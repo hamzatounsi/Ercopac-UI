@@ -1,0 +1,15 @@
+<div class="notice"><span class="material-symbols-outlined" aria-hidden="true">policy</span><div><strong>Platform-controlled permission policy</strong><span>You can assign organisation roles to users. Module permissions are shown here as read-only and are controlled by the Platform Owner.</span></div></div>
+<section *ngIf="loading" class="state">Loading roles and effective permissions…</section>
+<section *ngIf="!loading && errorMessage" class="state error" role="alert">{{ errorMessage }} <button type="button" (click)="load()">Try again</button></section>
+<section *ngIf="!loading && !errorMessage" class="role-grid">
+  <article *ngFor="let role of roles" class="role-card">
+    <header><span class="role-icon material-symbols-outlined" aria-hidden="true">{{ role.role === 'ORG_ADMIN' ? 'shield_person' : role.role === 'GENERAL_MANAGER' ? 'business_center' : role.role === 'DEPARTMENT_MANAGER' ? 'groups' : 'person' }}</span><div><h2>{{ role.label }}</h2><span class="role-code">{{ role.role }}</span></div><span class="count">{{ role.activeUsers }} active</span></header>
+    <p>{{ role.description }}</p>
+    <div class="user-count"><span>Assigned accounts</span><strong>{{ role.totalUsers }}</strong></div>
+    <h3>Effective module access</h3>
+    <ul *ngIf="role.permissions.length; else noPermissions">
+      <li *ngFor="let permission of role.permissions"><span>{{ permission.label }}</span><b [class.write]="permission.canWrite">{{ permission.canWrite ? 'Manage' : 'View' }}</b></li>
+    </ul>
+    <ng-template #noPermissions><div class="empty">No module access is currently configured.</div></ng-template>
+  </article>
+</section>

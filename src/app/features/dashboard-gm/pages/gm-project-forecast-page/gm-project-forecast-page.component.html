@@ -1,13 +1,9 @@
 <div class="forecast-shell">
-  <!-- TOP HEADER -->
-<app-gm-project-side-panel
+  <app-gm-project-side-panel
     [projectId]="projectId"
     currentPage="forecast">
   </app-gm-project-side-panel>
 
-  <app-projectum-project-header></app-projectum-project-header>
-
-  <!-- TOOLBAR -->
   <div id="toolbar">
     <span class="tb-lbl">View:</span>
 
@@ -18,11 +14,19 @@
 
     <div class="tb-sep"></div>
 
-    <button class="tb-icon-btn">«</button>
-    <button class="tb-icon-btn">‹</button>
-    <button class="tb-btn tb-today">Today</button>
-    <button class="tb-icon-btn">›</button>
-    <button class="tb-icon-btn">»</button>
+    <button class="tb-icon-btn" type="button" title="Jump to previous">
+      <span class="material-symbols-outlined">first_page</span>
+    </button>
+    <button class="tb-icon-btn" type="button" title="Previous period">
+      <span class="material-symbols-outlined">chevron_left</span>
+    </button>
+    <button class="tb-btn tb-today" type="button">Today</button>
+    <button class="tb-icon-btn" type="button" title="Next period">
+      <span class="material-symbols-outlined">chevron_right</span>
+    </button>
+    <button class="tb-icon-btn" type="button" title="Jump to next">
+      <span class="material-symbols-outlined">last_page</span>
+    </button>
 
     <div class="tb-sep"></div>
 
@@ -39,42 +43,35 @@
     </select>
 
     <select class="tb-sel small">
-      <option>EUR €</option>
+      <option>EUR</option>
     </select>
 
     <div class="tb-spacer"></div>
 
-    <button class="save-btn" (click)="loadData()">💾 Save</button>
+    <button class="save-btn" (click)="loadData()">Refresh</button>
   </div>
 
-  <!-- PROJECT BAR -->
-<div class="project-strip">
-  <div class="project-label">📁 Project:</div>
-  <div class="project-select">
-    <span class="project-code">{{ projectLabel }}</span>
-    <span class="project-caret">▾</span>
-  </div>
-  <div class="project-chip">{{ projectShortName }}</div>
-</div>
-
-  <div *ngIf="error" class="error-box">
-    {{ error }}
+  <div class="project-strip">
+    <div class="project-label">Project</div>
+    <div class="project-select">
+      <span class="project-code">{{ projectLabel }}</span>
+      <span class="project-caret material-symbols-outlined">expand_more</span>
+    </div>
+    <div class="project-chip">{{ projectShortName }}</div>
   </div>
 
-  <div class="loading-box" *ngIf="loading">
-    Loading forecast...
-  </div>
+  <div *ngIf="error" class="error-box">{{ error }}</div>
+  <div class="loading-box" *ngIf="loading">Loading forecast...</div>
 
   <div id="main-wrap" *ngIf="!loading">
-    <!-- LEFT GRID -->
     <div id="wbs-panel">
       <div id="wbs-panel-hdr">
         <div class="col-wbs hdr-cell">WBS</div>
-        <div class="col-icon hdr-cell">◧</div>
-        <div class="col-type hdr-cell">TYPE</div>
-        <div class="col-budget hdr-cell">BUDGET</div>
-        <div class="col-actual hdr-cell">ACTUAL</div>
-        <div class="col-remaining hdr-cell">REMAINING</div>
+        <div class="col-icon hdr-cell">Type</div>
+        <div class="col-type hdr-cell">Description</div>
+        <div class="col-budget hdr-cell">Budget</div>
+        <div class="col-actual hdr-cell">Actual</div>
+        <div class="col-remaining hdr-cell">Remaining</div>
       </div>
 
       <div id="wbs-list-body">
@@ -84,7 +81,7 @@
           </div>
 
           <div class="col-icon icon-cell">
-            <span class="row-folder" *ngIf="row.level === 1">📁</span>
+            <span class="row-folder material-symbols-outlined" *ngIf="row.level === 1">folder</span>
           </div>
 
           <div class="col-type type-cell">
@@ -94,13 +91,8 @@
             </span>
           </div>
 
-          <div class="col-budget money">
-            {{ formatBudgetOrHours(row) }}
-          </div>
-
-          <div class="col-actual money actual-cell">
-            {{ formatActualOrHours(row) }}
-          </div>
+          <div class="col-budget money">{{ formatBudgetOrHours(row) }}</div>
+          <div class="col-actual money actual-cell">{{ formatActualOrHours(row) }}</div>
 
           <div class="col-remaining money remaining-cell">
             <div class="remaining-wrap">
@@ -112,13 +104,10 @@
           </div>
         </div>
 
-        <div *ngIf="filteredRows.length === 0" class="empty-box">
-          No forecast rows found.
-        </div>
+        <div *ngIf="filteredRows.length === 0" class="empty-box">No forecast rows found.</div>
       </div>
     </div>
 
-    <!-- RIGHT GRID -->
     <div id="cal-panel">
       <div id="cal-hdr">
         <div class="year-strip">
@@ -130,7 +119,7 @@
           <div class="period-cell" *ngFor="let period of getPeriodKeys()">
             {{ formatMonth(period) }}
           </div>
-          <div class="period-total">TOTAL F</div>
+          <div class="period-total">Total Forecast</div>
         </div>
       </div>
 
@@ -138,9 +127,7 @@
         <div id="cal-canvas">
           <div class="cal-row" *ngFor="let row of filteredRows">
             <div class="f-cell" *ngFor="let period of getPeriodKeys()">
-              <span class="cell-text">
-                {{ formatForecastCell(row, period) }}
-              </span>
+              <span class="cell-text">{{ formatForecastCell(row, period) }}</span>
             </div>
 
             <div class="f-cell-total">
@@ -182,7 +169,7 @@
     <div class="ftr-sep"></div>
 
     <div class="footer-item">
-      <span class="ftr-lbl">VARIANCE (B − EAC)</span>
+      <span class="ftr-lbl">VARIANCE (B - EAC)</span>
       <span class="ftr-val" [class.pos]="summary.totalVariance >= 0" [class.neg]="summary.totalVariance < 0">
         {{ formatMoney(summary.totalVariance) }}
       </span>

@@ -11,6 +11,7 @@ import { LoginComponent } from './features/login/login.component';
 import { DashboardDmComponent } from './features/dashboard-dm/dashboard-dm.component';
 import { DashboardEmployeeComponent } from './features/dashboard-employee/dashboard-employee.component';
 import { DashboardDepartmentModule } from './features/dashboard-department/dashboard-department.module';
+import { ForbiddenComponent } from './features/forbidden/forbidden.component';
 
 
 @NgModule({
@@ -19,6 +20,7 @@ import { DashboardDepartmentModule } from './features/dashboard-department/dashb
     LoginComponent,
     DashboardDmComponent,
     DashboardEmployeeComponent,
+    ForbiddenComponent,
   ],
   imports: [
     BrowserModule,

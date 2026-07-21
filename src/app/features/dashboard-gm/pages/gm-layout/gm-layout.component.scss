@@ -1,17 +1,30 @@
 .shell {
-  min-height: 100vh;
+  height: 100dvh;
   background: #f6f8fb;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.shell-header {
+  display: block;
+  flex: 0 0 auto;
+  width: 100%;
+  position: relative;
+  z-index: 900;
 }
 
 .main-content {
-  min-height: 100vh;
+  min-height: 0;
+  flex: 1 1 auto;
   padding: 0;
   box-sizing: border-box;
-  overflow-y: auto;
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .no-sidebar-shell {
-  display: block;
+  display: flex;
 }
 
 
@@ -21,6 +34,6 @@
 
 @media (max-width: 768px) {
   .main-content {
-    padding: 1rem;
+    padding: 0;
   }
 }

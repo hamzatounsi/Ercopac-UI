@@ -1,5 +1,18 @@
 <div class="shell no-sidebar-shell">
-  <main class="main-content full-width">
+  <app-projectum-project-header
+    *ngIf="showSharedHeader"
+    class="shell-header">
+    <button class="main-menu-btn" type="button" routerLink="/gm">
+      <span class="material-symbols-outlined">home</span>
+      <span>Main Menu</span>
+    </button>
+  </app-projectum-project-header>
+
+  <main
+    class="main-content full-width"
+    [class.has-shared-header]="showSharedHeader"
+    id="gm-main-content"
+    tabindex="-1">
     <router-outlet></router-outlet>
   </main>
 </div>

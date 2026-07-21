@@ -8,7 +8,7 @@
 }
 
 .finance-shell {
-  --bg: #edf0f4;
+  --bg: #f5f8fc;
   --surface: #ffffff;
   --border: #dbe3ed;
   --border2: #c8d4e3;
@@ -32,13 +32,14 @@
 
 /* TOP TOOLBAR */
 .erp-toolbar {
-  height: 56px;
+  min-height: 56px;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 18px;
+  padding: 10px 18px;
   background: #fff;
   border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
 }
 
 .tb-btn {
@@ -56,6 +57,12 @@
 .tb-btn.green {
   border-color: #6dd38c;
   color: #138f43;
+}
+
+.tb-btn:hover,
+.tb-sel:hover,
+.tb-search:hover {
+  border-color: #93c5fd;
 }
 
 .file-btn {
@@ -126,9 +133,9 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 18px;
-  background: #f0f7ff;
-  border-bottom: 2px solid #bfd6f6;
+  padding: 12px 18px;
+  background: #ffffff;
+  border-bottom: 1px solid var(--border);
 }
 
 .proj-label {
@@ -141,8 +148,8 @@
 .project-selector-box {
   flex: 1;
   height: 36px;
-  border: 1.5px solid #90bdf0;
-  background: #fff;
+  border: 1px solid var(--border2);
+  background: #f8fafc;
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -154,7 +161,7 @@
 .project-selector-value {
   font-size: 14px;
   font-weight: 800;
-  color: #163a63;
+  color: #0f172a;
 }
 
 .project-selector-arrow {
@@ -176,16 +183,20 @@
 .kpi-strip {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  border-bottom: 2px solid var(--border2);
-  background: var(--border);
-  gap: 1px;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  gap: 12px;
+  padding: 14px 18px 0;
 }
 
 .kpi-cell {
   background: #fff;
   min-height: 88px;
-  padding: 14px 18px 12px;
+  padding: 14px 16px 12px;
   position: relative;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
 }
 
 .kpi-cell::before {
@@ -239,13 +250,16 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) 385px;
   min-height: calc(100vh - 200px);
+  gap: 16px;
+  padding: 16px 18px 18px;
 }
 
 /* TABLE */
 .table-wrap {
   background: #fff;
   overflow: auto;
-  border-right: 1px solid var(--border2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
 }
 
 #wbs-table {
@@ -258,14 +272,14 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  background: #f1f5f9;
+  background: #f8fafc;
   color: #52667d;
   text-transform: uppercase;
   font-size: 11px;
   font-weight: 900;
   letter-spacing: 0.06em;
-  border-bottom: 2px solid var(--border2);
-  padding: 11px 12px;
+  border-bottom: 1px solid var(--border2);
+  padding: 10px 12px;
   text-align: right;
   white-space: nowrap;
   cursor: pointer;
@@ -278,7 +292,7 @@
 }
 
 #wbs-table tbody td {
-  padding: 11px 12px;
+  padding: 9px 12px;
   border-bottom: 1px solid #e9eff5;
   white-space: nowrap;
   text-align: right;
@@ -313,7 +327,7 @@
 }
 
 .row-l1 {
-  background: #f0f7ff;
+  background: #f8fbff;
 }
 
 .row-l1 td {
@@ -321,7 +335,7 @@
 }
 
 .row-l2 {
-  background: #fafcff;
+  background: #ffffff;
 }
 
 .owner-cell {
@@ -407,6 +421,8 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 14px;
 }
 
 .chart-sidebar-hdr {
@@ -414,12 +430,13 @@
   border-bottom: 1px solid var(--border);
   font-size: 14px;
   font-weight: 900;
-  color: #163a63;
+  color: #0f172a;
 }
 
 .chart-section {
   padding: 14px 16px;
   border-bottom: 1px solid #edf2f7;
+  background: #ffffff;
 }
 
 .chart-title {
@@ -493,7 +510,7 @@
 .settings-modal {
   width: min(1900px, 100%);
   height: calc(100vh - 44px);
-  background: #edf1f6;
+  background: #f5f8fc;
   border-radius: 18px;
   overflow: hidden;
   display: flex;
@@ -514,7 +531,7 @@
 .settings-title {
   font-size: 20px;
   font-weight: 900;
-  color: #123560;
+  color: #0f172a;
 }
 
 .settings-header-actions {
@@ -560,6 +577,7 @@
 .settings-content {
   padding: 26px 40px;
   overflow: auto;
+  background: #f8fafc;
 }
 
 .settings-section h2 {

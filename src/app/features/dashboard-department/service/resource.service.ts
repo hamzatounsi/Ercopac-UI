@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_RESOURCES_URL } from 'src/app/core/config/api.config';
 
 import { ResourceListItem } from '../models/resource-list-item.model';
 import { ResourceDetails } from '../models/resource-details.model';
@@ -13,7 +14,7 @@ import { PageResponse } from '../models/page-response.model';
   providedIn: 'root'
 })
 export class ResourceService {
-  private readonly apiUrl = 'http://localhost:8090/api/resources';
+  private readonly apiUrl = API_RESOURCES_URL;
 
   constructor(private http: HttpClient) {}
 

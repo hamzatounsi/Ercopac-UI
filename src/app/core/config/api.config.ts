@@ -11,4 +11,6 @@ export const API_GM_DASHBOARD_URL = `${API_BASE_URL}/gm/dashboard`;
 export const API_FINANCE_SETTINGS_URL = `${API_BASE_URL}/finance/settings`;
 export const API_GM_URL = `${API_BASE_URL}/gm`;
 export const API_ADMIN_URL = `${API_BASE_URL}/admin`;
+export const API_ORG_ADMIN_URL = `${API_BASE_URL}/org-admin`;
 export const API_PLATFORM_URL = `${API_BASE_URL}/platform`;
+export const API_DEPARTMENT_DASHBOARD_URL = `${API_BASE_URL}/department-dashboard`;

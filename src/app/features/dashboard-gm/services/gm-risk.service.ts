@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { RiskItem } from '../models/risk-item.model';
 import { RiskSummary } from '../models/risk-summary.model';
-import { API_PROJECTS_URL } from 'src/app/core/config/api.config';
+import { API_BASE_URL, API_PROJECTS_URL } from 'src/app/core/config/api.config';
 import { RiskApprovalRule, UpsertRiskApprovalRuleRequest } from '../models/risk-approval-rule.model';
 import { ResourceTypeDto } from '../models/resource-type.model';
 @Injectable({
@@ -35,7 +35,7 @@ export class GmRiskService {
   }
 
 getAllPendingApprovals(): Observable<RiskItem[]> {
-  return this.http.get<RiskItem[]>(`http://localhost:8087/api/risks/pending-approvals`);
+  return this.http.get<RiskItem[]>(`${API_BASE_URL}/risks/pending-approvals`);
 }
 
   approveRisk(projectId: number, riskId: number): Observable<RiskItem> {
@@ -45,29 +45,29 @@ getAllPendingApprovals(): Observable<RiskItem[]> {
   rejectRisk(projectId: number, riskId: number): Observable<RiskItem> {
     return this.http.post<RiskItem>(`${this.baseUrl}/${projectId}/risks/${riskId}/reject`, {});
   }
-  getApprovalRules(projectId: number): Observable<RiskApprovalRule[]> {
+getApprovalRules(projectId: number): Observable<RiskApprovalRule[]> {
   return this.http.get<RiskApprovalRule[]>(
-    `http://localhost:8087/api/projects/${projectId}/risks/approval-rules`
+    `${this.baseUrl}/${projectId}/risks/approval-rules`
   );
 }
 
 createApprovalRule(projectId: number, payload: UpsertRiskApprovalRuleRequest): Observable<RiskApprovalRule> {
   return this.http.post<RiskApprovalRule>(
-    `http://localhost:8087/api/projects/${projectId}/risks/approval-rules`,
+    `${this.baseUrl}/${projectId}/risks/approval-rules`,
     payload
   );
 }
 
 updateApprovalRule(projectId: number, ruleId: number, payload: UpsertRiskApprovalRuleRequest): Observable<RiskApprovalRule> {
   return this.http.put<RiskApprovalRule>(
-    `http://localhost:8087/api/projects/${projectId}/risks/approval-rules/${ruleId}`,
+    `${this.baseUrl}/${projectId}/risks/approval-rules/${ruleId}`,
     payload
   );
 }
 
 deleteApprovalRule(projectId: number, ruleId: number): Observable<void> {
   return this.http.delete<void>(
-    `http://localhost:8087/api/projects/${projectId}/risks/approval-rules/${ruleId}`
+    `${this.baseUrl}/${projectId}/risks/approval-rules/${ruleId}`
   );
 }
 // Returns ResourceTypeDto[] not string[]

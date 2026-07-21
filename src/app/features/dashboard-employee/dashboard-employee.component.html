@@ -1,1 +1,66 @@
-<p>dashboard-employee works!</p>
+<section class="employee-shell">
+  <header class="employee-header">
+    <div>
+      <div class="eyebrow">Employee workspace</div>
+      <h1>{{ userName }}</h1>
+      <p>{{ role }}</p>
+    </div>
+
+    <button type="button" class="signout" (click)="logout()">Sign out</button>
+  </header>
+
+  <div class="state error" *ngIf="error">
+    {{ error }}
+    <button type="button" (click)="loadTasks()">Retry</button>
+  </div>
+
+  <div class="state" *ngIf="loading">Loading your workspace...</div>
+
+  <main class="employee-grid" *ngIf="!loading">
+    <section class="panel">
+      <div class="panel-head">
+        <h2>My Tasks</h2>
+        <span>{{ tasks.length }}</span>
+      </div>
+
+      <div class="empty" *ngIf="!tasks.length && !error">
+        No assigned tasks yet.
+      </div>
+
+      <article class="task-row" *ngFor="let task of tasks">
+        <div>
+          <strong>{{ task.name }}</strong>
+          <small>Project #{{ task.projectId }}<span *ngIf="task.wbsCode"> · {{ task.wbsCode }}</span></small>
+        </div>
+        <div class="task-meta">
+          <span>{{ task.status || 'NOT_STARTED' }}</span>
+          <span>{{ task.percentComplete || 0 }}%</span>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>My Schedule</h2>
+      </div>
+
+      <div class="empty" *ngIf="!upcomingTasks.length">
+        No scheduled tasks to show.
+      </div>
+
+      <article class="schedule-row" *ngFor="let task of upcomingTasks">
+        <div>
+          <strong>{{ task.name }}</strong>
+          <small>{{ task.plannedStart || 'No start' }} - {{ task.plannedEnd || 'No end' }}</small>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel notifications">
+      <div class="panel-head">
+        <h2>Notifications</h2>
+      </div>
+      <div class="empty">No notifications requiring your attention.</div>
+    </section>
+  </main>
+</section>

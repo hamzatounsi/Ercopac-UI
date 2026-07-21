@@ -119,10 +119,7 @@ export class GmProjectRisksPageComponent implements OnInit {
  loadProjectName(): void {
   this.dashboardService.getProjects().subscribe({
     next: (projects) => {
-      console.log('PROJECTS:', JSON.stringify(projects?.slice(0,2)));
-      console.log('LOOKING FOR ID:', this.projectId, typeof this.projectId);
       const project = (projects ?? []).find((p: any) => p.id === this.projectId);
-      console.log('FOUND PROJECT:', project);
       this.projectName = project?.name || `Project #${this.projectId}`;
     },
     error: (err) => {
@@ -699,10 +696,16 @@ export class GmProjectRisksPageComponent implements OnInit {
   }
 
   getRiskValue(row: RiskItem): number {
-    const impactNum = parseInt(row.impact || '1', 10);
-    const prob = row.probability || 10;
-    if (isNaN(impactNum)) return prob;
-    return impactNum * prob;
+    let impact = parseInt(row.impact || '1', 10);
+    if (isNaN(impact)) impact = 1;
+    impact = Math.max(1, Math.min(5, impact));
+
+    let probability = Number(row.probability || 10);
+    probability = Math.max(10, Math.min(100, probability));
+
+    const probabilityScore = Math.max(1, Math.min(5, Math.ceil(probability / 20)));
+
+    return impact * probabilityScore;
   }
 
   getRiskLevel(row: RiskItem): 'low' | 'med' | 'hi' | 'crit' {

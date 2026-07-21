@@ -1,50 +1,58 @@
 <div class="dashboard-page">
-  <div class="topbar">
-    <div>
-      <h1>General Manager Dashboard</h1>
-      <p class="topbar-sub">Portfolio overview • time health • quick KPIs</p>
+  <section class="hero">
+    <div class="hero-copy">
+      <div class="eyebrow">General Manager workspace</div>
+      <h1>Project Portfolio</h1>
+      <p>Executive view of the active portfolio, delivery health and upcoming work.</p>
     </div>
 
-    <div class="topbar-actions">
-      <button routerLink="/gm/projects/schedule-init" class="new-project-btn">
+    <div class="hero-actions">
+      <button routerLink="/gm/projects/schedule-init" class="secondary-btn">
         Project Schedule Initialization
       </button>
-
-      <button class="btn" (click)="load()">Refresh</button>
-    </div>
-  </div>
-
-  <div class="toolbar">
-    <input [(ngModel)]="search" placeholder="Search by code or name..." />
-  </div>
-
-  <div *ngIf="loading" class="state">Loading projects...</div>
-  <div *ngIf="!loading && error" class="state error">{{ error }}</div>
-
-  <section class="kpis" *ngIf="!loading && !error">
-    <div class="kpi">
-      <div class="label">Total Projects</div>
-      <div class="value">{{ totalProjects }}</div>
-      <div class="hint">Projects currently tracked</div>
-    </div>
-
-    <div class="kpi">
-      <div class="label">Delayed</div>
-      <div class="value">{{ delayedCount }}</div>
-      <div class="hint">Past planned end date</div>
-    </div>
-
-    <div class="kpi">
-      <div class="label">Need Attention</div>
-      <div class="value">{{ attentionCount }}</div>
-      <div class="hint">Ending soon</div>
+      <button class="primary-btn" (click)="load()">
+        Refresh
+      </button>
     </div>
   </section>
 
-  <section class="card" *ngIf="!loading && !error">
-    <div class="card-header">
-      <div class="card-title">Projects</div>
-      <div class="card-subtitle">Time health is computed from planned dates (phase 1)</div>
+  <section class="search-strip">
+    <div class="search-field">
+      <span class="material-symbols-outlined">search</span>
+      <input [(ngModel)]="search" placeholder="Search by code or name" />
+    </div>
+    <div class="search-hint">{{ filtered().length }} / {{ totalProjects }} projects</div>
+  </section>
+
+  <div *ngIf="loading" class="state-card">Loading projects...</div>
+  <div *ngIf="!loading && error" class="state-card error">{{ error }}</div>
+
+  <section class="kpi-grid" *ngIf="!loading && !error">
+    <article class="kpi-card">
+      <span class="kpi-label">Total Projects</span>
+      <strong class="kpi-value">{{ totalProjects }}</strong>
+      <small>Projects currently tracked</small>
+    </article>
+
+    <article class="kpi-card warning">
+      <span class="kpi-label">Delayed</span>
+      <strong class="kpi-value">{{ delayedCount }}</strong>
+      <small>Past planned end date</small>
+    </article>
+
+    <article class="kpi-card attention">
+      <span class="kpi-label">Need Attention</span>
+      <strong class="kpi-value">{{ attentionCount }}</strong>
+      <small>Ending soon</small>
+    </article>
+  </section>
+
+  <section class="panel" *ngIf="!loading && !error">
+    <div class="panel-head">
+      <div>
+        <h2>Projects</h2>
+        <p>Time health is computed from planned dates.</p>
+      </div>
     </div>
 
     <div class="table-wrap">
@@ -62,7 +70,9 @@
         <tbody>
           <tr *ngFor="let p of filtered(); trackBy: trackById" class="clickable" [routerLink]="['/gm/projects', p.id]">
             <td class="mono">{{ p.code }}</td>
-            <td>{{ p.name }}</td>
+            <td>
+              <div class="project-name">{{ p.name }}</div>
+            </td>
             <td>{{ p.plannedStart ? (p.plannedStart | date:'mediumDate') : '-' }}</td>
             <td>{{ p.plannedEnd ? (p.plannedEnd | date:'mediumDate') : '-' }}</td>
             <td><app-health-badge [value]="p.timeHealth ?? 'NA'"></app-health-badge></td>
@@ -71,7 +81,7 @@
       </table>
 
       <ng-template #empty>
-        <div class="state">No projects found.</div>
+        <div class="state-card">No projects found.</div>
       </ng-template>
     </div>
   </section>

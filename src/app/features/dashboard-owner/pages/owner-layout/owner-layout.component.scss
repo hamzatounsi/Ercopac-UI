@@ -1,14 +1,14 @@
 .owner-shell {
   height: 100vh;
   display: flex;
-  background: #f3f6fb;
-  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-  color: #172033;
+  background: var(--pm-bg);
+  font-family: var(--pm-font-sans);
+  color: var(--pm-text);
 }
 
 .owner-sidebar {
   width: 276px;
-  background: linear-gradient(180deg, #0f172a 0%, #13233f 55%, #10243d 100%);
+  background: linear-gradient(180deg, #172033 0%, #18324f 100%);
   color: #94a3b8;
   display: flex;
   flex-direction: column;
@@ -29,25 +29,25 @@
 .owner-card-icon {
   width: 42px;
   height: 42px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #2563eb, #06b6d4);
+  border-radius: var(--pm-radius);
+  background: var(--pm-primary);
   color: #ffffff;
   display: grid;
   place-items: center;
   font-size: 18px;
   font-weight: 900;
-  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.35);
+  box-shadow: 0 10px 24px rgba(40, 95, 147, 0.28);
 }
 
 .brand-title {
   font-size: 18px;
   font-weight: 900;
   color: #ffffff;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
 }
 
 .brand-title span {
-  color: #38bdf8;
+  color: #bfdbfe;
 }
 
 .brand-subtitle {
@@ -66,7 +66,7 @@
 .nav-item {
   height: 46px;
   padding: 0 16px;
-  border-radius: 12px;
+  border-radius: var(--pm-radius);
   display: flex;
   align-items: center;
   gap: 13px;
@@ -74,7 +74,7 @@
   text-decoration: none;
   font-size: 14px;
   font-weight: 600;
-  transition: 0.18s ease;
+  transition: background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .nav-item:hover {
@@ -83,9 +83,16 @@
 }
 
 .nav-item.active {
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.95), rgba(14, 165, 233, 0.9));
+  background: var(--pm-primary);
   color: #ffffff;
-  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.28);
+  box-shadow: 0 10px 22px rgba(40, 95, 147, 0.28);
+}
+
+.nav-item .material-symbols-outlined {
+  width: 20px;
+  font-size: 20px;
+  line-height: 1;
+  color: inherit;
 }
 
 .sidebar-bottom {
@@ -100,12 +107,20 @@
   background: transparent;
   border: none;
   color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  gap: 13px;
   text-align: left;
   padding: 0 16px;
-  border-radius: 12px;
+  border-radius: var(--pm-radius);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+}
+
+.signout-btn .material-symbols-outlined {
+  width: 20px;
+  font-size: 20px;
 }
 
 .signout-btn:hover {
@@ -117,7 +132,7 @@
   margin-top: 12px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
+  border-radius: var(--pm-radius-lg);
   padding: 13px;
   display: flex;
   align-items: center;
@@ -148,6 +163,6 @@
   flex: 1;
   overflow: auto;
   background:
-    radial-gradient(circle at top right, rgba(37, 99, 235, 0.08), transparent 32%),
-    #f3f6fb;
+    radial-gradient(circle at top right, rgba(40, 95, 147, 0.08), transparent 32%),
+    var(--pm-bg);
 }

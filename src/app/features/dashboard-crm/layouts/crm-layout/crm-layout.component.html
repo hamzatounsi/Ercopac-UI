@@ -1,12 +1,7 @@
-<!-- Path: src/app/features/dashboard-crm/layouts/crm-layout/crm-layout.component.html -->
-
 <div class="crm-shell">
-
-  <!-- LEFT SIDEBAR -->
   <aside class="crm-sidebar">
-
     <div class="crm-brand">
-      <span class="crm-brand-icon">📊</span>
+      <span class="material-symbols-outlined crm-brand-icon">analytics</span>
       <span class="crm-brand-name">Projectum CRM</span>
     </div>
 
@@ -53,19 +48,19 @@
         </div>
       </div>
     </div>
-
   </aside>
 
-  <!-- MAIN CONTENT -->
   <div class="crm-main">
-
     <header class="crm-topbar">
       <div class="crm-search-wrap">
         <span class="material-symbols-outlined search-icon">search</span>
         <input class="crm-search" placeholder="Search records..." />
       </div>
       <div class="crm-topbar-right">
-        <button class="back-btn" (click)="goBack()">← Back to Projectum</button>
+        <button class="back-btn" (click)="goBack()">
+          <span class="material-symbols-outlined">arrow_back</span>
+          Back to Projectum
+        </button>
         <div class="crm-user-avatar">AM</div>
       </div>
     </header>
@@ -73,6 +68,5 @@
     <main class="crm-content">
       <router-outlet></router-outlet>
     </main>
-
   </div>
 </div>

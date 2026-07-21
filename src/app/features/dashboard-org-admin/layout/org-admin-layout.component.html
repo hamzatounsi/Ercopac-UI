@@ -1,0 +1,83 @@
+<a class="skip-link" href="#org-admin-content">Skip to administration content</a>
+
+<div class="oa-shell">
+  <header class="oa-topbar">
+    <div class="oa-brand">
+      <span class="oa-logo" aria-hidden="true">
+        <span class="material-symbols-outlined">hub</span>
+      </span>
+      <div>
+        <strong>Projectum</strong>
+        <span>Organisation administration</span>
+      </div>
+    </div>
+
+    <button
+      class="oa-menu-button"
+      type="button"
+      (click)="toggleNavigation()"
+      [attr.aria-expanded]="mobileNavigationOpen"
+      aria-controls="organisation-admin-navigation">
+      <span class="material-symbols-outlined" aria-hidden="true">menu</span>
+      <span>Menu</span>
+    </button>
+
+    <div class="oa-account">
+      <div class="oa-org-chip">
+        <span>Organisation</span>
+        <strong>{{ organisationName }}</strong>
+      </div>
+      <div class="oa-user">
+        <span class="oa-avatar" aria-hidden="true">{{ currentUserName.charAt(0) | uppercase }}</span>
+        <div><strong>{{ currentUserName }}</strong><span>Organisation Admin</span></div>
+      </div>
+      <button class="oa-signout" type="button" (click)="logout()" aria-label="Sign out">
+        <span class="material-symbols-outlined" aria-hidden="true">logout</span>
+        <span>Sign out</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="oa-body">
+    <div class="oa-nav-backdrop" *ngIf="mobileNavigationOpen" (click)="toggleNavigation()"></div>
+    <aside
+      id="organisation-admin-navigation"
+      class="oa-sidebar"
+      [class.open]="mobileNavigationOpen">
+      <div class="oa-sidebar-heading">
+        <span>Administration</span>
+        <small>Tenant-scoped controls</small>
+      </div>
+      <nav aria-label="Organisation administration">
+        <a
+          *ngFor="let item of navItems"
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          ariaCurrentWhenActive="page"
+          [routerLinkActiveOptions]="{ exact: true }">
+          <span class="material-symbols-outlined" aria-hidden="true">{{ item.icon }}</span>
+          <span>{{ item.label }}</span>
+        </a>
+      </nav>
+      <div class="oa-scope-note">
+        <span class="material-symbols-outlined" aria-hidden="true">verified_user</span>
+        <p><strong>Organisation isolated</strong>Your access is limited to {{ organisationName }}.</p>
+      </div>
+    </aside>
+
+    <main id="org-admin-content" class="oa-main" tabindex="-1">
+      <header class="oa-page-header">
+        <div class="oa-breadcrumb" aria-label="Breadcrumb">
+          <span>Organisation administration</span>
+          <span aria-hidden="true">/</span>
+          <strong>{{ pageTitle }}</strong>
+        </div>
+        <h1>{{ pageTitle }}</h1>
+        <p>{{ pageDescription }}</p>
+      </header>
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>
+
+<app-admin-toast></app-admin-toast>

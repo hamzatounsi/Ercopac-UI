@@ -1,15 +1,21 @@
-<header class="app-header light-header">
+<header class="app-header">
   <div class="app-brand">
     <div class="app-logo">
-      <span class="material-symbols-outlined">calendar_month</span>
+      <span class="material-symbols-outlined">folder_managed</span>
     </div>
 
     <div class="app-brand-text">
       <div class="app-name">Projectum</div>
-      <div class="app-sub">all around project</div>
+      <div class="app-sub">GM workspace</div>
     </div>
   </div>
 
+  <div class="app-breadcrumb">
+    <span class="crumb">General Manager</span>
+    <span class="crumb-sep">/</span>
+    <span class="crumb current">Projectum</span>
+    <ng-content select="[breadcrumb]"></ng-content>
+  </div>
 
   <div class="hdr-right">
     <ng-content></ng-content>

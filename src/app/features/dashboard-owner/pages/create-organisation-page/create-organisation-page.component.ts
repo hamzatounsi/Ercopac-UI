@@ -95,8 +95,6 @@ export class CreateOrganisationPageComponent {
     }
 
     this.loading = true;
-    console.log('CREATE ORG PAYLOAD', this.form);
-
     this.service.createOrganisationWithAdmin(this.form).subscribe({
       next: (res) => {
         this.loading = false;
