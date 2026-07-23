@@ -739,6 +739,19 @@ export class GmProjectRisksPageComponent implements OnInit {
     return this.sortDirection === 'asc' ? 'sort-asc' : 'sort-desc';
   }
 
+  // ─── Overdue ──────────────────────────────────────────────────
+
+  isOverdue(row: RiskItem): boolean {
+    if (!row.dueDate || row.state === 'closed') {
+      return false;
+    }
+    const due = new Date(row.dueDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    due.setHours(0, 0, 0, 0);
+    return due < today;
+  }
+
   getNetExposure(): number { return this.summary?.netExposureScore ?? 0; }
   getOpenRisksCount(): number { return this.rows.filter(r => r.state !== 'closed' && r.riskType !== 'opportunity').length; }
   getOpenOpportunitiesCount(): number { return this.rows.filter(r => r.state !== 'closed' && r.riskType === 'opportunity').length; }
