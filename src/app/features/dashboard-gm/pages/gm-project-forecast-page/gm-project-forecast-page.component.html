@@ -48,6 +48,8 @@
 
     <div class="tb-spacer"></div>
 
+    <span class="saving-indicator" *ngIf="saving">Saving...</span>
+
     <button class="save-btn" (click)="loadData()">Refresh</button>
   </div>
 
@@ -126,8 +128,19 @@
       <div id="cal-body-wrap">
         <div id="cal-canvas">
           <div class="cal-row" *ngFor="let row of filteredRows">
+            <!-- PHASE Forecast : cellule éditable, désactivée sur les lignes Summary
+                 pour éviter le double comptage dans getSummary() côté backend
+                 (qui additionne toutes les lignes sans filtrer par niveau) -->
             <div class="f-cell" *ngFor="let period of getPeriodKeys()">
-              <span class="cell-text">{{ formatForecastCell(row, period) }}</span>
+              <input
+                type="number"
+                class="cell-input"
+                min="0"
+                [ngModel]="getCellAmount(row, period)"
+                (change)="onCellChange(row, period, $any($event.target).value)"
+                [disabled]="saving || getTypeLabel(row) === '—'"
+                [attr.title]="getTypeLabel(row) === '—' ? 'Summary row — computed from children, not directly editable' : (getTypeLabel(row) === 'Hours' ? 'Hours' : 'Amount')"
+              />
             </div>
 
             <div class="f-cell-total">

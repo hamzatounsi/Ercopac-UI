@@ -247,8 +247,18 @@
             <div class="kb-col-count">{{ getKanbanRows(s).length }}</div>
           </div>
 
-          <div class="kb-col-body">
-            <div class="kb-card" *ngFor="let row of getKanbanRows(s)" (click)="openDetail(row)">
+          <div class="kb-col-body"
+               [class.drag-over]="dragOverStatus === s"
+               (dragover)="onDragOver($event)"
+               (dragenter)="onDragEnterColumn(s)"
+               (dragleave)="onDragLeaveColumn(s)"
+               (drop)="onDrop($event, s)">
+            <div class="kb-card"
+                 *ngFor="let row of getKanbanRows(s)"
+                 draggable="true"
+                 (dragstart)="onDragStart($event, row)"
+                 (dragend)="onDragEnd()"
+                 (click)="openDetail(row)">
               <div class="kb-prio-bar" [ngClass]="'bar-' + row.priority"></div>
 
               <div class="kb-card-top">
