@@ -18,6 +18,40 @@
   </div>
 
   <div class="hdr-right">
+    <div class="hdr-bell-wrap">
+      <button class="hdr-bell-btn" (click)="toggleBell()" type="button">
+        <span class="material-symbols-outlined">notifications</span>
+        <span class="hdr-bell-badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+      </button>
+
+      <div class="hdr-bell-drop" *ngIf="bellOpen">
+        <div class="hdr-bell-hdr">
+          <span>Notifications</span>
+          <button type="button" class="hdr-bell-mark-all" (click)="markAllRead()" *ngIf="unreadCount > 0">
+            Mark all read
+          </button>
+        </div>
+
+        <div class="hdr-bell-body">
+          <div *ngIf="notifications.length === 0" class="hdr-bell-empty">
+            No notifications ✓
+          </div>
+
+          <div *ngFor="let n of notifications"
+               class="hdr-bell-item"
+               [class.unread]="!n.readByUser"
+               (click)="openNotification(n)">
+            <div class="hdr-bell-item-top">
+              <span class="hdr-bell-item-title">{{ n.subject }}</span>
+              <span class="hdr-bell-dot" *ngIf="!n.readByUser"></span>
+            </div>
+            <div class="hdr-bell-item-msg">{{ n.message }}</div>
+            <div class="hdr-bell-item-time">{{ n.createdAt | date:'short' }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <ng-content></ng-content>
   </div>
 </header>

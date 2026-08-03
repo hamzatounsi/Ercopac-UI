@@ -45,6 +45,11 @@ projectName = '';
   readonly actionTypes: Array<'action' | 'issue'> = ['action', 'issue'];
   readonly priorities: Array<'high' | 'medium' | 'low'> = ['high', 'medium', 'low'];
   readonly statuses: Array<'todo' | 'doing' | 'review' | 'blocked' | 'done'> = ['todo', 'doing', 'review', 'blocked', 'done'];
+
+  // ─── Drag & Drop ────────────────────────────────────────────
+  draggedAction: ActionItem | null = null;
+  dragOverStatus: string | null = null;
+
 constructor(
   private route: ActivatedRoute,
   private router: Router,
@@ -722,5 +727,98 @@ addAssigneeToSelected(name: string): void {
     }
 
     return `${size.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+  }
+
+  // ─── Drag & Drop (native HTML5, no CDK dependency) ──────────
+
+  onDragStart(event: DragEvent, row: ActionItem): void {
+    this.draggedAction = row;
+    event.dataTransfer?.setData('text/plain', String(row.id));
+  }
+
+  onDragEnd(): void {
+    this.draggedAction = null;
+    this.dragOverStatus = null;
+  }
+
+  onDragEnterColumn(status: string): void {
+    this.dragOverStatus = status;
+  }
+
+  onDragLeaveColumn(status: string): void {
+    if (this.dragOverStatus === status) {
+      this.dragOverStatus = null;
+    }
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+  }
+
+  onDrop(event: DragEvent, targetStatus: ActionItem['status']): void {
+    event.preventDefault();
+    this.dragOverStatus = null;
+
+    if (!this.draggedAction) return;
+    if (this.draggedAction.status === targetStatus) {
+      this.draggedAction = null;
+      return;
+    }
+
+    const action = this.draggedAction;
+    this.draggedAction = null;
+
+    const previousStatus = action.status;
+
+    const index = this.rows.findIndex(r => r.id === action.id);
+    if (index !== -1) {
+      this.rows[index] = { ...this.rows[index], status: targetStatus };
+    }
+    this.applyFilters();
+
+    if (this.selectedAction?.id === action.id) {
+      this.selectedAction = { ...this.selectedAction, status: targetStatus };
+    }
+
+    this.actionService.update(this.projectId, action.id, {
+      title: action.title,
+      description: action.description,
+      actionType: action.actionType,
+      departmentCode: action.departmentCode,
+      priority: action.priority,
+      status: targetStatus,
+      customerVisible: action.customerVisible,
+      insertedDate: action.insertedDate,
+      dueDate: action.dueDate,
+      assignees: action.assignees
+    }).subscribe({
+      next: (updated) => {
+        const idx = this.rows.findIndex(r => r.id === updated.id);
+        if (idx !== -1) this.rows[idx] = updated;
+        this.applyFilters();
+
+        if (this.selectedAction?.id === updated.id) {
+          this.selectedAction = this.cloneAction(updated);
+        }
+
+        this.actionService.getSummary(this.projectId).subscribe({
+          next: (summary) => this.summary = summary
+        });
+      },
+      error: (err) => {
+        console.error(err);
+        this.error = 'Failed to update action status.';
+
+        const idx = this.rows.findIndex(r => r.id === action.id);
+        if (idx !== -1) {
+          this.rows[idx] = { ...this.rows[idx], status: previousStatus };
+        }
+        this.applyFilters();
+
+        if (this.selectedAction?.id === action.id) {
+          this.selectedAction = { ...this.selectedAction, status: previousStatus };
+        }
+      }
+    });
   }
 }

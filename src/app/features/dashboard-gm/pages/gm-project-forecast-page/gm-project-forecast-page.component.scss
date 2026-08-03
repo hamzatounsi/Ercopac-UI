@@ -188,6 +188,13 @@
   flex: 1;
 }
 
+.saving-indicator {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-right: 6px;
+}
+
 .save-btn {
   height: 32px;
   min-width: 92px;
@@ -368,7 +375,36 @@
   font-weight: 600;
 }
 
-.type-badge {
+.desc-input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 5px;
+  padding: 5px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #26354d;
+  transition: border-color .15s, background .15s;
+}
+
+.desc-input:hover {
+  background: #f1f5f9;
+}
+
+.desc-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: white;
+}
+
+.desc-input:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.type-badge,
+.type-badge-select {
   flex: 0 0 auto;
   border-radius: 6px;
   padding: 3px 8px;
@@ -377,17 +413,43 @@
   line-height: 1;
 }
 
-.type-badge.hours {
+.type-badge-select {
+  border: 1px solid transparent;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  text-align: center;
+  transition: border-color .15s;
+}
+
+.type-badge-select:hover {
+  border-color: var(--border2);
+}
+
+.type-badge-select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.type-badge-select:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.type-badge.hours,
+.type-badge-select.hours {
   background: #ede9fe;
   color: #6d28d9;
 }
 
-.type-badge.cost {
+.type-badge.cost,
+.type-badge-select.cost {
   background: #fef3c7;
   color: #b45309;
 }
 
-.type-badge.summary {
+.type-badge.summary,
+.type-badge-select.summary {
   background: #e2e8f0;
   color: #334155;
 }
@@ -396,6 +458,45 @@
   justify-content: flex-end;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+}
+
+.row-num-input {
+  width: 100%;
+  text-align: right;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 5px;
+  padding: 5px 6px;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: inherit;
+  transition: border-color .15s, background .15s;
+}
+
+.row-num-input:hover {
+  background: #f1f5f9;
+}
+
+.row-num-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: white;
+}
+
+.row-num-input:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.row-num-input {
+  -moz-appearance: textfield;
+}
+
+.row-num-input::-webkit-outer-spin-button,
+.row-num-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .actual-cell {
@@ -502,6 +603,10 @@
   color: #6c7788;
 }
 
+.f-cell.editing {
+  background: #eef6ff;
+}
+
 .cell-text {
   font-size: 13px;
   font-weight: 600;
@@ -511,6 +616,63 @@
   font-weight: 800;
   color: #5d6d84;
   min-width: 110px;
+}
+
+/* ---- editable forecast cell ---- */
+
+.cell-edit-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: 100%;
+}
+
+.cell-input {
+  width: 100%;
+  max-width: 70px;
+  text-align: center;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 5px;
+  padding: 4px 2px;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #26354d;
+  transition: border-color .15s, background .15s;
+}
+
+.cell-input:hover {
+  background: #f1f5f9;
+}
+
+.cell-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: white;
+}
+
+.cell-input:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+/* remove native number input spinners */
+.cell-input {
+  -moz-appearance: textfield;
+}
+
+.cell-input::-webkit-outer-spin-button,
+.cell-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.cell-unit {
+  font-size: 10px;
+  color: var(--txt3);
+  font-weight: 700;
 }
 
 #footer-strip {

@@ -25,9 +25,13 @@
   </section>
 
   <section class="erp-toolbar">
-    <button class="tb-btn success" type="button">
+    <button
+      class="tb-btn success"
+      type="button"
+      (click)="connectErp()"
+      [disabled]="erpConnecting">
       <span class="material-symbols-outlined">hub</span>
-      Connect ERP
+      {{ erpConnecting ? 'Connecting...' : 'Connect ERP' }}
     </button>
 
     <label class="tb-btn file-btn">
@@ -172,7 +176,19 @@
               <td>{{ formatMoney(row.budget) }}</td>
               <td>{{ row.commitment ? formatMoney(row.commitment) : '0' }}</td>
               <td>{{ row.actualCost ? formatMoney(row.actualCost) : '0' }}</td>
-              <td>{{ row.forecast ? formatMoney(row.forecast) : '0' }}</td>
+
+              <td>
+                <input
+                  type="number"
+                  class="forecast-input"
+                  [ngModel]="row.forecast"
+                  (change)="updateForecast(row, $any($event.target).value)"
+                  min="0"
+                  [disabled]="row.level === 1"
+                  title="Edit forecast value"
+                />
+              </td>
+
               <td>{{ row.eac ? formatMoney(row.eac) : '—' }}</td>
 
               <td [ngClass]="getVarianceClass(row.variance)">
@@ -239,8 +255,7 @@
     </aside>
   </section>
 
-  <!-- KEEP YOUR SETTINGS MODAL SAME AS BEFORE -->
-  <div class="settings-overlay" *ngIf="settingsOpen">
+  <div class="settings-overlay" #settingsOverlayRef *ngIf="settingsOpen">
     <div class="settings-modal">
       <div class="settings-header">
         <div class="settings-title">⚙️ Finance Settings</div>
@@ -279,9 +294,11 @@
               </div>
 
               <div class="callout">
-                <strong>Type:</strong> <em>Hour</em> = labour (budget & forecast in hours × rate). 
-                <em>Cost</em> = expense/material. <em>Summary</em> = computed from children.<br>
-                <strong>Owner key</strong> links to the Owner Mapping tab.
+                <strong>Type:</strong> <em>HOUR</em> = labour (budget & forecast in hours × rate).
+                <em>EXPENSES</em> = travel/displacement costs. 
+                <em>COST</em> = materials/other costs. 
+                <em>SUMMARY</em> = computed from children.<br>
+                <strong>Department → Owner:</strong> Select department first, then select owner from that department.
               </div>
 
               <div class="settings-table-wrap">
@@ -289,11 +306,11 @@
                   <thead>
                     <tr>
                       <th style="width:70px;">LVL</th>
-                      <th style="width:260px;">WBS CODE</th>
-                      <th>DESCRIPTION</th>
-                      <th style="width:170px;">TYPE</th>
-                      <th style="width:170px;">OWNER KEY</th>
-                      <th style="width:140px;">HOUR RATE</th>
+                      <th style="width:180px;">WBS CODE</th>
+                      <th style="width:220px;">DESCRIPTION</th>
+                      <th style="width:130px;">TYPE</th>
+                      <th style="width:170px;">DEPARTMENT</th>
+                      <th style="width:170px;">OWNER</th>
                       <th style="width:60px;"></th>
                     </tr>
                   </thead>
@@ -307,9 +324,28 @@
                           <option *ngFor="let type of rowTypeOptions" [ngValue]="type">{{ type }}</option>
                         </select>
                       </td>
-                      <td><input [(ngModel)]="row.ownerKey" class="tbl-input" /></td>
-                      <td><input [(ngModel)]="row.hourRate" class="tbl-input" type="number" /></td>
+                      <td>
+                        <select 
+                          [(ngModel)]="row.departmentId" 
+                          (ngModelChange)="onDepartmentChange(row, $event)"
+                          class="tbl-select">
+                          <option [ngValue]="null">— Select Dept —</option>
+                          <!-- ✅ FIXED: Use dept.label instead of dept.name -->
+                          <option *ngFor="let dept of departments" [ngValue]="dept.id">{{ dept.label }}</option>
+                        </select>
+                      </td>
+                      <td>
+                        <select [(ngModel)]="row.ownerId" class="tbl-select" [disabled]="!row.departmentId">
+                          <option [ngValue]="null">— Select Owner —</option>
+                          <option *ngFor="let user of usersByDepartment[row.departmentId!] || []" [ngValue]="user.id">
+                            {{ user.fullName }}
+                          </option>
+                        </select>
+                      </td>
                       <td><button class="delete-btn" (click)="removeTemplateRow(i)">✕</button></td>
+                    </tr>
+                    <tr *ngIf="financeSettings.templateRows.length === 0">
+                      <td colspan="7" class="empty-row">No WBS template rows defined. Click "Add Row" to create one.</td>
                     </tr>
                   </tbody>
                 </table>
@@ -399,10 +435,14 @@
               <div class="section-top">
                 <div>
                   <h2>📥 Import WBS</h2>
-                  <p>Import a finance WBS template from JSON, CSV, XLS or XLSX.</p>
+                  <p>Load a WBS structure from JSON, CSV, or use the built-in template from the uploaded ODS.</p>
                 </div>
 
                 <div class="section-actions">
+                  <label class="form-row" style="margin: 0;">
+                    <input type="checkbox" [(ngModel)]="importReplaceExisting" />
+                    Replace existing
+                  </label>
                   <button
                     class="btn primary"
                     type="button"
@@ -413,28 +453,48 @@
                 </div>
               </div>
 
-              <div class="settings-card centered-card">
-                <div class="import-icon">📁</div>
-                <div class="import-title">Choose WBS Template File</div>
-                <div class="import-sub">
-                  Accepted columns: WBS CODE, DESCRIPTION, LVL, TYPE, OWNER KEY, HOUR RATE
+              <div class="settings-card">
+                <h3>🟢 Load Standard WBS Template (from uploaded ODS)</h3>
+                <p style="margin: 0 0 14px; color: #66788f; font-size: 13px;">
+                  This will load the WBS structure from the WBS_Structure.ods file uploaded by an
+                  administrator. The <code>xxx25</code> prefix will be replaced by the actual project
+                  code when applied. <strong>Types must be explicitly defined in the file (SUMMARY, HOUR, EXPENSES, COST).</strong>
+                </p>
+                <button class="btn primary" type="button" (click)="loadOdsTemplate()" [disabled]="odsTemplateLoading">
+                  📂 {{ odsTemplateLoading ? 'Loading...' : 'Load ODS Template' }}
+                </button>
+              </div>
+
+              <div class="settings-card">
+                <h3>🟠 Import from JSON or CSV</h3>
+
+                <div
+                  class="import-dropzone"
+                  [class.drag-over]="importDragOver"
+                  (dragover)="onImportDragOver($event)"
+                  (dragleave)="onImportDragLeave()"
+                  (drop)="onImportDrop($event)">
+                  <div class="import-icon">📁</div>
+                  <div class="import-title">Drop JSON or CSV file here</div>
+                  <div class="import-sub">or click to browse</div>
+
+                  <label class="btn ghost dropzone-browse-btn">
+                    Select File
+                    <input
+                      type="file"
+                      hidden
+                      accept=".json,.csv,.xlsx,.xls,.ods"
+                      (change)="onWbsTemplateFileUpload($event)" />
+                  </label>
                 </div>
 
-                <label class="btn ghost" style="margin-top: 16px;">
-                  Select File
-                  <input
-                    type="file"
-                    hidden
-                    accept=".json,.csv,.xlsx,.xls"
-                    (change)="onWbsTemplateFileUpload($event)" />
-                </label>
+                <p class="import-format-hint">
+                  <strong>JSON:</strong> array of {{ '{' }} level, wbs, desc, type, ownerKey, hourRate {{ '}' }}<br>
+                  <strong>CSV:</strong> columns: level, wbs, desc, type, ownerKey, hourRate<br>
+                  <em>(type is REQUIRED. ownerKey and hourRate are optional)</em>
+                </p>
 
-                <label class="form-row" style="justify-content: center; margin-top: 16px;">
-                  <input type="checkbox" [(ngModel)]="importReplaceExisting" />
-                  Replace existing WBS template
-                </label>
-
-                <div *ngIf="importMessage" class="callout" style="margin-top: 16px;">
+                <div *ngIf="importMessage" class="callout" style="margin-top: 14px;">
                   {{ importMessage }}
                 </div>
               </div>
@@ -469,19 +529,62 @@
             <div *ngIf="activeSettingsTab === 'apply'" class="settings-section">
               <div class="section-top">
                 <div>
-                  <h2>🔄 Apply to Projects</h2>
-                  <p>Apply the current WBS template to the current project.</p>
+                  <h2>🔄 Apply WBS to Projects</h2>
+                  <p>Generate or update the WBS data in Finance & Forecast pages for each project.</p>
                 </div>
                 <div class="section-actions">
-                  <button class="btn primary" (click)="applyTemplateToCurrentProject()" [disabled]="applyLoading">
-                    {{ applyLoading ? 'Applying...' : '⚡ Apply to Current Project' }}
+                  <button class="btn primary" (click)="applyTemplateToAllProjects()" [disabled]="applyLoading || applyProjectsLoading">
+                    {{ applyLoading ? 'Applying...' : '⚡ Apply to All Projects' }}
                   </button>
                 </div>
               </div>
 
               <div class="callout">
-                This will generate finance rows for project <strong>{{ projectName  }}</strong> from the current template.
+                Applying replaces the WBS rows for each project. Each project gets its own set of
+                WBS rows with the <code>xxx25</code> prefix replaced by the project code. Existing
+                <strong>budget, AC, commitment</strong> values are preserved if the WBS code matches.
               </div>
+
+              <div *ngIf="applyResultMessage" class="callout" style="background:#effcf3;border-color:#bfead0;color:#166534;">
+                ✅ {{ applyResultMessage }}
+              </div>
+
+              <div *ngIf="applyProjectsLoading" class="settings-empty">Loading projects...</div>
+
+              <ng-container *ngIf="!applyProjectsLoading">
+                <div class="callout" style="background:#fff7ed;border-color:#fed7aa;color:#9a3412;" *ngIf="applyProjectsList.length === 0">
+                  No projects found. Create projects in the Dashboard first.
+                </div>
+
+                <div class="settings-table-wrap" *ngIf="applyProjectsList.length > 0">
+                  <table class="settings-table">
+                    <thead>
+                      <tr>
+                        <th>PROJECT</th>
+                        <th style="width:160px;">STATUS</th>
+                        <th style="width:100px;"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let p of applyProjectsList">
+                        <td>{{ p.name || ('Project #' + p.id) }}</td>
+                        <td>{{ p.status || '—' }}</td>
+                        <td>
+                          <button
+                            class="btn ghost"
+                            type="button"
+                            style="height:30px; padding:0 10px; font-size:12px;"
+                            (click)="applyTemplateToCurrentProject()"
+                            *ngIf="p.id === projectId"
+                            [disabled]="applyLoading">
+                            This project
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </ng-container>
             </div>
           </ng-container>
         </section>

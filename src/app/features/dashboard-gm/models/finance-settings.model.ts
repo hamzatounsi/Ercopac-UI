@@ -1,4 +1,4 @@
-export type FinanceWbsRowType = 'SUMMARY' | 'HOUR' | 'COST';
+export type FinanceWbsRowType = 'SUMMARY' | 'HOUR' | 'EXPENSES' | 'COST';
 
 export interface FinanceWbsTemplateRow {
   id?: number;
@@ -7,8 +7,33 @@ export interface FinanceWbsTemplateRow {
   codeTemplate: string;
   description: string;
   type: FinanceWbsRowType;
+  
+  // Department fields
+  departmentId?: number | null;
+  departmentName?: string | null;
+  
+  // Owner fields
+  ownerId?: number | null;
+  ownerName?: string | null;
+  
+  // Keep for backward compatibility
   ownerKey?: string | null;
   hourRate?: number | null;
+}
+
+// ✅ FIXED: Changed 'name' to 'label' to match the backend Department entity
+export interface Department {
+  id: number;
+  label: string; 
+  code: string;
+}
+
+export interface AppUser {
+  id: number;
+  fullName: string;
+  email: string;
+  departmentId?: number;
+  departmentName?: string;
 }
 
 export interface FinanceOwnerMapping {
@@ -39,4 +64,14 @@ export interface ApplyFinanceTemplateRequest {
 export interface ApplyFinanceTemplateResult {
   projectsProcessed: number;
   rowsGenerated: number;
+}
+
+export interface FinanceSummary {
+  totalSales: number;
+  totalBudget: number;
+  totalCommitment: number;
+  totalActualCost: number;
+  totalForecast: number;
+  totalEac: number;
+  totalVariance: number;
 }

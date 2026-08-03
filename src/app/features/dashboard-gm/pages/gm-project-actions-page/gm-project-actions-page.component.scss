@@ -1157,4 +1157,26 @@
     font-size: 12px;
     font-weight: 700;
   }
+  .kb-card[draggable="true"] {
+  cursor: grab;
+}
+
+.kb-card[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.kb-card.dragging {
+  opacity: 0.5;
+}
+
+.kb-col-body {
+  transition: background-color .15s ease;
+  border-radius: 8px;
+}
+
+.kb-col-body.drag-over {
+  background: #eff6ff;
+  outline: 2px dashed #93c5fd;
+  outline-offset: -4px;
+}
 }

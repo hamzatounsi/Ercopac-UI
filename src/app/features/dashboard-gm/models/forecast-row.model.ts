@@ -4,6 +4,7 @@ export interface ForecastRow {
   wbsCode: string;
   description: string;
   level: number;
+  rowType: string;
   budget: number;
   actualCost: number;
   totalForecast: number;
