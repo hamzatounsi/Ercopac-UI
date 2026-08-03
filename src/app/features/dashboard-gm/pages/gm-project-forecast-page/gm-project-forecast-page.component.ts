@@ -29,17 +29,8 @@ export class GmProjectForecastPageComponent implements OnInit {
   searchTerm = '';
   viewMode: 'week' | 'month' = 'month';
 
-  // Tracks which specific cell (row wbsCode + periodKey) is currently being saved,
-  // so we can show a per-cell saving state instead of freezing the whole grid.
   savingCellKey: string | null = null;
-
-  // Tracks which specific row field is currently being saved (e.g. "SAP-001__budget"),
-  // used the same way as savingCellKey but for the WBS-panel fields.
   savingFieldKey: string | null = null;
-
-  // Manual type overrides set by the user via the Type dropdown, keyed by wbsCode.
-  // When present, this takes priority over the automatic keyword-based detection.
-  private typeOverrides: { [wbsCode: string]: 'Hours' | 'Cost' | '—' } = {};
 
   constructor(
     private route: ActivatedRoute,
@@ -99,43 +90,28 @@ export class GmProjectForecastPageComponent implements OnInit {
     });
   }
 
-  // ---------- Type / labels ----------
+  // ---------- Type / labels (Backend-driven) ----------
+
+  getRowType(row: ForecastRow): string {
+    return row.rowType || 'COST';
+  }
 
   getTypeLabel(row: ForecastRow): string {
-    const override = this.typeOverrides[row.wbsCode];
-    if (override) {
-      return override;
-    }
-
-    const text = `${row.description || ''}`.toLowerCase();
-    const wbs = `${row.wbsCode || ''}`.toLowerCase();
-
-    if (text.includes('design') || text.includes('install') || text.includes('commission') || text.includes('engineering')) {
-      return 'Hours';
-    }
-
-    if (text.includes('hardware') || text.includes('site') || text.includes('long lead') || text.includes('procurement') || text.includes('cost')) {
-      return 'Cost';
-    }
-
-    if ((row.level || 0) <= 2) {
-      return '—';
-    }
-
+    const type = this.getRowType(row);
+    if (type === 'SUMMARY') return '—';
+    if (type === 'HOUR') return 'Hours';
     return 'Cost';
   }
 
   getTypeBadgeClass(row: ForecastRow): string {
-    const type = this.getTypeLabel(row);
-
-    if (type === 'Hours') return 'hours';
-    if (type === 'Cost') return 'cost';
-    return 'summary';
+    const type = this.getRowType(row);
+    if (type === 'HOUR') return 'hours';
+    if (type === 'SUMMARY') return 'summary';
+    return 'cost';
   }
 
-  // Rows that are pure aggregation/summary rows (no own periods to edit)
   isEditableRow(row: ForecastRow): boolean {
-    return this.getTypeLabel(row) !== '—';
+    return this.getRowType(row) !== 'SUMMARY';
   }
 
   // ---------- Formatting ----------
@@ -143,66 +119,40 @@ export class GmProjectForecastPageComponent implements OnInit {
   getRemainingPercent(row: ForecastRow): number {
     const budget = row.budget || 0;
     const remaining = this.getRemaining(row);
-
-    if (!budget || budget <= 0) {
-      return 0;
-    }
-
+    if (!budget || budget <= 0) return 0;
     return Math.max(0, Math.min(100, (remaining / budget) * 100));
   }
 
   formatBudgetOrHours(row: ForecastRow): string {
-    return this.getTypeLabel(row) === 'Hours'
-      ? this.formatHours(row.budget)
-      : this.formatMoney(row.budget);
+    return this.getRowType(row) === 'HOUR' ? this.formatHours(row.budget) : this.formatMoney(row.budget);
   }
 
   formatActualOrHours(row: ForecastRow): string {
-    return this.getTypeLabel(row) === 'Hours'
-      ? this.formatHours(row.actualCost)
-      : this.formatMoney(row.actualCost);
+    return this.getRowType(row) === 'HOUR' ? this.formatHours(row.actualCost) : this.formatMoney(row.actualCost);
   }
 
   formatRemainingOrHours(row: ForecastRow): string {
     const remaining = this.getRemaining(row);
-    return this.getTypeLabel(row) === 'Hours'
-      ? this.formatHours(remaining)
-      : this.formatMoney(remaining);
+    return this.getRowType(row) === 'HOUR' ? this.formatHours(remaining) : this.formatMoney(remaining);
   }
 
   formatTotalForecast(row: ForecastRow): string {
-    return this.getTypeLabel(row) === 'Hours'
-      ? this.formatHours(row.totalForecast)
-      : this.formatMoney(row.totalForecast);
-  }
-
-  formatForecastCell(row: ForecastRow, periodKey: string): string {
-    const value = this.getCellAmount(row, periodKey) ?? 0;
-    return this.getTypeLabel(row) === 'Hours'
-      ? `${Math.round(value)}h`
-      : this.formatPlainNumber(value);
+    return this.getRowType(row) === 'HOUR' ? this.formatHours(row.totalForecast) : this.formatMoney(row.totalForecast);
   }
 
   formatHours(value: number | null | undefined): string {
-    if (value == null) {
-      return '—';
-    }
+    if (value == null) return '—';
     return `${Math.round(value)}h`;
   }
 
   formatPlainNumber(value: number | null | undefined): string {
-    if (value == null) {
-      return '—';
-    }
-    return new Intl.NumberFormat('en-US', {
-      maximumFractionDigits: 0
-    }).format(value);
+    if (value == null) return '—';
+    return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(value);
   }
 
   getHeaderYearLabel(index: number): string | null {
     const keys = this.getPeriodKeys();
     if (!keys.length) return null;
-
     const years = [...new Set(keys.map(k => k.split('-')[0]))];
     return years[index] ?? null;
   }
@@ -211,12 +161,10 @@ export class GmProjectForecastPageComponent implements OnInit {
 
   applyFilters(): void {
     const term = this.searchTerm.trim().toLowerCase();
-
     if (!term) {
       this.filteredRows = [...this.rows];
       return;
     }
-
     this.filteredRows = this.rows.filter(row =>
       row.wbsCode.toLowerCase().includes(term) ||
       row.description.toLowerCase().includes(term)
@@ -245,13 +193,10 @@ export class GmProjectForecastPageComponent implements OnInit {
     const amount = Number(rawValue || 0);
 
     if (Number.isNaN(amount) || amount < 0) {
-      // Revert visually by reloading; invalid input is ignored.
       this.error = 'Invalid value entered.';
       return;
     }
 
-    // Optimistic local update so the row Total Forecast and the cell
-    // reflect the change immediately, before the backend confirms.
     const cell = row.periods.find(p => p.periodKey === periodKey);
     const previousAmount = cell ? cell.amount : 0;
 
@@ -274,7 +219,6 @@ export class GmProjectForecastPageComponent implements OnInit {
       next: () => {
         this.saving = false;
         this.savingCellKey = null;
-        // Reload to sync totals/summary exactly with backend-calculated values.
         this.loadData();
       },
       error: (err) => {
@@ -283,7 +227,6 @@ export class GmProjectForecastPageComponent implements OnInit {
         this.saving = false;
         this.savingCellKey = null;
 
-        // Roll back the optimistic change on failure.
         if (cell) {
           cell.amount = previousAmount;
           row.totalForecast = (row.periods || []).reduce((sum, p) => sum + (p.amount || 0), 0);
@@ -291,8 +234,6 @@ export class GmProjectForecastPageComponent implements OnInit {
       }
     });
   }
-
-  // ---------- Row-field editing (Description / Type / Budget / Actual) ----------
 
   private fieldKey(row: ForecastRow, field: string): string {
     return `${row.wbsCode}__${field}`;
@@ -304,7 +245,7 @@ export class GmProjectForecastPageComponent implements OnInit {
 
   private saveRowField(
     row: ForecastRow,
-    field: 'description' | 'budget' | 'actualCost' | 'type',
+    field: 'description' | 'budget' | 'actualCost',
     value: string | number,
     rollback: () => void
   ): void {
@@ -335,55 +276,30 @@ export class GmProjectForecastPageComponent implements OnInit {
   onDescriptionChange(row: ForecastRow, rawValue: string): void {
     const previous = row.description;
     const value = (rawValue || '').trim();
-
     row.description = value;
-    this.saveRowField(row, 'description', value, () => {
-      row.description = previous;
-    });
+    this.saveRowField(row, 'description', value, () => { row.description = previous; });
   }
 
   onBudgetChange(row: ForecastRow, rawValue: string): void {
     const amount = Number(rawValue || 0);
-
     if (Number.isNaN(amount) || amount < 0) {
       this.error = 'Invalid budget value.';
       return;
     }
-
     const previous = row.budget;
     row.budget = amount;
-    this.saveRowField(row, 'budget', amount, () => {
-      row.budget = previous;
-    });
+    this.saveRowField(row, 'budget', amount, () => { row.budget = previous; });
   }
 
   onActualChange(row: ForecastRow, rawValue: string): void {
     const amount = Number(rawValue || 0);
-
     if (Number.isNaN(amount) || amount < 0) {
       this.error = 'Invalid actual cost value.';
       return;
     }
-
     const previous = row.actualCost;
     row.actualCost = amount;
-    this.saveRowField(row, 'actualCost', amount, () => {
-      row.actualCost = previous;
-    });
-  }
-
-  onTypeChange(row: ForecastRow, rawValue: string): void {
-    const value = rawValue as 'Hours' | 'Cost' | '—';
-    const previous = this.typeOverrides[row.wbsCode];
-
-    this.typeOverrides[row.wbsCode] = value;
-    this.saveRowField(row, 'type', value, () => {
-      if (previous) {
-        this.typeOverrides[row.wbsCode] = previous;
-      } else {
-        delete this.typeOverrides[row.wbsCode];
-      }
-    });
+    this.saveRowField(row, 'actualCost', amount, () => { row.actualCost = previous; });
   }
 
   getRemaining(row: ForecastRow): number {
@@ -396,9 +312,7 @@ export class GmProjectForecastPageComponent implements OnInit {
   }
 
   getPeriodKeys(): string[] {
-    if (!this.rows.length) {
-      return [];
-    }
+    if (!this.rows.length) return [];
     return this.rows[0].periods.map(p => p.periodKey);
   }
 
@@ -409,10 +323,7 @@ export class GmProjectForecastPageComponent implements OnInit {
   }
 
   formatMoney(value: number | null | undefined): string {
-    if (value == null) {
-      return '—';
-    }
-
+    if (value == null) return '—';
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'EUR',
@@ -421,28 +332,10 @@ export class GmProjectForecastPageComponent implements OnInit {
   }
 
   // ---------- Navigation ----------
-
-  goToProjectum(): void {
-    this.router.navigate(['/gm/projectum']);
-  }
-
-  goToSchedule(): void {
-    this.router.navigate(['/gm/projects', this.projectId, 'schedule']);
-  }
-
-  goToActions(): void {
-    this.router.navigate(['/gm/projects', this.projectId, 'actions']);
-  }
-
-  goToFinance(): void {
-    this.router.navigate(['/gm/projects', this.projectId, 'finance']);
-  }
-
-  goToRisks(): void {
-    this.router.navigate(['/gm/projects', this.projectId, 'risks']);
-  }
-
-  goToCr(): void {
-    this.router.navigate(['/gm/projects', this.projectId, 'change-requests']);
-  }
+  goToProjectum(): void { this.router.navigate(['/gm/projectum']); }
+  goToSchedule(): void { this.router.navigate(['/gm/projects', this.projectId, 'schedule']); }
+  goToActions(): void { this.router.navigate(['/gm/projects', this.projectId, 'actions']); }
+  goToFinance(): void { this.router.navigate(['/gm/projects', this.projectId, 'finance']); }
+  goToRisks(): void { this.router.navigate(['/gm/projects', this.projectId, 'risks']); }
+  goToCr(): void { this.router.navigate(['/gm/projects', this.projectId, 'change-requests']); }
 }

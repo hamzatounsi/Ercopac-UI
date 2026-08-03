@@ -11,8 +11,11 @@ import {
   FinanceWbsTemplateRow,
   FinanceOwnerMapping,
   FinanceHourlyRate,
-  FinanceWbsRowType
+  FinanceWbsRowType,
+  Department,
+  AppUser
 } from '../../models/finance-settings.model';
+import { HttpClient } from '@angular/common/http';
 
 type SettingsTab = 'wbs' | 'owner' | 'rates' | 'import' | 'apply';
 
@@ -25,16 +28,6 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
   @ViewChild('donutChart') donutChartRef!: ElementRef;
   @ViewChild('barChart') barChartRef!: ElementRef;
 
-  // ─── PORTAIL DOM pour la modale (fix du bug d'affichage) ────
-  // Un ancêtre (layout, wrapper de transition de route, etc.)
-  // possède probablement un transform/overflow/filter qui piège
-  // le `position: fixed` de la modale, la rendant invisible même
-  // si elle est bien présente dans le DOM (confirmé par devtools :
-  // display:flex, ng-reflect-ng-if:"true", mais rien à l'écran).
-  // Solution robuste : déplacer physiquement le noeud DOM de la
-  // modale dans <body> à l'ouverture, et le remettre à sa place
-  // d'origine avant la fermeture pour qu'Angular puisse le détruire
-  // proprement via *ngIf.
   @ViewChild('settingsOverlayRef') settingsOverlayRef?: ElementRef<HTMLElement>;
   private settingsOverlayHomeParent: HTMLElement | null = null;
   private settingsOverlayHomeNextSibling: Node | null = null;
@@ -81,15 +74,18 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
   importDragOver = false;
   odsTemplateLoading = false;
 
-  // ─── Apply to Projects (liste complète, pas juste le projet courant) ──
   applyProjectsList: any[] = [];
   applyProjectsLoading = false;
   applyResultMessage: string | null = null;
 
-  // ─── Connect ERP (Phase 6 - stub) ───────────────────────────
+  // Department and User management
+  departments: Department[] = [];
+  usersByDepartment: { [deptId: number]: AppUser[] } = {};
+  loadingDepartments = false;
+
   erpConnecting = false;
 
-  readonly rowTypeOptions: FinanceWbsRowType[] = ['SUMMARY', 'HOUR', 'COST'];
+  readonly rowTypeOptions: FinanceWbsRowType[] = ['SUMMARY', 'HOUR', 'EXPENSES', 'COST'];
   readonly resourceTypeOptions: string[] = [
     'PM', 'ME', 'EE', 'PC', 'PLC', 'PRC', 'MFC.M', 'MFC.E', 'QA', 'HSE',
     'MEC', 'ELECT', 'FIN', 'CS', 'SALES', 'CUST'
@@ -99,7 +95,8 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private financeService: GmFinanceService,
     private dashboardService: GmDashboardService,
-    private renderer: Renderer2
+    private renderer: Renderer2,
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
@@ -109,9 +106,6 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // Sécurité : si le composant est détruit pendant que la modale
-    // est encore téléportée dans <body>, on la retire manuellement
-    // pour éviter une fuite mémoire / un élément DOM orphelin.
     const overlay = this.settingsOverlayRef?.nativeElement;
     if (overlay && overlay.parentElement === document.body) {
       this.renderer.removeChild(document.body, overlay);
@@ -272,46 +266,116 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     return Math.max(0, Math.min(100, value));
   }
 
-  onFileUpload(event: Event): void {
+    onFileUpload(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
-
     reader.onload = (e: ProgressEvent<FileReader>) => {
       const binary = e.target?.result;
       if (!binary) return;
 
       const workbook = XLSX.read(binary, { type: 'binary' });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const data = XLSX.utils.sheet_to_json(sheet);
+      
+      // 🔍 FIX: Read as array of arrays to find the actual header row
+      const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" }) as any[][];
+      
+      // Find the row index that contains "WBS" or "LEVEL" (skip blank title rows)
+      let headerRowIndex = 0;
+      for (let i = 0; i < Math.min(rawData.length, 10); i++) {
+        const rowStr = rawData[i].map(cell => String(cell).trim().toLowerCase()).join(" ");
+        if (rowStr.includes("wbs") || rowStr.includes("level")) {
+          headerRowIndex = i;
+          break;
+        }
+      }
 
+      console.log(`✅ Found real headers at row index: ${headerRowIndex}`);
+
+      // Parse the sheet starting from the real header row
+      const data = XLSX.utils.sheet_to_json(sheet, { range: headerRowIndex, defval: "" });
+      
       this.importFinance(data as any[]);
     };
-
     reader.readAsBinaryString(file);
   }
+    importFinance(rows: any[]): void {
+    if (!rows || rows.length === 0) {
+      this.error = 'Excel file is empty.';
+      return;
+    }
 
-  importFinance(rows: any[]): void {
-    const mapped = rows.map(r => ({
-      wbsCode: r['WBS'] ?? r['wbsCode'] ?? '',
-      description: r['Description'] ?? r['description'] ?? '',
-      level: Number(r['Level'] ?? r['level'] ?? 1),
-      sales: Number(r['Sales'] ?? r['sales'] ?? 0),
-      budget: Number(r['Budget'] ?? r['budget'] ?? 0),
-      commitment: Number(r['Commitment'] ?? r['commitment'] ?? 0),
-      actualCost: Number(r['Actual Cost'] ?? r['actualCost'] ?? 0),
-      forecast: Number(r['Forecast'] ?? r['forecast'] ?? 0),
-      ownerName: r['Owner'] ?? r['ownerName'] ?? ''
-    }));
+    console.log('🔍 FIRST ROW AFTER FIX:', rows[0]);
+
+    // Helper to safely parse numbers (handles commas, strings, etc.)
+    const safeNumber = (val: any): number => {
+      if (val === null || val === undefined || val === '') return 0;
+      if (typeof val === 'number') return val;
+      const cleaned = String(val).replace(/,/g, '').trim(); // Remove commas
+      const parsed = parseFloat(cleaned);
+      return isNaN(parsed) ? 0 : parsed;
+    };
+
+    // Helper to find a value by checking multiple possible key names (case-insensitive)
+    const getValue = (row: any, keys: string[]) => {
+      for (const key of Object.keys(row)) {
+        const cleanKey = key.trim().toLowerCase();
+        for (const target of keys) {
+          if (cleanKey === target.toLowerCase()) {
+            return row[key];
+          }
+        }
+      }
+      return 0; // Default fallback
+    };
+
+    const getStr = (row: any, keys: string[]) => {
+      for (const key of Object.keys(row)) {
+        const cleanKey = key.trim().toLowerCase();
+        for (const target of keys) {
+          if (cleanKey === target.toLowerCase()) {
+            return String(row[key]).trim();
+          }
+        }
+      }
+      return '';
+    };
+
+    const mapped = rows.map((r) => {
+      return {
+        // ✅ Map WBS and Description
+        wbsCode: getStr(r, ['WBS', 'wbs', 'wbsCode']),
+        description: getStr(r, ['Description', 'description', 'DESCRIPTION']),
+        level: Number(r['LEVEL'] ?? r['Level'] ?? r['level'] ?? r['LVL'] ?? 1),
+        
+        // ✅ Map Financials (including client's typos: "Budjet", "Forcast", "Updated budjet")
+        sales: safeNumber(getValue(r, ['Sales', 'sales'])),
+        budget: safeNumber(getValue(r, ['Budget', 'budget', 'Budjet', 'budjet'])),
+        costReserve: safeNumber(getValue(r, ['CR', 'cr', 'Cost Reserve'])),
+        updatedBudget: safeNumber(getValue(r, ['Updated budget', 'Updated budjet', 'updatedBudget', 'updated_budget'])),
+        commitment: safeNumber(getValue(r, ['Commitment', 'commitment', 'COMMITMENT'])),
+        actualCost: safeNumber(getValue(r, ['Actual', 'actual', 'ACTUAL', 'Actual Cost'])),
+        forecast: safeNumber(getValue(r, ['Forecast', 'Forcast', 'forecast', 'FORECAST'])),
+        
+        ownerName: getStr(r, ['Owner', 'ownerName', 'OWNER'])
+      };
+    });
+
+    console.log('📤 MAPPED DATA TO SEND (First 3 rows):', mapped.slice(0, 3));
 
     this.financeService.importFinance(this.projectId, mapped).subscribe({
-      next: () => this.loadData(),
-      error: () => this.error = 'Failed to import finance file.'
+      next: () => {
+        this.loadData();
+        this.error = null;
+      },
+      error: (err) => {
+        console.error('❌ Import failed:', err);
+        this.error = 'Failed to import finance file.';
+      }
     });
   }
-
   recalculate(): void {
     this.loading = true;
 
@@ -324,12 +388,6 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ─── PHASE 2: openSettings rendu défensif ───────────────────
-  // La modale s'ouvre TOUJOURS (settingsOpen = true en premier).
-  // On garantit une structure financeSettings valide même avant la
-  // réponse API, pour ne jamais casser le rendu (*ngFor sur undefined).
-  // En cas d'erreur (404 = route backend absente, 500 = erreur serveur),
-  // le message exact s'affiche DANS la modale plutôt que de la bloquer.
   openSettings(): void {
     this.settingsOpen = true;
     this.activeSettingsTab = 'wbs';
@@ -343,7 +401,6 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
       hourlyRates: this.financeSettings?.hourlyRates ?? []
     };
 
-    // Laisse Angular créer le noeud (*ngIf) avant de le téléporter dans <body>.
     setTimeout(() => this.attachOverlayToBody());
 
     this.financeService.getFinanceSettings().subscribe({
@@ -355,6 +412,9 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
           hourlyRates: [...(settings?.hourlyRates ?? [])]
         };
         this.settingsLoading = false;
+        
+        // Load departments after settings are loaded
+        this.loadDepartments();
       },
       error: (err) => {
         console.error('[FinanceSettings] load failed:', err);
@@ -367,15 +427,11 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
   }
 
   closeSettings(): void {
-    // Remet le noeud à sa place d'origine AVANT de couper *ngIf,
-    // sinon Angular ne retrouve pas le noeud là où il l'a créé
-    // (il a été déplacé dans <body>) et lève une erreur au retrait.
     this.detachOverlayFromBody();
     this.settingsOpen = false;
     this.settingsError = null;
   }
 
-  // ─── Portail DOM : contourne un ancêtre transform/overflow ──
   private attachOverlayToBody(): void {
     const overlay = this.settingsOverlayRef?.nativeElement;
     if (!overlay || overlay.parentElement === document.body) return;
@@ -385,13 +441,6 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
 
     this.renderer.appendChild(document.body, overlay);
 
-    // FIX DIAGNOSTIQUÉ : une règle CSS globale (probablement une classe
-    // générique .overlay/.settings-overlay du thème/UI kit, chargée
-    // après le style scopé du composant) impose visibility:hidden et
-    // opacity:0 malgré notre CSS. On force donc ces propriétés en
-    // inline !important, qui gagne toujours sur n'importe quelle
-    // feuille de style externe, peu importe sa spécificité ou son
-    // ordre de chargement.
     this.renderer.setStyle(overlay, 'opacity', '1', RendererStyleFlags2.Important);
     this.renderer.setStyle(overlay, 'visibility', 'visible', RendererStyleFlags2.Important);
     this.renderer.setStyle(overlay, 'display', 'flex', RendererStyleFlags2.Important);
@@ -408,9 +457,6 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     const overlay = this.settingsOverlayRef?.nativeElement;
     if (!overlay || overlay.parentElement !== document.body) return;
 
-    // Nettoie les styles inline forcés à l'ouverture (propreté, pas
-    // strictement nécessaire puisque le noeud sera détruit par *ngIf
-    // juste après, mais évite tout résidu si jamais réutilisé).
     ['opacity', 'visibility', 'display', 'position', 'top', 'left', 'right', 'bottom', 'z-index', 'pointer-events']
       .forEach(prop => this.renderer.removeStyle(overlay, prop));
 
@@ -426,11 +472,21 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
       }
     }
   }
-
   saveSettings(): void {
-    this.settingsSaving = true;
     this.settingsError = null;
 
+    // ✅ NEW: Validate that all WBS Codes are unique before saving
+    const codes = this.financeSettings.templateRows.map(r => 
+      r.codeTemplate ? r.codeTemplate.trim().toLowerCase() : ''
+    );
+    const uniqueCodes = new Set(codes);
+    
+    if (codes.length !== uniqueCodes.size) {
+      this.settingsError = 'Validation Error: All WBS Codes must be unique. Please remove or rename duplicate codes.';
+      return; // Stop the save process immediately
+    }
+
+    this.settingsSaving = true;
     this.normalizeTemplateSortOrder();
 
     this.financeService.saveFinanceSettings(this.financeSettings).subscribe({
@@ -450,11 +506,12 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     });
   }
 
+
   applyTemplateToCurrentProject(): void {
     this.applyLoading = true;
     this.settingsError = null;
     this.applyResultMessage = null;
-
+    
     this.financeService.applyFinanceTemplate({ projectIds: [this.projectId] }).subscribe({
       next: (result) => {
         this.applyLoading = false;
@@ -468,7 +525,6 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ─── Apply to ALL projects (comme la référence WBS Settings) ──
   loadApplyProjectsList(): void {
     this.applyProjectsLoading = true;
     this.settingsError = null;
@@ -516,11 +572,6 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ─── Owner Key suggestions (datalist) ───────────────────────
-  // Utilisé dans l'onglet WBS Structure : suggère les clés déjà
-  // définies dans l'Owner Mapping, tout en laissant la saisie libre
-  // (un nouvel owner key peut être créé directement ici, puis
-  // complété ensuite dans l'onglet Owner Mapping).
   getOwnerKeyOptions(): string[] {
     const keys = this.financeSettings.ownerMappings
       .map(m => m.ownerKey)
@@ -536,6 +587,10 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
       codeTemplate: 'xxx25-NEW',
       description: 'New Row',
       type: 'COST',
+      departmentId: null,
+      departmentName: null,
+      ownerId: null,
+      ownerName: null,
       ownerKey: null,
       hourRate: null
     });
@@ -577,6 +632,51 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     }));
   }
 
+  // ✅ FIXED: Point directly to backend port 8087
+  loadDepartments(): void {
+    this.loadingDepartments = true;
+    console.log('🔍 Loading departments from backend...');
+    
+    this.http.get<Department[]>('http://localhost:8087/api/departments').subscribe({
+      next: (depts) => {
+        console.log('✅ Departments loaded:', depts);
+        this.departments = depts;
+        this.loadingDepartments = false;
+      },
+      error: (err) => {
+        console.error('❌ Failed to load departments:', err);
+        this.loadingDepartments = false;
+        this.settingsError = 'Failed to load departments. Check if backend is running on port 8087.';
+      }
+    });
+  }
+
+  // ✅ FIXED: Point directly to backend port 8087
+  loadUsersByDepartment(deptId: number): void {
+    if (this.usersByDepartment[deptId]) return;
+    
+    this.http.get<AppUser[]>(`http://localhost:8087/api/departments/${deptId}/users`).subscribe({
+      next: (users) => {
+        console.log(`✅ Users loaded for dept ${deptId}:`, users);
+        this.usersByDepartment[deptId] = users;
+      },
+      error: (err) => {
+        console.error(`❌ Failed to load users for dept ${deptId}:`, err);
+        this.usersByDepartment[deptId] = [];
+      }
+    });
+  }
+
+  onDepartmentChange(row: FinanceWbsTemplateRow, deptId: number | null): void {
+    row.departmentId = deptId;
+    row.ownerId = null;
+    row.ownerName = null;
+    
+    if (deptId) {
+      this.loadUsersByDepartment(deptId);
+    }
+  }
+
   trackByIndex(index: number): number {
     return index;
   }
@@ -591,7 +691,6 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     input.value = '';
   }
 
-  // ─── Drag & drop pour la zone "Import from JSON or CSV" ─────
   onImportDragOver(event: DragEvent): void {
     event.preventDefault();
     this.importDragOver = true;
@@ -636,7 +735,6 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ─── Load Standard WBS Template (from uploaded ODS) ─────────
   loadOdsTemplate(): void {
     this.odsTemplateLoading = true;
     this.settingsError = null;
@@ -656,106 +754,107 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
       }
     });
   }
-
-  private readWbsJson(file: File): void {
+ private readWbsJson(file: File): void {
     const reader = new FileReader();
-
     reader.onload = () => {
       try {
         const parsed = JSON.parse(String(reader.result));
         const rows = Array.isArray(parsed) ? parsed : parsed.rows;
-
+        
         this.importPreviewRows = this.normalizeImportedWbsRows(rows ?? []);
         this.importMessage = `${this.importPreviewRows.length} WBS rows ready to import.`;
-      } catch {
-        this.settingsError = 'Invalid JSON file.';
+        this.settingsError = null; // Clear any previous errors
+      } catch (err: any) {
+        this.settingsError = `Import Error: ${err.message || 'Invalid JSON structure'}`;
+        this.importPreviewRows = [];
       }
     };
-
     reader.readAsText(file);
   }
 
   private readWbsCsv(file: File): void {
     const reader = new FileReader();
-
     reader.onload = () => {
-      const text = String(reader.result ?? '');
-      const workbook = XLSX.read(text, { type: 'string' });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(sheet);
+      try {
+        const text = String(reader.result ?? '');
+        const workbook = XLSX.read(text, { type: 'string' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet);
 
-      this.importPreviewRows = this.normalizeImportedWbsRows(rows as any[]);
-      this.importMessage = `${this.importPreviewRows.length} WBS rows ready to import.`;
+        this.importPreviewRows = this.normalizeImportedWbsRows(rows as any[]);
+        this.importMessage = `${this.importPreviewRows.length} WBS rows ready to import.`;
+        this.settingsError = null;
+      } catch (err: any) {
+        this.settingsError = `Import Error: ${err.message || 'Failed to parse CSV'}`;
+        this.importPreviewRows = [];
+      }
     };
-
     reader.readAsText(file);
   }
 
   private readWbsExcel(file: File): void {
     const reader = new FileReader();
-
     reader.onload = (e: ProgressEvent<FileReader>) => {
-      const binary = e.target?.result;
-      if (!binary) return;
+      try {
+        const binary = e.target?.result;
+        if (!binary) return;
 
-      const workbook = XLSX.read(binary, { type: 'binary' });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(sheet);
+        const workbook = XLSX.read(binary, { type: 'binary' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet);
 
-      this.importPreviewRows = this.normalizeImportedWbsRows(rows as any[]);
-      this.importMessage = `${this.importPreviewRows.length} WBS rows ready to import.`;
+        this.importPreviewRows = this.normalizeImportedWbsRows(rows as any[]);
+        this.importMessage = `${this.importPreviewRows.length} WBS rows ready to import.`;
+        this.settingsError = null;
+      } catch (err: any) {
+        this.settingsError = `Import Error: ${err.message || 'Failed to parse Excel file'}`;
+        this.importPreviewRows = [];
+      }
     };
-
     reader.readAsBinaryString(file);
   }
-
-  // ─── PHASE 3: Import WBS avec auto-détection du TYPE ────────
-  // Le fichier source réel (WBS_Structure.ods) ne contient que
-  // LEVEL, WBS, Description — pas de colonne TYPE/OWNER KEY/HOUR RATE.
-  // Si TYPE est absent du fichier, on le déduit :
-  //   - level <= 1                    → SUMMARY
-  //   - description contient "hour"   → HOUR
-  //   - sinon                         → COST
-  // Puis une 2e passe force SUMMARY sur toute ligne qui a des enfants
-  // directs dans le fichier (même si sa description contient "hour").
+// ✅ UPDATED: Strict validation for explicit TYPE and clear error messages
   private normalizeImportedWbsRows(rows: any[]): FinanceWbsTemplateRow[] {
-    const mapped = (rows ?? [])
-      .map((r, index) => {
-        const codeTemplate =
-          r['WBS CODE'] ?? r['WBS'] ?? r['Code'] ?? r['codeTemplate'] ?? r['wbsCode'] ?? '';
+    const mapped = (rows ?? []).map((r, index) => {
+      const codeTemplate = r['WBS CODE'] ?? r['WBS'] ?? r['Code'] ?? r['codeTemplate'] ?? r['wbsCode'] ?? '';
+      const description = r['DESCRIPTION'] ?? r['Description'] ?? r['description'] ?? '';
+      const level = Number(r['LVL'] ?? r['Level'] ?? r['LEVEL'] ?? r['level'] ?? this.detectWbsLevel(String(codeTemplate)));
 
-        const description =
-          r['DESCRIPTION'] ?? r['Description'] ?? r['description'] ?? '';
+      // ✅ STRICT CHECK: Require explicit TYPE
+      const explicitTypeRaw = r['TYPE'] ?? r['Type'] ?? r['type'] ?? null;
 
-        const level = Number(
-          r['LVL'] ?? r['Level'] ?? r['LEVEL'] ?? r['level'] ?? this.detectWbsLevel(String(codeTemplate))
-        );
+      if (!explicitTypeRaw) {
+        throw new Error(`Row ${index + 1} ("${codeTemplate}") is missing the required 'TYPE' column. Must be SUMMARY, HOUR, EXPENSES, or COST.`);
+      }
 
-        const explicitTypeRaw = r['TYPE'] ?? r['Type'] ?? r['type'] ?? null;
+      const upper = String(explicitTypeRaw).toUpperCase().trim();
+      let type: FinanceWbsRowType;
+      
+      if (upper === 'SUMMARY') type = 'SUMMARY';
+      else if (upper === 'HOUR') type = 'HOUR';
+      else if (upper === 'EXPENSES') type = 'EXPENSES';
+      else if (upper === 'COST') type = 'COST';
+      else {
+        throw new Error(`Row ${index + 1} ("${codeTemplate}") has an invalid TYPE: "${explicitTypeRaw}". Must be SUMMARY, HOUR, EXPENSES, or COST.`);
+      }
 
-        let type: FinanceWbsRowType;
+      return {
+        sortOrder: index + 1,
+        level,
+        codeTemplate: String(codeTemplate).trim(),
+        description: String(description).trim(),
+        type,
+        departmentId: null,
+        departmentName: null,
+        ownerId: null,
+        ownerName: null,
+        ownerKey: r['OWNER KEY'] ?? r['Owner Key'] ?? r['ownerKey'] ?? null,
+        hourRate: r['HOUR RATE'] ?? r['Hour Rate'] ?? r['hourRate'] ?? null
+      };
+    }).filter(row => row.codeTemplate && row.description);
 
-        if (explicitTypeRaw) {
-          const upper = String(explicitTypeRaw).toUpperCase();
-          type = (upper === 'SUMMARY' || upper === 'HOUR' || upper === 'COST')
-            ? upper as FinanceWbsRowType
-            : 'COST';
-        } else {
-          type = this.detectRowType(String(description), level);
-        }
-
-        return {
-          sortOrder: index + 1,
-          level,
-          codeTemplate: String(codeTemplate).trim(),
-          description: String(description).trim(),
-          type,
-          ownerKey: r['OWNER KEY'] ?? r['Owner Key'] ?? r['ownerKey'] ?? null,
-          hourRate: r['HOUR RATE'] ?? r['Hour Rate'] ?? r['hourRate'] ?? null
-        };
-      })
-      .filter(row => row.codeTemplate && row.description);
-
+    // Structural auto-detection: If a row has children, it acts as a SUMMARY.
+    // This is safe because it's based on hierarchy, not guessing from description text.
     return mapped.map(row => {
       const hasChildren = mapped.some(other =>
         other.codeTemplate !== row.codeTemplate &&
@@ -763,15 +862,6 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
       );
       return hasChildren ? { ...row, type: 'SUMMARY' as FinanceWbsRowType } : row;
     });
-  }
-
-  private detectRowType(description: string, level: number): FinanceWbsRowType {
-    if (level <= 1) return 'SUMMARY';
-
-    const desc = description.toLowerCase();
-    if (desc.includes('hour')) return 'HOUR';
-
-    return 'COST';
   }
 
   private detectWbsLevel(code: string): number {
@@ -813,8 +903,6 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ─── PHASE 4: Forecast éditable en ligne ────────────────────
-  // Mise à jour optimiste avec rollback en cas d'échec réseau.
   updateForecast(row: FinanceEntry, newValue: string | number): void {
     const parsed = Number(newValue);
     if (Number.isNaN(parsed) || parsed < 0) return;
@@ -843,10 +931,6 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ─── PHASE 6: Connect ERP (stub — à implémenter) ────────────
-  // TODO: câbler le vrai flux une fois le système ERP cible,
-  // le protocole (fichier / API / webservice) et les champs à
-  // synchroniser (AC ? Commitment ?) définis avec le métier.
   connectErp(): void {
     this.erpConnecting = true;
     this.error = null;

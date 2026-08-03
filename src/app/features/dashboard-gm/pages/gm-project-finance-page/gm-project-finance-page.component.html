@@ -25,7 +25,6 @@
   </section>
 
   <section class="erp-toolbar">
-    <!-- PHASE 6: bouton Connect ERP désormais câblé -->
     <button
       class="tb-btn success"
       type="button"
@@ -178,7 +177,6 @@
               <td>{{ row.commitment ? formatMoney(row.commitment) : '0' }}</td>
               <td>{{ row.actualCost ? formatMoney(row.actualCost) : '0' }}</td>
 
-              <!-- PHASE 4: Forecast désormais éditable en ligne -->
               <td>
                 <input
                   type="number"
@@ -257,7 +255,6 @@
     </aside>
   </section>
 
-  <!-- SETTINGS MODAL — téléportée dans <body> à l'ouverture (voir openSettings()) -->
   <div class="settings-overlay" #settingsOverlayRef *ngIf="settingsOpen">
     <div class="settings-modal">
       <div class="settings-header">
@@ -280,7 +277,6 @@
         </aside>
 
         <section class="settings-content">
-          <!-- PHASE 2: message d'erreur visible même en cas d'échec API -->
           <div *ngIf="settingsLoading" class="settings-empty">Loading settings...</div>
           <div *ngIf="settingsError && !settingsLoading" class="settings-error">{{ settingsError }}</div>
 
@@ -298,9 +294,11 @@
               </div>
 
               <div class="callout">
-                <strong>Type:</strong> <em>Hour</em> = labour (budget & forecast in hours × rate).
-                <em>Cost</em> = expense/material. <em>Summary</em> = computed from children.<br>
-                <strong>Owner key</strong> links to the Owner Mapping tab.
+                <strong>Type:</strong> <em>HOUR</em> = labour (budget & forecast in hours × rate).
+                <em>EXPENSES</em> = travel/displacement costs. 
+                <em>COST</em> = materials/other costs. 
+                <em>SUMMARY</em> = computed from children.<br>
+                <strong>Department → Owner:</strong> Select department first, then select owner from that department.
               </div>
 
               <div class="settings-table-wrap">
@@ -308,11 +306,11 @@
                   <thead>
                     <tr>
                       <th style="width:70px;">LVL</th>
-                      <th style="width:260px;">WBS CODE</th>
-                      <th>DESCRIPTION</th>
-                      <th style="width:170px;">TYPE</th>
-                      <th style="width:170px;">OWNER KEY</th>
-                      <th style="width:140px;">HOUR RATE</th>
+                      <th style="width:180px;">WBS CODE</th>
+                      <th style="width:220px;">DESCRIPTION</th>
+                      <th style="width:130px;">TYPE</th>
+                      <th style="width:170px;">DEPARTMENT</th>
+                      <th style="width:170px;">OWNER</th>
                       <th style="width:60px;"></th>
                     </tr>
                   </thead>
@@ -327,22 +325,31 @@
                         </select>
                       </td>
                       <td>
-                        <input
-                          [(ngModel)]="row.ownerKey"
-                          class="tbl-input"
-                          list="owner-key-suggestions"
-                          placeholder="e.g. DES-MEC" />
+                        <select 
+                          [(ngModel)]="row.departmentId" 
+                          (ngModelChange)="onDepartmentChange(row, $event)"
+                          class="tbl-select">
+                          <option [ngValue]="null">— Select Dept —</option>
+                          <!-- ✅ FIXED: Use dept.label instead of dept.name -->
+                          <option *ngFor="let dept of departments" [ngValue]="dept.id">{{ dept.label }}</option>
+                        </select>
                       </td>
-                      <td><input [(ngModel)]="row.hourRate" class="tbl-input" type="number" /></td>
+                      <td>
+                        <select [(ngModel)]="row.ownerId" class="tbl-select" [disabled]="!row.departmentId">
+                          <option [ngValue]="null">— Select Owner —</option>
+                          <option *ngFor="let user of usersByDepartment[row.departmentId!] || []" [ngValue]="user.id">
+                            {{ user.fullName }}
+                          </option>
+                        </select>
+                      </td>
                       <td><button class="delete-btn" (click)="removeTemplateRow(i)">✕</button></td>
+                    </tr>
+                    <tr *ngIf="financeSettings.templateRows.length === 0">
+                      <td colspan="7" class="empty-row">No WBS template rows defined. Click "Add Row" to create one.</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
-
-              <datalist id="owner-key-suggestions">
-                <option *ngFor="let key of getOwnerKeyOptions()" [value]="key"></option>
-              </datalist>
             </div>
 
             <div *ngIf="activeSettingsTab === 'owner'" class="settings-section">
@@ -446,21 +453,18 @@
                 </div>
               </div>
 
-              <!-- Bloc 1 : template ODS standard préchargé -->
               <div class="settings-card">
                 <h3>🟢 Load Standard WBS Template (from uploaded ODS)</h3>
                 <p style="margin: 0 0 14px; color: #66788f; font-size: 13px;">
                   This will load the WBS structure from the WBS_Structure.ods file uploaded by an
                   administrator. The <code>xxx25</code> prefix will be replaced by the actual project
-                  code when applied. Types are auto-detected: rows with "hour" in the description →
-                  Hours; otherwise → Cost.
+                  code when applied. <strong>Types must be explicitly defined in the file (SUMMARY, HOUR, EXPENSES, COST).</strong>
                 </p>
                 <button class="btn primary" type="button" (click)="loadOdsTemplate()" [disabled]="odsTemplateLoading">
                   📂 {{ odsTemplateLoading ? 'Loading...' : 'Load ODS Template' }}
                 </button>
               </div>
 
-              <!-- Bloc 2 : import manuel JSON/CSV avec drag & drop -->
               <div class="settings-card">
                 <h3>🟠 Import from JSON or CSV</h3>
 
@@ -487,7 +491,7 @@
                 <p class="import-format-hint">
                   <strong>JSON:</strong> array of {{ '{' }} level, wbs, desc, type, ownerKey, hourRate {{ '}' }}<br>
                   <strong>CSV:</strong> columns: level, wbs, desc, type, ownerKey, hourRate<br>
-                  <em>(type, ownerKey, hourRate are optional — auto-detected from description if missing)</em>
+                  <em>(type is REQUIRED. ownerKey and hourRate are optional)</em>
                 </p>
 
                 <div *ngIf="importMessage" class="callout" style="margin-top: 14px;">
