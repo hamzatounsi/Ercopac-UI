@@ -41,6 +41,18 @@ export class GmFinanceService {
     return this.http.post(`${this.baseUrl}/${projectId}/finance/recalculate-labour`, {});
   }
 
+  // ─── PHASE 4: mise à jour du Forecast en ligne ──────────────
+  // NOTE: cette route doit exister côté backend.
+  // PATCH /projects/:projectId/finance/:rowId/forecast  { forecast: number }
+  // → doit recalculer EAC (= AC + forecast) et Variance (= Budget - EAC)
+  //   côté serveur et renvoyer la ligne FinanceEntry à jour.
+  updateForecastValue(projectId: number, rowId: number, forecast: number): Observable<FinanceEntry> {
+    return this.http.patch<FinanceEntry>(
+      `${this.baseUrl}/${projectId}/finance/${rowId}/forecast`,
+      { forecast }
+    );
+  }
+
   getFinanceSettings(): Observable<FinanceSettings> {
     return this.http.get<FinanceSettings>(this.settingsUrl);
   }
@@ -68,6 +80,22 @@ export class GmFinanceService {
         rows,
         replaceExisting
       }
+    );
+  }
+
+  // ─── Load Standard WBS Template (from uploaded ODS) ─────────
+  // NOTE: suppose une route backend qui sert le WBS_Structure.ods
+  // déjà uploadé côté admin et le parse en FinanceWbsTemplateRow[].
+  // GET /finance/settings/ods-template
+  loadOdsTemplate(): Observable<FinanceWbsTemplateRow[]> {
+    return this.http.get<FinanceWbsTemplateRow[]>(`${this.settingsUrl}/ods-template`);
+  }
+
+  // ─── Apply to Projects: liste des projets pour l'onglet "apply" ─
+  applyFinanceTemplateToAll(): Observable<ApplyFinanceTemplateResult> {
+    return this.http.post<ApplyFinanceTemplateResult>(
+      `${this.settingsUrl}/apply-template`,
+      { projectIds: undefined }
     );
   }
 }

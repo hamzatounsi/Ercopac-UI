@@ -30,4 +30,12 @@ export class GmForecastService {
   }): Observable<void> {
     return this.http.put<void>(`${this.baseUrl}/${projectId}/forecast`, payload);
   }
+
+  updateForecastRow(projectId: number, payload: {
+    wbsCode: string;
+    field: 'description' | 'budget' | 'actualCost';
+    value: string | number;
+  }): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/${projectId}/forecast/row`, payload);
+  }
 }

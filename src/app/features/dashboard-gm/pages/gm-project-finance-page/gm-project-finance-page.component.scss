@@ -500,11 +500,23 @@
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.22);
-  z-index: 1000;
+  z-index: 2147483000;
   display: flex;
   align-items: stretch;
   justify-content: center;
   padding: 22px;
+}
+
+/* Une fois téléportée dans <body>, s'assurer qu'aucun style hérité
+   ne casse le contexte de positionnement (font, box-sizing, etc.) */
+body > .settings-overlay {
+  font-family: Inter, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+body > .settings-overlay * {
+  box-sizing: border-box;
 }
 
 .settings-modal {
@@ -1235,4 +1247,107 @@
   background: #fff1f2;
   border-color: #fecdd3;
   color: #b42318;
+}
+
+/* ============================================================
+   PHASE 4 — Forecast input éditable dans le tableau Finance
+   ============================================================ */
+
+.forecast-input {
+  width: 90px;
+  height: 30px;
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 0 8px;
+  font: inherit;
+  text-align: right;
+  background: #fff;
+  color: #1f334b;
+}
+
+.forecast-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, .12);
+  outline: none;
+}
+
+.forecast-input:disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   Import WBS — zone drag & drop JSON/CSV
+   ============================================================ */
+
+.import-dropzone {
+  border: 2px dashed #c8d4e3;
+  border-radius: 14px;
+  background: #f8fafc;
+  padding: 32px 20px;
+  text-align: center;
+  transition: all .15s ease;
+  cursor: pointer;
+}
+
+.import-dropzone.drag-over {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.import-dropzone .import-icon {
+  font-size: 40px;
+  margin-bottom: 8px;
+}
+
+.import-dropzone .import-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #173b65;
+}
+
+.import-dropzone .import-sub {
+  margin-top: 4px;
+  color: #6b7f95;
+  font-size: 12px;
+}
+
+.dropzone-browse-btn {
+  display: inline-flex;
+  margin-top: 14px;
+}
+
+.import-format-hint {
+  margin-top: 14px;
+  font-size: 12px;
+  color: #66788f;
+  line-height: 1.6;
+  background: #f8fafc;
+  border: 1px solid #e6edf5;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+/* ============================================================
+   Option B — Forecast lecture seule dans Finance, lien vers Forecast
+   ============================================================ */
+
+.forecast-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #1565c0;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.forecast-link:hover {
+  text-decoration: underline;
+}
+
+.forecast-link-icon {
+  font-size: 14px;
+  opacity: 0.6;
 }

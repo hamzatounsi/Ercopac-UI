@@ -321,6 +321,23 @@
   background: #eff6ff;
 }
 
+#risk-tbl tr.overdue td {
+  background: #fef2f2;
+}
+
+#risk-tbl tr.overdue .risk-id-cell,
+#risk-tbl tr.overdue td {
+  color: #991b1b;
+}
+
+#risk-tbl tr.overdue:hover td {
+  background: #fee2e2;
+}
+
+#risk-tbl tr.overdue.selected td {
+  background: #fee2e2;
+}
+
 .risk-id-cell {
   font-family: monospace;
   font-weight: 900;
