@@ -18,7 +18,8 @@ import { OwnerSupportPageComponent } from './pages/owner-support-page/owner-supp
 import { OwnerOrganisationDetailsPageComponent } from './pages/owner-organisation-details-page/owner-organisation-details-page.component';
 
 const projectumAccessRoles = [
-  'PLATFORM_OWNER'
+  'PLATFORM_OWNER',
+  'PLATFORM_ADMIN'
 ];
 
 const routes: Routes = [

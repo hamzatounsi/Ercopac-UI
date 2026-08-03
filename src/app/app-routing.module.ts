@@ -17,6 +17,11 @@ const routes: Routes = [
   { path: 'login', component: LoginComponent },
 
   {
+    path: 'tickets',
+    loadChildren: () => import('./features/ticketing/ticketing.module').then(m => m.TicketingModule)
+  },
+
+  {
     path: 'reset-password',
     component: LoginComponent
   },
@@ -80,7 +85,7 @@ const routes: Routes = [
       import('./features/dashboard-owner/dashboard-owner.module')
         .then(m => m.DashboardOwnerModule),
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['PLATFORM_OWNER'] }
+    data: { roles: ['PLATFORM_OWNER', 'PLATFORM_ADMIN'] }
   },
 
   // GM accessing My Department page directly

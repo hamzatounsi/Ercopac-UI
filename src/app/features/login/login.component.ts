@@ -218,6 +218,16 @@ export class LoginComponent {
           return;
         }
 
+        if (role === 'SALES_MANAGER' || role === 'CLIENT') {
+          this.router.navigate(['/tickets']);
+          return;
+        }
+
+        if (role === 'PLATFORM_ADMIN') {
+          this.router.navigate(['/owner']);
+          return;
+        }
+
         if (role.includes('PLATFORM_OWNER')) {
           this.router.navigate(['/owner']);
           return;

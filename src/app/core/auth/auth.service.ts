@@ -6,10 +6,13 @@ import { API_AUTH_URL } from '../config/api.config';
 
 export type AppRole =
   | 'PLATFORM_OWNER'
+  | 'PLATFORM_ADMIN'
   | 'ORG_ADMIN'
   | 'GENERAL_MANAGER'
   | 'DEPARTMENT_MANAGER'
-  | 'EMPLOYEE';
+  | 'EMPLOYEE'
+  | 'SALES_MANAGER'
+  | 'CLIENT';
 
 interface JwtPayload {
   sub?: string;
@@ -141,10 +144,13 @@ export class AuthService {
   getHomeRoute(): string {
     switch (this.getCurrentRole()) {
       case 'PLATFORM_OWNER': return '/owner';
+      case 'PLATFORM_ADMIN': return '/owner';
       case 'ORG_ADMIN': return '/org-admin';
       case 'GENERAL_MANAGER': return '/gm';
       case 'DEPARTMENT_MANAGER': return '/department';
       case 'EMPLOYEE': return '/employee';
+      case 'SALES_MANAGER': return '/tickets';
+      case 'CLIENT': return '/tickets';
       default: return '/login';
     }
   }
