@@ -1,9 +1,15 @@
 <div class="projectum-shell">
 
-  <section class="portfolio-hero">
-    <div><span class="eyebrow">Portfolio control center</span><h1>Projectum Portfolio</h1><p>Live delivery, schedule and financial visibility across your active portfolio.</p></div>
-    <div class="portfolio-actions"><span *ngIf="lastRefreshed">Updated {{ lastRefreshed | date:'shortTime' }}</span><button type="button" class="refresh-btn" (click)="refreshPortfolio()" [disabled]="loading" aria-label="Refresh portfolio data"><span class="material-symbols-outlined">refresh</span>Refresh</button><button type="button" class="btn btn-primary new-project-btn" (click)="openCreateModal()">＋ New Project</button></div>
-  </section>
+  <app-projectum-workspace-header
+    title="Projectum Portfolio"
+    subtitle="Live delivery, schedule and financial visibility across your active portfolio."
+    [showProjectModules]="false">
+    <div projectumHeaderActions class="portfolio-actions">
+      <span *ngIf="lastRefreshed">Updated {{ lastRefreshed | date:'shortTime' }}</span>
+      <button type="button" class="refresh-btn" (click)="refreshPortfolio()" [disabled]="loading" aria-label="Refresh portfolio data"><span class="material-symbols-outlined">refresh</span>Refresh</button>
+      <button type="button" class="btn btn-primary new-project-btn" (click)="openCreateModal()">New Project</button>
+    </div>
+  </app-projectum-workspace-header>
   <!-- KPI SECTION -->
   <section class="kpi-section">
     <div class="kpi-header">

@@ -1,84 +1,49 @@
-<div class="workspace-page">
-  <header class="topbar">
-    <div class="brand-block">
-      <div class="brand-icon">
-        <span class="material-symbols-outlined">hub</span>
-      </div>
-      <div>
-        <div class="brand-mark">Projectum</div>
-        <div class="brand-sub">Enterprise workspace</div>
-      </div>
-    </div>
+<div class="launcher-page">
+  <header class="launcher-topbar">
+    <a class="launcher-brand" routerLink="/login" aria-label="Projectum home">projectum</a>
 
-    <nav class="top-nav" aria-label="Workspace security status">
-      <span class="top-link active">Secure access</span>
-      <span class="top-link">Role based</span>
-      <span class="top-link">Multi-tenant</span>
+    <nav class="launcher-nav" aria-label="Primary navigation">
+      <a href="#applications">Apps</a>
+      <a routerLink="/login">Industries</a>
+      <a routerLink="/login">Community</a>
+      <a routerLink="/login">Prices</a>
+      <a routerLink="/login">Help</a>
     </nav>
 
-    <div class="top-actions">
-      <button class="signin-link" type="button" (click)="selectedApp = 'Register'">
-        Request access
-      </button>
-
-      <button class="trial-btn" type="button" (click)="selectedApp = 'Projectum'">
-        <span class="material-symbols-outlined">login</span>
-        <span>Open login</span>
-      </button>
+    <div class="launcher-actions">
+      <button class="launcher-action-link" type="button" (click)="selectedApp = 'Register'">Register</button>
+      <button class="launcher-login-button" type="button" (click)="selectedApp = 'Projectum'">Login</button>
     </div>
   </header>
 
-  <main class="workspace-main">
-    <section class="hero-section">
-      <div class="hero-copy">
-        <div class="hero-kicker">Projectum enterprise suite</div>
-        <h1 class="hero-title">All around projects</h1>
-        <p class="hero-desc">
-          Simple, efficient and enterprise-ready!
-        </p>
-      </div>
+  <main>
+    <section class="launcher-hero" aria-labelledby="workspaceTitle">
+      <p class="launcher-eyebrow">Projectum workspace</p>
+      <h1 id="workspaceTitle">All around <span class="launcher-title-accent">project</span></h1>
+      <p class="launcher-subtitle">Simple, efficient and enterprise-ready!</p>
     </section>
 
-    <section class="apps-section" aria-labelledby="workspaceAppsTitle">
-      <div class="section-head">
-        <div>
-          <h2 id="workspaceAppsTitle">Workspace applications</h2>
-          <p>Select an available module to continue.</p>
-        </div>
-        <span class="apps-count">{{ workspaceApps.length }} modules</span>
-      </div>
-
-      <div class="apps-grid" *ngIf="workspaceApps.length; else noApps">
+    <section id="applications" class="launcher-stage" aria-label="Projectum application preview">
+      <div class="launcher-app-grid" *ngIf="workspaceApps.length; else noApps">
         <button
-          class="app-card"
+          class="launcher-app-card"
           type="button"
           *ngFor="let app of workspaceApps"
-          [class.live]="app.enabled"
           [disabled]="!app.enabled"
           (click)="selectApp(app.selectedApp)"
           [attr.aria-label]="app.enabled ? 'Open ' + app.name : app.name + ' is not available yet'"
+          [attr.title]="app.description"
         >
-          <div class="app-card-top">
-            <div class="app-icon-wrap">
-              <span class="material-symbols-outlined">{{ app.icon }}</span>
-            </div>
-            <span class="app-badge" [class.disabled]="!app.enabled">{{ app.badge }}</span>
-          </div>
-
-          <div class="app-group">{{ app.group }}</div>
-          <div class="app-name">{{ app.name }}</div>
-          <p class="app-desc">{{ app.description }}</p>
-
-          <div class="app-cta">
-            <span>{{ app.enabled ? 'Open workspace' : 'Unavailable' }}</span>
-            <span class="material-symbols-outlined">arrow_forward</span>
-          </div>
+          <span class="launcher-icon-tile" aria-hidden="true">
+            <span class="material-symbols-outlined">{{ app.icon }}</span>
+          </span>
+          <span class="launcher-app-name">{{ app.name }}</span>
+          <span class="sr-only">{{ app.enabled ? 'Available' : 'Unavailable' }}. {{ app.description }}</span>
         </button>
       </div>
 
       <ng-template #noApps>
-        <div class="empty-state">
-          <span class="material-symbols-outlined">inventory_2</span>
+        <div class="launcher-empty-state">
           <strong>No applications available</strong>
           <p>Your workspace has no visible modules yet. Contact your administrator.</p>
         </div>

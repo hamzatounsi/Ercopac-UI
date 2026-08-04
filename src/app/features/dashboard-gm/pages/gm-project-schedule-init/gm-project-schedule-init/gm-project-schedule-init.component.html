@@ -1,17 +1,15 @@
 <div class="schedule-init-page">
-  <div class="page-header">
-    <div>
-      <h1>Project Schedule Initialization</h1>
-      <p>Initialize a new industrial project with baseline scheduling and business attributes.</p>
-    </div>
-
-    <div class="header-actions">
+  <app-projectum-workspace-header
+    title="Initialize Project Schedule"
+    subtitle="Initialize a new industrial project with baseline scheduling and business attributes."
+    [showProjectModules]="false">
+    <div projectumHeaderActions class="header-actions">
       <button type="button" class="btn btn-secondary" (click)="resetForm()">Reset</button>
       <button type="button" class="btn btn-primary" (click)="submit()" [disabled]="isSubmitting">
         {{ isSubmitting ? 'Initializing...' : 'Initialize Project' }}
       </button>
     </div>
-  </div>
+  </app-projectum-workspace-header>
 
   <div *ngIf="errorMessage" class="alert-error">
     {{ errorMessage }}

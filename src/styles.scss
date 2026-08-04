@@ -39,6 +39,8 @@
   --pm-focus: 0 0 0 3px rgba(40, 95, 147, 0.16);
 }
 
+@import './styles/workspace-launcher';
+
 html, body {
   height: 100%;
   margin: 0;

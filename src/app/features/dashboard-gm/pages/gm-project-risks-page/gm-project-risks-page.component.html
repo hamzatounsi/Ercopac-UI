@@ -1,17 +1,13 @@
 <div class="risk-shell">
-  <app-gm-project-side-panel
+  <app-projectum-workspace-header
     [projectId]="projectId"
-    currentPage="risk">
-  </app-gm-project-side-panel>
-
-  <div class="project-bar">
-    <span class="project-lbl">📂 Project:</span>
-    <span class="project-chip">{{ projectName || 'Project #' + projectId }}</span>
-  </div>
+    [projectName]="projectName"
+    title="Risks"
+    subtitle="Identify, assess and manage project risk exposure.">
+    <button projectumHeaderActions class="tb-btn add" type="button" (click)="addRisk()">Add Risk</button>
+  </app-projectum-workspace-header>
 
   <div id="toolbar">
-    <button class="tb-btn add" (click)="addRisk()">＋ Add Risk</button>
-
     <span class="tb-lbl">Type</span>
     <select class="tb-sel" [(ngModel)]="typeFilter" (change)="applyFilters()">
       <option value="">All</option>

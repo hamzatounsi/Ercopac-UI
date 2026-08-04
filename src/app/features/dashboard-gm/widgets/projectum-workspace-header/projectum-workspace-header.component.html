@@ -1,0 +1,37 @@
+<section class="projectum-workspace-header" aria-label="Projectum page context">
+  <div class="context-row">
+    <div class="context-copy">
+      <a *ngIf="showBack" class="back-link" routerLink="/gm/projectum" aria-label="Back to Projectum portfolio">
+        <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+        <span>Portfolio</span>
+      </a>
+
+      <div class="eyebrow">Projectum</div>
+      <div class="title-row">
+        <h1>{{ title }}</h1>
+        <span *ngIf="hasProjectContext" class="project-context" [title]="projectContextLabel">
+          <span class="material-symbols-outlined" aria-hidden="true">folder_managed</span>
+          {{ projectContextLabel }}
+        </span>
+      </div>
+      <p *ngIf="subtitle">{{ subtitle }}</p>
+    </div>
+
+    <div class="context-actions">
+      <ng-content select="[projectumHeaderActions]"></ng-content>
+    </div>
+  </div>
+
+  <nav *ngIf="showProjectModules && hasProjectContext" class="module-navigation" aria-label="Project modules">
+    <a
+      *ngFor="let module of modules"
+      class="module-link"
+      [routerLink]="projectRoute(module)"
+      routerLinkActive="is-active"
+      [routerLinkActiveOptions]="{ exact: module.exact !== false }"
+      [attr.title]="module.label">
+      <span class="material-symbols-outlined" aria-hidden="true">{{ module.icon }}</span>
+      <span>{{ module.label }}</span>
+    </a>
+  </nav>
+</section>

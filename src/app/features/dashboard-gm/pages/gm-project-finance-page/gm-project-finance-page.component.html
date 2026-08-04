@@ -1,28 +1,18 @@
 <div class="finance-shell">
-  <app-gm-project-side-panel
+  <app-projectum-workspace-header
     [projectId]="projectId"
-    currentPage="finance">
-  </app-gm-project-side-panel>
-
-  <section class="finance-hero">
-    <div>
-      <div class="hero-kicker">Project Finance Control</div>
-      <h1>{{ projectName || 'Project #' + projectId }}</h1>
-      <p>Budget, actual cost, forecast, EAC, variance and CPI tracking.</p>
-    </div>
-
-    <div class="hero-actions">
-      <button class="hero-btn ghost" type="button" (click)="loadData()">
-        <span class="material-symbols-outlined">refresh</span>
-        Refresh
-      </button>
-
-      <button class="hero-btn primary" type="button" (click)="openSettings()">
-        <span class="material-symbols-outlined">settings</span>
-        Finance Settings
-      </button>
-    </div>
-  </section>
+    [projectName]="projectName"
+    title="Finance"
+    subtitle="Budget, actual cost, forecast, EAC, variance and CPI tracking.">
+    <button projectumHeaderActions class="hero-btn ghost" type="button" (click)="loadData()">
+      <span class="material-symbols-outlined">refresh</span>
+      Refresh
+    </button>
+    <button projectumHeaderActions class="hero-btn primary" type="button" (click)="openSettings()">
+      <span class="material-symbols-outlined">settings</span>
+      Finance Settings
+    </button>
+  </app-projectum-workspace-header>
 
   <section class="erp-toolbar">
     <button

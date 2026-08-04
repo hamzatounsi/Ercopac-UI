@@ -1,0 +1,190 @@
+
+> ercopac-frontend@0.0.0 start
+> ng serve --host 127.0.0.1 --port 4201
+
+- Generating browser application bundles (phase: setup)...
+√ Browser application bundle generation complete.
+
+Initial Chunk Files                                                                                     | Names                                           |  Raw Size
+vendor.js                                                                                               | vendor                                          |   2.57 MB |
+main.js                                                                                                 | main                                            | 451.47 kB |
+polyfills.js                                                                                            | polyfills                                       | 252.55 kB |
+styles.css, styles.js                                                                                   | styles                                          | 228.69 kB |
+runtime.js                                                                                              | runtime                                         |  12.63 kB |
+
+| Initial Total                                   |   3.49 MB
+
+Lazy Chunk Files                                                                                        | Names                                           |  Raw Size
+src_app_features_dashboard-gm_gm-dashboard_module_ts.js                                                 | features-dashboard-gm-gm-dashboard-module       |   2.80 MB |
+default-src_app_features_dashboard-gm_pages_gm-resource-management-page_gm-resource-managemen-0c3ae4.js | features-dashboard-gm-gm-dashboard-module       |   1.16 MB |
+src_app_features_dashboard-org-admin_org-admin_module_ts.js                                             | features-dashboard-org-admin-org-admin-module   | 589.42 kB |
+src_app_features_dashboard-crm_dashboard-crm_module_ts.js                                               | features-dashboard-crm-dashboard-crm-module     | 568.56 kB |
+src_app_features_dashboard-owner_dashboard-owner_module_ts.js                                           | features-dashboard-owner-dashboard-owner-module | 453.09 kB |
+src_app_features_ticketing_ticketing_module_ts.js                                                       | features-ticketing-ticketing-module             | 173.79 kB |
+common.js                                                                                               | common                                          |   9.17 kB |
+
+Build at: 2026-08-04T09:05:47.025Z - Hash: 0830332f83235c2d - Time: 22754ms
+
+./src/app/features/dashboard-gm/pages/gm-projectum-page/gm-projectum-page/gm-projectum-page.component.scss?ngResource - Warning: Module Warning (from ./node_modules/postcss-loader/dist/cjs.js):
+(17:3) from "autoprefixer" plugin: end value has mixed support, consider using flex-end instead
+
+Code:
+  align-items: end
+
+
+
+
+** Angular Live Development Server is listening on 127.0.0.1:4201, open your browser on http://127.0.0.1:4201/ **
+
+
+√ Compiled successfully.
+√ Browser application bundle generation complete.
+
+Initial Chunk Files                                     | Names                                     | Raw Size
+runtime.js                                              | runtime                                   | 12.63 kB |
+
+Lazy Chunk Files                                        | Names                                     | Raw Size
+src_app_features_dashboard-gm_gm-dashboard_module_ts.js | features-dashboard-gm-gm-dashboard-module |  2.80 MB |
+
+10 unchanged chunks
+
+Build at: 2026-08-04T09:07:08.731Z - Hash: 48a16cde60181e44 - Time: 6300ms
+
+√ Compiled successfully.
+√ Browser application bundle generation complete.
+
+Initial Chunk Files                                     | Names                                     | Raw Size
+runtime.js                                              | runtime                                   | 12.63 kB |
+
+Lazy Chunk Files                                        | Names                                     | Raw Size
+src_app_features_dashboard-gm_gm-dashboard_module_ts.js | features-dashboard-gm-gm-dashboard-module |  2.80 MB |
+
+10 unchanged chunks
+
+Build at: 2026-08-04T09:08:27.057Z - Hash: ee2b4f7ebcff5e3a - Time: 2896ms
+
+√ Compiled successfully.
+√ Browser application bundle generation complete.
+
+Initial Chunk Files                                     | Names                                     | Raw Size
+runtime.js                                              | runtime                                   | 12.63 kB |
+
+Lazy Chunk Files                                        | Names                                     | Raw Size
+src_app_features_dashboard-gm_gm-dashboard_module_ts.js | features-dashboard-gm-gm-dashboard-module |  2.79 MB |
+
+10 unchanged chunks
+
+Build at: 2026-08-04T09:08:46.256Z - Hash: 12dd9d61276759fb - Time: 3032ms
+
+√ Compiled successfully.
+√ Browser application bundle generation complete.
+
+Initial Chunk Files                                     | Names                                     | Raw Size
+runtime.js                                              | runtime                                   | 12.63 kB |
+
+Lazy Chunk Files                                        | Names                                     | Raw Size
+src_app_features_dashboard-gm_gm-dashboard_module_ts.js | features-dashboard-gm-gm-dashboard-module |  2.76 MB |
+
+10 unchanged chunks
+
+Build at: 2026-08-04T09:12:44.242Z - Hash: 22f40e139721d3b1 - Time: 3594ms
+
+√ Compiled successfully.
+√ Browser application bundle generation complete.
+
+Initial Chunk Files | Names   | Raw Size
+runtime.js          | runtime | 12.63 kB |
+
+11 unchanged chunks
+
+Build at: 2026-08-04T09:31:15.438Z - Hash: 87c3115564746321 - Time: 2778ms
+
+√ Compiled successfully.
+√ Browser application bundle generation complete.
+
+Initial Chunk Files | Names   |  Raw Size
+main.js             | main    | 448.65 kB |
+runtime.js          | runtime |  12.63 kB |
+
+10 unchanged chunks
+
+Build at: 2026-08-04T09:31:48.820Z - Hash: 01c6d71e32b0bcd7 - Time: 1895ms
+
+√ Compiled successfully.
+√ Browser application bundle generation complete.
+
+Initial Chunk Files                                     | Names                                     | Raw Size
+runtime.js                                              | runtime                                   | 12.63 kB |
+
+Lazy Chunk Files                                        | Names                                     | Raw Size
+src_app_features_dashboard-gm_gm-dashboard_module_ts.js | features-dashboard-gm-gm-dashboard-module |  2.75 MB |
+
+10 unchanged chunks
+
+Build at: 2026-08-04T09:33:01.150Z - Hash: 7352c3e390fa68ca - Time: 2610ms
+
+√ Compiled successfully.
+√ Browser application bundle generation complete.
+
+Initial Chunk Files                                     | Names                                     | Raw Size
+runtime.js                                              | runtime                                   | 12.63 kB |
+
+Lazy Chunk Files                                        | Names                                     | Raw Size
+src_app_features_dashboard-gm_gm-dashboard_module_ts.js | features-dashboard-gm-gm-dashboard-module |  2.75 MB |
+
+10 unchanged chunks
+
+Build at: 2026-08-04T09:33:02.609Z - Hash: 187661231129f9fd - Time: 1404ms
+
+√ Compiled successfully.
+√ Browser application bundle generation complete.
+
+Initial Chunk Files | Names   |  Raw Size
+main.js             | main    | 386.64 kB |
+runtime.js          | runtime |  12.63 kB |
+
+10 unchanged chunks
+
+Build at: 2026-08-04T09:33:10.339Z - Hash: caaaf00ddc6e125e - Time: 1347ms
+
+Error: Module not found: Error: Can't resolve 'C:/Users/hamzus/Desktop/ERCOPAC PFE/ercopac-frontend/src/app/features/login/login.component.scss?ngResource' in 'C:\Users\hamzus\Desktop\ERCOPAC PFE\ercopac-frontend'
+
+Error: The loader "C:/Users/hamzus/Desktop/ERCOPAC PFE/ercopac-frontend/src/app/features/login/login.component.scss" didn't return a string.
+
+
+
+× Failed to compile.
+√ Browser application bundle generation complete.
+
+Initial Chunk Files | Names   |  Raw Size
+main.js             | main    | 403.31 kB |
+runtime.js          | runtime |  12.63 kB |
+
+10 unchanged chunks
+
+Build at: 2026-08-04T09:33:45.436Z - Hash: 7ecd4532020471eb - Time: 2335ms
+
+√ Compiled successfully.
+√ Browser application bundle generation complete.
+
+Initial Chunk Files                                     | Names                                     | Raw Size
+runtime.js                                              | runtime                                   | 12.63 kB |
+
+Lazy Chunk Files                                        | Names                                     | Raw Size
+src_app_features_dashboard-gm_gm-dashboard_module_ts.js | features-dashboard-gm-gm-dashboard-module |  2.73 MB |
+
+10 unchanged chunks
+
+Build at: 2026-08-04T09:33:46.620Z - Hash: 45738cf1dfca5cae - Time: 1132ms
+
+√ Compiled successfully.
+√ Browser application bundle generation complete.
+
+Initial Chunk Files | Names   | Raw Size
+runtime.js          | runtime | 12.63 kB |
+
+11 unchanged chunks
+
+Build at: 2026-08-04T09:42:47.878Z - Hash: ad762834a8fde060 - Time: 1661ms
+
+√ Compiled successfully.

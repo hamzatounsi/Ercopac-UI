@@ -16,6 +16,7 @@ import {
   AppUser
 } from '../../models/finance-settings.model';
 import { HttpClient } from '@angular/common/http';
+import { environment } from 'src/environments/environment';
 
 type SettingsTab = 'wbs' | 'owner' | 'rates' | 'import' | 'apply';
 
@@ -637,7 +638,7 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     this.loadingDepartments = true;
     console.log('🔍 Loading departments from backend...');
     
-    this.http.get<Department[]>('http://localhost:8087/api/departments').subscribe({
+    this.http.get<Department[]>(`${environment.apiUrl}/departments`).subscribe({
       next: (depts) => {
         console.log('✅ Departments loaded:', depts);
         this.departments = depts;
@@ -655,7 +656,7 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
   loadUsersByDepartment(deptId: number): void {
     if (this.usersByDepartment[deptId]) return;
     
-    this.http.get<AppUser[]>(`http://localhost:8087/api/departments/${deptId}/users`).subscribe({
+    this.http.get<AppUser[]>(`${environment.apiUrl}/departments/${deptId}/users`).subscribe({
       next: (users) => {
         console.log(`✅ Users loaded for dept ${deptId}:`, users);
         this.usersByDepartment[deptId] = users;

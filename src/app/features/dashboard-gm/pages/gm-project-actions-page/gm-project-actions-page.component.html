@@ -1,14 +1,11 @@
-<!-- ADD THIS: -->
-<div class="project-bar">
-  <span class="project-lbl">📂 Project:</span>
-  <span class="project-chip">{{ projectName || 'Project #' + projectId }}</span>
-</div>
+<app-projectum-workspace-header
+  [projectId]="projectId"
+  [projectName]="projectName"
+  title="Actions"
+  subtitle="Track corrective actions, issues and ownership across this project.">
+  <button projectumHeaderActions class="add-btn" type="button" (click)="addAction()">New Action</button>
+</app-projectum-workspace-header>
 <div class="actions-shell">
-  <app-gm-project-side-panel
-    [projectId]="projectId"
-    currentPage="actions">
-  </app-gm-project-side-panel>
-
   <div id="stats-bar">
     <div class="stat-pill"><span>{{ getTotalCount() }}</span> Total</div>
     <div class="stat-pill blue"><span>{{ getDoingCount() }}</span> In Progress</div>
@@ -58,7 +55,6 @@
           </div>
         </div>
 
-        <button class="add-btn" (click)="addAction()">＋ New Action</button>
       </div>
     </div>
 

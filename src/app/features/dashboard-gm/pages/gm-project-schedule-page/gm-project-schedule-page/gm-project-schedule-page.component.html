@@ -1,26 +1,41 @@
 <div class="pm-shell" [class.mycs-schedule]="isMyCsSchedule">
-  <!-- APP HEADER -->
-  <app-projectum-project-header>
-    <div class="mode-switch light-mode-switch">
+  <!-- Projectum uses the shared project header; My CS retains its existing header. -->
+  <app-projectum-workspace-header
+    *ngIf="!isMyCsSchedule; else myCsScheduleHeader"
+    [projectId]="projectId"
+    [projectName]="projectName"
+    title="Schedule"
+    subtitle="Plan, sequence and monitor the project delivery timeline.">
+    <div projectumHeaderActions class="mode-switch light-mode-switch">
       <span class="switch-label">BAR</span>
       <button type="button" class="mode-btn" [class.active]="activeMode === 'baseline'" (click)="setMode('baseline')">Baseline</button>
       <button type="button" class="mode-btn" [class.active]="activeMode === 'actual'" (click)="setMode('actual')">Actual</button>
     </div>
-    <button type="button" class="icon-header-btn" title="Settings" (click)="toggleSettings()">
+    <button projectumHeaderActions type="button" class="icon-header-btn" title="Settings" (click)="toggleSettings()">
       <span class="material-symbols-outlined">settings</span>
     </button>
-    <button type="button" class="export-header-btn" title="Refresh" (click)="loadSchedule()">
+    <button projectumHeaderActions type="button" class="export-header-btn" title="Refresh" (click)="loadSchedule()">
       <span class="material-symbols-outlined">refresh</span>
       <span>Refresh</span>
     </button>
-  </app-projectum-project-header>
+  </app-projectum-workspace-header>
 
-  <!-- SIDE PANEL -->
-  <app-gm-project-side-panel
-    *ngIf="!isMyCsSchedule"
-    [projectId]="projectId"
-    currentPage="gantt">
-  </app-gm-project-side-panel>
+  <ng-template #myCsScheduleHeader>
+    <app-projectum-project-header>
+      <div class="mode-switch light-mode-switch">
+        <span class="switch-label">BAR</span>
+        <button type="button" class="mode-btn" [class.active]="activeMode === 'baseline'" (click)="setMode('baseline')">Baseline</button>
+        <button type="button" class="mode-btn" [class.active]="activeMode === 'actual'" (click)="setMode('actual')">Actual</button>
+      </div>
+      <button type="button" class="icon-header-btn" title="Settings" (click)="toggleSettings()">
+        <span class="material-symbols-outlined">settings</span>
+      </button>
+      <button type="button" class="export-header-btn" title="Refresh" (click)="loadSchedule()">
+        <span class="material-symbols-outlined">refresh</span>
+        <span>Refresh</span>
+      </button>
+    </app-projectum-project-header>
+  </ng-template>
 
   <!-- TOOLBAR -->
   <section class="top-toolbar modern-toolbar" *ngIf="!loading">
