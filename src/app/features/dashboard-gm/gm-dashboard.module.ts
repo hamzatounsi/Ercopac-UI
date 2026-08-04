@@ -11,7 +11,6 @@ import { GmLayoutComponent } from './pages/gm-layout/gm-layout.component';
 import { GmProjectTasksComponent } from './pages/gm-project-tasks/gm-project-tasks/gm-project-tasks.component';
 import { GmWorkspacesPageComponent } from './pages/gm_workspaces-page/gm-workspaces-page/gm-workspaces-page.component';
 import { GmProjectumPageComponent } from './pages/gm-projectum-page/gm-projectum-page/gm-projectum-page.component';
-import { ProjectumSideNavComponent } from './widgets/projectum-side-nav/projectum-side-nav.component';
 import { GmProjectSchedulePageComponent } from './pages/gm-project-schedule-page/gm-project-schedule-page/gm-project-schedule-page.component';
 import { GmProjectFinancePageComponent } from './pages/gm-project-finance-page/gm-project-finance-page.component';
 import { GmProjectForecastPageComponent } from './pages/gm-project-forecast-page/gm-project-forecast-page.component';
@@ -19,7 +18,7 @@ import { GmProjectRisksPageComponent } from './pages/gm-project-risks-page/gm-pr
 import { GmProjectChangeRequestsPageComponent } from './pages/gm-project-change-requests-page/gm-project-change-requests-page.component';
 import { GmProjectActionsPageComponent } from './pages/gm-project-actions-page/gm-project-actions-page.component';
 import { ProjectumProjectHeaderComponent } from './widgets/projectum-project-header/projectum-project-header.component';
-import { GmProjectSidePanelComponent } from './widgets/gm-project-side-panel/gm-project-side-panel.component';
+import { ProjectumWorkspaceHeaderComponent } from './widgets/projectum-workspace-header/projectum-workspace-header.component';
 import { GmResourceManagementPageComponent } from './pages/gm-resource-management-page/gm-resource-management-page.component';
 import { HttpClientModule } from '@angular/common/http';
 import { GmAdminSettingsPageComponent } from './pages/gm-admin-settings-page/gm-admin-settings-page.component';
@@ -42,7 +41,6 @@ import { SecurityTabComponent } from './pages/gm-admin-settings-page/components/
     GmProjectTasksComponent,
     GmWorkspacesPageComponent,
     GmProjectumPageComponent,
-    ProjectumSideNavComponent,
     GmProjectSchedulePageComponent,
     GmProjectFinancePageComponent,
     GmProjectForecastPageComponent,
@@ -50,7 +48,7 @@ import { SecurityTabComponent } from './pages/gm-admin-settings-page/components/
     GmProjectChangeRequestsPageComponent,
     GmProjectActionsPageComponent,
     ProjectumProjectHeaderComponent,
-    GmProjectSidePanelComponent,
+    ProjectumWorkspaceHeaderComponent,
     GmResourceManagementPageComponent,
     GmAdminSettingsPageComponent,
     CategoriesTabComponent,

@@ -1,0 +1,6 @@
+
+> ercopac-frontend@0.0.0 start
+> ng serve --host 127.0.0.1
+
+? Port 4200 is already in use.
+Would you like to use a different port? (Y/n) [46D[46C

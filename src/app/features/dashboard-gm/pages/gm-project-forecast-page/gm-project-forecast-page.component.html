@@ -1,5 +1,10 @@
 <div class="forecast-shell">
-  <app-gm-project-side-panel [projectId]="projectId" currentPage="forecast"></app-gm-project-side-panel>
+  <app-projectum-workspace-header
+    [projectId]="projectId"
+    [projectName]="projectName"
+    title="Forecast"
+    subtitle="Time-phased project cost and hours outlook.">
+  </app-projectum-workspace-header>
 
   <div id="toolbar">
     <span class="tb-lbl">View:</span>
@@ -26,15 +31,6 @@
     <div class="tb-spacer"></div>
     <span class="saving-indicator" *ngIf="saving">Saving...</span>
     <button class="save-btn" (click)="loadData()">Refresh</button>
-  </div>
-
-  <div class="project-strip">
-    <div class="project-label">Project</div>
-    <div class="project-select">
-      <span class="project-code">{{ projectLabel }}</span>
-      <span class="project-caret material-symbols-outlined">expand_more</span>
-    </div>
-    <div class="project-chip">{{ projectShortName }}</div>
   </div>
 
   <div *ngIf="error" class="error-box">{{ error }}</div>

@@ -16,70 +16,6 @@
   font-family: Inter, "Segoe UI", Roboto, sans-serif;
 }
 
-/* APP HEADER */
-.app-header {
-  min-height: 56px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 0 18px;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-  border-bottom: 1px solid #dbe3ec;
-  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
-  z-index: 20;
-}
-
-.app-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.app-logo {
-  width: 30px;
-  height: 30px;
-  border-radius: 7px;
-  background: linear-gradient(135deg, #1565c0, #42a5f5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(21, 101, 192, 0.35);
-}
-
-.app-logo .material-symbols-outlined {
-  font-size: 18px;
-}
-
-.app-name {
-  font-size: 15px;
-  line-height: 1;
-  font-weight: 900;
-  color: #0f172a;
-  letter-spacing: -0.2px;
-}
-
-.app-name span {
-  color: #1565c0;
-}
-
-.app-subtitle {
-  margin-top: 2px;
-  font-size: 9px;
-  color: #64748b;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.app-header-right {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.icon-header-btn,
 .header-action-btn {
   border: 1px solid #dbe3ec;
   background: #ffffff;
@@ -87,14 +23,6 @@
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.15s ease;
-}
-
-.icon-header-btn {
-  width: 28px;
-  height: 28px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .header-action-btn {
@@ -107,7 +35,6 @@
   font-weight: 700;
 }
 
-.icon-header-btn:hover,
 .header-action-btn:hover {
   background: #f8fafc;
   color: #0f172a;
@@ -213,7 +140,7 @@
 /* WORKSPACE */
 .workspace-layout {
   display: grid;
-  grid-template-columns: 260px 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
   align-items: start;
   padding: 12px;
@@ -454,18 +381,6 @@
 }
 
 @media (max-width: 768px) {
-  .app-header {
-    height: auto;
-    min-height: auto;
-    padding: 8px 12px;
-    flex-wrap: wrap;
-  }
-
-  .app-header-right {
-    width: 100%;
-    justify-content: flex-end;
-  }
-
   .top-toolbar {
     flex-direction: column;
     align-items: flex-start;

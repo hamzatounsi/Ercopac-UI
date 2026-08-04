@@ -1,30 +1,15 @@
 <div class="project-details-shell">
   <ng-container *ngIf="!loading && !error && project; else stateBlock">
-    <!-- APP HEADER -->
-    <header class="app-header">
-      <div class="app-brand">
-        <div class="app-logo">
-          <span class="material-symbols-outlined">folder_managed</span>
-        </div>
-        <div class="app-brand-text">
-          <div class="app-name">ERCOPAC <span>Projectum</span></div>
-          <div class="app-subtitle">
-            Project Details Workspace · {{ project.code }}
-          </div>
-        </div>
-      </div>
-
-      <div class="app-header-right">
-        <button type="button" class="icon-header-btn" (click)="back()">
-          <span class="material-symbols-outlined">arrow_back</span>
-        </button>
-
-        <button type="button" class="header-action-btn" (click)="ngOnInit()">
-          <span class="material-symbols-outlined">refresh</span>
-          <span>Refresh</span>
-        </button>
-      </div>
-    </header>
+    <app-projectum-workspace-header
+      [projectId]="project.id"
+      [projectName]="project.name"
+      title="Overview"
+      subtitle="Detailed project overview for General Manager.">
+      <button projectumHeaderActions type="button" class="header-action-btn" (click)="ngOnInit()">
+        <span class="material-symbols-outlined">refresh</span>
+        <span>Refresh</span>
+      </button>
+    </app-projectum-workspace-header>
 
     <!-- TOOLBAR -->
     <section class="top-toolbar">
@@ -74,26 +59,6 @@
 
     <!-- MAIN WORKSPACE -->
     <div class="workspace-layout">
-      <aside class="left-panel">
-        <div class="nav-panel">
-          <div class="nav-panel-header">
-            <div class="nav-panel-icon">
-              <span class="material-symbols-outlined">folder_managed</span>
-            </div>
-
-            <div class="nav-panel-text">
-              <h3>Project Workspace</h3>
-              <p>{{ project.code }}</p>
-            </div>
-          </div>
-
-          <app-projectum-side-nav
-            [projectId]="project.id"
-            [activeItem]="'details'">
-          </app-projectum-side-nav>
-        </div>
-      </aside>
-
       <main class="main-panel">
         <!-- PROJECT IDENTITY BAR -->
         <section class="project-banner">
@@ -297,23 +262,11 @@
   </ng-container>
 
   <ng-template #stateBlock>
-    <header class="app-header">
-      <div class="app-brand">
-        <div class="app-logo">
-          <span class="material-symbols-outlined">folder_managed</span>
-        </div>
-        <div class="app-brand-text">
-          <div class="app-name">ERCOPAC <span>Projectum</span></div>
-          <div class="app-subtitle">Project Details Workspace</div>
-        </div>
-      </div>
-
-      <div class="app-header-right">
-        <button type="button" class="icon-header-btn" (click)="back()">
-          <span class="material-symbols-outlined">arrow_back</span>
-        </button>
-      </div>
-    </header>
+    <app-projectum-workspace-header
+      title="Overview"
+      subtitle="Detailed project overview for General Manager."
+      [showProjectModules]="false">
+    </app-projectum-workspace-header>
 
     <section class="top-toolbar">
       <div class="toolbar-title">

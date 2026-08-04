@@ -1,110 +1,46 @@
-<div class="workspace-page">
-  <header class="workspace-topbar">
-    <div class="brand-block">
-      <div class="brand-icon">
-        <span class="material-symbols-outlined">hub</span>
-      </div>
-      <div>
-        <div class="brand-title">Projectum</div>
-        <div class="brand-subtitle">Enterprise SaaS workspace</div>
-      </div>
-    </div>
+<div class="launcher-page">
+  <header class="launcher-topbar">
+    <a class="launcher-brand" routerLink="/gm" aria-label="Projectum workspace home">projectum</a>
 
-    <div class="topbar-right">
-      <div class="org-chip">
-        <span class="org-chip-label">Organisation</span>
-        <span class="org-chip-name">{{ currentOrganisationName }}</span>
+    <nav class="launcher-nav" aria-label="Workspace navigation">
+      <a href="#applications">Apps</a>
+      <a routerLink="/gm">Industries</a>
+      <a routerLink="/gm">Community</a>
+      <a routerLink="/gm">Prices</a>
+      <a routerLink="/gm">Help</a>
+    </nav>
+
+    <div class="launcher-actions">
+      <button class="launcher-action-link" type="button" (click)="logout()">Logout</button>
+      <a class="launcher-action-link" routerLink="/gm">Workspace</a>
+      <span class="launcher-status-button" aria-label="Authenticated user">Logged in</span>
+      <div class="org-identity" [attr.title]="currentOrganisationName">
+        <span class="org-identity-label">{{ organisationLabel }}</span>
+        <span class="org-identity-name">{{ currentOrganisationName }}</span>
       </div>
-      <button class="logout-btn" type="button" (click)="logout()">
-        <span class="material-symbols-outlined">logout</span>
-        <span>Sign out</span>
-      </button>
     </div>
   </header>
 
-  <main class="workspace-main">
-    <section class="workspace-hero">
-      <div>
-        <div class="eyebrow">Workspace launcher</div>
-        <h1>Select a workspace</h1>
-        <p>Open the business area you need. Available modules are controlled by your role and organisation permissions.</p>
-      </div>
-
-      <div class="workspace-summary">
-        <div>
-          <strong>5</strong>
-          <span>active modules</span>
-        </div>
-        <div>
-          <strong>2</strong>
-          <span>planned modules</span>
-        </div>
-      </div>
+  <main>
+    <section class="launcher-hero" aria-labelledby="workspaceTitle">
+      <p class="launcher-eyebrow">Projectum workspace</p>
+      <h1 id="workspaceTitle">All around <span class="launcher-title-accent">project</span></h1>
+      <p class="launcher-subtitle">Simple, efficient and enterprise-ready!</p>
     </section>
 
-    <section class="apps-panel">
-      <div class="panel-head">
-        <div>
-          <h2>Applications</h2>
-          <p>Role-aware access to Projectum business modules.</p>
-        </div>
-      </div>
-
-      <div class="apps-grid">
-        <button class="app-card live" type="button" (click)="openProjectum()">
-          <span class="app-icon projectum"><span class="material-symbols-outlined">account_tree</span></span>
-          <span class="app-meta">Portfolio & delivery</span>
-          <strong>Projectum</strong>
-          <small>Projects, schedules, finance, forecasts, risks and actions.</small>
-          <span class="app-open">Open <span class="material-symbols-outlined">arrow_forward</span></span>
-        </button>
-
-        <button class="app-card live" type="button" (click)="openMyDepartment()">
-          <span class="app-icon department"><span class="material-symbols-outlined">groups</span></span>
-          <span class="app-meta">Operations</span>
-          <strong>My Department</strong>
-          <small>Department workload, resources, holidays and planning.</small>
-          <span class="app-open">Open <span class="material-symbols-outlined">arrow_forward</span></span>
-        </button>
-
-        <button class="app-card live" type="button" (click)="openCrm()">
-          <span class="app-icon crm"><span class="material-symbols-outlined">handshake</span></span>
-          <span class="app-meta">Commercial</span>
-          <strong>My CRM</strong>
-          <small>Leads, opportunities, pipeline and commercial activity.</small>
-          <span class="app-open">Open <span class="material-symbols-outlined">arrow_forward</span></span>
-        </button>
-
-        <button *ngIf="canSeeAdmin()" class="app-card live" type="button" (click)="openAdmin()">
-          <span class="app-icon admin"><span class="material-symbols-outlined">admin_panel_settings</span></span>
-          <span class="app-meta">Administration</span>
-          <strong>Admin</strong>
-          <small>Resources, licences, customers, categories and security.</small>
-          <span class="app-open">Open <span class="material-symbols-outlined">arrow_forward</span></span>
-        </button>
-
-        <button class="app-card live" type="button" (click)="openMyCs()">
-          <span class="app-icon mycs"><span class="material-symbols-outlined">support_agent</span></span>
-          <span class="app-meta">Customer success</span>
-          <strong>MY CS</strong>
-          <small>Customer success project workspace and planning.</small>
-          <span class="app-open">Open <span class="material-symbols-outlined">arrow_forward</span></span>
-        </button>
-
-        <button class="app-card disabled" type="button" disabled>
-          <span class="app-icon expenses"><span class="material-symbols-outlined">receipt_long</span></span>
-          <span class="app-meta">Coming soon</span>
-          <strong>My Expenses</strong>
-          <small>Expense claims and approvals will be available later.</small>
-          <span class="app-open muted">Unavailable</span>
-        </button>
-
-        <button class="app-card disabled" type="button" disabled>
-          <span class="app-icon tickets"><span class="material-symbols-outlined">confirmation_number</span></span>
-          <span class="app-meta">Coming soon</span>
-          <strong>My Ticketing</strong>
-          <small>Support requests and internal ticket tracking.</small>
-          <span class="app-open muted">Unavailable</span>
+    <section id="applications" class="launcher-stage" aria-label="Available workspace applications">
+      <div class="launcher-app-grid">
+        <button
+          *ngFor="let app of visibleLauncherApps"
+          class="launcher-app-card"
+          type="button"
+          [disabled]="!app.enabled"
+          (click)="openApp(app)"
+          [attr.aria-label]="app.enabled ? 'Open ' + app.name : app.name + ' is unavailable'"
+          [attr.title]="app.description">
+          <span class="launcher-icon-tile" aria-hidden="true"><span class="material-symbols-outlined">{{ app.icon }}</span></span>
+          <span class="launcher-app-name">{{ app.name }}</span>
+          <span class="sr-only">{{ app.enabled ? 'Available' : 'Unavailable' }}. {{ app.description }}</span>
         </button>
       </div>
     </section>

@@ -2,10 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AppNotification } from '../models/notification.model';
+import { environment } from 'src/environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
-  private base = '/api/notifications';
+  private base = `${environment.apiUrl}/notifications`;
 
   constructor(private http: HttpClient) {}
 

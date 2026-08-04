@@ -3,6 +3,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from 'src/environments/environment';
 
 import { CrmDashboard }      from '../models/crm-dashboard.model';
 import { CrmPipelineStage }  from '../models/crm-pipeline-stage.model';
@@ -13,7 +14,7 @@ import { CrmActivity }       from '../models/crm-activity.model';
 @Injectable({ providedIn: 'root' })
 export class CrmService {
 
-  private base = '/api/crm/organisations';
+  private base = `${environment.apiUrl}/crm/organisations`;
 
   constructor(private http: HttpClient) {}
 

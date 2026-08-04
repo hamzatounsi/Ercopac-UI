@@ -1,20 +1,17 @@
 <div class="tasks-page">
-  <div class="page-header">
-    <div>
-      <div class="page-kicker">Projectum workspace</div>
-      <h1>Project Tasks</h1>
-      <p>Manage the task foundation for this project with a compact enterprise layout.</p>
-    </div>
-
-    <div class="header-actions">
-      <button class="secondary-btn" routerLink="/gm/projects/{{ projectId }}">
+  <app-projectum-workspace-header
+    [projectId]="projectId"
+    title="Tasks"
+    subtitle="Manage the task foundation for this project with a compact enterprise layout.">
+    <div projectumHeaderActions class="header-actions">
+      <button class="secondary-btn" type="button" [routerLink]="['/gm', 'projects', projectId, 'details']">
         Back to Project
       </button>
       <button class="primary-btn" (click)="toggleCreateForm()">
         {{ showCreateForm ? 'Close Form' : 'Add Task' }}
       </button>
     </div>
-  </div>
+  </app-projectum-workspace-header>
 
   <div *ngIf="error" class="alert-error">
     {{ error }}
