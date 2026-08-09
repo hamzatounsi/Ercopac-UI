@@ -17,6 +17,7 @@ import { AdminToastService } from '../../shared/admin-toast.service';
 
 type ConfigurationTab = 'categories' | 'types' | 'resourceTypes' | 'customers';
 type ConfigurationKind = 'category' | 'type' | 'customer';
+type DialogKind = ConfigurationKind | 'resourceType';
 
 interface DeleteTarget {
   kind: ConfigurationKind;
@@ -45,11 +46,9 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
   deleting = false;
   importing = false;
   errorMessage = '';
-  dialogKind: ConfigurationKind | null = null;
+  dialogKind: DialogKind | null = null;
   editingId: number | null = null;
   deleteTarget: DeleteTarget | null = null;
-  resourceTypeDialogOpen = false;
-  editingResourceTypeId: number | null = null;
 
   readonly categoryForm = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
@@ -112,7 +111,6 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
   closeOnEscape(): void {
     if (!this.saving && !this.deleting) {
       this.closeDialog();
-      this.closeResourceTypeDialog();
       this.deleteTarget = null;
     }
   }
@@ -169,16 +167,19 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
   }
 
   openResourceType(item?: OrganisationResourceType): void {
-    this.editingResourceTypeId = item?.id ?? null;
-    this.resourceTypeDialogOpen = true;
-    this.resourceTypeForm.reset({
-      code: item?.code ?? '', label: item?.label ?? '', departmentId: item?.departmentId ?? null,
-      colour: item?.colour ?? '#2563eb', assignable: item?.assignable ?? true, active: item?.active ?? true
-    });
-  }
+    this.dialogKind = 'resourceType';
+    this.editingId = item?.id ?? null;
 
-  closeResourceTypeDialog(): void {
-    if (!this.saving) { this.resourceTypeDialogOpen = false; this.editingResourceTypeId = null; }
+    this.resourceTypeForm.enable({ emitEvent: false });
+
+    this.resourceTypeForm.reset({
+      code: item?.code ?? '',
+      label: item?.label ?? '',
+      departmentId: item?.departmentId ?? null,
+      colour: item?.colour ?? '#2563eb',
+      assignable: item?.assignable ?? true,
+      active: item?.active ?? true
+    });
   }
 
   saveResourceType(): void {
@@ -189,16 +190,18 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
       colour: this.optional(value.colour), defaultRate: null, assignable: value.assignable, active: value.active
     };
     this.saving = true;
-    const request = this.editingResourceTypeId === null
+    const request = this.editingId === null
       ? this.adminService.createResourceType(payload)
-      : this.adminService.updateResourceType(this.editingResourceTypeId, payload);
+      : this.adminService.updateResourceType(this.editingId, payload);
+
+    const editing = this.editingId !== null;
     request.pipe(finalize(() => this.saving = false)).subscribe({
       next: item => {
         this.resourceTypes = [...this.resourceTypes.filter(existing => existing.id !== item.id), item]
           .sort((left, right) => (left.label || left.code).localeCompare(right.label || right.code));
-        this.resourceTypeDialogOpen = false;
-        this.editingResourceTypeId = null;
-        this.toast.show(`Resource type ${this.editingResourceTypeId === null ? 'created' : 'updated'}.`, 'success');
+          this.dialogKind = null;
+          this.editingId = null;
+        this.toast.show(`Resource type ${editing ? 'updated' : 'created'}.`, 'success');
       },
       error: error => this.toast.show(adminErrorMessage(error, 'Could not save resource type.'), 'error')
     });
