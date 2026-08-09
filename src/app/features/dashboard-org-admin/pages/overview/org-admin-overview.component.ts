@@ -35,19 +35,21 @@ export class OrgAdminOverviewComponent implements OnInit {
     });
   }
 
-  roleCapacity(role: string): number {
-    if (!this.overview) return 0;
+  roleCapacity(role: string): number | null {
+    if (!this.overview) return null;
     const org = this.overview.organisation;
     switch (role) {
       case 'ORG_ADMIN': return org.orgAdminLicenceLimit;
-      case 'GENERAL_MANAGER': return org.generalManagerLicenceLimit;
+      case 'PROJECT_MANAGER': return org.projectManagerLicenceLimit;
       case 'DEPARTMENT_MANAGER': return org.departmentManagerLicenceLimit;
       case 'EMPLOYEE': return org.employeeLicenceLimit;
-      default: return 0;
+      case 'SALES_MANAGER': return org.salesManagerLicenceLimit;
+      case 'CLIENT': return org.clientLicenceLimit;
+      default: return null;
     }
   }
 
-  capacityPercent(active: number, capacity: number): number {
-    return capacity <= 0 ? 0 : Math.min(100, Math.round(active * 100 / capacity));
+  capacityPercent(active: number, capacity: number | null): number {
+    return capacity == null || capacity <= 0 ? 0 : Math.min(100, Math.round(active * 100 / capacity));
   }
 }

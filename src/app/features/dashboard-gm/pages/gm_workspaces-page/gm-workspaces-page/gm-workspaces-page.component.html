@@ -1,18 +1,17 @@
 <div class="launcher-page">
   <header class="launcher-topbar">
-    <a class="launcher-brand" routerLink="/gm" aria-label="Projectum workspace home">projectum</a>
+    <a class="launcher-brand" routerLink="/workspace" aria-label="Projectum workspace home">projectum</a>
 
     <nav class="launcher-nav" aria-label="Workspace navigation">
       <a href="#applications">Apps</a>
-      <a routerLink="/gm">Industries</a>
-      <a routerLink="/gm">Community</a>
-      <a routerLink="/gm">Prices</a>
-      <a routerLink="/gm">Help</a>
+      <a routerLink="/workspace">Industries</a>
+      <a routerLink="/workspace">Community</a>
+      <a routerLink="/workspace">Prices</a>
+      <a routerLink="/workspace">Help</a>
     </nav>
 
     <div class="launcher-actions">
       <button class="launcher-action-link" type="button" (click)="logout()">Logout</button>
-      <a class="launcher-action-link" routerLink="/gm">Workspace</a>
       <span class="launcher-status-button" aria-label="Authenticated user">Logged in</span>
       <div class="org-identity" [attr.title]="currentOrganisationName">
         <span class="org-identity-label">{{ organisationLabel }}</span>
@@ -34,13 +33,11 @@
           *ngFor="let app of visibleLauncherApps"
           class="launcher-app-card"
           type="button"
-          [disabled]="!app.enabled"
           (click)="openApp(app)"
-          [attr.aria-label]="app.enabled ? 'Open ' + app.name : app.name + ' is unavailable'"
-          [attr.title]="app.description">
+          [attr.aria-label]="'Open ' + app.name">
           <span class="launcher-icon-tile" aria-hidden="true"><span class="material-symbols-outlined">{{ app.icon }}</span></span>
           <span class="launcher-app-name">{{ app.name }}</span>
-          <span class="sr-only">{{ app.enabled ? 'Available' : 'Unavailable' }}. {{ app.description }}</span>
+          <span class="sr-only">Available.</span>
         </button>
       </div>
     </section>

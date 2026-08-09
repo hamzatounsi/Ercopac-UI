@@ -203,22 +203,24 @@
 }
 
 .launcher-app-card {
-  width: 126px;
-  min-height: 154px;
+  width: 136px;
+  min-height: 164px;
   flex-direction: column;
   justify-content: flex-start;
   gap: 13px;
-  padding: 0;
-  border: 0;
-  background: transparent;
+  padding: 8px 5px;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.18);
   color: var(--launcher-navy);
   cursor: pointer;
   text-align: center;
+  transition: background .18s ease, border-color .18s ease, box-shadow .18s ease;
 }
 
 .launcher-icon-tile {
-  width: 104px;
-  height: 104px;
+  width: 96px;
+  height: 96px;
   justify-content: center;
   border: 1px solid rgba(255, 255, 255, .9);
   border-radius: 23px;
@@ -228,7 +230,7 @@
   transition: transform .18s ease, box-shadow .18s ease;
 }
 
-.launcher-icon-tile .material-symbols-outlined { font-size: 45px; font-variation-settings: 'FILL' 1; }
+.launcher-icon-tile .material-symbols-outlined { font-size: 40px; font-variation-settings: 'FILL' 1; }
 .launcher-app-card:nth-child(3n + 2) .launcher-icon-tile { background: linear-gradient(145deg, #edf4ff, #fff 70%); color: #558df3; }
 .launcher-app-card:nth-child(3n) .launcher-icon-tile { background: linear-gradient(145deg, #eefbf8, #fff 70%); color: #46b7c4; }
 .launcher-app-card:nth-child(4n) .launcher-icon-tile { background: linear-gradient(145deg, #edf4ff, #fff 70%); color: #2865e8; }
@@ -243,10 +245,16 @@
   line-height: 1.25;
 }
 
-.launcher-app-card:hover:not(:disabled) .launcher-icon-tile,
+.launcher-app-card:hover .launcher-icon-tile,
 .launcher-app-card:focus-visible .launcher-icon-tile {
   transform: translateY(-4px);
   box-shadow: 0 20px 30px rgba(31, 42, 61, .15), inset 0 1px 0 #fff;
+}
+
+.launcher-app-card:hover {
+  border-color: #d6e2f2;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 12px 24px rgba(31, 42, 61, .08);
 }
 
 .launcher-app-card:focus-visible,
@@ -257,9 +265,6 @@
   outline-offset: 4px;
 }
 
-.launcher-app-card:disabled { cursor: default; }
-.launcher-app-card:disabled .launcher-icon-tile { box-shadow: 0 8px 18px rgba(31, 42, 61, .06); filter: grayscale(.18); opacity: .62; }
-.launcher-app-card:disabled .launcher-app-name { color: #6d7686; }
 
 .launcher-empty-state {
   width: min(520px, 100%);

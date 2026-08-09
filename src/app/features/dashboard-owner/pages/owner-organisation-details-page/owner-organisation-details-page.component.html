@@ -195,14 +195,14 @@
             <div class="section-head">
             <div>
                 <h2>Licence Allocation</h2>
-                <p>Maximum number of accounts per organisation.</p>
+                <p>Maximum active seats by role for this organisation.</p>
             </div>
 
-            <strong class="licence-total">Total: {{ totalLicences }}</strong>
+            <strong class="licence-total">Allocated seats: {{ totalLicences }}</strong>
             </div>
 
             <div class="hint-box">
-                Enterprise defaults: 2 org admins · 10 general managers · 25 department managers · 200 employees
+                Enterprise defaults: 2 organisation admins · 10 project managers · 25 department managers · 200 employees
             </div>
 
             <div class="licence-row">
@@ -222,9 +222,9 @@
                     <strong>Project Manager</strong>
                     <span>Portfolio, projects, planning, and organisation dashboard</span>
                 </div>
-                <button type="button" (click)="changeLicence('generalManager', -1)">-</button>
-                <input [value]="organisation.generalManagerLicenceLimit" readonly />
-                <button type="button" (click)="changeLicence('generalManager', 1)">+</button>
+                <button type="button" (click)="changeLicence('projectManager', -1)">-</button>
+                <input [value]="organisation.projectManagerLicenceLimit" readonly />
+                <button type="button" (click)="changeLicence('projectManager', 1)">+</button>
                 </div>
 
                 <div class="licence-row">
@@ -247,6 +247,28 @@
                 <button type="button" (click)="changeLicence('employee', -1)">-</button>
                 <input [value]="organisation.employeeLicenceLimit" readonly />
                 <button type="button" (click)="changeLicence('employee', 1)">+</button>
+                </div>
+
+                <div class="licence-row">
+                <div class="licence-icon orange">🤝</div>
+                <div class="licence-copy">
+                    <strong>Sales Manager</strong>
+                    <span>Sales and organisation ticketing access</span>
+                </div>
+                <button type="button" (click)="changeLicence('salesManager', -1)">-</button>
+                <input [value]="organisation.salesManagerLicenceLimit" readonly />
+                <button type="button" (click)="changeLicence('salesManager', 1)">+</button>
+                </div>
+
+                <div class="licence-row">
+                <div class="licence-icon purple">🎫</div>
+                <div class="licence-copy">
+                    <strong>Client</strong>
+                    <span>Organisation-scoped external ticketing access</span>
+                </div>
+                <button type="button" (click)="changeLicence('client', -1)">-</button>
+                <input [value]="organisation.clientLicenceLimit" readonly />
+                <button type="button" (click)="changeLicence('client', 1)">+</button>
                 </div>
         </section>
         </ng-container>

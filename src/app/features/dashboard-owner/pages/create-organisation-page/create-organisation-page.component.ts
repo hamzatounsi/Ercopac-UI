@@ -20,12 +20,14 @@ export class CreateOrganisationPageComponent {
     domain: '',
     plan: 'STARTER',
 
-    userLimit: 14,
+    userLimit: 20,
 
     orgAdminLicenceLimit: 1,
-    generalManagerLicenceLimit: 1,
+    projectManagerLicenceLimit: 1,
     departmentManagerLicenceLimit: 2,
     employeeLicenceLimit: 10,
+    salesManagerLicenceLimit: 1,
+    clientLicenceLimit: 5,
 
     monthlyRevenue: 490,
     healthScore: 100,
@@ -43,41 +45,49 @@ export class CreateOrganisationPageComponent {
     this.form.plan = plan;
 
     if (plan === 'STARTER') {
-      this.form.userLimit = 14;
+      this.form.userLimit = 20;
       this.form.monthlyRevenue = 490;
 
       this.form.orgAdminLicenceLimit = 1;
-      this.form.generalManagerLicenceLimit = 1;
+      this.form.projectManagerLicenceLimit = 1;
       this.form.departmentManagerLicenceLimit = 2;
       this.form.employeeLicenceLimit = 10;
+      this.form.salesManagerLicenceLimit = 1;
+      this.form.clientLicenceLimit = 5;
     }
 
     if (plan === 'PROFESSIONAL') {
-      this.form.userLimit = 62;
+      this.form.userLimit = 92;
       this.form.monthlyRevenue = 1200;
 
       this.form.orgAdminLicenceLimit = 1;
-      this.form.generalManagerLicenceLimit = 3;
+      this.form.projectManagerLicenceLimit = 3;
       this.form.departmentManagerLicenceLimit = 8;
       this.form.employeeLicenceLimit = 50;
+      this.form.salesManagerLicenceLimit = 5;
+      this.form.clientLicenceLimit = 25;
     }
 
     if (plan === 'ENTERPRISE') {
-      this.form.userLimit = 237;
+      this.form.userLimit = 357;
       this.form.monthlyRevenue = 4200;
 
       this.form.orgAdminLicenceLimit = 2;
-      this.form.generalManagerLicenceLimit = 10;
+      this.form.projectManagerLicenceLimit = 10;
       this.form.departmentManagerLicenceLimit = 25;
       this.form.employeeLicenceLimit = 200;
+      this.form.salesManagerLicenceLimit = 20;
+      this.form.clientLicenceLimit = 100;
     }
   }
 
   get totalLicences(): number {
     return this.form.orgAdminLicenceLimit +
-      this.form.generalManagerLicenceLimit +
+      this.form.projectManagerLicenceLimit +
       this.form.departmentManagerLicenceLimit +
-      this.form.employeeLicenceLimit;
+      this.form.employeeLicenceLimit +
+      this.form.salesManagerLicenceLimit +
+      this.form.clientLicenceLimit;
   }
 
   constructor(

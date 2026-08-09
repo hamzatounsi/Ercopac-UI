@@ -1,8 +1,10 @@
 export type OrganisationRole =
   | 'ORG_ADMIN'
-  | 'GENERAL_MANAGER'
+  | 'PROJECT_MANAGER'
   | 'DEPARTMENT_MANAGER'
-  | 'EMPLOYEE';
+  | 'EMPLOYEE'
+  | 'SALES_MANAGER'
+  | 'CLIENT';
 
 export interface OrganisationProfile {
   name: string;
@@ -13,9 +15,11 @@ export interface OrganisationProfile {
   plan: string;
   userLimit: number;
   orgAdminLicenceLimit: number;
-  generalManagerLicenceLimit: number;
+  projectManagerLicenceLimit: number;
   departmentManagerLicenceLimit: number;
   employeeLicenceLimit: number;
+  salesManagerLicenceLimit: number;
+  clientLicenceLimit: number;
   createdAt: string;
 }
 
@@ -57,6 +61,9 @@ export interface OrganisationUser {
   departmentId: number | null;
   departmentCode: string | null;
   departmentName: string | null;
+  resourceTypeId: number | null;
+  resourceTypeCode: string | null;
+  resourceTypeName: string | null;
   employeeCode: string | null;
   jobTitle: string | null;
   active: boolean;
@@ -68,6 +75,7 @@ export interface SaveOrganisationUser {
   password?: string;
   role: OrganisationRole;
   departmentId: number | null;
+  resourceTypeId: number | null;
   employeeCode: string | null;
   jobTitle: string | null;
   active: boolean;
@@ -87,6 +95,28 @@ export interface SaveOrganisationDepartment {
   code: string;
   name: string;
   managerId: number | null;
+}
+
+export interface OrganisationResourceType {
+  id: number;
+  code: string;
+  label: string | null;
+  colour: string | null;
+  departmentId: number | null;
+  departmentCode: string | null;
+  defaultRate: number | null;
+  assignable: boolean;
+  active: boolean;
+}
+
+export interface SaveOrganisationResourceType {
+  code: string;
+  label: string | null;
+  colour: string | null;
+  departmentId: number | null;
+  defaultRate: number | null;
+  assignable: boolean;
+  active: boolean;
 }
 
 export interface RolePermissionView {

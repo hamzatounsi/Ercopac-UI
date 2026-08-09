@@ -8,6 +8,9 @@
     <button type="button" role="tab" [attr.aria-selected]="activeTab === 'types'" [class.active]="activeTab === 'types'" (click)="setTab('types')">
       Project types <span>{{ projectTypes.length }}</span>
     </button>
+    <button type="button" role="tab" [attr.aria-selected]="activeTab === 'resourceTypes'" [class.active]="activeTab === 'resourceTypes'" (click)="setTab('resourceTypes')">
+      Resource types <span>{{ resourceTypes.length }}</span>
+    </button>
     <button type="button" role="tab" [attr.aria-selected]="activeTab === 'customers'" [class.active]="activeTab === 'customers'" (click)="setTab('customers')">
       Customers <span>{{ customers.length }}</span>
     </button>
@@ -26,6 +29,7 @@
     </label>
     <button *ngIf="activeTab === 'categories'" type="button" class="primary-button" (click)="openCategory()"><span class="material-symbols-outlined" aria-hidden="true">add</span> Add category</button>
     <button *ngIf="activeTab === 'types'" type="button" class="primary-button" (click)="openProjectType()"><span class="material-symbols-outlined" aria-hidden="true">add</span> Add type</button>
+    <button *ngIf="activeTab === 'resourceTypes'" type="button" class="primary-button" (click)="openResourceType()"><span class="material-symbols-outlined" aria-hidden="true">add</span> Add resource type</button>
     <button *ngIf="activeTab === 'customers'" type="button" class="primary-button" (click)="openCustomer()"><span class="material-symbols-outlined" aria-hidden="true">add</span> Add customer</button>
   </div>
 </section>
@@ -71,6 +75,22 @@
     <ng-template #emptyTypes><div class="empty-state"><span class="material-symbols-outlined" aria-hidden="true">description</span><h3>No matching project types</h3><p>Create a project type or clear the current search.</p><button type="button" (click)="openProjectType()">Add project type</button></div></ng-template>
   </ng-container>
 
+  <ng-container *ngSwitchCase="'resourceTypes'">
+    <header><div><h2>Resource types</h2><p>Manage organisation-owned internal resource profiles.</p></div></header>
+    <div class="table-scroll" *ngIf="filteredResourceTypes.length; else emptyResourceTypes">
+      <table><thead><tr><th>Resource type</th><th>Department</th><th>Assignment</th><th>Status</th><th><span class="sr-only">Actions</span></th></tr></thead>
+        <tbody><tr *ngFor="let item of filteredResourceTypes">
+          <td data-label="Resource type"><div class="identity"><span class="color-mark" [style.background]="item.colour || '#64748b'"></span><div><strong>{{ item.label || item.code }}</strong><small>{{ item.code }}</small></div></div></td>
+          <td data-label="Department">{{ item.departmentCode || 'Any department' }}</td>
+          <td data-label="Assignment">{{ item.assignable ? 'Assignable' : 'Archived' }}</td>
+          <td data-label="Status"><span class="status" [class.inactive]="!item.active">{{ item.active ? 'Active' : 'Inactive' }}</span></td>
+          <td class="row-actions"><button type="button" title="Edit resource type" (click)="openResourceType(item)"><span class="material-symbols-outlined" aria-hidden="true">edit</span></button><button type="button" [title]="item.active ? 'Deactivate resource type' : 'Activate resource type'" (click)="toggleResourceType(item)"><span class="material-symbols-outlined" aria-hidden="true">{{ item.active ? 'toggle_on' : 'toggle_off' }}</span></button></td>
+        </tr></tbody>
+      </table>
+    </div>
+    <ng-template #emptyResourceTypes><div class="empty-state"><span class="material-symbols-outlined" aria-hidden="true">engineering</span><h3>No resource types</h3><p>Create an organisation resource type before assigning internal users.</p><button type="button" (click)="openResourceType()">Add resource type</button></div></ng-template>
+  </ng-container>
+
   <ng-container *ngSwitchCase="'customers'">
     <header><div><h2>Customer directory</h2><p>Maintain customer records used by this organisation's projects.</p></div><small class="csv-hint">CSV columns: customerCode, name, country, town, email…</small></header>
     <div class="table-scroll" *ngIf="filteredCustomers.length; else emptyCustomers">
@@ -109,6 +129,17 @@
       <div class="form-grid"><label>Customer code <span>*</span><input formControlName="customerCode" autofocus /></label><label>Customer name <span>*</span><input formControlName="name" /></label><label>Country<input formControlName="country" /></label><label>Town or city<input formControlName="town" /></label><label class="wide">Address<input formControlName="address" /></label><label>VAT / tax ID<input formControlName="vatTaxId" /></label><label>ERP ID<input formControlName="erpId" /></label><label>Contact person<input formControlName="contactPerson" /></label><label>Email<input type="email" formControlName="email" /></label><label>Phone<input type="tel" formControlName="phone" /></label><label class="toggle"><input type="checkbox" formControlName="active" /> Active customer</label></div>
       <p class="validation" *ngIf="customerForm.touched && customerForm.invalid" role="alert">Customer code and name are required. Check the email and field lengths.</p>
       <footer><button type="button" class="secondary-button" [disabled]="saving" (click)="closeDialog()">Cancel</button><button type="submit" class="primary-button" [disabled]="customerForm.invalid || saving">{{ saving ? 'Saving…' : 'Save customer' }}</button></footer>
+    </form>
+  </section>
+</div>
+
+<div class="dialog-backdrop" *ngIf="resourceTypeDialogOpen" (mousedown)="$event.target === $event.currentTarget && closeResourceTypeDialog()">
+  <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="resource-type-dialog-title">
+    <header><div><p class="eyebrow">Resource types</p><h2 id="resource-type-dialog-title">{{ editingResourceTypeId === null ? 'Create' : 'Edit' }} resource type</h2></div><button type="button" class="icon-button" [disabled]="saving" (click)="closeResourceTypeDialog()" aria-label="Close resource type form"><span class="material-symbols-outlined" aria-hidden="true">close</span></button></header>
+    <form [formGroup]="resourceTypeForm" (ngSubmit)="saveResourceType()">
+      <div class="form-grid"><label>Name <span>*</span><input formControlName="label" autofocus /></label><label>Code <span>*</span><input formControlName="code" /></label><label>Department<select formControlName="departmentId"><option [ngValue]="null">Any department</option><option *ngFor="let department of departments" [ngValue]="department.id">{{ department.name }}</option></select></label><label>Colour<input formControlName="colour" placeholder="#2563eb" /></label><label class="toggle"><input type="checkbox" formControlName="assignable" /> Available for new users</label><label class="toggle"><input type="checkbox" formControlName="active" /> Active</label></div>
+      <p class="validation" *ngIf="resourceTypeForm.touched && resourceTypeForm.invalid" role="alert">Enter a valid name, code, and six-digit colour.</p>
+      <footer><button type="button" class="secondary-button" [disabled]="saving" (click)="closeResourceTypeDialog()">Cancel</button><button type="submit" class="primary-button" [disabled]="resourceTypeForm.invalid || saving">{{ saving ? 'Saving…' : 'Save resource type' }}</button></footer>
     </form>
   </section>
 </div>

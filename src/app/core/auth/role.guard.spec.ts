@@ -26,7 +26,7 @@ describe('RoleGuard', () => {
   it('returns the forbidden route for an operational role mismatch', () => {
     auth.isLoggedIn.and.returnValue(true);
     auth.getRoles.and.returnValue(['ORG_ADMIN']);
-    const result = guard.canActivate(routeWithRoles('GENERAL_MANAGER'));
+    const result = guard.canActivate(routeWithRoles('PROJECT_MANAGER'));
     expect(result instanceof UrlTree).toBeTrue();
     expect(TestBed.inject(Router).serializeUrl(result as UrlTree)).toBe('/forbidden');
   });

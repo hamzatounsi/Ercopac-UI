@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
 import { LoginComponent } from './features/login/login.component';
+import { GmWorkspacesPageComponent } from './features/dashboard-gm/pages/gm_workspaces-page/gm-workspaces-page/gm-workspaces-page.component';
 import { DashboardDmComponent } from './features/dashboard-dm/dashboard-dm.component';
 import { DashboardEmployeeComponent } from './features/dashboard-employee/dashboard-employee.component';
 import { ForbiddenComponent } from './features/forbidden/forbidden.component';
@@ -12,9 +13,15 @@ import { AuthGuard } from './core/auth/auth.guard';
 import { RoleGuard } from './core/auth/role.guard';
 
 const routes: Routes = [
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
-
-  { path: 'login', component: LoginComponent },
+  { path: '', component: LoginComponent, pathMatch: 'full' },
+  // Retain the historic URL without maintaining a second public entry page.
+  { path: 'login', redirectTo: '', pathMatch: 'full' },
+  {
+    path: 'workspace',
+    component: GmWorkspacesPageComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['PROJECT_MANAGER', 'DEPARTMENT_MANAGER', 'EMPLOYEE', 'SALES_MANAGER', 'CLIENT'] }
+  },
 
   {
     path: 'tickets',
@@ -43,7 +50,7 @@ const routes: Routes = [
       import('./features/dashboard-gm/gm-dashboard.module').then(m => m.GmDashboardModule),
     canActivate: [AuthGuard, RoleGuard],
     data: {
-      roles: ['GENERAL_MANAGER', 'PLATFORM_OWNER']
+      roles: ['PROJECT_MANAGER', 'DEPARTMENT_MANAGER', 'PLATFORM_OWNER', 'ORG_ADMIN']
     }
   },
 
@@ -55,7 +62,7 @@ const routes: Routes = [
         .then(m => m.DashboardCrmModule),
     canActivate: [AuthGuard, RoleGuard],
     data: {
-      roles: ['GENERAL_MANAGER', 'PLATFORM_OWNER']
+      roles: ['PROJECT_MANAGER', 'PLATFORM_OWNER']
     }
   },
 
@@ -65,7 +72,7 @@ const routes: Routes = [
   component: MyDepartmentPageComponent,
   canActivate: [AuthGuard, RoleGuard],
   data: {
-    roles: ['DEPARTMENT_MANAGER', 'GENERAL_MANAGER', 'PLATFORM_OWNER']
+    roles: ['DEPARTMENT_MANAGER', 'PROJECT_MANAGER', 'PLATFORM_OWNER']
   }
 },
   // EMPLOYEE dashboard
@@ -85,7 +92,7 @@ const routes: Routes = [
       import('./features/dashboard-owner/dashboard-owner.module')
         .then(m => m.DashboardOwnerModule),
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['PLATFORM_OWNER', 'PLATFORM_ADMIN'] }
+    data: { roles: ['PLATFORM_OWNER'] }
   },
 
   // GM accessing My Department page directly
@@ -94,7 +101,7 @@ const routes: Routes = [
     component: MyDepartmentPageComponent,
     canActivate: [AuthGuard, RoleGuard],
     data: {
-      roles: ['GENERAL_MANAGER', 'PLATFORM_OWNER']
+      roles: ['PROJECT_MANAGER', 'PLATFORM_OWNER']
     }
   },
 
@@ -103,12 +110,12 @@ const routes: Routes = [
     path: 'department/resources',
     component: ResourceSettingsPageComponent,
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['GENERAL_MANAGER', 'DEPARTMENT_MANAGER'] }
+    data: { roles: ['PROJECT_MANAGER', 'DEPARTMENT_MANAGER'] }
   },
 
   { path: 'forbidden', component: ForbiddenComponent },
 
-  { path: '**', redirectTo: 'login' }
+  { path: '**', redirectTo: '' }
 ];
 
 @NgModule({

@@ -430,3 +430,10 @@ textarea {
   border-radius: 6px;
   margin-bottom: 16px;
 }
+
+.licence-row.pooled {
+  grid-template-columns: 52px 1fr;
+}
+
+.licence-icon.orange { background: #fff7ed; }
+.licence-icon.purple { background: #f5f3ff; }

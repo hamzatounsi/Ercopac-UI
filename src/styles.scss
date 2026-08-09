@@ -4206,6 +4206,161 @@ textarea) {
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
 }
 
+/* Schedule visual palette — aligned with the Gantt design reference. */
+.pm-shell .planner-left,
+.pm-shell .planner-right,
+.pm-shell .gantt-body-scroll,
+.pm-shell .left-body {
+  background: #f7f9fd;
+}
+
+.pm-shell .planner-left {
+  border-right-color: #b8c8da;
+  box-shadow: 3px 0 8px rgba(15, 41, 71, 0.08);
+}
+
+.pm-shell .left-header,
+.pm-shell .left-header .col-id,
+.pm-shell .left-header .col-wbs,
+.pm-shell .gantt-header-top,
+.pm-shell .month-header-scroll,
+.pm-shell .month-row,
+.pm-shell .month-cell,
+.pm-shell .timeline-header-scroll,
+.pm-shell .timeline-week-cell,
+.pm-shell .gh {
+  background: #0d2a4a;
+  border-color: #1b4168;
+}
+
+.pm-shell .gantt-header-top,
+.pm-shell .left-header {
+  border-bottom-color: #4e90c5;
+}
+
+.pm-shell .gh,
+.pm-shell .timeline-week-code,
+.pm-shell .timeline-week-start {
+  color: #74b8ec;
+}
+
+.pm-shell .month-cell {
+  color: #a9d8fb;
+}
+
+.pm-shell .timeline-week-start {
+  color: #7daed4;
+}
+
+.pm-shell .table-row,
+.pm-shell .gantt-row {
+  border-bottom-color: #e1e8f1;
+}
+
+.pm-shell .table-row.even,
+.pm-shell .gantt-row.even {
+  background: #ffffff;
+}
+
+.pm-shell .table-row.odd,
+.pm-shell .gantt-row.odd {
+  background: #f6f8fc;
+}
+
+.pm-shell .table-row.summary-row,
+.pm-shell .gantt-row.summary-row {
+  background: #edf4fc !important;
+  border-left-color: #4c91cc;
+}
+
+.pm-shell .table-row:hover,
+.pm-shell .gantt-row:hover {
+  background: #eaf3ff !important;
+}
+
+.pm-shell .table-row.selected-row,
+.pm-shell .gantt-row.selected-row {
+  background: #dcecff !important;
+  border-left-color: #287bbd !important;
+}
+
+.pm-shell .cell {
+  color: #294562;
+  border-right-color: #e1e8f1;
+}
+
+.pm-shell .gantt-wrapper {
+  background: #f7f9fd;
+}
+
+.pm-shell .gantt-grid-line {
+  border-right-color: #e2e9f2;
+}
+
+.pm-shell .gantt-grid-line.week-separator {
+  border-left-color: #bfd0e3;
+}
+
+.pm-shell .today-line {
+  background: #ef3d43;
+}
+
+.pm-shell .gantt-baseline-bar {
+  background: rgba(38, 133, 211, 0.7);
+}
+
+.pm-shell .summary-baseline {
+  background: rgba(87, 121, 154, 0.55);
+}
+
+.pm-shell .gantt-actual-bar {
+  background: #18a55b;
+}
+
+.pm-shell .gantt-bar {
+  background: #398ed6;
+  border-color: #1f73bb;
+  box-shadow: 0 1px 3px rgba(31, 115, 187, 0.28);
+}
+
+.pm-shell .gantt-bar-progress {
+  background: linear-gradient(90deg, #1f73bb, #4ea4e9);
+}
+
+.pm-shell .gantt-label {
+  color: #f8fbff;
+}
+
+.pm-shell .summary-bar {
+  background: #f28b27;
+  box-shadow: 0 1px 3px rgba(211, 111, 18, 0.3);
+}
+
+.pm-shell .gantt-bar.summary-bar::before,
+.pm-shell .gantt-bar.summary-bar::after {
+  border-top-color: #f28b27;
+}
+
+.pm-shell .gantt-milestone {
+  background: #925ce8;
+  border-color: #7340c6;
+  box-shadow: 0 2px 6px rgba(115, 64, 198, 0.3);
+}
+
+.pm-shell .gantt-milestone.customer {
+  background: #f1a12b;
+  border-color: #ca7e16;
+  box-shadow: 0 2px 6px rgba(202, 126, 22, 0.28);
+}
+
+.pm-shell .gantt-milestone-label {
+  color: #6439ae;
+}
+
+.pm-shell .pct-fill {
+  background: #398ed6;
+}
+
 /* Shared Projectum enterprise shell */
 :where(.finance-shell, .forecast-shell, .risk-shell, .cr-shell, .actions-shell, .projectum-shell, .project-details-shell) {
   min-height: 100vh;

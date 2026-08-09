@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { API_ADMIN_URL, API_AUTH_URL, API_ORG_ADMIN_URL } from 'src/app/core/config/api.config';
+import { API_ADMIN_URL, API_AUTH_URL, API_BASE_URL, API_ORG_ADMIN_URL } from 'src/app/core/config/api.config';
 import {
   ApiErrorBody,
   CustomerConfig,
@@ -9,6 +9,7 @@ import {
   OrganisationDepartment,
   OrganisationProfile,
   OrganisationRoleSummary,
+  OrganisationResourceType,
   OrganisationUser,
   PageResponse,
   PasswordResetRequest,
@@ -17,6 +18,7 @@ import {
   SaveCustomerConfig,
   SaveOrganisationDepartment,
   SaveOrganisationUser,
+  SaveOrganisationResourceType,
   SaveProjectCategoryConfig,
   SaveProjectTypeConfig,
   SecuritySettings,
@@ -90,6 +92,22 @@ export class OrgAdminService {
 
   getDepartments(): Observable<OrganisationDepartment[]> {
     return this.http.get<OrganisationDepartment[]>(`${this.baseUrl}/departments`);
+  }
+
+  getResourceTypes(): Observable<OrganisationResourceType[]> {
+    return this.http.get<OrganisationResourceType[]>(`${API_BASE_URL}/resource-types`);
+  }
+
+  createResourceType(payload: SaveOrganisationResourceType): Observable<OrganisationResourceType> {
+    return this.http.post<OrganisationResourceType>(`${API_BASE_URL}/resource-types`, payload);
+  }
+
+  updateResourceType(id: number, payload: SaveOrganisationResourceType): Observable<OrganisationResourceType> {
+    return this.http.put<OrganisationResourceType>(`${API_BASE_URL}/resource-types/${id}`, payload);
+  }
+
+  deactivateResourceType(id: number): Observable<void> {
+    return this.http.delete<void>(`${API_BASE_URL}/resource-types/${id}`);
   }
 
   createDepartment(payload: SaveOrganisationDepartment): Observable<OrganisationDepartment> {

@@ -455,6 +455,79 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
     }
   }
 
+  /** Keeps the persisted duration and every populated date pair synchronized. */
+  private synchronizeTaskDates(
+    task: GmProjectScheduleTask,
+    changed: 'baselineDates' | 'actualDates' | 'duration'
+  ): boolean {
+    if (this.isMilestone(task)) {
+      task.durationDays = 0;
+      if (task.baselineStart) task.baselineEnd = task.baselineStart;
+      if (task.baselineStart) task.plannedStart = task.baselineStart;
+      if (task.baselineStart) task.plannedEnd = task.baselineStart;
+      if (task.actualStart) task.actualEnd = task.actualStart;
+      return true;
+    }
+    if (this.isSummary(task)) return true;
+
+    if (this.hasInvalidDateRange(task.baselineStart, task.baselineEnd)
+      || this.hasInvalidDateRange(task.actualStart, task.actualEnd)) return false;
+
+    if (changed === 'baselineDates' && task.baselineStart && task.baselineEnd) {
+      task.durationDays = this.calculateDurationDays(task.baselineStart, task.baselineEnd);
+    } else if (changed === 'actualDates' && task.actualStart && task.actualEnd) {
+      task.durationDays = this.calculateDurationDays(task.actualStart, task.actualEnd);
+    } else {
+      const parsedDuration = Number(task.durationDays);
+      task.durationDays = Number.isFinite(parsedDuration) && parsedDuration > 0
+        ? Math.floor(parsedDuration) : 1;
+    }
+
+    const duration = task.durationDays!;
+    if (task.baselineStart) {
+      task.baselineEnd = this.addDaysToDateString(task.baselineStart, duration - 1);
+      task.plannedStart = task.baselineStart;
+      task.plannedEnd = task.baselineEnd;
+    }
+    if (task.actualStart) task.actualEnd = this.addDaysToDateString(task.actualStart, duration - 1);
+    return true;
+  }
+
+  private hasInvalidDateRange(start?: string | null, end?: string | null): boolean {
+    if (!start || !end) return false;
+    const normalizedStart = this.normalizeDateString(start);
+    const normalizedEnd = this.normalizeDateString(end);
+    return normalizedStart !== null && normalizedEnd !== null && normalizedEnd < normalizedStart;
+  }
+
+  private syncSelectedTaskFromForm(changed: 'baselineDates' | 'actualDates' | 'duration'): void {
+    if (!this.selectedTask || this.suppressFormAutoSave) return;
+    const updated = { ...this.selectedTask, ...this.taskForm.getRawValue() };
+    if (!this.synchronizeTaskDates(updated, changed)) {
+      this.taskForm.setErrors({ ...(this.taskForm.errors ?? {}), dateRange: true });
+      return;
+    }
+    const formErrors = this.taskForm.errors;
+    if (formErrors?.['dateRange']) {
+      const { dateRange, ...otherErrors } = formErrors;
+      this.taskForm.setErrors(Object.keys(otherErrors).length ? otherErrors : null);
+    }
+
+    Object.assign(this.selectedTask, updated);
+    const index = this.tasks.findIndex(t => t.id === updated.id);
+    if (index !== -1) Object.assign(this.tasks[index], updated);
+
+    this.suppressFormAutoSave = true;
+    this.taskForm.patchValue({
+      durationDays: updated.durationDays,
+      baselineStart: updated.baselineStart ?? '', baselineEnd: updated.baselineEnd ?? '',
+      plannedStart: updated.plannedStart ?? '', plannedEnd: updated.plannedEnd ?? '',
+      actualStart: updated.actualStart ?? '', actualEnd: updated.actualEnd ?? ''
+    }, { emitEvent: false });
+    this.suppressFormAutoSave = false;
+    this.buildTimeline();
+  }
+
   // ---------------- Drawer ----------------
 
   openTaskDrawer(task: GmProjectScheduleTask): void {
@@ -879,23 +952,15 @@ indentTask(): void {
     }
 
     // When duration changes → recalculate end date from start + duration
-    if (field === 'durationDays' && task.baselineStart && !this.isMilestone(task)) {
-      const duration = Math.max(1, Number(value || 1));
-      task.durationDays = duration;
-      task.baselineEnd = this.addDaysToDateString(task.baselineStart, duration - 1);
-      task.plannedStart = task.baselineStart;
-      task.plannedEnd = task.baselineEnd;
-    }
+    const changed = field === 'durationDays' ? 'duration'
+      : (field === 'actualStart' || field === 'actualEnd') ? 'actualDates'
+      : (field === 'baselineStart' || field === 'baselineEnd') ? 'baselineDates'
+      : null;
 
     // When dates change → recalculate duration from dates
-    if ((field === 'baselineStart' || field === 'baselineEnd') && !this.isMilestone(task)) {
-      task.plannedStart = task.baselineStart;
-      task.plannedEnd = task.baselineEnd;
-      task.durationDays = this.calculateDurationDays(task.baselineStart, task.baselineEnd, false);
-    }
-
-    if (field === 'actualStart' && this.isMilestone(task)) {
-      task.actualEnd = task.actualStart;
+    if (changed && !this.synchronizeTaskDates(task, changed)) {
+      this.loadSchedule();
+      return;
     }
 
     this.computeStats();
@@ -956,13 +1021,7 @@ indentTask(): void {
     Object.assign(this.selectedTask, value);
 
     // Recalculate end date if duration was changed in the form
-    if (value.baselineStart && value.durationDays && !this.isMilestone(this.selectedTask)) {
-      const duration = Math.max(1, Number(value.durationDays));
-      this.selectedTask.baselineEnd = this.addDaysToDateString(value.baselineStart, duration - 1);
-      this.selectedTask.plannedStart = value.baselineStart;
-      this.selectedTask.plannedEnd = this.selectedTask.baselineEnd;
-      this.selectedTask.durationDays = duration;
-    }
+    if (!this.synchronizeTaskDates(this.selectedTask, 'duration')) return;
 
     this.pushHistory();
     this.saving = true;
@@ -975,7 +1034,6 @@ indentTask(): void {
         if (index !== -1) {
           this.tasks[index] = { ...this.tasks[index], ...updated };
           // Preserve durationDays from the form, don't let server override
-          if (value.durationDays) this.tasks[index].durationDays = Number(value.durationDays);
           this.selectedTask = this.tasks[index];
         }
 
@@ -994,6 +1052,8 @@ indentTask(): void {
 
   // KEY FIX: saveInlineTask syncs form after save without overwriting duration
   saveInlineTask(task: GmProjectScheduleTask): void {
+    if (this.hasInvalidDateRange(task.baselineStart, task.baselineEnd)
+      || this.hasInvalidDateRange(task.actualStart, task.actualEnd)) return;
     const payload = this.buildTaskUpdatePayload(task);
 
     this.service.updateTask(this.projectId, task.id, payload).subscribe({
@@ -1001,9 +1061,7 @@ indentTask(): void {
         const index = this.tasks.findIndex(t => t.id === task.id);
         if (index !== -1) {
           // Preserve local durationDays — don't let server overwrite it
-          const localDuration = task.durationDays;
           this.tasks[index] = { ...this.tasks[index], ...updated };
-          if (localDuration !== undefined) this.tasks[index].durationDays = localDuration;
         }
 
         // Sync drawer form if this is the selected task
@@ -1975,6 +2033,8 @@ if (this.columnVisibility.baselineEnd) total += 95;
     const plannedEndCtrl = this.taskForm.get('plannedEnd');
     const taskTypeCtrl = this.taskForm.get('taskType');
     const durationCtrl = this.taskForm.get('durationDays');
+    const actualStartCtrl = this.taskForm.get('actualStart');
+    const actualEndCtrl = this.taskForm.get('actualEnd');
     if (!baselineStartCtrl || !baselineEndCtrl || !taskTypeCtrl || !durationCtrl) return;
 
     // When dates change → update duration display in form
@@ -1982,54 +2042,21 @@ if (this.columnVisibility.baselineEnd) total += 95;
       baselineStartCtrl.valueChanges.pipe(startWith(baselineStartCtrl.value)),
       baselineEndCtrl.valueChanges.pipe(startWith(baselineEndCtrl.value)),
       taskTypeCtrl.valueChanges.pipe(startWith(taskTypeCtrl.value))
-    ]).subscribe(([baselineStart, baselineEnd, taskType]) => {
-      const normalizedType = String(taskType || 'ACTIVITY').toUpperCase();
-      if (normalizedType === 'MILESTONE') {
-        if (baselineStart && baselineEnd !== baselineStart) baselineEndCtrl.patchValue(baselineStart, { emitEvent: false });
-        durationCtrl.patchValue(0, { emitEvent: false });
-        plannedStartCtrl?.patchValue(baselineStart || '', { emitEvent: false });
-        plannedEndCtrl?.patchValue(baselineStart || '', { emitEvent: false });
-        return;
-      }
-      const duration = this.calculateDurationDays(baselineStart, baselineEnd, false);
-      durationCtrl.patchValue(duration, { emitEvent: false });
-      plannedStartCtrl?.patchValue(baselineStart || '', { emitEvent: false });
-      plannedEndCtrl?.patchValue(baselineEnd || '', { emitEvent: false });
-    });
+    ]).subscribe(() => this.syncSelectedTaskFromForm('baselineDates'));
+
+    if (actualStartCtrl && actualEndCtrl) {
+      combineLatest([
+        actualStartCtrl.valueChanges.pipe(startWith(actualStartCtrl.value)),
+        actualEndCtrl.valueChanges.pipe(startWith(actualEndCtrl.value)),
+        taskTypeCtrl.valueChanges.pipe(startWith(taskTypeCtrl.value))
+      ]).subscribe(() => this.syncSelectedTaskFromForm('actualDates'));
+    }
 
     // When duration changes in panel → update end date AND table row
-    durationCtrl.valueChanges.subscribe((durationValue) => {
+    durationCtrl.valueChanges.subscribe(() => {
       if (!this.selectedTask || this.suppressFormAutoSave) return;
-      const baselineStart = baselineStartCtrl.value;
-      const taskType = String(taskTypeCtrl.value || 'ACTIVITY').toUpperCase();
-      if (!baselineStart) return;
-      if (taskType === 'MILESTONE') {
-        durationCtrl.patchValue(0, { emitEvent: false });
-        baselineEndCtrl.patchValue(baselineStart, { emitEvent: false });
-        plannedStartCtrl?.patchValue(baselineStart, { emitEvent: false });
-        plannedEndCtrl?.patchValue(baselineStart, { emitEvent: false });
-        return;
-      }
-      const duration = Math.max(1, Number(durationValue || 1));
-      const newEnd = this.addDaysToDateString(baselineStart, duration - 1);
-      baselineEndCtrl.patchValue(newEnd, { emitEvent: false });
-      plannedStartCtrl?.patchValue(baselineStart, { emitEvent: false });
-      plannedEndCtrl?.patchValue(newEnd, { emitEvent: false });
+      this.syncSelectedTaskFromForm('duration');
 
-      // KEY: immediately update the task object and table row
-      if (this.selectedTask) {
-        this.selectedTask.durationDays = duration;
-        this.selectedTask.baselineEnd = newEnd;
-        this.selectedTask.plannedEnd = newEnd;
-        // Update in tasks array so table row re-renders
-        const index = this.tasks.findIndex(t => t.id === this.selectedTask!.id);
-        if (index !== -1) {
-          this.tasks[index].durationDays = duration;
-          this.tasks[index].baselineEnd = newEnd;
-          this.tasks[index].plannedEnd = newEnd;
-        }
-        this.buildTimeline();
-      }
     });
 
     // Auto-save on any form change

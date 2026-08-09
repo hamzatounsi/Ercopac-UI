@@ -4,7 +4,6 @@ import { RouterModule, Routes } from '@angular/router';
 import { RoleGuard } from '../../core/auth/role.guard';
 
 import { GmLayoutComponent } from './pages/gm-layout/gm-layout.component';
-import { GmWorkspacesPageComponent } from './pages/gm_workspaces-page/gm-workspaces-page/gm-workspaces-page.component';
 import { GmProjectumPageComponent } from './pages/gm-projectum-page/gm-projectum-page/gm-projectum-page.component';
 import { GmProjectScheduleInitComponent } from './pages/gm-project-schedule-init/gm-project-schedule-init/gm-project-schedule-init.component';
 import { GmProjectSchedulePageComponent } from './pages/gm-project-schedule-page/gm-project-schedule-page/gm-project-schedule-page.component';
@@ -21,13 +20,15 @@ import { MyCsProjectsPageComponent } from './pages/my-cs-projects-page/my-cs-pro
 
 const projectumAccessRoles = [
   'ROLE_PLATFORM_OWNER',
-  'ROLE_GENERAL_MANAGER',
+  'ROLE_PROJECT_MANAGER',
   'ROLE_DEPARTMENT_MANAGER'
 ];
 
+const workspaceShellRoles = [...projectumAccessRoles, 'ROLE_ORG_ADMIN'];
+
 const adminAccessRoles = [
-  'ROLE_PLATFORM_OWNER',
-  'PLATFORM_OWNER'
+  'ROLE_ORG_ADMIN',
+  'ORG_ADMIN'
 ];
 
 const routes: Routes = [
@@ -36,14 +37,9 @@ const routes: Routes = [
     path: '',
     component: GmLayoutComponent,
     canActivate: [RoleGuard],
-    data: { roles: projectumAccessRoles },
+    data: { roles: workspaceShellRoles },
     children: [
-      {
-        path: '',
-        component: GmWorkspacesPageComponent,
-        canActivate: [RoleGuard],
-        data: { roles: projectumAccessRoles }
-      },
+      { path: '', redirectTo: 'projectum', pathMatch: 'full' },
       {
         path: 'projectum',
         component: GmProjectumPageComponent,
@@ -61,7 +57,7 @@ const routes: Routes = [
         path: 'admin',
         component: GmAdminSettingsPageComponent,
         canActivate: [RoleGuard],
-        data: { roles: ['PLATFORM_OWNER'] }
+        data: { roles: adminAccessRoles }
       },
 
       { path: 'projects/:id', redirectTo: 'projects/:id/schedule', pathMatch: 'full' },

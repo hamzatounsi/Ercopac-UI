@@ -1,10 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from 'src/app/core/auth/auth.service';
+import { APPLICATION_ICONS } from 'src/app/core/config/application-icons';
 
 type LoginMessageType = 'error' | 'success' | 'info';
 
-interface WorkspaceApp {
+interface LandingPreviewApp {
   name: string;
   description: string;
   group: string;
@@ -20,6 +21,8 @@ interface WorkspaceApp {
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent {
+  @ViewChild('usernameInput') usernameInput?: ElementRef<HTMLInputElement>;
+
   username = '';
   password = '';
   msg = '';
@@ -43,12 +46,12 @@ export class LoginComponent {
   resetSubmitting = false;
   approvalChecking = false;
 
-  workspaceApps: WorkspaceApp[] = [
+  landingPreviewApps: LandingPreviewApp[] = [
     {
       name: 'Projectum',
       description: 'Portfolio, projects, finance, forecast, risks and actions.',
       group: 'Project Management',
-      icon: 'space_dashboard',
+      icon: APPLICATION_ICONS.projectum,
       badge: 'Available',
       enabled: true,
       selectedApp: 'Projectum'
@@ -57,7 +60,7 @@ export class LoginComponent {
       name: 'My Department',
       description: 'Department workload, capacity, resources and delivery view.',
       group: 'Department',
-      icon: 'groups',
+      icon: APPLICATION_ICONS.myDepartment,
       badge: 'Available',
       enabled: true,
       selectedApp: 'My Department'
@@ -66,7 +69,7 @@ export class LoginComponent {
       name: 'MY CS',
       description: 'Customer success workspace and customer project follow-up.',
       group: 'Customer Success',
-      icon: 'support_agent',
+      icon: APPLICATION_ICONS.myCs,
       badge: 'Available',
       enabled: true,
       selectedApp: 'MY_CS'
@@ -75,7 +78,7 @@ export class LoginComponent {
       name: 'Company Dashboard',
       description: 'Executive company overview and organisation performance.',
       group: 'Platform',
-      icon: 'domain',
+      icon: APPLICATION_ICONS.companyDashboard,
       badge: 'Coming soon',
       enabled: false,
       selectedApp: 'Company Dashboard'
@@ -84,7 +87,7 @@ export class LoginComponent {
       name: 'My Expenses',
       description: 'Expense tracking and approval workspace.',
       group: 'Finance',
-      icon: 'receipt_long',
+      icon: APPLICATION_ICONS.myExpenses,
       badge: 'Coming soon',
       enabled: false,
       selectedApp: 'My Expenses'
@@ -93,7 +96,7 @@ export class LoginComponent {
       name: 'My CRM',
       description: 'Leads, opportunities, accounts and commercial pipeline.',
       group: 'CRM',
-      icon: 'handshake',
+      icon: APPLICATION_ICONS.myCrm,
       badge: 'Coming soon',
       enabled: false,
       selectedApp: 'My CRM'
@@ -102,7 +105,7 @@ export class LoginComponent {
       name: 'My Ticketing',
       description: 'Support requests, service cases and operational tickets.',
       group: 'Support',
-      icon: 'confirmation_number',
+      icon: APPLICATION_ICONS.ticketing,
       badge: 'Coming soon',
       enabled: false,
       selectedApp: 'My Ticketing'
@@ -116,6 +119,11 @@ export class LoginComponent {
   ) {}
 
   ngOnInit(): void {
+    if (this.auth.isLoggedIn()) {
+      void this.router.navigateByUrl(this.auth.getHomeRoute());
+      return;
+    }
+
     this.route.queryParams.subscribe(params => {
       if (params['token']) {
         this.resetMode = true;
@@ -136,6 +144,7 @@ export class LoginComponent {
     this.resetMode = false;
     this.waitingApprovalMode = false;
     this.password = '';
+    setTimeout(() => this.usernameInput?.nativeElement.focus());
   }
 
   submit(): void {
@@ -175,65 +184,14 @@ export class LoginComponent {
           return;
         }
 
-        const roles = this.auth.getRoles();
-
-        if (!roles || roles.length === 0) {
+        if (this.auth.getRoles().length === 0) {
           this.setMessage('Login succeeded, but no role was found for this account.', 'error');
           return;
         }
-
-        const role = roles[0];
-
-        if (role === 'ORG_ADMIN') {
-          this.setMessage('Login successful.', 'success');
-          setTimeout(() => this.router.navigate(['/org-admin']), 500);
-          return;
-        }
-
-        if (role.includes('DEPARTMENT_MANAGER')) {
-          this.setMessage('Login successful.', 'success');
-          setTimeout(() => this.router.navigate(['/department']), 900);
-          return;
-        }
-
-        if (role === 'GENERAL_MANAGER') {
-          this.setMessage('Login successful.', 'success');
-
-          setTimeout(() => {
-            if (this.selectedApp === 'MY_CS') {
-              this.router.navigate(['/gm/my-cs']);
-            } else if (this.selectedApp === 'My Department') {
-              this.router.navigate(['/gm/my-department']);
-            } else {
-              this.router.navigate(['/gm']);
-            }
-          }, 900);
-
-          return;
-        }
-
-        if (role === 'EMPLOYEE') {
-          this.setMessage('Login successful.', 'success');
-          setTimeout(() => this.router.navigate(['/employee']), 500);
-          return;
-        }
-
-        if (role === 'SALES_MANAGER' || role === 'CLIENT') {
-          this.router.navigate(['/tickets']);
-          return;
-        }
-
-        if (role === 'PLATFORM_ADMIN') {
-          this.router.navigate(['/owner']);
-          return;
-        }
-
-        if (role.includes('PLATFORM_OWNER')) {
-          this.router.navigate(['/owner']);
-          return;
-        }
-
-        this.setMessage('Role not recognized: ' + role, 'error');
+        this.setMessage('Login successful. Opening your workspace…', 'success');
+        const destination = this.auth.getHomeRoute();
+        this.setMessage('Login successful. Opening your account...', 'success');
+        setTimeout(() => this.router.navigateByUrl(destination), 350);
       },
       error: err => {
         this.loading = false;

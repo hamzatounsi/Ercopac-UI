@@ -3,7 +3,7 @@
 <section *ngIf="!loading && errorMessage" class="state error" role="alert">{{ errorMessage }} <button type="button" (click)="load()">Try again</button></section>
 <section *ngIf="!loading && !errorMessage" class="role-grid">
   <article *ngFor="let role of roles" class="role-card">
-    <header><span class="role-icon material-symbols-outlined" aria-hidden="true">{{ role.role === 'ORG_ADMIN' ? 'shield_person' : role.role === 'GENERAL_MANAGER' ? 'business_center' : role.role === 'DEPARTMENT_MANAGER' ? 'groups' : 'person' }}</span><div><h2>{{ role.label }}</h2><span class="role-code">{{ role.role }}</span></div><span class="count">{{ role.activeUsers }} active</span></header>
+    <header><span class="role-icon material-symbols-outlined" aria-hidden="true">{{ role.role === 'ORG_ADMIN' ? 'shield_person' : role.role === 'PROJECT_MANAGER' ? 'business_center' : role.role === 'DEPARTMENT_MANAGER' ? 'groups' : role.role === 'SALES_MANAGER' ? 'support_agent' : role.role === 'CLIENT' ? 'handshake' : 'person' }}</span><div><h2>{{ role.label }}</h2><span class="role-code">{{ role.role }}</span></div><span class="count">{{ role.activeUsers }} active</span></header>
     <p>{{ role.description }}</p>
     <div class="user-count"><span>Assigned accounts</span><strong>{{ role.totalUsers }}</strong></div>
     <h3>Effective module access</h3>

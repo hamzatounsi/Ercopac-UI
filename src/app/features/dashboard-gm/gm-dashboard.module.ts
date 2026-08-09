@@ -9,7 +9,6 @@ import { GmProjectDetailsComponent } from './pages/gm-project-details/gm-project
 import { GmProjectScheduleInitComponent } from './pages/gm-project-schedule-init/gm-project-schedule-init/gm-project-schedule-init.component';
 import { GmLayoutComponent } from './pages/gm-layout/gm-layout.component';
 import { GmProjectTasksComponent } from './pages/gm-project-tasks/gm-project-tasks/gm-project-tasks.component';
-import { GmWorkspacesPageComponent } from './pages/gm_workspaces-page/gm-workspaces-page/gm-workspaces-page.component';
 import { GmProjectumPageComponent } from './pages/gm-projectum-page/gm-projectum-page/gm-projectum-page.component';
 import { GmProjectSchedulePageComponent } from './pages/gm-project-schedule-page/gm-project-schedule-page/gm-project-schedule-page.component';
 import { GmProjectFinancePageComponent } from './pages/gm-project-finance-page/gm-project-finance-page.component';
@@ -39,7 +38,6 @@ import { SecurityTabComponent } from './pages/gm-admin-settings-page/components/
     GmProjectScheduleInitComponent,
     GmLayoutComponent,
     GmProjectTasksComponent,
-    GmWorkspacesPageComponent,
     GmProjectumPageComponent,
     GmProjectSchedulePageComponent,
     GmProjectFinancePageComponent,

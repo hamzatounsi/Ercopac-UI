@@ -1,16 +1,31 @@
 import { Component, OnInit } from '@angular/core';
+import { forkJoin } from 'rxjs';
 import { GmAdminService } from 'src/app/features/dashboard-gm/services/gm-admin.service';
-import { GmResourceService } from 'src/app/features/dashboard-gm/services/gm-resource.service';
-import { ResourceListItem } from 'src/app/features/dashboard-gm/models/resource-list-item.model';
 
 interface LicenceRole {
   key: string;
   label: string;
-  backendValue: string;
   icon: string;
   cssClass: string;
-  quota: number;
   description: string;
+}
+
+interface LicenceUsage {
+  role: string;
+  label: string;
+  limit: number;
+  used: number;
+  available: number;
+  unlimited: boolean;
+}
+
+interface LicenceCandidate {
+  userId: number;
+  fullName: string;
+  email: string;
+  departmentCode?: string | null;
+  resourceType?: string | null;
+  role: string;
 }
 
 @Component({
@@ -19,68 +34,25 @@ interface LicenceRole {
   styleUrls: ['./licences-tab.component.scss']
 })
 export class LicencesTabComponent implements OnInit {
-
-  resources: ResourceListItem[] = [];
+  candidates: LicenceCandidate[] = [];
   licences: any[] = [];
+  usage: LicenceUsage[] = [];
 
   search = '';
   selectedRole = '';
-
   loading = false;
   errorMessage = '';
 
-  roles: LicenceRole[] = [
-    {
-      key: 'ADMIN',
-      label: 'Admin',
-      backendValue: 'ADMIN',
-      icon: '🛡️',
-      cssClass: 'lic-admin',
-      quota: 2,
-      description: 'Full access to all pages, settings and admin panel.'
-    },
-    {
-      key: 'PM',
-      label: 'PM',
-      backendValue: 'PM',
-      icon: '📊',
-      cssClass: 'lic-pm',
-      quota: 20,
-      description: 'Manages own projects end-to-end. Edits Gantt, Finance, Forecast and Risk.'
-    },
-    {
-      key: 'MANAGER',
-      label: 'Manager',
-      backendValue: 'MANAGER',
-      icon: '📋',
-      cssClass: 'lic-manager',
-      quota: 10,
-      description: 'Portfolio view. Edits Finance and Forecast. Cannot edit Gantt tasks.'
-    },
-    {
-      key: 'DEPT_MANAGER',
-      label: 'Dept. Mgr',
-      backendValue: 'DEPT_MANAGER',
-      icon: '🏢',
-      cssClass: 'lic-dept',
-      quota: 15,
-      description: 'Manages department resources and forecast. My Department page only.'
-    },
-    {
-      key: 'READ_ONLY',
-      label: 'Read Only',
-      backendValue: 'READ_ONLY',
-      icon: '👁️',
-      cssClass: 'lic-readonly',
-      quota: 50,
-      description: 'View-only access to all pages. Cannot save or edit anything.'
-    }
+  readonly roles: LicenceRole[] = [
+    { key: 'ORG_ADMIN', label: 'Organisation Admin', icon: '🛡️', cssClass: 'lic-admin', description: 'Organisation administration and configuration.' },
+    { key: 'PROJECT_MANAGER', label: 'Project Manager', icon: '📊', cssClass: 'lic-pm', description: 'Operational project-management role.' },
+    { key: 'DEPARTMENT_MANAGER', label: 'Department Manager', icon: '🏢', cssClass: 'lic-dept', description: 'Department management role.' },
+    { key: 'EMPLOYEE', label: 'Employee', icon: '👤', cssClass: 'lic-employee', description: 'Internal operational resource.' },
+    { key: 'SALES_MANAGER', label: 'Sales Manager', icon: '🤝', cssClass: 'lic-sales', description: 'Internal sales resource with ticketing access.' },
+    { key: 'CLIENT', label: 'Client', icon: '🎫', cssClass: 'lic-client', description: 'Organisation-scoped external ticketing user.' }
   ];
 
-  constructor(
-    private adminService: GmAdminService,
-    private resourceService: GmResourceService
-  ) {}
+  constructor(private adminService: GmAdminService) {}
 
   ngOnInit(): void {
     this.load();
@@ -89,120 +61,76 @@ export class LicencesTabComponent implements OnInit {
   load(): void {
     this.loading = true;
     this.errorMessage = '';
-
-    this.resourceService.getResources({ size: 500, active: true }).subscribe({
-      next: resourcesPage => {
-        this.resources = resourcesPage.content || [];
-
-        this.adminService.getLicences().subscribe({
-          next: licences => {
-            this.licences = licences || [];
-            this.loading = false;
-          },
-          error: () => {
-            this.errorMessage = 'Failed to load licences.';
-            this.loading = false;
-          }
-        });
+    forkJoin({
+      licences: this.adminService.getLicences(),
+      usage: this.adminService.getLicenceUsage(),
+      candidates: this.adminService.getLicenceCandidates()
+    }).subscribe({
+      next: result => {
+        this.licences = result.licences || [];
+        this.usage = result.usage || [];
+        this.candidates = result.candidates || [];
+        this.loading = false;
       },
       error: () => {
-        this.errorMessage = 'Failed to load resources.';
+        this.errorMessage = 'Failed to load licence allocation.';
         this.loading = false;
       }
     });
   }
 
   get visibleRoles(): LicenceRole[] {
-    if (!this.selectedRole) {
-      return this.roles;
-    }
+    return this.selectedRole ? this.roles.filter(role => role.key === this.selectedRole) : this.roles;
+  }
 
-    return this.roles.filter(r => r.key === this.selectedRole);
+  usageFor(roleKey: string): LicenceUsage {
+    return this.usage.find(item => item.role === roleKey)
+      || { role: roleKey, label: roleKey, limit: 0, used: 0, available: 0, unlimited: false };
   }
 
   assignedForRole(roleKey: string): any[] {
-    let rows = this.licences.filter(l => l.licenceType === roleKey);
-
-    const q = this.search.trim().toLowerCase();
-    if (q) {
-      rows = rows.filter(l =>
-        (l.fullName || '').toLowerCase().includes(q) ||
-        (l.email || '').toLowerCase().includes(q) ||
-        (l.departmentCode || '').toLowerCase().includes(q) ||
-        (l.resourceType || '').toLowerCase().includes(q)
-      );
+    let rows = this.licences.filter(licence => licence.licenceType === roleKey);
+    const query = this.search.trim().toLowerCase();
+    if (query) {
+      rows = rows.filter(item => [item.fullName, item.email, item.departmentCode, item.resourceType]
+        .some(value => (value || '').toLowerCase().includes(query)));
     }
-
     return rows;
   }
 
-  availableResources(): ResourceListItem[] {
-    const assignedIds = new Set(this.licences.map(l => l.userId));
-
-    return this.resources.filter(r => {
-      if (!r.id || assignedIds.has(r.id)) {
-        return false;
-      }
-
-      return true;
-    });
+  availableCandidates(): LicenceCandidate[] {
+    return this.candidates;
   }
 
   assignLicence(role: LicenceRole, event: Event): void {
     const select = event.target as HTMLSelectElement;
     const userId = Number(select.value);
+    if (!userId) return;
 
-    if (!userId) {
-      return;
-    }
-
-    this.adminService.assignLicence({
-      userId,
-      licenceType: role.backendValue
-    }).subscribe({
-      next: () => {
-        select.value = '';
-        this.load();
-      },
-      error: () => {
-        this.errorMessage = 'Failed to assign licence.';
-      }
+    this.adminService.assignLicence({ userId, licenceType: role.key }).subscribe({
+      next: () => { select.value = ''; this.load(); },
+      error: error => { this.errorMessage = error?.error?.message || 'Failed to assign licence.'; }
     });
   }
 
   removeLicence(userId: number): void {
     this.adminService.removeLicence(userId).subscribe({
       next: () => this.load(),
-      error: () => {
-        this.errorMessage = 'Failed to remove licence.';
-      }
+      error: error => { this.errorMessage = error?.error?.message || 'Failed to remove licence.'; }
     });
   }
 
-  usedCount(roleKey: string): number {
-    return this.licences.filter(l => l.licenceType === roleKey).length;
-  }
-
   quotaPercent(role: LicenceRole): number {
-    const pct = (this.usedCount(role.key) / role.quota) * 100;
-    return Math.min(100, Math.round(pct));
+    const usage = this.usageFor(role.key);
+    return usage.unlimited || usage.limit === 0 ? 0 : Math.min(100, Math.round((usage.used / usage.limit) * 100));
   }
 
   quotaClass(role: LicenceRole): string {
-    const pct = this.usedCount(role.key) / role.quota;
-
-    if (pct > 0.85) {
-      return 'over';
-    }
-
-    if (pct > 0.65) {
-      return 'warn';
-    }
-
-    return '';
+    const percent = this.quotaPercent(role);
+    return percent > 85 ? 'over' : percent > 65 ? 'warn' : '';
   }
 
   get totalAssigned(): number {
-    return this.licences.length;
+    return this.usage.reduce((total, item) => total + item.used, 0);
   }
 }

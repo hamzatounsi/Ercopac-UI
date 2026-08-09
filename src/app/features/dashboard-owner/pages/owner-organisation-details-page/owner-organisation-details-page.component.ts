@@ -46,13 +46,15 @@ export class OwnerOrganisationDetailsPageComponent implements OnInit {
     if (!this.organisation) return 0;
 
     return this.organisation.orgAdminLicenceLimit +
-      this.organisation.generalManagerLicenceLimit +
+      this.organisation.projectManagerLicenceLimit +
       this.organisation.departmentManagerLicenceLimit +
-      this.organisation.employeeLicenceLimit;
+      this.organisation.employeeLicenceLimit +
+      this.organisation.salesManagerLicenceLimit +
+      this.organisation.clientLicenceLimit;
   }
 
   changeLicence(
-    type: 'orgAdmin' | 'generalManager' | 'departmentManager' | 'employee',
+    type: 'orgAdmin' | 'projectManager' | 'departmentManager' | 'employee' | 'salesManager' | 'client',
     delta: number
   ): void {
     if (!this.organisation) return;
@@ -61,8 +63,8 @@ export class OwnerOrganisationDetailsPageComponent implements OnInit {
       this.organisation.orgAdminLicenceLimit = Math.max(0, this.organisation.orgAdminLicenceLimit + delta);
     }
 
-    if (type === 'generalManager') {
-      this.organisation.generalManagerLicenceLimit = Math.max(0, this.organisation.generalManagerLicenceLimit + delta);
+    if (type === 'projectManager') {
+      this.organisation.projectManagerLicenceLimit = Math.max(0, this.organisation.projectManagerLicenceLimit + delta);
     }
 
     if (type === 'departmentManager') {
@@ -71,6 +73,14 @@ export class OwnerOrganisationDetailsPageComponent implements OnInit {
 
     if (type === 'employee') {
       this.organisation.employeeLicenceLimit = Math.max(0, this.organisation.employeeLicenceLimit + delta);
+    }
+
+    if (type === 'salesManager') {
+      this.organisation.salesManagerLicenceLimit = Math.max(0, this.organisation.salesManagerLicenceLimit + delta);
+    }
+
+    if (type === 'client') {
+      this.organisation.clientLicenceLimit = Math.max(0, this.organisation.clientLicenceLimit + delta);
     }
   }
 
@@ -113,33 +123,39 @@ export class OwnerOrganisationDetailsPageComponent implements OnInit {
     this.organisation.plan = plan;
 
     if (plan === 'STARTER') {
-      this.organisation.userLimit = 14;
+      this.organisation.userLimit = 20;
       this.organisation.monthlyRevenue = 490;
 
       this.organisation.orgAdminLicenceLimit = 1;
-      this.organisation.generalManagerLicenceLimit = 1;
+      this.organisation.projectManagerLicenceLimit = 1;
       this.organisation.departmentManagerLicenceLimit = 2;
       this.organisation.employeeLicenceLimit = 10;
+      this.organisation.salesManagerLicenceLimit = 1;
+      this.organisation.clientLicenceLimit = 5;
     }
 
     if (plan === 'PROFESSIONAL') {
-      this.organisation.userLimit = 62;
+      this.organisation.userLimit = 92;
       this.organisation.monthlyRevenue = 1200;
 
       this.organisation.orgAdminLicenceLimit = 1;
-      this.organisation.generalManagerLicenceLimit = 3;
+      this.organisation.projectManagerLicenceLimit = 3;
       this.organisation.departmentManagerLicenceLimit = 8;
       this.organisation.employeeLicenceLimit = 50;
+      this.organisation.salesManagerLicenceLimit = 5;
+      this.organisation.clientLicenceLimit = 25;
     }
 
     if (plan === 'ENTERPRISE') {
-      this.organisation.userLimit = 237;
+      this.organisation.userLimit = 357;
       this.organisation.monthlyRevenue = 4200;
 
       this.organisation.orgAdminLicenceLimit = 2;
-      this.organisation.generalManagerLicenceLimit = 10;
+      this.organisation.projectManagerLicenceLimit = 10;
       this.organisation.departmentManagerLicenceLimit = 25;
       this.organisation.employeeLicenceLimit = 200;
+      this.organisation.salesManagerLicenceLimit = 20;
+      this.organisation.clientLicenceLimit = 100;
     }
   }
 
@@ -177,9 +193,11 @@ export class OwnerOrganisationDetailsPageComponent implements OnInit {
       userLimit: this.organisation.userLimit,
 
       orgAdminLicenceLimit: this.organisation.orgAdminLicenceLimit,
-      generalManagerLicenceLimit: this.organisation.generalManagerLicenceLimit,
+      projectManagerLicenceLimit: this.organisation.projectManagerLicenceLimit,
       departmentManagerLicenceLimit: this.organisation.departmentManagerLicenceLimit,
       employeeLicenceLimit: this.organisation.employeeLicenceLimit,
+      salesManagerLicenceLimit: this.organisation.salesManagerLicenceLimit,
+      clientLicenceLimit: this.organisation.clientLicenceLimit,
 
       monthlyRevenue: this.organisation.monthlyRevenue,
       healthScore: this.organisation.healthScore,
