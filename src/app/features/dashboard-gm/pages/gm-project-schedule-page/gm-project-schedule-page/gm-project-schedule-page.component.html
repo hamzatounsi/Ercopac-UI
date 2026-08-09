@@ -49,11 +49,19 @@
           <span class="material-symbols-outlined">download</span>
           <span>Export</span>
         </button>
-        <label class="toolbar-main-btn import-btn">
-          <span class="material-symbols-outlined">upload</span>
-          <span>Import</span>
-          <input type="file" hidden accept=".json" (change)="importScheduleJson($event)" />
-        </label>
+        <div class="import-menu">
+          <button type="button" class="toolbar-main-btn import-btn" (click)="importMenuOpen = !importMenuOpen" [attr.aria-expanded]="importMenuOpen">
+            <span class="material-symbols-outlined">upload</span>
+            <span>Import</span>
+          </button>
+          <div class="import-menu-options" *ngIf="importMenuOpen">
+            <button type="button" (click)="openImportPicker(jsonImportInput)">JSON</button>
+            <button type="button" (click)="openImportPicker(excelImportInput)">Excel</button>
+          </div>
+          <input #jsonImportInput type="file" hidden accept=".json,application/json" (change)="importScheduleFile($event)" />
+          <input #excelImportInput type="file" hidden accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" (change)="importScheduleFile($event)" />
+        </div>
+        <span class="import-status" *ngIf="importStatus">{{ importStatus }}</span>
         <button type="button" class="toolbar-main-btn" (click)="undo()" [disabled]="history.length === 0">
           <span class="material-symbols-outlined">undo</span>
           <span>Undo</span>

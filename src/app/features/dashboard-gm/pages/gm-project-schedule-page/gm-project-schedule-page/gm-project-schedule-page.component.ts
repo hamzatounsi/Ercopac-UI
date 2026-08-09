@@ -29,6 +29,7 @@ import { TaskConsoleConfig } from '../../../models/task-console-config.model';
 import { TaskConsoleLog } from '../../../models/task-console-log.model';
 import { ProjectDashboardRow } from '../../../models/project-dashboard-row.model';
 import { GmDashboardService } from '../../../services/gm-dashboard.service';
+import * as XLSX from 'xlsx';
 
 export interface TimelineDay {
   label: string;
@@ -80,6 +81,8 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
   projectId!: number;
   loading = false;
   saving = false;
+  importStatus = '';
+  importMenuOpen = false;
   private formAutoSaveTimer: any = null;
   private suppressFormAutoSave = false;
 
@@ -1140,35 +1143,154 @@ indentTask(): void {
     URL.revokeObjectURL(url);
   }
 
-  importScheduleJson(event: Event): void {
+  openImportPicker(input: HTMLInputElement): void {
+    this.importMenuOpen = false;
+    input.click();
+  }
+
+  async importScheduleFile(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const parsed = JSON.parse(reader.result as string);
-        const importedTasks: GmProjectScheduleTask[] = Array.isArray(parsed) ? parsed : parsed.tasks;
-        if (!Array.isArray(importedTasks) || importedTasks.length === 0) { alert('Invalid schedule file'); return; }
-        this.saving = true;
-        const payload = importedTasks.map((task, index) => {
-          const baselineStart = task.baselineStart ?? task.plannedStart;
-          const baselineEnd = task.baselineEnd ?? task.plannedEnd ?? baselineStart;
-          return this.buildTaskUpdatePayload({ ...task, id: task.id ?? 0, projectId: this.projectId, displayOrder: task.displayOrder ?? index + 1, baselineStart, baselineEnd, plannedStart: baselineStart, plannedEnd: baselineEnd });
-        });
-        this.service.importSchedule(this.projectId, payload).subscribe({
-          next: () => { this.saving = false; this.loadSchedule(); },
-          error: err => { this.saving = false; console.error('Import failed', err); alert('Import failed'); }
-        });
-      } catch (error) {
-        this.saving = false;
-        console.error('Invalid JSON', error);
-        alert('Invalid JSON file');
-      } finally {
-        input.value = '';
-      }
+    try {
+      const rows = await this.readImportRows(file);
+      const payload = rows.map((row, index) => this.toImportedTaskPayload(row, index));
+      if (!payload.length) throw new Error('The file does not contain any task rows.');
+
+      this.saving = true;
+      this.importStatus = 'Importing schedule...';
+      this.service.importSchedule(this.projectId, payload).subscribe({
+        next: imported => {
+          this.saving = false;
+          this.importStatus = `${imported.length} task${imported.length === 1 ? '' : 's'} imported.`;
+          this.loadSchedule();
+        },
+        error: err => {
+          this.saving = false;
+          this.importStatus = '';
+          const message = err?.error?.message || err?.error?.detail || 'Import failed. No changes were saved.';
+          console.error('Import failed', err);
+          alert(message);
+        }
+      });
+    } catch (error) {
+      this.saving = false;
+      this.importStatus = '';
+      alert(error instanceof Error ? error.message : 'Invalid import file.');
+    } finally {
+      input.value = '';
+    }
+  }
+
+  private async readImportRows(file: File): Promise<Record<string, unknown>[]> {
+    const filename = file.name.toLowerCase();
+    if (filename.endsWith('.json')) {
+      const parsed = JSON.parse(await file.text());
+      const rows = Array.isArray(parsed) ? parsed : parsed?.tasks;
+      if (!Array.isArray(rows)) throw new Error('JSON must contain a task array or a { tasks: [] } object.');
+      return rows as Record<string, unknown>[];
+    }
+    if (filename.endsWith('.xlsx')) {
+      const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: true });
+      const firstSheet = workbook.SheetNames[0];
+      if (!firstSheet) throw new Error('Excel file does not contain a worksheet.');
+      return XLSX.utils.sheet_to_json<Record<string, unknown>>(workbook.Sheets[firstSheet], { defval: null, raw: true });
+    }
+    throw new Error('Choose a JSON or .xlsx schedule file.');
+  }
+
+  private toImportedTaskPayload(row: Record<string, unknown>, index: number): GmUpdateProjectTaskRequest {
+    const rowNumber = index + 1;
+    const value = (...headers: string[]): unknown => {
+      const normalized = new Set(headers.map(header => this.normalizeImportHeader(header)));
+      const key = Object.keys(row).find(candidate => normalized.has(this.normalizeImportHeader(candidate)));
+      return key === undefined ? undefined : row[key];
     };
-    reader.readAsText(file);
+    const text = (...headers: string[]): string | undefined => {
+      const raw = value(...headers);
+      if (raw === undefined || raw === null || String(raw).trim() === '') return undefined;
+      return String(raw).trim();
+    };
+    const date = (...headers: string[]): string | undefined => this.importDate(value(...headers), rowNumber);
+    const integer = (label: string, ...headers: string[]): number | undefined => this.importInteger(value(...headers), rowNumber, label);
+
+    const name = text('Task', 'Task Name', 'Name');
+    if (!name) throw new Error(`Import row ${rowNumber}: task name is required.`);
+    const taskType = (text('Type', 'Task Type') || 'ACTIVITY').toUpperCase();
+    if (!['ACTIVITY', 'SUMMARY', 'MILESTONE'].includes(taskType)) {
+      throw new Error(`Import row ${rowNumber}: task type must be ACTIVITY, SUMMARY, or MILESTONE.`);
+    }
+
+    const baselineStart = date('Baseline Start', 'Baseline Start Date');
+    const baselineEnd = date('Baseline End', 'Baseline End Date');
+    const plannedStart = date('Planned Start', 'Start', 'Start Date');
+    const plannedEnd = date('Planned End', 'End', 'End Date');
+    const actualStart = date('Actual Start', 'Actual Start Date');
+    const actualEnd = date('Actual End', 'Actual End Date');
+    const wbsCode = text('WBS', 'WBS Code');
+    const task: GmProjectScheduleTask = {
+      id: 0,
+      name,
+      taskType,
+      wbsCode,
+      outlineLevel: integer('outline level', 'Outline Level') ?? (wbsCode ? wbsCode.split('.').length : 1),
+      displayOrder: integer('display order', 'Display Order') ?? index + 1,
+      description: text('Description'),
+      baselineStart: baselineStart ?? plannedStart,
+      baselineEnd: baselineEnd ?? plannedEnd,
+      plannedStart: plannedStart ?? baselineStart,
+      plannedEnd: plannedEnd ?? baselineEnd,
+      actualStart,
+      actualEnd,
+      durationDays: integer('duration', 'Duration', 'Duration Days', 'Baseline Duration'),
+      percentComplete: integer('progress', 'Progress', 'Percent Complete') ?? 0,
+      departmentCode: text('Department', 'Department Code'),
+      resourceType: text('Resource Type', 'Resource'),
+      active: true,
+      scheduleMode: 'AUTO',
+      status: text('Status') ?? 'NOT_STARTED'
+    };
+
+    if ((task.percentComplete ?? 0) < 0 || (task.percentComplete ?? 0) > 100) {
+      throw new Error(`Import row ${rowNumber}: progress must be between 0 and 100.`);
+    }
+    if (task.durationDays !== undefined && (task.durationDays < 0 || (taskType === 'ACTIVITY' && task.durationDays === 0))) {
+      throw new Error(`Import row ${rowNumber}: duration is invalid for this task type.`);
+    }
+    if (!this.synchronizeTaskDates(task, task.baselineStart && task.baselineEnd ? 'baselineDates' : task.actualStart && task.actualEnd ? 'actualDates' : 'duration')) {
+      throw new Error(`Import row ${rowNumber}: an end date cannot be before its start date.`);
+    }
+    return this.buildTaskUpdatePayload(task);
+  }
+
+  private normalizeImportHeader(value: string): string {
+    return value.toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
+  private importInteger(value: unknown, row: number, label: string): number | undefined {
+    if (value === undefined || value === null || String(value).trim() === '') return undefined;
+    const parsed = typeof value === 'number' ? value : Number(String(value).trim());
+    if (!Number.isFinite(parsed) || !Number.isInteger(parsed)) {
+      throw new Error(`Import row ${row}: ${label} must be a whole number.`);
+    }
+    return parsed;
+  }
+
+  private importDate(value: unknown, row: number): string | undefined {
+    if (value === undefined || value === null || String(value).trim() === '') return undefined;
+    let date: Date | undefined;
+    if (value instanceof Date) date = value;
+    else if (typeof value === 'number') {
+      const parsed = XLSX.SSF.parse_date_code(value);
+      if (parsed) date = new Date(parsed.y, parsed.m - 1, parsed.d);
+    } else {
+      const source = String(value).trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(source)) return source;
+      const parsed = new Date(source);
+      if (!Number.isNaN(parsed.getTime())) date = parsed;
+    }
+    if (!date || Number.isNaN(date.getTime())) throw new Error(`Import row ${row}: date is invalid.`);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   }
 
   private refreshScheduleUi(): void {

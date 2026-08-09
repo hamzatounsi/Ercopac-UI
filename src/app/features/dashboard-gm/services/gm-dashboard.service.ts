@@ -40,6 +40,7 @@ export interface UpsertProjectRequest {
   code: string;
   customer?: string;
   category?: string;
+  categoryId?: number | null;
   country?: string;
   projectType?: string;
   projectPhase?: string;
@@ -47,13 +48,17 @@ export interface UpsertProjectRequest {
   plannedStart?: string;
   plannedEnd?: string;
   projectManagerName?: string;
-  programManagerName?: string;
+  projectManagerId?: number | null;
   salesManagerName?: string;
+  salesManagerId?: number | null;
   projectBudget?: number;
   estimatedCost?: number;
   comment?: string;
   applicationType?: 'PROJECTUM' | 'MY_CS';
 }
+
+export interface ProjectFormUserOption { id: number; fullName: string; departmentCode?: string | null; resourceTypeCode?: string | null; }
+export interface ProjectFormOptions { categories: { id: number; name: string }[]; projectManagers: ProjectFormUserOption[]; salesManagers: ProjectFormUserOption[]; }
 
 @Injectable({
   providedIn: 'root'
@@ -80,6 +85,10 @@ private readonly projectsUrl = API_PROJECTS_URL;
 
   getProjectById(id: number): Observable<ProjectDetails> {
     return this.http.get<ProjectDetails>(`${this.projectsUrl}/${id}`);
+  }
+
+  getProjectFormOptions(): Observable<ProjectFormOptions> {
+    return this.http.get<ProjectFormOptions>(this.projectsUrl + '/form-options');
   }
 
   createProject(payload: UpsertProjectRequest): Observable<ProjectDashboardRow> {
