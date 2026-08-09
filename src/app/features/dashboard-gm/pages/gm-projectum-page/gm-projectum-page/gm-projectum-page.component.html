@@ -384,8 +384,11 @@
             </div>
 
             <div class="mf span-2">
-              <label>Category</label>
-              <input class="mi" [(ngModel)]="projectForm.category" placeholder="Internal, Client, Service..." />
+              <label>Category <span>*</span></label>
+              <select class="mi" [(ngModel)]="projectForm.categoryId" name="categoryId" required>
+                <option [ngValue]="null">Select category</option>
+                <option *ngFor="let category of formOptions.categories" [ngValue]="category.id">{{ category.name }}</option>
+              </select>
             </div>
           </div>
         </section>
@@ -427,17 +430,12 @@
           <div class="form-grid">
             <div class="mf span-2">
               <label>Project Manager</label>
-              <input class="mi" [(ngModel)]="projectForm.projectManagerName" placeholder="PM name" />
-            </div>
-
-            <div class="mf span-2">
-              <label>Program Manager</label>
-              <input class="mi" [(ngModel)]="projectForm.programManagerName" placeholder="Program manager" />
+              <select class="mi" [(ngModel)]="projectForm.projectManagerId" name="projectManagerId"><option [ngValue]="null">Select project manager</option><option *ngFor="let user of formOptions.projectManagers" [ngValue]="user.id">{{ user.fullName }}</option></select>
             </div>
 
             <div class="mf span-2">
               <label>Sales Manager</label>
-              <input class="mi" [(ngModel)]="projectForm.salesManagerName" placeholder="Sales manager" />
+              <select class="mi" [(ngModel)]="projectForm.salesManagerId" name="salesManagerId"><option [ngValue]="null">Select sales manager</option><option *ngFor="let user of formOptions.salesManagers" [ngValue]="user.id">{{ user.fullName }}</option></select>
             </div>
           </div>
         </section>

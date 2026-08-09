@@ -933,6 +933,42 @@ textarea) {
   padding: 0 9px;
 }
 
+.import-menu {
+  position: relative;
+}
+
+.import-menu-options {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  z-index: 300;
+  display: grid;
+  min-width: 100px;
+  padding: 4px;
+  border: 1px solid #dbe3ec;
+  border-radius: 5px;
+  background: #fff;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, .16);
+}
+
+.import-menu-options button {
+  border: 0;
+  border-radius: 3px;
+  padding: 6px 8px;
+  background: transparent;
+  color: #475569;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.import-menu-options button:hover {
+  background: #eff6ff;
+  color: #1565c0;
+}
+
 .toolbar-main-btn:disabled,
 .zoom-chip:disabled,
 .zoom-step-btn:disabled,

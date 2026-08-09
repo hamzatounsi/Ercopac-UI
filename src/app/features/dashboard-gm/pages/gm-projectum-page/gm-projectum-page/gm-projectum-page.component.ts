@@ -4,7 +4,8 @@ import {
   GmDashboardService,
   PortfolioKpiResponse,
   ProjectKpiResponse,
-  UpsertProjectRequest
+  UpsertProjectRequest,
+  ProjectFormOptions
 } from '../../../services/gm-dashboard.service';
 import { GmResourceService } from '../../../services/gm-resource.service';
 import { ProjectDashboardRow } from '../../../models/project-dashboard-row.model';
@@ -100,6 +101,7 @@ export class GmProjectumPageComponent implements OnInit {
     code: '',
     customer: '',
     category: '',
+    categoryId: null,
     country: '',
     projectType: '',
     projectPhase: 'PLANNED',
@@ -107,8 +109,9 @@ export class GmProjectumPageComponent implements OnInit {
     plannedStart: '',
     plannedEnd: '',
     projectManagerName: '',
-    programManagerName: '',
+    projectManagerId: null,
     salesManagerName: '',
+    salesManagerId: null,
     projectBudget: 0,
     estimatedCost: 0,
     comment: ''
@@ -117,6 +120,7 @@ export class GmProjectumPageComponent implements OnInit {
   readonly statusOptions = ['PLANNED', 'ACTIVE', 'COMPLETED', 'STANDBY', 'ARCHIVED'];
   readonly typeOptions = ['Greenfield', 'Brownfield', 'Retrofit', 'Consulting', 'R&D', 'Service'];
   readonly riskOptions = ['LOW', 'MEDIUM', 'HIGH'];
+  formOptions: ProjectFormOptions = { categories: [], projectManagers: [], salesManagers: [] };
   aiOpen = false;
   aiNotification = '';
 
@@ -130,6 +134,7 @@ export class GmProjectumPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadInitialData();
+    this.loadFormOptions();
     this.loadResourcesForTeam();
     this.loadTeamAssignmentsFromStorage();
     this.requestNotificationPermission();
@@ -180,6 +185,13 @@ export class GmProjectumPageComponent implements OnInit {
         this.error = 'Failed to load projects.';
         this.loading = false;
       }
+    });
+  }
+
+  private loadFormOptions(): void {
+    this.gmDashboardService.getProjectFormOptions().subscribe({
+      next: options => this.formOptions = options,
+      error: () => this.error = 'Could not load project categories and ownership options.'
     });
   }
 
@@ -373,6 +385,7 @@ private notifyAiFinished(message: string): void {
       code: '',
       customer: '',
       category: '',
+      categoryId: null,
       country: '',
       projectType: '',
       projectPhase: 'PLANNED',
@@ -380,8 +393,9 @@ private notifyAiFinished(message: string): void {
       plannedStart: '',
       plannedEnd: '',
       projectManagerName: '',
-      programManagerName: '',
+      projectManagerId: null,
       salesManagerName: '',
+      salesManagerId: null,
       projectBudget: 0,
       estimatedCost: 0,
       comment: ''
@@ -404,6 +418,7 @@ private notifyAiFinished(message: string): void {
       code: project.code || '',
       customer: project.customer || '',
       category: project.category || '',
+      categoryId: this.optionId(this.formOptions.categories, project.category),
       country: project.country || '',
       projectType: project.projectType || '',
       projectPhase: project.projectPhase || 'PLANNED',
@@ -411,14 +426,19 @@ private notifyAiFinished(message: string): void {
       plannedStart: this.toInputDate(project.plannedStart),
       plannedEnd: this.toInputDate(project.plannedEnd),
       projectManagerName: project.projectManagerName || '',
-      programManagerName: project.programManagerName || '',
+      projectManagerId: this.optionId(this.formOptions.projectManagers, project.projectManagerName),
       salesManagerName: project.salesManagerName || '',
+      salesManagerId: this.optionId(this.formOptions.salesManagers, project.salesManagerName),
       projectBudget: project.projectBudget || 0,
       estimatedCost: project.estimatedCost || 0,
       
     };
 
     this.modalOpen = true;
+  }
+
+  private optionId(options: Array<{ id: number; fullName?: string; name?: string }>, value?: string): number | null {
+    return options.find(option => (option.fullName || option.name) === value)?.id ?? null;
   }
 
   closeModal(): void {
@@ -428,8 +448,8 @@ private notifyAiFinished(message: string): void {
   }
 
   saveProject(): void {
-    if (!this.projectForm.name?.trim() || !this.projectForm.code?.trim()) {
-      this.error = 'Project name and project code are required.';
+    if (!this.projectForm.name?.trim() || !this.projectForm.code?.trim() || !this.projectForm.categoryId) {
+      this.error = 'Project name, project code, and category are required.';
       return;
     }
 
