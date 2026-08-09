@@ -168,7 +168,14 @@ export class OwnerPermissionsPageComponent implements OnInit {
   }
 
   roleLabel(role: string): string {
-    return role.replaceAll('_', ' ');
+    return ({
+      ORG_ADMIN: 'Organisation Admin',
+      PROJECT_MANAGER: 'Project Manager',
+      DEPARTMENT_MANAGER: 'Department Manager',
+      EMPLOYEE: 'Employee',
+      SALES_MANAGER: 'Sales Manager',
+      CLIENT: 'Client'
+    } as Record<string, string>)[role] || role.replaceAll('_', ' ');
   }
 
   orgInitials(org: PlatformOrganisation): string {

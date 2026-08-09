@@ -41,6 +41,10 @@ export class OwnerDashboardService {
     return this.http.get<PlatformOrganisation>(`${this.platformOrgUrl}/${id}`);
   }
 
+  getPlatformLicenceUsage(id: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.platformOrgUrl}/${id}/licence-usage`);
+  }
+
   updatePlatformOrganisation(id: number, body: any): Observable<PlatformOrganisation> {
     return this.http.put<PlatformOrganisation>(`${this.platformOrgUrl}/${id}`, body);
   }

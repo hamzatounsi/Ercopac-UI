@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { AuthService } from 'src/app/core/auth/auth.service';
 
 @Component({
   selector: 'app-gm-layout',
@@ -11,7 +12,10 @@ export class GmLayoutComponent implements OnInit, OnDestroy {
   showSharedHeader = true;
   private navigationSubscription?: Subscription;
 
-  constructor(private readonly router: Router) {}
+  constructor(
+    private readonly router: Router,
+    readonly auth: AuthService
+  ) {}
 
   ngOnInit(): void {
     this.updateHeaderVisibility(this.router.url);

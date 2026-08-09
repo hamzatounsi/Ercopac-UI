@@ -1,13 +1,13 @@
 <div class="launcher-page">
   <header class="launcher-topbar">
-    <a class="launcher-brand" routerLink="/login" aria-label="Projectum home">projectum</a>
+    <a class="launcher-brand" routerLink="/" aria-label="Projectum home">projectum</a>
 
     <nav class="launcher-nav" aria-label="Primary navigation">
       <a href="#applications">Apps</a>
-      <a routerLink="/login">Industries</a>
-      <a routerLink="/login">Community</a>
-      <a routerLink="/login">Prices</a>
-      <a routerLink="/login">Help</a>
+      <a routerLink="/">Industries</a>
+      <a routerLink="/">Community</a>
+      <a routerLink="/">Prices</a>
+      <a routerLink="/">Help</a>
     </nav>
 
     <div class="launcher-actions">
@@ -24,14 +24,13 @@
     </section>
 
     <section id="applications" class="launcher-stage" aria-label="Projectum application preview">
-      <div class="launcher-app-grid" *ngIf="workspaceApps.length; else noApps">
+      <div class="launcher-app-grid" *ngIf="landingPreviewApps.length; else noApps">
         <button
           class="launcher-app-card"
           type="button"
-          *ngFor="let app of workspaceApps"
-          [disabled]="!app.enabled"
+          *ngFor="let app of landingPreviewApps"
           (click)="selectApp(app.selectedApp)"
-          [attr.aria-label]="app.enabled ? 'Open ' + app.name : app.name + ' is not available yet'"
+          [attr.aria-label]="'Sign in to access ' + app.name"
           [attr.title]="app.description"
         >
           <span class="launcher-icon-tile" aria-hidden="true">
@@ -118,6 +117,7 @@
           <label for="username">Email</label>
           <input
             id="username"
+            #usernameInput
             type="email"
             [(ngModel)]="username"
             name="username"

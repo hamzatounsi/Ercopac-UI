@@ -23,9 +23,10 @@
 
     <select class="filter-select" [(ngModel)]="selectedRole">
       <option value="">All Roles</option>
-      <option value="GENERAL_MANAGER">GENERAL_MANAGER</option>
-      <option value="DEPARTMENT_MANAGER">DEPARTMENT_MANAGER</option>
-      <option value="EMPLOYEE">EMPLOYEE</option>
+      <option value="PROJECT_MANAGER">Project Manager</option>
+      <option value="DEPARTMENT_MANAGER">Department Manager</option>
+      <option value="EMPLOYEE">Employee</option>
+      <option value="SALES_MANAGER">Sales Manager</option>
     </select>
 
     <select class="filter-select" [(ngModel)]="selectedActive">
@@ -195,9 +196,10 @@
           <div class="dp-field">
             <label>Role</label>
             <select class="dp-sel" formControlName="role" [disabled]="!createMode">
-              <option value="GENERAL_MANAGER">GENERAL_MANAGER</option>
-              <option value="DEPARTMENT_MANAGER">DEPARTMENT_MANAGER</option>
-              <option value="EMPLOYEE">EMPLOYEE</option>
+              <option value="PROJECT_MANAGER">Project Manager</option>
+              <option value="DEPARTMENT_MANAGER">Department Manager</option>
+              <option value="EMPLOYEE">Employee</option>
+              <option value="SALES_MANAGER">Sales Manager</option>
             </select>
           </div>
 

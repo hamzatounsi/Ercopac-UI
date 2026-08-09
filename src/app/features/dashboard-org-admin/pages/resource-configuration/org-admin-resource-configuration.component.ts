@@ -3,16 +3,19 @@ import { FormBuilder, Validators } from '@angular/forms';
 import { Observable, Subject, catchError, concatMap, finalize, forkJoin, from, of, takeUntil, toArray } from 'rxjs';
 import {
   CustomerConfig,
+  OrganisationDepartment,
+  OrganisationResourceType,
   ProjectCategoryConfig,
   ProjectTypeConfig,
   SaveCustomerConfig,
+  SaveOrganisationResourceType,
   SaveProjectCategoryConfig,
   SaveProjectTypeConfig
 } from '../../models/org-admin.models';
 import { adminErrorMessage, OrgAdminService } from '../../services/org-admin.service';
 import { AdminToastService } from '../../shared/admin-toast.service';
 
-type ConfigurationTab = 'categories' | 'types' | 'customers';
+type ConfigurationTab = 'categories' | 'types' | 'resourceTypes' | 'customers';
 type ConfigurationKind = 'category' | 'type' | 'customer';
 
 interface DeleteTarget {
@@ -34,6 +37,8 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
   categories: ProjectCategoryConfig[] = [];
   projectTypes: ProjectTypeConfig[] = [];
   customers: CustomerConfig[] = [];
+  departments: OrganisationDepartment[] = [];
+  resourceTypes: OrganisationResourceType[] = [];
   search = '';
   loading = true;
   saving = false;
@@ -43,6 +48,8 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
   dialogKind: ConfigurationKind | null = null;
   editingId: number | null = null;
   deleteTarget: DeleteTarget | null = null;
+  resourceTypeDialogOpen = false;
+  editingResourceTypeId: number | null = null;
 
   readonly categoryForm = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
@@ -77,6 +84,15 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
     active: [true]
   });
 
+  readonly resourceTypeForm = this.formBuilder.nonNullable.group({
+    code: ['', [Validators.required, Validators.pattern(/^[A-Za-z0-9_-]{2,40}$/)]],
+    label: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
+    departmentId: [null as number | null],
+    colour: ['#2563eb', Validators.pattern(/^#[0-9A-Fa-f]{6}$/)],
+    assignable: [true],
+    active: [true]
+  });
+
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly adminService: OrgAdminService,
@@ -96,6 +112,7 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
   closeOnEscape(): void {
     if (!this.saving && !this.deleting) {
       this.closeDialog();
+      this.closeResourceTypeDialog();
       this.deleteTarget = null;
     }
   }
@@ -106,7 +123,9 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
     forkJoin({
       categories: this.adminService.getCategories(),
       projectTypes: this.adminService.getProjectTypes(),
-      customers: this.adminService.getCustomers()
+      customers: this.adminService.getCustomers(),
+      departments: this.adminService.getDepartments(),
+      resourceTypes: this.adminService.getResourceTypes()
     }).pipe(
       takeUntil(this.destroy$),
       finalize(() => this.loading = false)
@@ -115,6 +134,8 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
         this.categories = response.categories;
         this.projectTypes = response.projectTypes;
         this.customers = response.customers;
+        this.departments = response.departments;
+        this.resourceTypes = response.resourceTypes;
       },
       error: error => this.errorMessage = adminErrorMessage(error, 'Could not load resource configuration.')
     });
@@ -140,6 +161,61 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
     return this.customers.filter(item => !query || [
       item.customerCode, item.name, item.country, item.town, item.contactPerson, item.email, item.erpId
     ].filter(Boolean).join(' ').toLowerCase().includes(query));
+  }
+
+  get filteredResourceTypes(): OrganisationResourceType[] {
+    const query = this.normalizedSearch;
+    return this.resourceTypes.filter(item => !query || `${item.code} ${item.label || ''}`.toLowerCase().includes(query));
+  }
+
+  openResourceType(item?: OrganisationResourceType): void {
+    this.editingResourceTypeId = item?.id ?? null;
+    this.resourceTypeDialogOpen = true;
+    this.resourceTypeForm.reset({
+      code: item?.code ?? '', label: item?.label ?? '', departmentId: item?.departmentId ?? null,
+      colour: item?.colour ?? '#2563eb', assignable: item?.assignable ?? true, active: item?.active ?? true
+    });
+  }
+
+  closeResourceTypeDialog(): void {
+    if (!this.saving) { this.resourceTypeDialogOpen = false; this.editingResourceTypeId = null; }
+  }
+
+  saveResourceType(): void {
+    if (this.resourceTypeForm.invalid || this.saving) { this.resourceTypeForm.markAllAsTouched(); return; }
+    const value = this.resourceTypeForm.getRawValue();
+    const payload: SaveOrganisationResourceType = {
+      code: value.code.trim().toUpperCase(), label: value.label.trim(), departmentId: value.departmentId,
+      colour: this.optional(value.colour), defaultRate: null, assignable: value.assignable, active: value.active
+    };
+    this.saving = true;
+    const request = this.editingResourceTypeId === null
+      ? this.adminService.createResourceType(payload)
+      : this.adminService.updateResourceType(this.editingResourceTypeId, payload);
+    request.pipe(finalize(() => this.saving = false)).subscribe({
+      next: item => {
+        this.resourceTypes = [...this.resourceTypes.filter(existing => existing.id !== item.id), item]
+          .sort((left, right) => (left.label || left.code).localeCompare(right.label || right.code));
+        this.resourceTypeDialogOpen = false;
+        this.editingResourceTypeId = null;
+        this.toast.show(`Resource type ${this.editingResourceTypeId === null ? 'created' : 'updated'}.`, 'success');
+      },
+      error: error => this.toast.show(adminErrorMessage(error, 'Could not save resource type.'), 'error')
+    });
+  }
+
+  toggleResourceType(item: OrganisationResourceType): void {
+    const payload: SaveOrganisationResourceType = {
+      code: item.code, label: item.label, colour: item.colour, departmentId: item.departmentId,
+      defaultRate: item.defaultRate, assignable: item.assignable, active: !item.active
+    };
+    this.adminService.updateResourceType(item.id, payload).subscribe({
+      next: updated => {
+        this.resourceTypes = this.resourceTypes.map(existing => existing.id === updated.id ? updated : existing);
+        this.toast.show(`Resource type ${updated.active ? 'activated' : 'deactivated'}.`, 'success');
+      },
+      error: error => this.toast.show(adminErrorMessage(error, 'Could not update resource type.'), 'error')
+    });
   }
 
   openCategory(item?: ProjectCategoryConfig): void {

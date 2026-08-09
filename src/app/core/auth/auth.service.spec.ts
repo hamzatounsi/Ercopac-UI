@@ -20,6 +20,23 @@ describe('AuthService', () => {
     expect(service.isLoggedIn()).toBeTrue();
   });
 
+  it('routes platform ownership directly and operational roles through the workspace', () => {
+    const expiry = Math.floor(Date.now() / 1000) + 300;
+    const expectedHomes: Array<[string, string]> = [
+      ['PLATFORM_OWNER', '/owner'],
+      ['PROJECT_MANAGER', '/workspace'],
+      ['DEPARTMENT_MANAGER', '/workspace'],
+      ['EMPLOYEE', '/workspace'],
+      ['SALES_MANAGER', '/workspace'],
+      ['CLIENT', '/workspace']
+    ];
+
+    expectedHomes.forEach(([role, home]) => {
+      localStorage.setItem('token', token({ role, exp: expiry }));
+      expect(service.getHomeRoute()).withContext(role).toBe(home);
+    });
+  });
+
   it('treats an expired token as logged out', () => {
     localStorage.setItem('token', token({ role: 'ORG_ADMIN', exp: Math.floor(Date.now() / 1000) - 30 }));
     expect(service.isLoggedIn()).toBeFalse();

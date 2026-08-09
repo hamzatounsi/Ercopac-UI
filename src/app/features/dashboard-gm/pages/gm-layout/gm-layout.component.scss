@@ -32,6 +32,36 @@
   width: 100%;
 }
 
+.main-menu-btn {
+  height: 36px;
+  padding: 0 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #334155;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.main-menu-btn .material-symbols-outlined {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.main-menu-btn:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1565c0;
+}
+
 @media (max-width: 768px) {
   .main-content {
     padding: 0;

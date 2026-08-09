@@ -6,6 +6,7 @@ import {
   OrganisationDepartment,
   OrganisationRole,
   OrganisationRoleSummary,
+  OrganisationResourceType,
   OrganisationUser,
   SaveOrganisationUser
 } from '../../models/org-admin.models';
@@ -16,6 +17,7 @@ import { AdminToastService } from '../../shared/admin-toast.service';
 export class OrgAdminUsersComponent implements OnInit, OnDestroy {
   users: OrganisationUser[] = [];
   departments: OrganisationDepartment[] = [];
+  resourceTypes: OrganisationResourceType[] = [];
   roles: OrganisationRoleSummary[] = [];
   loading = true;
   loadingUsers = false;
@@ -46,6 +48,7 @@ export class OrgAdminUsersComponent implements OnInit, OnDestroy {
     password: this.fb.nonNullable.control(''),
     role: this.fb.nonNullable.control<OrganisationRole>('EMPLOYEE', Validators.required),
     departmentId: this.fb.control<number | null>(null),
+    resourceTypeId: this.fb.control<number | null>(null),
     employeeCode: this.fb.nonNullable.control('', Validators.maxLength(40)),
     jobTitle: this.fb.nonNullable.control('', Validators.maxLength(80)),
     active: this.fb.nonNullable.control(true)
@@ -61,6 +64,7 @@ export class OrgAdminUsersComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.searchControl.valueChanges.pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$)).subscribe(() => { this.page = 0; this.loadUsers(); });
     this.filterForm.valueChanges.pipe(debounceTime(50), takeUntil(this.destroy$)).subscribe(() => { this.page = 0; this.loadUsers(); });
+    this.userForm.controls.role.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.updateResourceProfileValidators());
     this.loadMetadata();
   }
 
@@ -74,9 +78,9 @@ export class OrgAdminUsersComponent implements OnInit, OnDestroy {
 
   loadMetadata(): void {
     this.loading = true; this.errorMessage = '';
-    forkJoin({ departments: this.service.getDepartments(), roles: this.service.getRoles() })
+    forkJoin({ departments: this.service.getDepartments(), resourceTypes: this.service.getResourceTypes(), roles: this.service.getRoles() })
       .pipe(finalize(() => this.loading = false)).subscribe({
-        next: result => { this.departments = result.departments; this.roles = result.roles; this.loadUsers(); },
+        next: result => { this.departments = result.departments; this.resourceTypes = result.resourceTypes; this.roles = result.roles; this.loadUsers(); },
         error: error => this.errorMessage = adminErrorMessage(error, 'Could not load user administration data.')
       });
   }
@@ -99,14 +103,16 @@ export class OrgAdminUsersComponent implements OnInit, OnDestroy {
 
   openCreate(): void {
     this.editingUser = null; this.formError = ''; this.drawerOpen = true;
-    this.userForm.reset({ fullName: '', email: '', password: '', role: 'EMPLOYEE', departmentId: null, employeeCode: '', jobTitle: '', active: true });
+    this.userForm.reset({ fullName: '', email: '', password: '', role: 'EMPLOYEE', departmentId: null, resourceTypeId: null, employeeCode: '', jobTitle: '', active: true });
+    this.updateResourceProfileValidators();
     this.userForm.controls.password.setValidators([Validators.required, Validators.minLength(8), Validators.maxLength(128)]);
     this.userForm.controls.password.updateValueAndValidity();
   }
 
   openEdit(user: OrganisationUser): void {
     this.editingUser = user; this.formError = ''; this.drawerOpen = true;
-    this.userForm.reset({ fullName: user.fullName, email: user.email, password: '', role: user.role, departmentId: user.departmentId, employeeCode: user.employeeCode || '', jobTitle: user.jobTitle || '', active: user.active });
+    this.userForm.reset({ fullName: user.fullName, email: user.email, password: '', role: user.role, departmentId: user.departmentId, resourceTypeId: user.resourceTypeId, employeeCode: user.employeeCode || '', jobTitle: user.jobTitle || '', active: user.active });
+    this.updateResourceProfileValidators();
     this.userForm.controls.password.clearValidators(); this.userForm.controls.password.updateValueAndValidity();
   }
 
@@ -117,7 +123,7 @@ export class OrgAdminUsersComponent implements OnInit, OnDestroy {
     const value = this.userForm.getRawValue();
     const payload: SaveOrganisationUser = {
       fullName: value.fullName.trim(), email: value.email.trim(), role: value.role,
-      departmentId: value.departmentId, employeeCode: value.employeeCode.trim() || null,
+      departmentId: value.departmentId, resourceTypeId: value.resourceTypeId, employeeCode: value.employeeCode.trim() || null,
       jobTitle: value.jobTitle.trim() || null, active: value.active
     };
     this.saving = true; this.formError = '';
@@ -150,4 +156,16 @@ export class OrgAdminUsersComponent implements OnInit, OnDestroy {
   nextPage(): void { if (this.page + 1 < this.totalPages) { this.page++; this.loadUsers(); } }
   trackUser(_index: number, user: OrganisationUser): number { return user.id; }
   roleLabel(role: OrganisationRole): string { return this.roles.find(item => item.role === role)?.label || role.replace(/_/g, ' '); }
+  requiresResourceProfile(role: OrganisationRole): boolean {
+    return ['PROJECT_MANAGER', 'DEPARTMENT_MANAGER', 'EMPLOYEE', 'SALES_MANAGER'].includes(role);
+  }
+  private updateResourceProfileValidators(): void {
+    const required = this.requiresResourceProfile(this.userForm.controls.role.value);
+    const controls = [this.userForm.controls.departmentId, this.userForm.controls.resourceTypeId];
+    controls.forEach(control => {
+      control.setValidators(required ? [Validators.required] : []);
+      if (!required) control.setValue(null, { emitEvent: false });
+      control.updateValueAndValidity({ emitEvent: false });
+    });
+  }
 }

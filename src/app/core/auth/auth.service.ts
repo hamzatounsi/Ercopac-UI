@@ -6,9 +6,8 @@ import { API_AUTH_URL } from '../config/api.config';
 
 export type AppRole =
   | 'PLATFORM_OWNER'
-  | 'PLATFORM_ADMIN'
   | 'ORG_ADMIN'
-  | 'GENERAL_MANAGER'
+  | 'PROJECT_MANAGER'
   | 'DEPARTMENT_MANAGER'
   | 'EMPLOYEE'
   | 'SALES_MANAGER'
@@ -142,17 +141,18 @@ export class AuthService {
   }
 
   getHomeRoute(): string {
-    switch (this.getCurrentRole()) {
-      case 'PLATFORM_OWNER': return '/owner';
-      case 'PLATFORM_ADMIN': return '/owner';
-      case 'ORG_ADMIN': return '/org-admin';
-      case 'GENERAL_MANAGER': return '/gm';
-      case 'DEPARTMENT_MANAGER': return '/department';
-      case 'EMPLOYEE': return '/employee';
-      case 'SALES_MANAGER': return '/tickets';
-      case 'CLIENT': return '/tickets';
-      default: return '/login';
+    if (!this.isLoggedIn()) {
+      return '/';
     }
+
+    const roles = this.getRoles();
+    if (roles.includes('PLATFORM_OWNER')) {
+      return '/owner';
+    }
+    if (roles.includes('ORG_ADMIN')) {
+      return '/org-admin';
+    }
+    return '/workspace';
   }
 
   resetPassword(token: string, newPassword: string) {

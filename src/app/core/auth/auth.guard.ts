@@ -14,7 +14,7 @@ export class AuthGuard implements CanActivate {
     }
 
     this.auth.logout();
-    return this.router.createUrlTree(['/login'], {
+    return this.router.createUrlTree(['/'], {
       queryParams: { returnUrl: state.url }
     });
   }

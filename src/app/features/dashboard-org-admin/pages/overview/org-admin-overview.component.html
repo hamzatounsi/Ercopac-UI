@@ -49,7 +49,7 @@
         <div class="oa-role-row" *ngFor="let role of data.usersByRole">
           <div><strong>{{ role.label }}</strong><span>{{ role.total }} total · {{ role.active }} active</span></div>
           <div class="oa-role-bar"><span [style.width.%]="capacityPercent(role.active, roleCapacity(role.role))"></span></div>
-          <b>{{ role.active }} / {{ roleCapacity(role.role) }}</b>
+          <b>{{ roleCapacity(role.role) == null ? 'Unlimited' : role.active + ' / ' + roleCapacity(role.role) }}</b>
         </div>
       </div>
     </section>

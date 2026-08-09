@@ -10,7 +10,7 @@ describe('OrgAdminOverviewComponent', () => {
   beforeEach(async () => {
     const service = jasmine.createSpyObj<OrgAdminService>('OrgAdminService', ['getOverview']);
     service.getOverview.and.returnValue(of({
-      organisation: { name: 'Acme', code: 'ACME', country: 'DE', domain: 'acme.test', status: 'ACTIVE', plan: 'STARTER', userLimit: 10, orgAdminLicenceLimit: 2, generalManagerLicenceLimit: 2, departmentManagerLicenceLimit: 3, employeeLicenceLimit: 10, createdAt: '2026-01-01T00:00:00' },
+      organisation: { name: 'Acme', code: 'ACME', country: 'DE', domain: 'acme.test', status: 'ACTIVE', plan: 'STARTER', userLimit: 10, orgAdminLicenceLimit: 2, projectManagerLicenceLimit: 2, departmentManagerLicenceLimit: 3, employeeLicenceLimit: 10, salesManagerLicenceLimit: 2, clientLicenceLimit: 4, createdAt: '2026-01-01T00:00:00' },
       totalUsers: 3, activeUsers: 2, inactiveUsers: 1, departments: 1, pendingPasswordResets: 0,
       usersByRole: [{ role: 'ORG_ADMIN', label: 'Organisation Admin', total: 1, active: 1 }],
       configurationWarnings: []

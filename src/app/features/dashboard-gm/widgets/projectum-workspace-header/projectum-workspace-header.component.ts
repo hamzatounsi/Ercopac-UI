@@ -26,7 +26,6 @@ export class ProjectumWorkspaceHeaderComponent {
   @Input() showProjectModules = true;
 
   readonly modules: readonly ProjectumModuleLink[] = [
-    { label: 'Overview', icon: 'dashboard', path: 'details', exact: true },
     { label: 'Schedule', icon: 'timeline', path: 'schedule', exact: true },
     { label: 'Tasks', icon: 'task_alt', path: 'tasks', exact: true },
     { label: 'Finance', icon: 'payments', path: 'finance', exact: true },

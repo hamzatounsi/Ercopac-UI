@@ -13,6 +13,14 @@ export class GmAdminService {
     return this.http.get<any[]>(`${API_ADMIN_URL}/licences`);
   }
 
+  getLicenceUsage(): Observable<any[]> {
+    return this.http.get<any[]>(`${API_ADMIN_URL}/licences/usage`);
+  }
+
+  getLicenceCandidates(): Observable<any[]> {
+    return this.http.get<any[]>(`${API_ADMIN_URL}/licences/candidates`);
+  }
+
   assignLicence(payload: any): Observable<any> {
     return this.http.post(`${API_ADMIN_URL}/licences`, payload);
   }

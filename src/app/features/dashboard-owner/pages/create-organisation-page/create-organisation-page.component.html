@@ -102,10 +102,10 @@
         </label>
       </div>
 
-      <h2>Licence Defaults</h2>
+      <h2>Licence allocation</h2>
 
       <div class="licence-summary">
-        Total licences: <strong>{{ totalLicences }}</strong>
+        Allocated seats: <strong>{{ totalLicences }}</strong>
       </div>
 
       <div class="form-grid">
@@ -115,8 +115,8 @@
         </label>
 
         <label>
-          General Manager Licences
-          <input type="number" [(ngModel)]="form.generalManagerLicenceLimit" name="generalManagerLicenceLimit" />
+          Project Manager Licences
+          <input type="number" [(ngModel)]="form.projectManagerLicenceLimit" name="projectManagerLicenceLimit" />
         </label>
 
         <label>
@@ -127,6 +127,16 @@
         <label>
           Employee Licences
           <input type="number" [(ngModel)]="form.employeeLicenceLimit" name="employeeLicenceLimit" />
+        </label>
+
+        <label>
+          Sales Manager Licences
+          <input type="number" [(ngModel)]="form.salesManagerLicenceLimit" name="salesManagerLicenceLimit" />
+        </label>
+
+        <label>
+          Client Licences
+          <input type="number" [(ngModel)]="form.clientLicenceLimit" name="clientLicenceLimit" />
         </label>
 
         <label>

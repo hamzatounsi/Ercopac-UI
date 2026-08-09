@@ -6,6 +6,7 @@ import { ResourceListItem } from '../../models/resource-list-item.model';
 import { GmProjectTemplateService } from '../../services/gm-project-template.service';
 import { GmResourceService } from '../../services/gm-resource.service';
 import { ProjectDashboardRow } from '../../models/project-dashboard-row.model';
+import { AuthService } from 'src/app/core/auth/auth.service';
 
 
 type SortColumn =
@@ -111,7 +112,8 @@ export class MyCsProjectsPageComponent implements OnInit {
     private gmDashboardService: GmDashboardService,
     private gmResourceService: GmResourceService,
     private router: Router,
-    private gmProjectTemplateService: GmProjectTemplateService
+    private gmProjectTemplateService: GmProjectTemplateService,
+    readonly auth: AuthService
   ) {}
 
   ngOnInit(): void {

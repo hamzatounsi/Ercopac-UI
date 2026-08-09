@@ -14,7 +14,7 @@ export class RoleGuard implements CanActivate {
 
     if (!this.auth.isLoggedIn()) {
       this.auth.logout();
-      return this.router.createUrlTree(['/login']);
+      return this.router.createUrlTree(['/']);
     }
 
     const hasAccess = userRoles.some(userRole => allowedRoles.includes(userRole));

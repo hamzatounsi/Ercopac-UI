@@ -8,9 +8,11 @@ export interface CreateOrganisationWithAdminRequest {
   userLimit: number;
 
   orgAdminLicenceLimit: number;
-  generalManagerLicenceLimit: number;
+  projectManagerLicenceLimit: number;
   departmentManagerLicenceLimit: number;
   employeeLicenceLimit: number;
+  salesManagerLicenceLimit: number;
+  clientLicenceLimit: number;
 
   monthlyRevenue: number;
   healthScore: number;
