@@ -282,10 +282,9 @@
             <input
               class="grid-input date-input"
               type="date"
-              [ngModel]="formatDateForInput(task.actualStart )"
-              [ngModelOptions]="{ standalone: true }"
+              [value]="formatDateForInput(task.actualStart)"
               [attr.aria-label]="isMilestone(task) ? 'Milestone Date' : 'Actual Start'"
-              (ngModelChange)="updateLocalTaskField(task, 'actualStart', $event); saveInlineTask(task)"
+              (change)="onInlineDateChange(task, 'actualStart', $any($event.target).value)"
             />
           </div>
 
@@ -293,10 +292,9 @@
             <input
               class="grid-input date-input"
               type="date"
-              [ngModel]="formatDateForInput(isMilestone(task) ? task.actualStart : task.actualEnd)"
-              [ngModelOptions]="{ standalone: true }"
+              [value]="formatDateForInput(isMilestone(task) ? task.actualStart : task.actualEnd)"
               [attr.aria-label]="isMilestone(task) ? 'Milestone Date' : 'Actual Finish'"
-              (ngModelChange)="updateLocalTaskField(task, isMilestone(task) ? 'actualStart' : 'actualEnd', $event); saveInlineTask(task)"
+              (change)="onInlineDateChange(task, isMilestone(task) ? 'actualStart' : 'actualEnd', $any($event.target).value)"
             />
           </div>
 
