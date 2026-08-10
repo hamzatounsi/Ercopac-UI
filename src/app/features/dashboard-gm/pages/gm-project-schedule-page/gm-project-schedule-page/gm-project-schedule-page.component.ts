@@ -459,12 +459,7 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
     }
   }
 
-  /**
-   * Synchronizes only the date pair that was edited.  In particular, an end
-   * date edit is finish-driven (it keeps duration and moves start backwards),
-   * while a start date edit is range-driven (it keeps finish and recalculates
-   * duration).
-   */
+  /** Synchronizes the edited date pair using the project working-day calendar. */
   private synchronizeTaskDates(
     task: GmProjectScheduleTask,
     changed: 'baselineStart' | 'baselineEnd' | 'actualStart' | 'actualEnd' | 'duration'
@@ -480,6 +475,17 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
     if (this.isSummary(task)) return true;
 
     if (changed === 'baselineStart') {
+      const duration = this.normalizeDuration(task.durationDays);
+      task.durationDays = duration;
+      if (task.baselineStart) {
+        task.baselineEnd = this.addScheduledDaysToDateString(task.baselineStart, duration - 1);
+      }
+      task.plannedStart = task.baselineStart ?? undefined;
+      task.plannedEnd = task.baselineEnd ?? undefined;
+      return true;
+    }
+
+    if (changed === 'baselineEnd') {
       if (this.hasInvalidDateRange(task.baselineStart, task.baselineEnd)) return false;
       if (task.baselineStart && task.baselineEnd) {
         task.durationDays = this.calculateScheduledDurationDays(task.baselineStart, task.baselineEnd);
@@ -489,30 +495,19 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
       return true;
     }
 
-    if (changed === 'baselineEnd') {
+    if (changed === 'actualStart') {
       const duration = this.normalizeDuration(task.durationDays);
       task.durationDays = duration;
-      if (task.baselineEnd) {
-        task.baselineStart = this.addScheduledDaysToDateString(task.baselineEnd, -(duration - 1));
-      }
-      task.plannedStart = task.baselineStart ?? undefined;
-      task.plannedEnd = task.baselineEnd ?? undefined;
-      return true;
-    }
-
-    if (changed === 'actualStart') {
-      if (this.hasInvalidDateRange(task.actualStart, task.actualEnd)) return false;
-      if (task.actualStart && task.actualEnd) {
-        task.durationDays = this.calculateScheduledDurationDays(task.actualStart, task.actualEnd);
+      if (task.actualStart) {
+        task.actualEnd = this.addScheduledDaysToDateString(task.actualStart, duration - 1);
       }
       return true;
     }
 
     if (changed === 'actualEnd') {
-      const duration = this.normalizeDuration(task.durationDays);
-      task.durationDays = duration;
-      if (task.actualEnd) {
-        task.actualStart = this.addScheduledDaysToDateString(task.actualEnd, -(duration - 1));
+      if (this.hasInvalidDateRange(task.actualStart, task.actualEnd)) return false;
+      if (task.actualStart && task.actualEnd) {
+        task.durationDays = this.calculateScheduledDurationDays(task.actualStart, task.actualEnd);
       }
       return true;
     }
@@ -1016,6 +1011,16 @@ indentTask(): void {
   }
 
   // ---------------- Inline edit ----------------
+
+  onInlineDateChange(
+    task: GmProjectScheduleTask,
+    field: 'actualStart' | 'actualEnd',
+    value: string
+  ): void {
+    if (value === this.formatDateForInput(task[field])) return;
+    this.updateLocalTaskField(task, field, value);
+    this.saveInlineTask(task);
+  }
 
   // KEY FIX: updateLocalTaskField properly handles duration vs date changes
   updateLocalTaskField(task: GmProjectScheduleTask, field: keyof GmProjectScheduleTask, value: any): void {
