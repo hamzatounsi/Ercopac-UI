@@ -2444,6 +2444,10 @@ textarea) {
   gap: 12px;
 }
 
+.sp-date-row.milestone-date-row {
+  grid-template-columns: minmax(170px, 1fr);
+}
+
 .sp-date-row .sp-field {
   min-width: 0;
 }
@@ -3552,6 +3556,16 @@ textarea) {
   padding: 0 6px;
 }
 
+.milestone-date-cell {
+  grid-column: span 2;
+  display: flex;
+  align-items: center;
+}
+
+.milestone-date-cell .date-input {
+  width: 100%;
+}
+
 .resource-select,
 .department-select {
   width: 100%;
@@ -3604,6 +3618,35 @@ textarea) {
 .department-select option {
   color: #334155;
   background: #ffffff;
+}
+
+.not-applicable-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 22px;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  background: #f8fafc;
+  color: #94a3b8;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.sp-not-applicable {
+  display: grid;
+  place-items: center;
+  min-height: 128px;
+  padding: 20px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
 }
 
 .col-type {
@@ -4628,5 +4671,37 @@ html {
   top: auto;
   z-index: auto;
   box-shadow: none;
+}
+
+/* Keep the Schedule Department and Columns selectors aligned with the
+   Projectum toolbar instead of inheriting the legacy dark selector treatment. */
+.pm-shell .toolbar-select-btn.dark-select-btn {
+  background: transparent;
+  border-color: #dbe3ec;
+  color: #475569;
+}
+
+.pm-shell .toolbar-select-btn.dark-select-btn:hover,
+.pm-shell .toolbar-select-btn.dark-select-btn.active {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1565c0;
+}
+
+.pm-shell .toolbar-select-btn.dark-select-btn:focus-visible {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+}
+
+.pm-shell .toolbar-select-btn.dark-select-btn:active {
+  background: #dbeafe;
+}
+
+.pm-shell .toolbar-select-btn.dark-select-btn:disabled {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #94a3b8;
+  opacity: 1;
 }
 
