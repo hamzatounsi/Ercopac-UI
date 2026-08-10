@@ -6,8 +6,8 @@ import {
   OnInit,
   ViewChild
 } from '@angular/core';
-import { forkJoin, of, combineLatest, Observable } from 'rxjs';
-import { catchError, finalize, startWith, switchMap } from 'rxjs/operators';
+import { forkJoin, of, Observable } from 'rxjs';
+import { catchError, finalize, switchMap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
@@ -56,6 +56,7 @@ export interface DependencyArrow {
   segments: DependencySegment[];
   arrowLeft: number;
   arrowTop: number;
+  arrowDirection: 'left' | 'right';
   labelLeft: number;
   labelTop: number;
   labelText: string;
@@ -458,10 +459,15 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
     }
   }
 
-  /** Keeps the persisted duration and every populated date pair synchronized. */
+  /**
+   * Synchronizes only the date pair that was edited.  In particular, an end
+   * date edit is finish-driven (it keeps duration and moves start backwards),
+   * while a start date edit is range-driven (it keeps finish and recalculates
+   * duration).
+   */
   private synchronizeTaskDates(
     task: GmProjectScheduleTask,
-    changed: 'baselineDates' | 'actualDates' | 'duration'
+    changed: 'baselineStart' | 'baselineEnd' | 'actualStart' | 'actualEnd' | 'duration'
   ): boolean {
     if (this.isMilestone(task)) {
       task.durationDays = 0;
@@ -473,27 +479,93 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
     }
     if (this.isSummary(task)) return true;
 
-    if (this.hasInvalidDateRange(task.baselineStart, task.baselineEnd)
-      || this.hasInvalidDateRange(task.actualStart, task.actualEnd)) return false;
-
-    if (changed === 'baselineDates' && task.baselineStart && task.baselineEnd) {
-      task.durationDays = this.calculateDurationDays(task.baselineStart, task.baselineEnd);
-    } else if (changed === 'actualDates' && task.actualStart && task.actualEnd) {
-      task.durationDays = this.calculateDurationDays(task.actualStart, task.actualEnd);
-    } else {
-      const parsedDuration = Number(task.durationDays);
-      task.durationDays = Number.isFinite(parsedDuration) && parsedDuration > 0
-        ? Math.floor(parsedDuration) : 1;
+    if (changed === 'baselineStart') {
+      if (this.hasInvalidDateRange(task.baselineStart, task.baselineEnd)) return false;
+      if (task.baselineStart && task.baselineEnd) {
+        task.durationDays = this.calculateScheduledDurationDays(task.baselineStart, task.baselineEnd);
+      }
+      task.plannedStart = task.baselineStart ?? undefined;
+      task.plannedEnd = task.baselineEnd ?? undefined;
+      return true;
     }
 
-    const duration = task.durationDays!;
+    if (changed === 'baselineEnd') {
+      const duration = this.normalizeDuration(task.durationDays);
+      task.durationDays = duration;
+      if (task.baselineEnd) {
+        task.baselineStart = this.addScheduledDaysToDateString(task.baselineEnd, -(duration - 1));
+      }
+      task.plannedStart = task.baselineStart ?? undefined;
+      task.plannedEnd = task.baselineEnd ?? undefined;
+      return true;
+    }
+
+    if (changed === 'actualStart') {
+      if (this.hasInvalidDateRange(task.actualStart, task.actualEnd)) return false;
+      if (task.actualStart && task.actualEnd) {
+        task.durationDays = this.calculateScheduledDurationDays(task.actualStart, task.actualEnd);
+      }
+      return true;
+    }
+
+    if (changed === 'actualEnd') {
+      const duration = this.normalizeDuration(task.durationDays);
+      task.durationDays = duration;
+      if (task.actualEnd) {
+        task.actualStart = this.addScheduledDaysToDateString(task.actualEnd, -(duration - 1));
+      }
+      return true;
+    }
+
+    const duration = this.normalizeDuration(task.durationDays);
+    task.durationDays = duration;
     if (task.baselineStart) {
-      task.baselineEnd = this.addDaysToDateString(task.baselineStart, duration - 1);
+      task.baselineEnd = this.addScheduledDaysToDateString(task.baselineStart, duration - 1);
       task.plannedStart = task.baselineStart;
       task.plannedEnd = task.baselineEnd;
     }
-    if (task.actualStart) task.actualEnd = this.addDaysToDateString(task.actualStart, duration - 1);
+    if (task.actualStart) task.actualEnd = this.addScheduledDaysToDateString(task.actualStart, duration - 1);
     return true;
+  }
+
+  private normalizeDuration(value: unknown): number {
+    const duration = Number(value);
+    return Number.isFinite(duration) && duration > 0 ? Math.floor(duration) : 1;
+  }
+
+  /** Uses the default project calendar when one is configured. */
+  private getWorkingDays(): Set<number> | null {
+    const calendar = this.calendars.find(item => item.isDefault) ?? this.calendars[0];
+    const days = calendar?.workingDays?.filter(day => Number.isInteger(day) && day >= 1 && day <= 7);
+    return days?.length ? new Set(days) : null;
+  }
+
+  private calculateScheduledDurationDays(start: string, end: string): number {
+    const workingDays = this.getWorkingDays();
+    if (!workingDays) return this.calculateDurationDays(start, end);
+
+    const cursor = this.toDateOnly(start);
+    const last = this.toDateOnly(end);
+    let duration = 0;
+    while (cursor <= last) {
+      if (workingDays.has(cursor.getDay() || 7)) duration++;
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    return Math.max(1, duration);
+  }
+
+  private addScheduledDaysToDateString(dateStr: string, days: number): string {
+    const workingDays = this.getWorkingDays();
+    if (!workingDays) return this.addDaysToDateString(dateStr, days);
+
+    const cursor = this.toDateOnly(dateStr);
+    const direction = days < 0 ? -1 : 1;
+    let remaining = Math.abs(days);
+    while (remaining > 0) {
+      cursor.setDate(cursor.getDate() + direction);
+      if (workingDays.has(cursor.getDay() || 7)) remaining--;
+    }
+    return `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`;
   }
 
   private hasInvalidDateRange(start?: string | null, end?: string | null): boolean {
@@ -503,9 +575,10 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
     return normalizedStart !== null && normalizedEnd !== null && normalizedEnd < normalizedStart;
   }
 
-  private syncSelectedTaskFromForm(changed: 'baselineDates' | 'actualDates' | 'duration'): void {
+  private syncSelectedTaskFromForm(changed: 'baselineStart' | 'baselineEnd' | 'actualStart' | 'actualEnd' | 'duration'): void {
     if (!this.selectedTask || this.suppressFormAutoSave) return;
     const updated = { ...this.selectedTask, ...this.taskForm.getRawValue() };
+    this.clearNonActivityAssignments(updated);
     if (!this.synchronizeTaskDates(updated, changed)) {
       this.taskForm.setErrors({ ...(this.taskForm.errors ?? {}), dateRange: true });
       return;
@@ -525,7 +598,8 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
       durationDays: updated.durationDays,
       baselineStart: updated.baselineStart ?? '', baselineEnd: updated.baselineEnd ?? '',
       plannedStart: updated.plannedStart ?? '', plannedEnd: updated.plannedEnd ?? '',
-      actualStart: updated.actualStart ?? '', actualEnd: updated.actualEnd ?? ''
+      actualStart: updated.actualStart ?? '', actualEnd: updated.actualEnd ?? '',
+      departmentCode: updated.departmentCode ?? '', resourceType: updated.resourceType ?? '', assignedUserId: updated.assignedUserId ?? null
     }, { emitEvent: false });
     this.suppressFormAutoSave = false;
     this.buildTimeline();
@@ -945,7 +1019,10 @@ indentTask(): void {
 
   // KEY FIX: updateLocalTaskField properly handles duration vs date changes
   updateLocalTaskField(task: GmProjectScheduleTask, field: keyof GmProjectScheduleTask, value: any): void {
+    if ((field === 'departmentCode' || field === 'resourceType') && !this.isActivity(task)) return;
     (task as any)[field] = value;
+
+    if (field === 'taskType') this.clearNonActivityAssignments(task);
 
     if (field === 'taskType' && String(value).toUpperCase() === 'MILESTONE') {
       task.durationDays = 0;
@@ -956,8 +1033,10 @@ indentTask(): void {
 
     // When duration changes → recalculate end date from start + duration
     const changed = field === 'durationDays' ? 'duration'
-      : (field === 'actualStart' || field === 'actualEnd') ? 'actualDates'
-      : (field === 'baselineStart' || field === 'baselineEnd') ? 'baselineDates'
+      : field === 'actualStart' ? 'actualStart'
+      : field === 'actualEnd' ? 'actualEnd'
+      : field === 'baselineStart' ? 'baselineStart'
+      : field === 'baselineEnd' ? 'baselineEnd'
       : null;
 
     // When dates change → recalculate duration from dates
@@ -1004,6 +1083,7 @@ indentTask(): void {
   }
 
   updateInlineField(task: GmProjectScheduleTask, field: keyof GmProjectScheduleTask, value: any): void {
+    if ((field === 'departmentCode' || field === 'resourceType') && !this.isActivity(task)) return;
     if (!this.editedRows[task.id]) this.editedRows[task.id] = {};
     this.editedRows[task.id][field] = value;
     (task as any)[field] = value;
@@ -1022,9 +1102,6 @@ indentTask(): void {
 
     // Apply form values to selectedTask
     Object.assign(this.selectedTask, value);
-
-    // Recalculate end date if duration was changed in the form
-    if (!this.synchronizeTaskDates(this.selectedTask, 'duration')) return;
 
     this.pushHistory();
     this.saving = true;
@@ -1254,10 +1331,11 @@ indentTask(): void {
     if ((task.percentComplete ?? 0) < 0 || (task.percentComplete ?? 0) > 100) {
       throw new Error(`Import row ${rowNumber}: progress must be between 0 and 100.`);
     }
+    this.clearNonActivityAssignments(task);
     if (task.durationDays !== undefined && (task.durationDays < 0 || (taskType === 'ACTIVITY' && task.durationDays === 0))) {
       throw new Error(`Import row ${rowNumber}: duration is invalid for this task type.`);
     }
-    if (!this.synchronizeTaskDates(task, task.baselineStart && task.baselineEnd ? 'baselineDates' : task.actualStart && task.actualEnd ? 'actualDates' : 'duration')) {
+    if (!this.synchronizeTaskDates(task, task.baselineStart && task.baselineEnd ? 'baselineStart' : task.actualStart && task.actualEnd ? 'actualStart' : 'duration')) {
       throw new Error(`Import row ${rowNumber}: an end date cannot be before its start date.`);
     }
     return this.buildTaskUpdatePayload(task);
@@ -1484,7 +1562,16 @@ indentTask(): void {
 
   isMilestone(task?: GmProjectScheduleTask | null): boolean { return ((task?.taskType) || '').toUpperCase() === 'MILESTONE'; }
   isSummary(task?: GmProjectScheduleTask | null): boolean { return ((task?.taskType) || '').toUpperCase() === 'SUMMARY'; }
+  isActivity(task?: GmProjectScheduleTask | null): boolean { return ((task?.taskType) || 'ACTIVITY').toUpperCase() === 'ACTIVITY'; }
   isCustomerMilestone(task: GmProjectScheduleTask): boolean { return this.isMilestone(task) && !!task.customerMilestone; }
+
+  private clearNonActivityAssignments(task: GmProjectScheduleTask): void {
+    if (this.isActivity(task)) return;
+    task.departmentCode = '';
+    task.resourceType = '';
+    task.assignedUserId = null;
+    task.assignedUserName = undefined;
+  }
 
   getIndent(task: GmProjectScheduleTask): number {
     const level = task.wbsCode ? task.wbsCode.split('.').length - 1 : 0;
@@ -1692,22 +1779,28 @@ indentTask(): void {
         const predecessor = visible[pi];
         if (!(predecessor.baselineStart ?? predecessor.plannedStart) && !(predecessor.baselineEnd ?? predecessor.plannedEnd)) continue;
         const type = (dep.dependencyType || 'FS').toUpperCase();
-        const startX = (type === 'SS' || type === 'SF') ? this.getTaskStartX(predecessor) : this.getTaskEndX(predecessor);
-        const endX = (type === 'FF' || type === 'SF') ? this.getTaskEndX(successor) : this.getTaskStartX(successor);
+        const sourceUsesStart = type === 'SS' || type === 'SF';
+        const targetUsesEnd = type === 'FF' || type === 'SF';
+        const startX = sourceUsesStart ? this.getTaskStartX(predecessor) : this.getTaskEndX(predecessor);
+        const endX = targetUsesEnd ? this.getTaskEndX(successor) : this.getTaskStartX(successor);
         if (startX > timelineWidth && endX > timelineWidth) continue;
         if (startX <= 0 && endX <= 0) continue;
         const startY = this.getTaskAnchorY(predecessor, pi);
         const endY = this.getTaskAnchorY(successor, si);
-        const rawElbow = startX + 18;
-        const elbowX = Math.min(rawElbow, timelineWidth - 4);
-        const vertH = Math.abs(endY - startY);
+        const sourceExitX = startX + (sourceUsesStart ? -10 : 10);
+        const arrowDirection = targetUsesEnd ? 'left' : 'right';
+        const arrowTipX = endX + (targetUsesEnd ? 3 : -3);
+        const targetApproachX = arrowDirection === 'right' ? arrowTipX - 6 : arrowTipX + 6;
+        const routeDirection = endY >= startY ? 1 : -1;
+        const routeY = startY + routeDirection * (this.getTaskVisualHeight(predecessor) / 2 + 8);
         const segs: DependencySegment[] = [];
-        segs.push({ direction: 'h', left: Math.min(startX, elbowX), top: startY, width: Math.max(4, Math.abs(elbowX - startX)), height: 2 });
-        if (vertH > 1) segs.push({ direction: 'v', left: elbowX, top: Math.min(startY, endY), width: 2, height: vertH });
-        segs.push({ direction: 'h', left: Math.min(elbowX, endX), top: endY, width: Math.max(4, Math.abs(endX - elbowX)), height: 2 });
+        segs.push({ direction: 'h', left: Math.min(startX, sourceExitX), top: startY, width: Math.abs(sourceExitX - startX), height: 2 });
+        segs.push({ direction: 'v', left: sourceExitX, top: Math.min(startY, routeY), width: 2, height: Math.abs(routeY - startY) });
+        segs.push({ direction: 'h', left: Math.min(sourceExitX, targetApproachX), top: routeY, width: Math.abs(targetApproachX - sourceExitX), height: 2 });
+        segs.push({ direction: 'v', left: targetApproachX, top: Math.min(routeY, endY), width: 2, height: Math.abs(endY - routeY) });
         const lag = Number(dep.lagDays ?? 0);
         const lagText = lag === 0 ? '' : lag > 0 ? ` +${lag}d` : ` ${lag}d`;
-        arrows.push({ segments: segs, arrowLeft: endX - 5, arrowTop: endY - 5, labelLeft: Math.min(startX, endX) + Math.abs(endX - startX) / 2, labelTop: Math.min(startY, endY) - 16, labelText: `${type}${lagText}` });
+        arrows.push({ segments: segs, arrowLeft: arrowTipX, arrowTop: endY - 4, arrowDirection, labelLeft: Math.min(startX, endX) + Math.abs(endX - startX) / 2, labelTop: Math.min(startY, endY) - 16, labelText: `${type}${lagText}` });
       }
     }
     return arrows;
@@ -1750,7 +1843,7 @@ indentTask(): void {
   }
 
   addResource(): void {
-    if (!this.selectedTask) return;
+    if (!this.selectedTask || !this.isActivity(this.selectedTask)) return;
     if (!this.newResource.assignedUserId) { console.error('Please select a real resource from the dropdown.'); return; }
     const selectedUser = this.resourceOptions.find(r => r.id === Number(this.newResource.assignedUserId));
     const payload: TaskResourceAssignment = { resourceType: selectedUser?.resourceType || this.newResource.resourceType || undefined, assignmentName: selectedUser?.fullName || this.newResource.assignmentName || undefined, quantity: this.newResource.quantity ?? 1, unitsPercent: this.newResource.unitsPercent ?? 100, cost: this.newResource.cost ?? 0, assignedUserId: Number(this.newResource.assignedUserId) };
@@ -1772,7 +1865,7 @@ indentTask(): void {
   }
 
   saveResource(resource: TaskResourceAssignment): void {
-    if (!this.selectedTask || !resource.id) return;
+    if (!this.selectedTask || !this.isActivity(this.selectedTask) || !resource.id) return;
     const payload: TaskResourceAssignment = { ...resource, resourceType: resource.resourceType?.trim() || undefined, assignmentName: resource.assignmentName?.trim() || undefined, quantity: resource.quantity ?? 1, unitsPercent: resource.unitsPercent ?? 100, cost: resource.cost ?? 0, assignedUserId: resource.assignedUserId ?? null };
     this.service.updateTaskResource(this.projectId, this.selectedTask.id, resource.id, payload).subscribe({ next: () => { this.loadTaskResources(this.selectedTask!.id); this.loadSchedule(); }, error: (err) => console.error('Failed to update task resource', err) });
   }
@@ -1835,6 +1928,7 @@ indentTask(): void {
   }
 
   onNewResourceUserChange(userId: number | null): void {
+    if (this.selectedTask && !this.isActivity(this.selectedTask)) return;
     const user = this.resourceOptions.find(r => r.id === Number(userId));
     this.newResource.assignedUserId = userId ? Number(userId) : null;
     if (!user) return;
@@ -1850,7 +1944,7 @@ indentTask(): void {
   }
 
   addSupplierAssignment(): void {
-    if (!this.selectedTask) return;
+    if (!this.selectedTask || !this.isActivity(this.selectedTask)) return;
     const supplierName = this.newSupplier.assignmentName?.trim();
     if (!supplierName) return;
     const payload = { resourceType: 'SUPPLIER', assignmentName: supplierName, quantity: this.newSupplier.quantity ?? 1, unitsPercent: this.newSupplier.unitsPercent ?? 100, cost: this.newSupplier.cost ?? 0, assignedUserId: null };
@@ -2065,6 +2159,7 @@ if (this.columnVisibility.baselineEnd) total += 95;
   }
 
   private buildTaskUpdatePayload(task: GmProjectScheduleTask): GmUpdateProjectTaskRequest {
+    const isActivity = this.isActivity(task);
     return {
       parentId: task.parentId ?? null,
       name: task.name ?? '',
@@ -2081,8 +2176,8 @@ if (this.columnVisibility.baselineEnd) total += 95;
       priority: task.priority ?? 0,
       taskType: task.taskType ?? 'ACTIVITY',
       wbsCode: task.wbsCode ?? '',
-      departmentCode: task.departmentCode ?? '',
-      resourceType: task.resourceType ?? '',
+      departmentCode: isActivity ? task.departmentCode ?? '' : '',
+      resourceType: isActivity ? task.resourceType ?? '' : '',
       active: task.active ?? true,
       displayOrder: task.displayOrder ?? 0,
       outlineLevel: task.outlineLevel ?? 1,
@@ -2090,7 +2185,7 @@ if (this.columnVisibility.baselineEnd) total += 95;
       scheduleMode: task.scheduleMode ?? 'AUTO',
       status: task.status ?? '',
       color: task.color ?? '',
-      assignedUserId: task.assignedUserId ?? undefined
+      assignedUserId: isActivity ? task.assignedUserId ?? undefined : undefined
     };
   }
 
@@ -2160,19 +2255,13 @@ if (this.columnVisibility.baselineEnd) total += 95;
     if (!baselineStartCtrl || !baselineEndCtrl || !taskTypeCtrl || !durationCtrl) return;
 
     // When dates change → update duration display in form
-    combineLatest([
-      baselineStartCtrl.valueChanges.pipe(startWith(baselineStartCtrl.value)),
-      baselineEndCtrl.valueChanges.pipe(startWith(baselineEndCtrl.value)),
-      taskTypeCtrl.valueChanges.pipe(startWith(taskTypeCtrl.value))
-    ]).subscribe(() => this.syncSelectedTaskFromForm('baselineDates'));
-
-    if (actualStartCtrl && actualEndCtrl) {
-      combineLatest([
-        actualStartCtrl.valueChanges.pipe(startWith(actualStartCtrl.value)),
-        actualEndCtrl.valueChanges.pipe(startWith(actualEndCtrl.value)),
-        taskTypeCtrl.valueChanges.pipe(startWith(taskTypeCtrl.value))
-      ]).subscribe(() => this.syncSelectedTaskFromForm('actualDates'));
-    }
+    // Keep the edited endpoint authoritative. Combining controls loses that
+    // information and makes an end-date edit behave like a start-date edit.
+    baselineStartCtrl.valueChanges.subscribe(() => this.syncSelectedTaskFromForm('baselineStart'));
+    baselineEndCtrl.valueChanges.subscribe(() => this.syncSelectedTaskFromForm('baselineEnd'));
+    actualStartCtrl?.valueChanges.subscribe(() => this.syncSelectedTaskFromForm('actualStart'));
+    actualEndCtrl?.valueChanges.subscribe(() => this.syncSelectedTaskFromForm('actualEnd'));
+    taskTypeCtrl.valueChanges.subscribe(() => this.syncSelectedTaskFromForm('duration'));
 
     // When duration changes in panel → update end date AND table row
     durationCtrl.valueChanges.subscribe(() => {

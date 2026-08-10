@@ -15,28 +15,35 @@
   position: absolute;
   pointer-events: none;
   background: #64748b;
+  opacity: 0.72;
   z-index: 6;
 }
 
-/* Horizontal: width set inline, height MUST be 2px */
 .dependency-segment.horizontal {
-  height: 2px !important;
+  height: 1px !important;
+  background: repeating-linear-gradient(to right, #64748b 0 5px, transparent 5px 9px);
 }
 
-/* Vertical: height set inline, width MUST be 2px */
 .dependency-segment.vertical {
-  width: 2px !important;
+  width: 1px !important;
+  background: repeating-linear-gradient(to bottom, #64748b 0 5px, transparent 5px 9px);
 }
 
 .dependency-arrow-head {
   position: absolute;
   width: 0;
   height: 0;
-  border-top: 5px solid transparent;
-  border-bottom: 5px solid transparent;
-  border-left: 7px solid #64748b;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 6px solid #64748b;
   z-index: 7;
   pointer-events: none;
+  opacity: 0.82;
+}
+
+.dependency-arrow-head.arrow-left {
+  border-right: 6px solid #64748b;
+  border-left: 0;
 }
 :host ::-webkit-scrollbar {
   width: 6px;

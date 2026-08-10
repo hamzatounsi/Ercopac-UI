@@ -27,7 +27,6 @@ export class ProjectumWorkspaceHeaderComponent {
 
   readonly modules: readonly ProjectumModuleLink[] = [
     { label: 'Schedule', icon: 'timeline', path: 'schedule', exact: true },
-    { label: 'Tasks', icon: 'task_alt', path: 'tasks', exact: true },
     { label: 'Finance', icon: 'payments', path: 'finance', exact: true },
     { label: 'Forecast', icon: 'trending_up', path: 'forecast', exact: true },
     { label: 'Risks', icon: 'warning', path: 'risks', exact: true },
