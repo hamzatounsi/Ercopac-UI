@@ -1,4 +1,10 @@
-import { GmProjectScheduleTask } from './gm-project-schedule-task.model';
+export interface ProjectBaselineTaskSnapshot {
+  taskId: number;
+  taskType: string;
+  start: string | null;
+  end: string | null;
+  durationDays: number | null;
+}
 
 export interface ProjectBaseline {
   id: number;
@@ -15,5 +21,5 @@ export interface ProjectBaseline {
   avgProgress?: number;
   completedCount?: number;
 
-  tasks?: GmProjectScheduleTask[];
+  tasks?: ProjectBaselineTaskSnapshot[];
 }

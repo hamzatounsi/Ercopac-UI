@@ -16,6 +16,8 @@ import {
   AppUser
 } from '../../models/finance-settings.model';
 import { HttpClient } from '@angular/common/http';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 
 type SettingsTab = 'wbs' | 'owner' | 'rates' | 'import' | 'apply';
@@ -35,6 +37,9 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
 
   private donutChart?: Chart;
   private barChart?: Chart;
+  private chartCreationTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly destroy$ = new Subject<void>();
+  private destroyed = false;
 
   projectId!: number;
 
@@ -107,6 +112,19 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
+    this.destroy$.next();
+    this.destroy$.complete();
+
+    if (this.chartCreationTimer !== null) {
+      clearTimeout(this.chartCreationTimer);
+      this.chartCreationTimer = null;
+    }
+    this.donutChart?.destroy();
+    this.barChart?.destroy();
+    this.donutChart = undefined;
+    this.barChart = undefined;
+
     const overlay = this.settingsOverlayRef?.nativeElement;
     if (overlay && overlay.parentElement === document.body) {
       this.renderer.removeChild(document.body, overlay);
@@ -114,7 +132,7 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
   }
 
   loadProjectName(): void {
-    this.dashboardService.getProjects().subscribe({
+    this.dashboardService.getProjects().pipe(takeUntil(this.destroy$)).subscribe({
       next: (projects) => {
         const project = (projects ?? []).find((p: any) => p.id === this.projectId);
         this.projectName = project?.name || `Project #${this.projectId}`;
@@ -129,16 +147,16 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.error = null;
 
-    this.financeService.getFinanceRows(this.projectId).subscribe({
+    this.financeService.getFinanceRows(this.projectId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (rows) => {
         this.rows = rows ?? [];
 
-        this.financeService.getFinanceSummary(this.projectId).subscribe({
+        this.financeService.getFinanceSummary(this.projectId).pipe(takeUntil(this.destroy$)).subscribe({
           next: (summary) => {
             this.summary = summary;
             this.applyFilters();
             this.loading = false;
-            setTimeout(() => this.createCharts());
+            this.scheduleChartRender();
           },
           error: () => {
             this.error = 'Failed to load finance summary.';
@@ -220,7 +238,7 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
   }
 
   createCharts(): void {
-    if (!this.summary || !this.donutChartRef?.nativeElement || !this.barChartRef?.nativeElement) {
+    if (this.destroyed || !this.summary || !this.donutChartRef?.nativeElement || !this.barChartRef?.nativeElement) {
       return;
     }
 
@@ -256,6 +274,15 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
         responsive: true,
         maintainAspectRatio: false
       }
+    });
+  }
+
+  private scheduleChartRender(): void {
+    if (this.destroyed) return;
+    if (this.chartCreationTimer !== null) clearTimeout(this.chartCreationTimer);
+    this.chartCreationTimer = setTimeout(() => {
+      this.chartCreationTimer = null;
+      this.createCharts();
     });
   }
 

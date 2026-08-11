@@ -28,6 +28,10 @@
 <div class="dept-pill" *ngIf="selectedDepartmentCode">
   {{ selectedDepartmentCode }}
 </div>
+<a class="main-menu-link" routerLink="/workspace">
+  <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+  <span>Back to Main Menu</span>
+</a>
   </header>
   <nav class="dept-toolbar">
     <div class="view-tabs">
@@ -165,8 +169,8 @@
           </div>
 
           <div class="member-info">
-            <strong>{{ row.member.fullName }}</strong>
-            <span>{{ row.member.resourceType || row.member.role || 'Resource' }}</span>
+            <strong [attr.title]="row.member.fullName">{{ row.member.fullName }}</strong>
+            <span [attr.title]="row.member.resourceType || row.member.role || 'Resource'">{{ row.member.resourceType || row.member.role || 'Resource' }}</span>
           </div>
 
           <div class="allocation-count">
@@ -241,12 +245,22 @@
                 [style.left.px]="itemLeftPx(item.startDate)"
                 [style.width.px]="itemWidthPx(item.startDate, item.endDate)"
                 [style.background]="row.member.color || '#2563eb'"
-                [attr.title]="(item.projectCode || 'PRJ') + ' · ' + item.taskName"
+                [class.bar-medium]="taskBarLabelMode(item) === 'medium'"
+                [class.bar-external]="taskBarLabelMode(item) === 'external'"
+                [attr.title]="taskBarTooltip(item)"
               >
                 <div class="bar-progress" [style.width.%]="item.progressPercent || 0"></div>
-                <span class="bar-code">{{ item.projectCode || 'PRJ' }}</span>
-                <span class="bar-title">{{ item.taskName }}</span>
+                <span *ngIf="taskBarLabelMode(item) !== 'external'" class="bar-label">{{ taskBarLabel(item) }}</span>
               </div>
+
+              <span
+                *ngIf="getExternalBarLabelLayout(row, item) as externalLabel"
+                class="external-bar-label"
+                [class.external-bar-label-left]="externalLabel.side === 'left'"
+                [style.left.px]="externalLabel.left"
+                [style.width.px]="externalLabel.width"
+                [attr.title]="taskBarTooltip(item)"
+              >{{ taskBarLabel(item, 'external') }}</span>
 
               <div
                 *ngIf="item.holiday"
