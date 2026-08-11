@@ -4,10 +4,11 @@ import {
   ElementRef,
   HostListener,
   OnInit,
+  OnDestroy,
   ViewChild
 } from '@angular/core';
-import { forkJoin, of, Observable } from 'rxjs';
-import { catchError, finalize, switchMap } from 'rxjs/operators';
+import { forkJoin, of, Observable, Subject } from 'rxjs';
+import { catchError, distinctUntilChanged, finalize, map, switchMap, takeUntil } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
@@ -19,7 +20,7 @@ import {
 import { GmUpdateProjectTaskRequest } from '../../../models/gm-update-project-task-request.model';
 import { TaskResourceAssignment } from '../../../models/task-resource-assignment.model';
 import { GmProjectBaselineService } from '../../../services/gm-project-baseline.service';
-import { ProjectBaseline } from '../../../models/project-baseline.model';
+import { ProjectBaseline, ProjectBaselineTaskSnapshot } from '../../../models/project-baseline.model';
 import { GmProjectCalendarService } from '../../../services/gm-project-calendar.service';
 import { ProjectCalendar } from '../../../models/project-calendar.model';
 import { GmProjectTemplateService } from '../../../services/gm-project-template.service';
@@ -72,7 +73,7 @@ export interface TimelineMonth {
   templateUrl: './gm-project-schedule-page.component.html',
   styleUrls: ['./gm-project-schedule-page.component.scss']
 })
-export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
+export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('tableBodyScroll') tableBodyScroll!: ElementRef<HTMLDivElement>;
   @ViewChild('ganttBodyScroll') ganttBodyScroll!: ElementRef<HTMLDivElement>;
   @ViewChild('timelineHeaderScroll') timelineHeaderScroll!: ElementRef<HTMLDivElement>;
@@ -139,6 +140,7 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
   selectedTemplateScope: 'all' | 'selected' = 'all';
   selectedTemplateTaskIds = new Set<number>();
   templateDescription = '';
+  applyingTemplate = false;
   actionsCount = 0;
 
   templates: {
@@ -151,6 +153,10 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
   }[] = [];
 
   calendars: ProjectCalendar[] = [];
+  calendarEditorOpen = false;
+  editingCalendarId: number | null = null;
+  calendarName = '';
+  calendarWorkingDays: number[] = [1, 2, 3, 4, 5];
 
   baselineName = '';
   baselines: ProjectBaseline[] = [];
@@ -243,6 +249,9 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
   projectName = '';
 
   activeBaselineId: number | null = null;
+  private activeBaselineTasks = new Map<number, ProjectBaselineTaskSnapshot>();
+  private scheduleLoadInFlight = false;
+  private readonly destroy$ = new Subject<void>();
 
   isMyCsSchedule = false;
 
@@ -259,14 +268,20 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
-    this.isMyCsSchedule = this.router.url.includes('/my-cs/');
-
-    this.projectId = Number(this.route.snapshot.paramMap.get('id'));
     this.initForm();
     this.setupTaskFormAutoCalculations();
-    this.loadSchedule();
-    this.loadResourceOptions();
-    this.loadProjectName();
+    this.route.paramMap.pipe(
+      map(params => Number(params.get('id'))),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(projectId => {
+      if (!Number.isSafeInteger(projectId) || projectId <= 0) return;
+      this.projectId = projectId;
+      this.isMyCsSchedule = this.router.url.includes('/my-cs/');
+      this.loadSchedule();
+      this.loadResourceOptions();
+      this.loadProjectName();
+    });
 
     const savedWidth = localStorage.getItem('gmScheduleLeftPaneWidth');
     if (savedWidth) {
@@ -295,7 +310,7 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
   // ---------------- Project name ----------------
 
   loadProjectName(): void {
-    this.gmDashboardService.getProjects().subscribe({
+    this.gmDashboardService.getProjects().pipe(takeUntil(this.destroy$)).subscribe({
       next: (projects) => {
         this.project = (projects ?? []).find(p => p.id === this.projectId) ?? null;
         this.projectName = this.project?.name || `Project ${this.projectId}`;
@@ -309,38 +324,51 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
   // ---------------- Schedule loading ----------------
 
   loadSchedule(): void {
+    // Navigation and secondary initialization can overlap briefly. Only one
+    // schedule request may initialize this component instance at a time.
+    if (this.scheduleLoadInFlight || !Number.isSafeInteger(this.projectId) || this.projectId <= 0) return;
+    this.scheduleLoadInFlight = true;
     this.loading = true;
 
-    this.service.getProjectSchedule(this.projectId).subscribe({
+    this.service.getProjectSchedule(this.projectId).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.scheduleLoadInFlight = false)
+    ).subscribe({
       next: (res) => {
-        this.tasks = (res ?? []).sort(
-          (a, b) => ((a.displayOrder ?? 0) - (b.displayOrder ?? 0)) || (a.id - b.id)
-        );
+        try {
+          this.tasks = (res ?? []).sort(
+            (a, b) => ((a.displayOrder ?? 0) - (b.displayOrder ?? 0)) || (a.id - b.id)
+          );
 
-        this.tasks.forEach(task => this.normalizeTaskDates(task));
-        this.recalculateWbsCodes();
-        this.recalculateSummaryDates();
-        this.computeStats();
-        this.buildTimeline();
-        this.loading = false;
+          this.tasks.forEach(task => this.normalizeTaskDates(task));
+          this.recalculateWbsCodes();
+          this.recalculateSummaryDates();
+          this.computeStats();
+          this.buildTimeline();
 
-        this.loadBaselines();
-        this.loadCalendars();
-        this.loadTemplates();
+          this.loadBaselines();
+          this.loadCalendars();
+          this.loadTemplates();
 
-        if (this.selectedTask) {
-          const refreshed = this.tasks.find(t => t.id === this.selectedTask?.id) ?? null;
-          this.selectedTask = refreshed;
+          if (this.selectedTask) {
+            const refreshed = this.tasks.find(t => t.id === this.selectedTask?.id) ?? null;
+            this.selectedTask = refreshed;
 
-          if (refreshed) {
-            this.patchTaskForm(refreshed);
-            this.loadTaskResources(refreshed.id);
-          } else {
-            this.taskResources = [];
+            if (refreshed) {
+              this.patchTaskForm(refreshed);
+              this.loadTaskResources(refreshed.id);
+            } else {
+              this.taskResources = [];
+            }
           }
-        }
 
-        setTimeout(() => this.resetScroll(), 0);
+          setTimeout(() => this.resetScroll(), 0);
+        } catch (err) {
+          // A malformed task must not strand the route on the loading screen.
+          console.error('Failed to initialize project schedule', err);
+        } finally {
+          this.loading = false;
+        }
       },
       error: (err) => {
         console.error('Failed to load schedule', err);
@@ -424,9 +452,7 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
   ): number {
     if (milestone) return 0;
     if (!start || !end) return 1;
-    const startDate = this.toDateOnly(start);
-    const endDate = this.toDateOnly(end);
-    return Math.max(1, Math.floor((endDate.getTime() - startDate.getTime()) / 86400000) + 1);
+    return this.calculateScheduledDurationDays(start, end);
   }
 
   // KEY FIX: normalizeTaskDates does NOT overwrite durationDays from dates
@@ -457,6 +483,11 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
         false
       );
     }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   /** Synchronizes the edited date pair using the project working-day calendar. */
@@ -528,17 +559,15 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
     return Number.isFinite(duration) && duration > 0 ? Math.floor(duration) : 1;
   }
 
-  /** Uses the default project calendar when one is configured. */
-  private getWorkingDays(): Set<number> | null {
-    const calendar = this.calendars.find(item => item.isDefault) ?? this.calendars[0];
+  /** Uses the persisted active project calendar, or the standard Mon-Fri fallback. */
+  private getWorkingDays(): Set<number> {
+    const calendar = this.calendars.find(item => item.isDefault);
     const days = calendar?.workingDays?.filter(day => Number.isInteger(day) && day >= 1 && day <= 7);
-    return days?.length ? new Set(days) : null;
+    return days?.length ? new Set(days) : new Set([1, 2, 3, 4, 5]);
   }
 
   private calculateScheduledDurationDays(start: string, end: string): number {
     const workingDays = this.getWorkingDays();
-    if (!workingDays) return this.calculateDurationDays(start, end);
-
     const cursor = this.toDateOnly(start);
     const last = this.toDateOnly(end);
     let duration = 0;
@@ -551,8 +580,6 @@ export class GmProjectSchedulePageComponent implements OnInit, AfterViewInit {
 
   private addScheduledDaysToDateString(dateStr: string, days: number): string {
     const workingDays = this.getWorkingDays();
-    if (!workingDays) return this.addDaysToDateString(dateStr, days);
-
     const cursor = this.toDateOnly(dateStr);
     const direction = days < 0 ? -1 : 1;
     let remaining = Math.abs(days);
@@ -1340,7 +1367,10 @@ indentTask(): void {
     if (task.durationDays !== undefined && (task.durationDays < 0 || (taskType === 'ACTIVITY' && task.durationDays === 0))) {
       throw new Error(`Import row ${rowNumber}: duration is invalid for this task type.`);
     }
-    if (!this.synchronizeTaskDates(task, task.baselineStart && task.baselineEnd ? 'baselineStart' : task.actualStart && task.actualEnd ? 'actualStart' : 'duration')) {
+    const importedChange = task.durationDays !== undefined
+      ? (task.baselineStart ? 'baselineStart' : task.actualStart ? 'actualStart' : 'duration')
+      : (task.baselineEnd ? 'baselineEnd' : task.actualEnd ? 'actualEnd' : 'duration');
+    if (!this.synchronizeTaskDates(task, importedChange)) {
       throw new Error(`Import row ${rowNumber}: an end date cannot be before its start date.`);
     }
     return this.buildTaskUpdatePayload(task);
@@ -1502,18 +1532,20 @@ indentTask(): void {
 
   applyTemplate(templateId: number): void {
     const template = this.templates.find(t => t.id === templateId);
-    if (!template) return;
-    this.pushHistory();
-    if (template.scope === 'all') {
-      this.tasks = this.cloneTasks(template.tasks);
-    } else {
-      const copied = this.cloneTasks(template.tasks).map((task, index) => ({ ...task, id: Date.now() + index }));
-      this.tasks = [...this.tasks, ...copied];
-    }
-    this.computeStats();
-    this.buildTimeline();
-    this.syncSelectedTaskReference();
-    this.closeDrawer();
+    if (!template || this.applyingTemplate) return;
+
+    this.applyingTemplate = true;
+    this.templateService.applyTemplate(this.projectId, templateId).pipe(
+      finalize(() => this.applyingTemplate = false)
+    ).subscribe({
+      next: () => {
+        this.closeDrawer();
+        this.loadSchedule();
+      },
+      error: (err) => {
+        console.error('Failed to apply template to schedule', err);
+      }
+    });
   }
 
   deleteTemplate(templateId: number): void {
@@ -1534,12 +1566,40 @@ indentTask(): void {
   // ---------------- Calendars ----------------
 
   createDefaultCalendar(): void {
-    const payload = { name: 'Standard 5-day Week', workingDays: [1, 2, 3, 4, 5], hoursPerDay: 8, startTime: '08:00', isDefault: this.calendars.length === 0 };
-    this.calendarService.createCalendar(this.projectId, payload).subscribe({ next: () => this.loadCalendars(), error: (err) => console.error('Failed to create calendar', err) });
+    this.editingCalendarId = null;
+    this.calendarName = '';
+    this.calendarWorkingDays = [1, 2, 3, 4, 5];
+    this.calendarEditorOpen = true;
+  }
+
+  editCalendar(calendar: ProjectCalendar): void {
+    this.editingCalendarId = calendar.id;
+    this.calendarName = calendar.name;
+    this.calendarWorkingDays = [...calendar.workingDays];
+    this.calendarEditorOpen = true;
+  }
+
+  toggleCalendarWorkingDay(day: number, checked: boolean): void {
+    this.calendarWorkingDays = checked
+      ? Array.from(new Set([...this.calendarWorkingDays, day])).sort()
+      : this.calendarWorkingDays.filter(value => value !== day);
+  }
+
+  saveCalendar(): void {
+    const name = this.calendarName.trim();
+    if (!name || !this.calendarWorkingDays.length) return;
+    const payload = { name, workingDays: this.calendarWorkingDays, hoursPerDay: 8, startTime: '08:00', isDefault: this.editingCalendarId === null };
+    const request = this.editingCalendarId === null
+      ? this.calendarService.createCalendar(this.projectId, payload)
+      : this.calendarService.updateCalendar(this.projectId, this.editingCalendarId, payload);
+    request.subscribe({
+      next: () => { this.calendarEditorOpen = false; this.loadSchedule(); },
+      error: (err) => console.error('Failed to save calendar', err)
+    });
   }
 
   makeCalendarDefault(calendarId: number): void {
-    this.calendarService.makeDefault(this.projectId, calendarId).subscribe({ next: () => this.loadCalendars(), error: (err) => console.error('Failed to make calendar default', err) });
+    this.calendarService.makeDefault(this.projectId, calendarId).subscribe({ next: () => this.loadSchedule(), error: (err) => console.error('Failed to make calendar default', err) });
   }
 
   deleteCalendar(calendarId: number): void {
@@ -1547,18 +1607,18 @@ indentTask(): void {
   }
 
   getCalendarDaysLabel(days: number[]): string {
-    const map: Record<number, string> = { 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat', 0: 'Sun' };
+    const map: Record<number, string> = { 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat', 7: 'Sun' };
     return days.map(d => map[d]).join('-');
   }
 
   loadCalendars(): void {
-    this.calendarService.getCalendars(this.projectId).subscribe({ next: (res) => { this.calendars = res ?? []; }, error: (err) => { console.error('Failed to load calendars', err); this.calendars = []; } });
+    this.calendarService.getCalendars(this.projectId).pipe(takeUntil(this.destroy$)).subscribe({ next: (res) => { this.calendars = res ?? []; }, error: (err) => { console.error('Failed to load calendars', err); this.calendars = []; } });
   }
 
   // ---------------- Baselines ----------------
 
   deleteBaseline(baselineId: number): void {
-    this.baselineService.deleteBaseline(this.projectId, baselineId).subscribe({ next: () => { this.baselines = this.baselines.filter(b => b.id !== baselineId); }, error: (err) => { console.error('Failed to delete baseline', err); } });
+    this.baselineService.deleteBaseline(this.projectId, baselineId).subscribe({ next: () => this.loadBaselines(), error: (err) => { console.error('Failed to delete baseline', err); } });
   }
 
   openBaselineTab(): void { this.settingsTab = 'baseline'; this.loadBaselines(); }
@@ -1623,8 +1683,8 @@ indentTask(): void {
   private buildTimeline(): void {
     const dates: Date[] = [];
     this.tasks.forEach(task => {
-      const baselineStart = task.baselineStart ?? task.plannedStart;
-      const baselineEnd = task.baselineEnd ?? task.plannedEnd;
+      const baselineStart = this.getBaselineStart(task);
+      const baselineEnd = this.getBaselineEnd(task);
       if (baselineStart) dates.push(this.toDateOnly(baselineStart));
       if (baselineEnd) dates.push(this.toDateOnly(baselineEnd));
       if (task.actualStart) dates.push(this.toDateOnly(task.actualStart));
@@ -1684,24 +1744,26 @@ indentTask(): void {
 
   getBarLeft(task: GmProjectScheduleTask): number {
     if (this.activeMode === 'actual') return this.getLeftFromDate(task.actualStart ?? task.plannedStart);
-    return this.getLeftFromDate(task.plannedStart);
+    return this.getLeftFromDate(this.activeBaselineId ? this.getBaselineStart(task) : task.plannedStart);
   }
 
   getBarWidth(task: GmProjectScheduleTask): number {
     if (this.activeMode === 'actual') return this.getWidthFromDates(task.actualStart ?? task.plannedStart, task.actualEnd ?? task.plannedEnd, task.taskType);
-    return this.getWidthFromDates(task.plannedStart, task.plannedEnd, task.taskType);
+    return this.getWidthFromDates(this.activeBaselineId ? this.getBaselineStart(task) : task.plannedStart, this.activeBaselineId ? this.getBaselineEnd(task) : task.plannedEnd, task.taskType);
   }
 
-  getBaselineLeft(task: GmProjectScheduleTask): number { return this.getLeftFromDate(task.baselineStart ?? task.plannedStart); }
-  getBaselineWidth(task: GmProjectScheduleTask): number { return this.getWidthFromDates(task.baselineStart ?? task.plannedStart, task.baselineEnd ?? task.plannedEnd, task.taskType); }
+  getBaselineStart(task: GmProjectScheduleTask): string | null | undefined { return this.activeBaselineTasks.get(task.id)?.start ?? task.baselineStart ?? task.plannedStart; }
+  getBaselineEnd(task: GmProjectScheduleTask): string | null | undefined { return this.activeBaselineTasks.get(task.id)?.end ?? task.baselineEnd ?? task.plannedEnd; }
+  getBaselineLeft(task: GmProjectScheduleTask): number { return this.getLeftFromDate(this.getBaselineStart(task)); }
+  getBaselineWidth(task: GmProjectScheduleTask): number { return this.getWidthFromDates(this.getBaselineStart(task), this.getBaselineEnd(task), task.taskType); }
   getActualLeft(task: GmProjectScheduleTask): number { return this.getLeftFromDate(task.actualStart); }
   getActualWidth(task: GmProjectScheduleTask): number { return this.getWidthFromDates(task.actualStart, task.actualEnd, task.taskType); }
-  hasBaseline(task: GmProjectScheduleTask): boolean { return !!(task.baselineStart ?? task.plannedStart) && !!(task.baselineEnd ?? task.plannedEnd); }
+  hasBaseline(task: GmProjectScheduleTask): boolean { return !!this.getBaselineStart(task) && !!this.getBaselineEnd(task); }
   hasActualDates(task: GmProjectScheduleTask): boolean { return !!task.actualStart && !!task.actualEnd; }
 
   // ---------------- Drag ----------------
 
-  canDragTask(task: GmProjectScheduleTask): boolean { return !this.isSummary(task) && !this.isMilestone(task) && !!task.plannedStart && !!task.plannedEnd; }
+  canDragTask(task: GmProjectScheduleTask): boolean { return !this.isSummary(task) && !this.isMilestone(task) && (this.activeMode === 'actual' || !this.activeBaselineId) && !!task.plannedStart && !!task.plannedEnd; }
 
   startBarDrag(event: MouseEvent, task: GmProjectScheduleTask): void {
     if (event.button !== 0) return;
@@ -1777,12 +1839,12 @@ indentTask(): void {
     for (const successor of visible) {
       const si = indexMap.get(successor.id);
       if (si == null || !successor.dependencies?.length) continue;
-      if (!(successor.baselineStart ?? successor.plannedStart) && !(successor.baselineEnd ?? successor.plannedEnd)) continue;
+      if (!this.getBaselineStart(successor) && !this.getBaselineEnd(successor)) continue;
       for (const dep of successor.dependencies) {
         const pi = indexMap.get(dep.predecessorTaskId);
         if (pi == null) continue;
         const predecessor = visible[pi];
-        if (!(predecessor.baselineStart ?? predecessor.plannedStart) && !(predecessor.baselineEnd ?? predecessor.plannedEnd)) continue;
+        if (!this.getBaselineStart(predecessor) && !this.getBaselineEnd(predecessor)) continue;
         const type = (dep.dependencyType || 'FS').toUpperCase();
         const sourceUsesStart = type === 'SS' || type === 'SF';
         const targetUsesEnd = type === 'FF' || type === 'SF';
@@ -2095,12 +2157,8 @@ if (this.columnVisibility.baselineEnd) total += 95;
 
   // ---------------- Settings data ----------------
 
-  private parseBaselineTasks(snapshotJson: string): GmProjectScheduleTask[] {
-    try { return JSON.parse(snapshotJson) ?? []; } catch { return []; }
-  }
-
   loadTemplates(): void {
-    this.templateService.getTemplates(this.projectId).subscribe({
+    this.templateService.getTemplates(this.projectId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: ProjectTemplate[]) => {
         this.templates = (res ?? []).map(t => ({ id: t.id, name: t.name, scope: t.scope, description: t.description ?? null, createdAt: new Date(t.createdAt).toLocaleString(), tasks: this.parseTemplateTasks(t.snapshotJson) }));
       },
@@ -2418,46 +2476,68 @@ if (this.columnVisibility.baselineEnd) total += 95;
 
   // ---------------- Baselines ----------------
 
+  private parseBaselineTasks(snapshotJson: string): ProjectBaselineTaskSnapshot[] {
+    try {
+      const parsed = JSON.parse(snapshotJson || '[]');
+      const tasks = Array.isArray(parsed) ? parsed : parsed?.tasks;
+      if (!Array.isArray(tasks)) return [];
+      // Accept historical client-created snapshots while reading the server snapshot format.
+      return tasks.map((task: any) => ({
+        taskId: Number(task.taskId ?? task.id),
+        taskType: task.taskType ?? 'ACTIVITY',
+        start: task.start ?? task.baselineStart ?? task.plannedStart ?? null,
+        end: task.end ?? task.baselineEnd ?? task.plannedEnd ?? null,
+        durationDays: task.durationDays ?? null
+      })).filter(task => Number.isFinite(task.taskId));
+    } catch {
+      return [];
+    }
+  }
+
   private enrichBaseline(baseline: ProjectBaseline): ProjectBaseline {
-    let tasks: GmProjectScheduleTask[] = [];
-    try { tasks = JSON.parse(baseline.snapshotJson || '[]'); } catch { tasks = []; }
+    const tasks = this.parseBaselineTasks(baseline.snapshotJson);
     const taskCount = tasks.length;
-    const avgProgress = taskCount ? Math.round(tasks.reduce((sum, t) => sum + Number(t.percentComplete || 0), 0) / taskCount) : 0;
-    const completedCount = tasks.filter(t => Number(t.percentComplete || 0) >= 100).length;
-    return { ...baseline, taskCount, avgProgress, completedCount, active: baseline.id === this.activeBaselineId };
+    const avgProgress = 0;
+    const completedCount = 0;
+    return { ...baseline, tasks, taskCount, avgProgress, completedCount, active: baseline.active };
   }
 
   loadBaselines(): void {
-    this.baselineService.getBaselines(this.projectId).subscribe({ next: res => { this.baselines = (res || []).map(b => this.enrichBaseline(b)); }, error: err => console.error('Failed to load baselines', err) });
+    this.baselineService.getBaselines(this.projectId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: res => {
+        this.baselines = (res || []).map(b => this.enrichBaseline(b));
+        const active = this.baselines.find(b => b.active) ?? null;
+        this.activeBaselineId = active?.id ?? null;
+        this.setActiveBaselineTasks(active?.tasks ?? []);
+      },
+      error: err => console.error('Failed to load baselines', err)
+    });
   }
 
   saveBaselineWithName(): void {
     const name = this.baselineName?.trim();
-    if (!name) { alert('Please enter a baseline name'); return; }
-    const snapshotTasks = this.tasks.map(task => ({ ...task, baselineStart: task.plannedStart ?? task.baselineStart, baselineEnd: task.plannedEnd ?? task.baselineEnd }));
     this.saving = true;
-    this.baselineService.createBaseline(this.projectId, { name, snapshotJson: JSON.stringify(snapshotTasks) }).subscribe({
-      next: saved => { this.baselineName = ''; this.activeBaselineId = saved.id; this.saving = false; this.loadBaselines(); },
+    this.baselineService.createBaseline(this.projectId, name ? { name } : {}).subscribe({
+      next: () => { this.baselineName = ''; this.saving = false; this.loadBaselines(); },
       error: err => { this.saving = false; console.error('Failed to save baseline', err); }
     });
   }
 
   applyBaselineToSchedule(baseline: ProjectBaseline): void {
-    let baselineTasks: GmProjectScheduleTask[] = [];
-    try { baselineTasks = JSON.parse(baseline.snapshotJson || '[]'); } catch { alert('Invalid baseline snapshot'); return; }
-    if (!baselineTasks.length) return;
     this.saving = true;
-    this.pushHistory();
-    const currentById = new Map(this.tasks.map(t => [t.id, t]));
-    const requests = baselineTasks.filter(bt => currentById.has(bt.id)).map(bt => {
-      const current = currentById.get(bt.id)!;
-      const updated: GmProjectScheduleTask = { ...current, baselineStart: bt.baselineStart, baselineEnd: bt.baselineEnd, plannedStart: bt.plannedStart ?? bt.baselineStart, plannedEnd: bt.plannedEnd ?? bt.baselineEnd, percentComplete: bt.percentComplete ?? current.percentComplete };
-      return this.service.updateTask(this.projectId, updated.id, this.buildTaskUpdatePayload(updated));
+    this.baselineService.applyBaseline(this.projectId, baseline.id).pipe(finalize(() => this.saving = false)).subscribe({
+      next: applied => {
+        this.activeBaselineId = applied.id;
+        this.setActiveBaselineTasks(this.parseBaselineTasks(applied.snapshotJson));
+        this.loadBaselines();
+      },
+      error: err => console.error('Failed to apply baseline', err)
     });
-    forkJoin(requests).pipe(finalize(() => this.saving = false)).subscribe({
-      next: () => { this.activeBaselineId = baseline.id; this.loadSchedule(); this.loadBaselines(); },
-      error: err => { console.error('Failed to apply baseline', err); this.loadSchedule(); }
-    });
+  }
+
+  private setActiveBaselineTasks(tasks: ProjectBaselineTaskSnapshot[]): void {
+    this.activeBaselineTasks = new Map(tasks.map(task => [task.taskId, task]));
+    this.buildTimeline();
   }
 
   renameBaseline(baseline: ProjectBaseline): void {

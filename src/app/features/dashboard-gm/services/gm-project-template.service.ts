@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ProjectTemplate } from '../models/project-template.model';
 import { ApplyStandardTemplateResult } from '../models/apply-standard-template-result.model';
+import { ApplyProjectTemplateResult } from '../models/apply-project-template-result.model';
 import { API_PROJECTS_URL } from 'src/app/core/config/api.config';
 
 export interface CreateProjectTemplateRequest {
@@ -30,6 +31,13 @@ export class GmProjectTemplateService {
 
   deleteTemplate(projectId: number, templateId: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${projectId}/templates/${templateId}`);
+  }
+
+  applyTemplate(projectId: number, templateId: number): Observable<ApplyProjectTemplateResult> {
+    return this.http.post<ApplyProjectTemplateResult>(
+      `${this.baseUrl}/${projectId}/templates/${templateId}/apply`,
+      {}
+    );
   }
 
   applyStandardTemplate(projectId: number): Observable<ApplyStandardTemplateResult> {

@@ -16,6 +16,7 @@ import { DepartmentMember } from '../../models/department-member.model';
 import { DepartmentResourceRow } from '../../models/department-resource-row.model';
 import { DepartmentProjectBlock } from '../../models/department-project-block.model';
 import { DepartmentTimelineColumn } from '../../models/department-timeline-column.model';
+import { DepartmentTimelineItem } from '../../models/department-timeline-item.model';
 import { DepartmentActivityRow } from '../../models/department-activity-row.model';
 import { DepartmentWeeklyStat } from '../../models/department-weekly-stat.model';
 import { CreateDepartmentHolidayRequest } from '../../models/create-department-holiday-request.model';
@@ -24,6 +25,13 @@ import { MyDepartmentService } from '../../service/my-department.service';
 
 type MainView = 'resource' | 'projects';
 type TimelineView = 'day' | 'week';
+type TaskBarLabelMode = 'full' | 'medium' | 'external';
+
+interface ExternalBarLabelLayout {
+  left: number;
+  width: number;
+  side: 'left' | 'right';
+}
 
 interface PaToggleColumn {
   id: string;
@@ -473,11 +481,6 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
       .subscribe({
         next: (managers: DepartmentManager[]) => {
           this.managers = managers ?? [];
-
-          if (this.managers.length > 0 && !this.selectedManagerId) {
-            this.selectedManagerId = this.managers[0].id;
-            this.loadOverview();
-          }
         },
         error: () => {
           this.error = 'Failed to load managers.';
@@ -496,6 +499,7 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
         next: (response: MyDepartmentResponse) => {
           this.overview = response.overview;
           this.syncHolidayMemberSelection();
+          this.loadProjectOptions();
           this.renderActivityView();
 
           setTimeout(() => {
@@ -546,6 +550,7 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
         next: (response: MyDepartmentResponse) => {
           this.overview = response.overview;
           this.syncHolidayMemberSelection();
+          this.loadProjectOptions();
           this.renderActivityView();
 
           setTimeout(() => {
@@ -795,6 +800,78 @@ zoomPaGantt(delta: number): void {
     }
 
     return Math.max(10, (diffDays + 1) * (this.colWidth / 7));
+  }
+
+  taskBarLabelMode(item: DepartmentTimelineItem): TaskBarLabelMode {
+    const width = this.itemWidthPx(item.startDate, item.endDate);
+
+    if (width < 60) {
+      return 'external';
+    }
+
+    return width < 150 ? 'medium' : 'full';
+  }
+
+  taskBarLabel(item: DepartmentTimelineItem, mode: TaskBarLabelMode = this.taskBarLabelMode(item)): string {
+    const projectLabel = item.projectCode?.trim() || '';
+    const activityLabel = item.taskName?.trim() || 'Activity';
+
+    if (mode === 'full' && projectLabel) {
+      return `${projectLabel} · ${activityLabel}`;
+    }
+
+    return projectLabel || activityLabel;
+  }
+
+  taskBarTooltip(item: DepartmentTimelineItem): string {
+    const projectLabel = item.projectCode?.trim() || 'PRJ';
+    const activityLabel = item.taskName?.trim() || 'Activity';
+    return `${projectLabel} · ${activityLabel}`;
+  }
+
+  getExternalBarLabelLayout(
+    row: DepartmentResourceRow,
+    item: DepartmentTimelineItem
+  ): ExternalBarLabelLayout | null {
+    if (this.taskBarLabelMode(item) !== 'external') {
+      return null;
+    }
+
+    const gap = 8;
+    const minimumLabelWidth = 72;
+    const maximumLabelWidth = 180;
+    const itemLeft = this.itemLeftPx(item.startDate);
+    const itemRight = itemLeft + this.itemWidthPx(item.startDate, item.endDate);
+    const otherBars = row.items
+      .filter(candidate => !candidate.holiday && candidate !== item)
+      .map(candidate => {
+        const left = this.itemLeftPx(candidate.startDate);
+        return { item: candidate, left, right: left + this.itemWidthPx(candidate.startDate, candidate.endDate) };
+      });
+    const nextBar = otherBars
+      .filter(bar => bar.left > itemLeft)
+      .sort((a, b) => a.left - b.left)[0];
+    const previousBar = otherBars
+      .filter(bar => bar.left < itemLeft)
+      .sort((a, b) => b.right - a.right)[0];
+    const timelineWidth = this.timelineColumns.length * this.colWidth;
+    const rightBoundary = nextBar ? nextBar.left : timelineWidth;
+    const rightSpace = Math.max(0, rightBoundary - itemRight - gap);
+
+    if (rightSpace >= minimumLabelWidth) {
+      return { left: itemRight + gap, width: Math.min(maximumLabelWidth, rightSpace), side: 'right' };
+    }
+
+    const leftSpace = previousBar
+      ? Math.max(0, itemLeft - previousBar.right - gap)
+      : Math.max(0, itemLeft - gap);
+    const previousUsesExternalLabel = previousBar && this.taskBarLabelMode(previousBar.item) === 'external';
+
+    if (leftSpace >= minimumLabelWidth && !previousUsesExternalLabel) {
+      return { left: itemLeft - gap - Math.min(maximumLabelWidth, leftSpace), width: Math.min(maximumLabelWidth, leftSpace), side: 'left' };
+    }
+
+    return null;
   }
 
   getHolidayShadesForRow(row: DepartmentResourceRow): { left: number; width: number }[] {

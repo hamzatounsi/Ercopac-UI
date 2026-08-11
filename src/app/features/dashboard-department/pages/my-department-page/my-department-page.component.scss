@@ -51,6 +51,31 @@
   margin-top: 3px;
 }
 
+.main-menu-link {
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  color: #294b70;
+  background: #f8fbff;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+
+  .material-symbols-outlined {
+    font-size: 18px;
+  }
+
+  &:hover {
+    background: #edf5ff;
+    border-color: #93b8df;
+  }
+}
+
 .header-select {
   margin-left: auto;
   display: flex;
@@ -453,6 +478,9 @@
 
   span {
     display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     color: #64748b;
     font-size: 11px;
     margin-top: 3px;
@@ -584,15 +612,14 @@
 .holiday-bar {
   position: absolute;
   top: 14px;
-  min-width: 92px;
+  min-width: 0;
   height: 36px;
-  border-radius: 14px;
-  overflow: visible;
+  border-radius: 12px;
+  overflow: hidden;
   color: #fff;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 0 12px;
+  padding: 0 10px;
   font-size: 12px;
   font-weight: 900;
   white-space: nowrap;
@@ -606,6 +633,15 @@
   transform: translateY(-2px);
 }
 
+.task-bar.bar-medium {
+  padding: 0 6px;
+  font-size: 11px;
+}
+
+.task-bar.bar-external {
+  padding: 0;
+}
+
 .bar-progress {
   position: absolute;
   inset: 0 auto 0 0;
@@ -614,24 +650,36 @@
   z-index: 0;
 }
 
-.bar-code {
+.bar-label {
   position: relative;
   z-index: 2;
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.25);
-  font-size: 11px;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-.bar-title {
-  position: relative;
-  z-index: 2;
-  max-width: 220px;
+  display: block;
+  min-width: 0;
+  width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 1;
+}
+
+.external-bar-label {
+  position: absolute;
+  top: 50%;
+  z-index: 7;
+  display: block;
+  transform: translateY(-50%);
+  overflow: hidden;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: auto;
+}
+
+.external-bar-label-left {
+  text-align: right;
 }
 
 .holiday-bar {

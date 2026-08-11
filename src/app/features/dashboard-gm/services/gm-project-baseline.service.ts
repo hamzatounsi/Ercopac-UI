@@ -16,7 +16,7 @@ export class GmProjectBaselineService {
 
   createBaseline(
     projectId: number,
-    payload: { name: string; snapshotJson: string }
+    payload: { name?: string }
   ): Observable<ProjectBaseline> {
     return this.http.post<ProjectBaseline>(
       `${API_PROJECTS_URL}/${projectId}/baselines`,
@@ -38,6 +38,13 @@ export class GmProjectBaselineService {
   deleteBaseline(projectId: number, baselineId: number): Observable<void> {
     return this.http.delete<void>(
       `${API_PROJECTS_URL}/${projectId}/baselines/${baselineId}`
+    );
+  }
+
+  applyBaseline(projectId: number, baselineId: number): Observable<ProjectBaseline> {
+    return this.http.put<ProjectBaseline>(
+      `${API_PROJECTS_URL}/${projectId}/baselines/${baselineId}/apply`,
+      {}
     );
   }
 }

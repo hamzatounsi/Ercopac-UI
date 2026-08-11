@@ -334,10 +334,10 @@
 
           <div class="cell col-pred pred-cell" *ngIf="columnVisibility.predecessors">{{ getPredecessorText(task) }}</div>
           <div class="cell cell-date col-date mono-date" *ngIf="columnVisibility.baselineStart" [class.milestone-date-cell]="isMilestone(task) && columnVisibility.baselineEnd">
-  {{ formatDateForInput(task.baselineStart) }}
+  {{ formatDateForInput(getBaselineStart(task)) }}
 </div>
 <div class="cell cell-date col-date mono-date" *ngIf="columnVisibility.baselineEnd && (!isMilestone(task) || !columnVisibility.baselineStart)">
-  {{ formatDateForInput(isMilestone(task) ? task.baselineStart : task.baselineEnd) }}
+  {{ formatDateForInput(isMilestone(task) ? getBaselineStart(task) : getBaselineEnd(task)) }}
 </div>
         </div>
 
@@ -822,7 +822,7 @@
                 <div class="list-card-sub">{{ template.scope }} · {{ template.createdAt }}<span *ngIf="template.description"> · {{ template.description }}</span></div>
               </div>
               <div class="list-card-actions">
-                <button type="button" class="icon-square-btn" (click)="applyTemplate(template.id)"><span class="material-symbols-outlined">play_arrow</span></button>
+                <button type="button" class="icon-square-btn" (click)="applyTemplate(template.id)" [disabled]="applyingTemplate"><span class="material-symbols-outlined">play_arrow</span></button>
                 <button type="button" class="icon-square-btn danger" (click)="deleteTemplate(template.id)"><span class="material-symbols-outlined">delete</span></button>
               </div>
             </div>
@@ -885,19 +885,34 @@
             <div class="drawer-section-header">
               <div class="drawer-section-title">
                 <span class="material-symbols-outlined sec-icon">calendar_month</span>
-                <span>Saved Calendars</span>
+                <span>Project Calendar</span>
               </div>
               <button type="button" class="primary-action-btn small-btn" (click)="createDefaultCalendar()">+ New Calendar</button>
             </div>
             <div class="drawer-list-card calendar-card" *ngFor="let cal of calendars">
               <div class="calendar-avatar"><span class="material-symbols-outlined">calendar_month</span></div>
               <div class="list-card-main">
-                <div class="list-card-title">{{ cal.name }}<span class="default-badge" *ngIf="cal.isDefault">Default</span></div>
+                <div class="list-card-title">{{ cal.isDefault ? '✓ ' : '' }}{{ cal.name }}<span class="default-badge" *ngIf="cal.isDefault">Applied</span></div>
                 <div class="list-card-sub">{{ getCalendarDaysLabel(cal.workingDays) }} · {{ cal.hoursPerDay }}h/day · Start {{ cal.startTime }}</div>
               </div>
               <div class="list-card-actions">
-                <button type="button" class="icon-square-btn" title="Make default" (click)="makeCalendarDefault(cal.id)"><span class="material-symbols-outlined">star</span></button>
-                <button type="button" class="icon-square-btn danger" title="Delete" (click)="deleteCalendar(cal.id)"><span class="material-symbols-outlined">delete</span></button>
+                <button type="button" class="icon-square-btn" title="Edit" (click)="editCalendar(cal)"><span class="material-symbols-outlined">edit</span></button>
+                <button type="button" class="icon-square-btn" title="Apply to project" (click)="makeCalendarDefault(cal.id)"><span class="material-symbols-outlined">check_circle</span></button>
+                <button type="button" class="icon-square-btn danger" title="Delete" (click)="deleteCalendar(cal.id)" [disabled]="cal.isDefault"><span class="material-symbols-outlined">delete</span></button>
+              </div>
+            </div>
+            <div class="baseline-create-card" *ngIf="calendarEditorOpen">
+              <div class="template-create-row">
+                <input type="text" class="template-name-input" [(ngModel)]="calendarName" placeholder="Calendar name" />
+              </div>
+              <div class="baseline-help-text">Working days</div>
+              <label class="toolbar-check-item" *ngFor="let day of [{ id: 1, name: 'Monday' }, { id: 2, name: 'Tuesday' }, { id: 3, name: 'Wednesday' }, { id: 4, name: 'Thursday' }, { id: 5, name: 'Friday' }, { id: 6, name: 'Saturday' }, { id: 7, name: 'Sunday' }]">
+                <input type="checkbox" [checked]="calendarWorkingDays.includes(day.id)" (change)="toggleCalendarWorkingDay(day.id, $any($event.target).checked)" />
+                <span>{{ day.name }}</span>
+              </label>
+              <div class="template-create-row">
+                <button type="button" class="primary-action-btn" (click)="saveCalendar()" [disabled]="!calendarName.trim() || !calendarWorkingDays.length">Save</button>
+                <button type="button" class="secondary-action-btn" (click)="calendarEditorOpen = false">Cancel</button>
               </div>
             </div>
             <div class="drawer-empty-card" *ngIf="calendars.length === 0">
@@ -917,12 +932,11 @@
             </div>
             <div class="baseline-create-card">
               <div class="baseline-help-text">
-                Captures the current <strong>planned dates</strong> and <strong>% complete</strong> of all tasks as a snapshot.
-                You can restore any saved baseline to the schedule at any time.
+                Captures the current Actual/Planned schedule as an immutable task snapshot. Applying a saved baseline changes only the displayed baseline, never the current schedule.
               </div>
               <div class="template-create-row">
-                <input type="text" class="template-name-input" [(ngModel)]="baselineName" placeholder="Baseline name (e.g. Rev.1, After Design...)" />
-                <button type="button" class="primary-action-btn" (click)="saveBaselineWithName()" [disabled]="saving || !baselineName.trim()">📌 Set Baseline</button>
+                <input type="text" class="template-name-input" [(ngModel)]="baselineName" placeholder="Optional name (defaults to Baseline 1, 2...)" />
+                <button type="button" class="primary-action-btn" (click)="saveBaselineWithName()" [disabled]="saving">📌 Set Baseline</button>
               </div>
             </div>
           </section>
