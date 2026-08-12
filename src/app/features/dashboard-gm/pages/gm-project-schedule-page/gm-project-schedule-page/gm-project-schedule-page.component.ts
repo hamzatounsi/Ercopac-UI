@@ -2402,6 +2402,12 @@ if (this.columnVisibility.baselineEnd) total += 95;
 
   formatDateForInput(value?: string | null): string { return value ?? ''; }
 
+  formatDateForDisplay(value?: string | null): string {
+    if (!value) return '—';
+    const date = this.toDateOnly(value);
+    return `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.${date.getFullYear()}`;
+  }
+
   getTaskNameById(taskId?: number | null): string {
     if (!taskId) return '—';
     const task = this.tasks.find(t => t.id === taskId);

@@ -280,26 +280,19 @@
 
           <!-- KEY FIX: use [ngModel] instead of [value] for reactive display -->
           <div class="cell editable-cell col-date mono-date" *ngIf="columnVisibility.actualStart" [class.milestone-date-cell]="isMilestone(task) && columnVisibility.actualFinish" (click)="$event.stopPropagation()">
-            <app-gantt-date-picker
-              [value]="formatDateForInput(task.actualStart)"
-              [workingDays]="activeWorkingDays"
-              [ariaLabel]="isMilestone(task) ? 'Milestone Date' : 'Actual Start'"
-              (valueChange)="onInlineDateChange(task, 'actualStart', $event)"
-            ></app-gantt-date-picker>
+            <span *ngIf="isSummary(task); else actualStartPicker" class="readonly-date-value">{{ formatDateForDisplay(task.actualStart) }}</span>
+            <ng-template #actualStartPicker><app-gantt-date-picker [value]="formatDateForInput(task.actualStart)" [workingDays]="activeWorkingDays" [ariaLabel]="isMilestone(task) ? 'Milestone Date' : 'Actual Start'" (valueChange)="onInlineDateChange(task, 'actualStart', $event)"></app-gantt-date-picker></ng-template>
           </div>
 
           <div class="cell editable-cell col-date mono-date" *ngIf="columnVisibility.actualFinish && (!isMilestone(task) || !columnVisibility.actualStart)" (click)="$event.stopPropagation()">
-            <app-gantt-date-picker
-              [value]="formatDateForInput(isMilestone(task) ? task.actualStart : task.actualEnd)"
-              [workingDays]="activeWorkingDays"
-              [ariaLabel]="isMilestone(task) ? 'Milestone Date' : 'Actual Finish'"
-              (valueChange)="onInlineDateChange(task, isMilestone(task) ? 'actualStart' : 'actualEnd', $event)"
-            ></app-gantt-date-picker>
+            <span *ngIf="isSummary(task); else actualEndPicker" class="readonly-date-value">{{ formatDateForDisplay(task.actualEnd) }}</span>
+            <ng-template #actualEndPicker><app-gantt-date-picker [value]="formatDateForInput(isMilestone(task) ? task.actualStart : task.actualEnd)" [workingDays]="activeWorkingDays" [ariaLabel]="isMilestone(task) ? 'Milestone Date' : 'Actual Finish'" (valueChange)="onInlineDateChange(task, isMilestone(task) ? 'actualStart' : 'actualEnd', $event)"></app-gantt-date-picker></ng-template>
           </div>
 
           <!-- KEY FIX: [ngModel] so duration re-renders when selectedTask changes it -->
           <div class="cell editable-cell col-dur" *ngIf="columnVisibility.duration" (click)="$event.stopPropagation()">
-            <input
+            <span *ngIf="isSummary(task); else durationInput" class="readonly-duration-value">{{ task.durationDays ?? 0 }}</span>
+            <ng-template #durationInput><input
               class="grid-input number-input"
               type="number"
               min="0"
@@ -308,7 +301,7 @@
               [disabled]="!!task && isMilestone(task)"
               (ngModelChange)="updateLocalTaskField(task, 'durationDays', toNumber($event))"
               (blur)="saveInlineTask(task)"
-            />
+            /></ng-template>
           </div>
 
           <!-- KEY FIX: [ngModel] for progress too -->
@@ -345,22 +338,12 @@
             </select>
           </div>
           <div class="cell editable-cell col-date mono-date" *ngIf="columnVisibility.baselineStart" [class.milestone-date-cell]="isMilestone(task) && columnVisibility.baselineEnd" (click)="$event.stopPropagation()">
-            <app-gantt-date-picker
-              [value]="formatDateForInput(getBaselineStart(task))"
-              [workingDays]="activeWorkingDays"
-              [disabled]="isSummary(task)"
-              [ariaLabel]="isMilestone(task) ? 'Milestone Baseline Date' : 'Baseline Start'"
-              (valueChange)="onInlineDateChange(task, 'baselineStart', $event)"
-            ></app-gantt-date-picker>
+            <span *ngIf="isSummary(task); else baselineStartPicker" class="readonly-date-value">{{ formatDateForDisplay(getBaselineStart(task)) }}</span>
+            <ng-template #baselineStartPicker><app-gantt-date-picker [value]="formatDateForInput(getBaselineStart(task))" [workingDays]="activeWorkingDays" [ariaLabel]="isMilestone(task) ? 'Milestone Baseline Date' : 'Baseline Start'" (valueChange)="onInlineDateChange(task, 'baselineStart', $event)"></app-gantt-date-picker></ng-template>
           </div>
           <div class="cell editable-cell col-date mono-date" *ngIf="columnVisibility.baselineEnd && (!isMilestone(task) || !columnVisibility.baselineStart)" (click)="$event.stopPropagation()">
-            <app-gantt-date-picker
-              [value]="formatDateForInput(isMilestone(task) ? getBaselineStart(task) : getBaselineEnd(task))"
-              [workingDays]="activeWorkingDays"
-              [disabled]="isSummary(task)"
-              [ariaLabel]="isMilestone(task) ? 'Milestone Baseline Date' : 'Baseline End'"
-              (valueChange)="onInlineDateChange(task, isMilestone(task) ? 'baselineStart' : 'baselineEnd', $event)"
-            ></app-gantt-date-picker>
+            <span *ngIf="isSummary(task); else baselineEndPicker" class="readonly-date-value">{{ formatDateForDisplay(getBaselineEnd(task)) }}</span>
+            <ng-template #baselineEndPicker><app-gantt-date-picker [value]="formatDateForInput(isMilestone(task) ? getBaselineStart(task) : getBaselineEnd(task))" [workingDays]="activeWorkingDays" [ariaLabel]="isMilestone(task) ? 'Milestone Baseline Date' : 'Baseline End'" (valueChange)="onInlineDateChange(task, isMilestone(task) ? 'baselineStart' : 'baselineEnd', $event)"></app-gantt-date-picker></ng-template>
           </div>
         </div>
 
@@ -499,7 +482,8 @@
                 </div>
                 <div class="sp-field sp-col-duration" *ngIf="!isMilestone(selectedTask)">
                   <label>Duration (d)</label>
-                  <input type="number" formControlName="durationDays" />
+                  <span *ngIf="isSummary(selectedTask); else detailDurationInput" class="sp-readonly-value">{{ taskForm.get('durationDays')?.value ?? 0 }}</span>
+                  <ng-template #detailDurationInput><input type="number" formControlName="durationDays" /></ng-template>
                 </div>
                 <div class="sp-field sp-col-priority">
                   <label>Priority</label>
@@ -526,9 +510,13 @@
                 <div class="sp-date-box actual">
                   <div class="sp-card-title blue-dot">Actual Dates</div>
                   <div class="sp-date-row" [class.milestone-date-row]="isMilestone(selectedTask)">
-                    <ng-container *ngIf="isMilestone(selectedTask); else actualDateRange">
-                      <div class="sp-field"><label>Actual Date</label><app-gantt-date-picker [value]="taskForm.get('actualStart')?.value" [workingDays]="activeWorkingDays" ariaLabel="Actual milestone date" (valueChange)="setTaskFormDate('actualStart', $event)"></app-gantt-date-picker></div>
+                    <ng-container *ngIf="isSummary(selectedTask); else actualDateEditor">
+                      <div class="sp-field"><label>Actual Start</label><span class="sp-readonly-value">{{ formatDateForDisplay(taskForm.get('actualStart')?.value) }}</span></div>
+                      <div class="sp-field"><label>Actual End</label><span class="sp-readonly-value">{{ formatDateForDisplay(taskForm.get('actualEnd')?.value) }}</span></div>
                     </ng-container>
+                    <ng-template #actualDateEditor><ng-container *ngIf="isMilestone(selectedTask); else actualDateRange">
+                      <div class="sp-field"><label>Actual Date</label><app-gantt-date-picker [value]="taskForm.get('actualStart')?.value" [workingDays]="activeWorkingDays" ariaLabel="Actual milestone date" (valueChange)="setTaskFormDate('actualStart', $event)"></app-gantt-date-picker></div>
+                    </ng-container></ng-template>
                     <ng-template #actualDateRange>
                       <div class="sp-field"><label>Actual Start</label><app-gantt-date-picker [value]="taskForm.get('actualStart')?.value" [workingDays]="activeWorkingDays" ariaLabel="Actual start" (valueChange)="setTaskFormDate('actualStart', $event)"></app-gantt-date-picker></div>
                       <div class="sp-field"><label>Actual End</label><app-gantt-date-picker [value]="taskForm.get('actualEnd')?.value" [workingDays]="activeWorkingDays" ariaLabel="Actual end" (valueChange)="setTaskFormDate('actualEnd', $event)"></app-gantt-date-picker></div>
@@ -538,9 +526,13 @@
                 <div class="sp-date-box baseline">
                   <div class="sp-card-title amber-dot">Baseline Dates</div>
                   <div class="sp-date-row" [class.milestone-date-row]="isMilestone(selectedTask)">
-                    <ng-container *ngIf="isMilestone(selectedTask); else baselineDateRange">
-                      <div class="sp-field"><label>Baseline Date</label><app-gantt-date-picker [value]="taskForm.get('baselineStart')?.value" [workingDays]="activeWorkingDays" ariaLabel="Baseline milestone date" (valueChange)="setTaskFormDate('baselineStart', $event)"></app-gantt-date-picker></div>
+                    <ng-container *ngIf="isSummary(selectedTask); else baselineDateEditor">
+                      <div class="sp-field"><label>Baseline Start</label><span class="sp-readonly-value">{{ formatDateForDisplay(taskForm.get('baselineStart')?.value) }}</span></div>
+                      <div class="sp-field"><label>Baseline End</label><span class="sp-readonly-value">{{ formatDateForDisplay(taskForm.get('baselineEnd')?.value) }}</span></div>
                     </ng-container>
+                    <ng-template #baselineDateEditor><ng-container *ngIf="isMilestone(selectedTask); else baselineDateRange">
+                      <div class="sp-field"><label>Baseline Date</label><app-gantt-date-picker [value]="taskForm.get('baselineStart')?.value" [workingDays]="activeWorkingDays" ariaLabel="Baseline milestone date" (valueChange)="setTaskFormDate('baselineStart', $event)"></app-gantt-date-picker></div>
+                    </ng-container></ng-template>
                     <ng-template #baselineDateRange>
                       <div class="sp-field"><label>Baseline Start</label><app-gantt-date-picker [value]="taskForm.get('baselineStart')?.value" [workingDays]="activeWorkingDays" ariaLabel="Baseline start" (valueChange)="setTaskFormDate('baselineStart', $event)"></app-gantt-date-picker></div>
                       <div class="sp-field"><label>Baseline End</label><app-gantt-date-picker [value]="taskForm.get('baselineEnd')?.value" [workingDays]="activeWorkingDays" ariaLabel="Baseline end" (valueChange)="setTaskFormDate('baselineEnd', $event)"></app-gantt-date-picker></div>
