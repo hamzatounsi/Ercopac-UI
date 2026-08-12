@@ -1,0 +1,53 @@
+:host { display: block; width: 100%; }
+
+.gantt-date-picker { position: relative; width: 100%; }
+
+.gantt-date-picker-trigger {
+  width: 100%;
+  min-height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 3px 5px;
+  border: 1px solid #cbd8e6;
+  border-radius: 4px;
+  background: #fff;
+  color: #263c53;
+  font: inherit;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+}
+
+.gantt-date-picker-trigger:hover:not(:disabled),
+.gantt-date-picker-trigger:focus-visible { border-color: #4e90c5; outline: none; }
+.gantt-date-picker-trigger:disabled { cursor: not-allowed; opacity: .62; background: #f2f5f8; }
+.gantt-date-picker-trigger .placeholder { color: #8a9aab; }
+.gantt-date-picker-icon { color: #6688a6; font-size: 11px; }
+
+.gantt-date-picker-popover {
+  position: fixed;
+  z-index: 1300;
+  width: 232px;
+  padding: 8px;
+  border: 1px solid #b9cada;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(15, 42, 74, .2);
+  color: #263c53;
+}
+
+.gantt-date-picker-month { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; font-size: 12px; }
+.gantt-date-picker-month button { width: 25px; height: 23px; border: 0; border-radius: 3px; background: transparent; color: #315b7d; font-size: 20px; line-height: 1; cursor: pointer; }
+.gantt-date-picker-month button:hover { background: #eaf2f9; }
+.gantt-date-picker-weekdays,
+.gantt-date-picker-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.gantt-date-picker-weekdays { margin-bottom: 3px; color: #71869c; font-size: 10px; font-weight: 700; text-align: center; }
+.gantt-date-picker-day { height: 27px; border: 0; border-radius: 3px; background: transparent; color: #263c53; font-size: 11px; cursor: pointer; }
+.gantt-date-picker-day:hover:not(:disabled) { background: #e6f1fa; color: #0d578e; }
+.gantt-date-picker-day.today { box-shadow: inset 0 0 0 1px #5c93bc; }
+.gantt-date-picker-day.selected { background: #1565c0; color: #fff; }
+.gantt-date-picker-day.non-working,
+.gantt-date-picker-day:disabled { background: #f0f3f6; color: #a3afba; cursor: not-allowed; opacity: 1; }
+.gantt-date-picker-day.outside-month { background: transparent; color: #c7d0d8; }

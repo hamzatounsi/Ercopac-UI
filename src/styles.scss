@@ -1368,8 +1368,8 @@ textarea) {
 }
 
 .planner-left {
-  min-width: 320px;
-  max-width: 720px;
+  min-width: 0;
+  max-width: none;
   min-height: 0;
   flex-shrink: 0;
   display: flex;
@@ -1736,7 +1736,8 @@ textarea) {
 .month-cell {
   display: flex;
   align-items: center;
-  padding: 0 6px;
+  justify-content: center;
+  padding: 0 4px;
   font-size: 10.5px;
   font-weight: 800;
   color: #c8dff5;
@@ -1745,6 +1746,7 @@ textarea) {
   border-right: 1px solid #1e3d60;
   background: #152c47;
   white-space: nowrap;
+  text-transform: uppercase;
 }
 
 .timeline-header-scroll {
@@ -1757,38 +1759,33 @@ textarea) {
   display: none;
 }
 
-.timeline-header.weeks-only-header {
+.timeline-header.day-number-header {
   display: flex;
-  height: 26px;
-  min-height: 26px;
+  height: 22px;
+  min-height: 22px;
 }
 
-.timeline-week-cell {
+.timeline-day-cell {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   border-right: 1px solid #1e3d60;
   background: #152c47;
-  border-right-color: #1e3d60;
-  color: #8ab0cc;
-  flex-shrink: 0;
-}
-
-.timeline-week-code {
-  font-size: 8.5px;
-  font-weight: 800;
-  line-height: 1;
   color: #9ecae8;
+  flex-shrink: 0;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
 }
 
-.timeline-week-start {
-  margin-top: 2px;
-  font-size: 7px;
-  line-height: 1;
-  color: #7aabcc;
-  text-transform: uppercase;
-  opacity: 0.8;
+.timeline-day-cell.non-working-day,
+.gantt-grid-line.non-working-day {
+  background: rgba(15, 42, 74, 0.045);
+}
+
+.timeline-day-cell.month-separator,
+.gantt-grid-line.month-separator {
+  border-left: 1px solid #8faec8;
 }
 
 .gantt-body-scroll {
@@ -1846,9 +1843,9 @@ textarea) {
 }
 
 .gantt-grid-line {
-  width: 40px;
-  min-width: 40px;
-  max-width: 40px;
+  min-width: 0;
+  max-width: none;
+  flex: 0 0 auto;
   height: 28px;
   border-right: 1px solid #dde3ec;
 }
@@ -4028,7 +4025,8 @@ textarea) {
 .pm-shell.mycs-schedule .month-row,
 .pm-shell.mycs-schedule .month-cell,
 .pm-shell.mycs-schedule .timeline-header-scroll,
-.pm-shell.mycs-schedule .timeline-week-cell {
+.pm-shell.mycs-schedule .timeline-week-cell,
+.pm-shell.mycs-schedule .timeline-day-cell {
   background: #0f3f3b;
   border-color: #145f58;
 }
@@ -4036,8 +4034,13 @@ textarea) {
 .pm-shell.mycs-schedule .gh,
 .pm-shell.mycs-schedule .timeline-week-code,
 .pm-shell.mycs-schedule .timeline-week-start,
+.pm-shell.mycs-schedule .timeline-day-cell,
 .pm-shell.mycs-schedule .month-cell {
   color: #ccfbf1;
+}
+
+.pm-shell.mycs-schedule .timeline-day-cell.non-working-day {
+  background: #0b3431;
 }
 
 .pm-shell.mycs-schedule .gantt-bar {
@@ -4176,6 +4179,7 @@ textarea) {
 .pm-shell .month-row,
 .pm-shell .month-cell,
 .pm-shell .timeline-week-cell,
+.pm-shell .timeline-day-cell,
 .pm-shell .gh {
   background: #f8fafc;
   border-color: #dbe3ec;
@@ -4184,7 +4188,8 @@ textarea) {
 .pm-shell .gh,
 .pm-shell .month-cell,
 .pm-shell .timeline-week-code,
-.pm-shell .timeline-week-start {
+.pm-shell .timeline-week-start,
+.pm-shell .timeline-day-cell {
   color: #64748b;
 }
 
@@ -4307,6 +4312,7 @@ textarea) {
 .pm-shell .month-cell,
 .pm-shell .timeline-header-scroll,
 .pm-shell .timeline-week-cell,
+.pm-shell .timeline-day-cell,
 .pm-shell .gh {
   background: #0d2a4a;
   border-color: #1b4168;
@@ -4319,7 +4325,8 @@ textarea) {
 
 .pm-shell .gh,
 .pm-shell .timeline-week-code,
-.pm-shell .timeline-week-start {
+.pm-shell .timeline-week-start,
+.pm-shell .timeline-day-cell {
   color: #74b8ec;
 }
 
@@ -4329,6 +4336,10 @@ textarea) {
 
 .pm-shell .timeline-week-start {
   color: #7daed4;
+}
+
+.pm-shell .timeline-day-cell.non-working-day {
+  background: #092541;
 }
 
 .pm-shell .table-row,
