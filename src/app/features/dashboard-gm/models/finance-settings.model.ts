@@ -8,20 +8,18 @@ export interface FinanceWbsTemplateRow {
   description: string;
   type: FinanceWbsRowType;
   
-  // Department fields
   departmentId?: number | null;
   departmentName?: string | null;
   
-  // Owner fields
   ownerId?: number | null;
   ownerName?: string | null;
   
-  // Keep for backward compatibility
   ownerKey?: string | null;
   hourRate?: number | null;
+  
+  resourceType?: string | null; // ✅ AJOUTÉ : Pour lier au taux par défaut
 }
 
-// ✅ FIXED: Changed 'name' to 'label' to match the backend Department entity
 export interface Department {
   id: number;
   label: string; 
@@ -36,25 +34,10 @@ export interface AppUser {
   departmentName?: string;
 }
 
-export interface FinanceOwnerMapping {
-  id?: number;
-  ownerKey: string;
-  resourceType: string;
-  roleFilter?: string | null;
-  notes?: string | null;
-}
-
-export interface FinanceHourlyRate {
-  id?: number;
-  resourceType: string;
-  hourlyRate: number;
-}
-
+// ✅ NETTOYÉ : Suppression de FinanceOwnerMapping et FinanceHourlyRate
 export interface FinanceSettings {
   defaultHourlyRate: number;
   templateRows: FinanceWbsTemplateRow[];
-  ownerMappings: FinanceOwnerMapping[];
-  hourlyRates: FinanceHourlyRate[];
 }
 
 export interface ApplyFinanceTemplateRequest {
@@ -74,4 +57,21 @@ export interface FinanceSummary {
   totalForecast: number;
   totalEac: number;
   totalVariance: number;
+}
+
+export interface FinanceEntry {
+  id: number;
+  wbsCode: string;
+  description: string;
+  level: number;
+  sales: number;
+  budget: number;
+  commitment: number;
+  actualCost: number;
+  forecast: number;
+  eac: number;
+  variance: number;
+  owner?: string;
+  cpi?: number;
+  percentAc?: number;
 }

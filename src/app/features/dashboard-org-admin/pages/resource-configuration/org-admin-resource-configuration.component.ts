@@ -88,6 +88,7 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
     label: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
     departmentId: [null as number | null],
     colour: ['#2563eb', Validators.pattern(/^#[0-9A-Fa-f]{6}$/)],
+    defaultRate: [0, [Validators.min(0)]], 
     assignable: [true],
     active: [true]
   });
@@ -165,29 +166,30 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
     const query = this.normalizedSearch;
     return this.resourceTypes.filter(item => !query || `${item.code} ${item.label || ''}`.toLowerCase().includes(query));
   }
-
   openResourceType(item?: OrganisationResourceType): void {
-    this.dialogKind = 'resourceType';
-    this.editingId = item?.id ?? null;
+  this.dialogKind = 'resourceType';
+  this.editingId = item?.id ?? null;
 
-    this.resourceTypeForm.enable({ emitEvent: false });
+  this.resourceTypeForm.enable({ emitEvent: false });
 
-    this.resourceTypeForm.reset({
-      code: item?.code ?? '',
-      label: item?.label ?? '',
-      departmentId: item?.departmentId ?? null,
-      colour: item?.colour ?? '#2563eb',
-      assignable: item?.assignable ?? true,
-      active: item?.active ?? true
-    });
-  }
+  this.resourceTypeForm.reset({
+    code: item?.code ?? '',
+    label: item?.label ?? '',
+    departmentId: item?.departmentId ?? null,
+    colour: item?.colour ?? '#2563eb',
+    defaultRate: item?.defaultRate ?? 0, // ✅ AJOUTE CETTE LIGNE
+    assignable: item?.assignable ?? true,
+    active: item?.active ?? true
+  });
+}
+
 
   saveResourceType(): void {
     if (this.resourceTypeForm.invalid || this.saving) { this.resourceTypeForm.markAllAsTouched(); return; }
     const value = this.resourceTypeForm.getRawValue();
     const payload: SaveOrganisationResourceType = {
       code: value.code.trim().toUpperCase(), label: value.label.trim(), departmentId: value.departmentId,
-      colour: this.optional(value.colour), defaultRate: null, assignable: value.assignable, active: value.active
+      colour: this.optional(value.colour), defaultRate: value.defaultRate, assignable: value.assignable, active: value.active
     };
     this.saving = true;
     const request = this.editingId === null
@@ -209,8 +211,8 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
 
   toggleResourceType(item: OrganisationResourceType): void {
     const payload: SaveOrganisationResourceType = {
-      code: item.code, label: item.label, colour: item.colour, departmentId: item.departmentId,
-      defaultRate: item.defaultRate, assignable: item.assignable, active: !item.active
+      code: item.code, label: item.label, colour: item.colour, departmentId: item.departmentId,defaultRate: item.defaultRate ?? 0,
+     assignable: item.assignable, active: !item.active
     };
     this.adminService.updateResourceType(item.id, payload).subscribe({
       next: updated => {
