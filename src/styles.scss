@@ -1765,6 +1765,21 @@ textarea) {
   min-height: 22px;
 }
 
+.readonly-date-value,
+.readonly-duration-value {
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+  min-height: 22px;
+  padding: 0 3px;
+  color: #475569;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  font-weight: 600;
+  cursor: default;
+  user-select: text;
+}
+
 .timeline-day-cell {
   display: flex;
   align-items: center;
@@ -3551,6 +3566,22 @@ textarea) {
 .col-restype,
 .col-dept {
   padding: 0 6px;
+}
+
+.sp-readonly-value {
+  display: flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid #d8e1ea;
+  border-radius: 8px;
+  background: #f5f8fb;
+  color: #475569;
+  font-size: 12px;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 600;
+  cursor: default;
+  user-select: text;
 }
 
 .milestone-date-cell {
