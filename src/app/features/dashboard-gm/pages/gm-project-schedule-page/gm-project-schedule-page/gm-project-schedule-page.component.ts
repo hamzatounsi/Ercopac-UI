@@ -580,8 +580,8 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   }
 
   setTaskFormDate(field: 'baselineStart' | 'baselineEnd' | 'actualStart' | 'actualEnd', value: string): void {
-    const control = this.taskForm.get(field);
-    if (control && control.value !== value) control.setValue(value);
+    if (!this.selectedTask) return;
+    this.applyPickerDateChange(this.selectedTask, field, value);
   }
 
   ngOnDestroy(): void {
@@ -1223,13 +1223,29 @@ indentTask(): void {
     field: 'actualStart' | 'actualEnd' | 'baselineStart' | 'baselineEnd',
     value: string
   ): void {
+    this.applyPickerDateChange(task, field, value);
+  }
+
+  /** Both date-picker surfaces use this one synchronized, single-save path. */
+  private applyPickerDateChange(
+    task: GmProjectScheduleTask,
+    field: 'actualStart' | 'actualEnd' | 'baselineStart' | 'baselineEnd',
+    value: string
+  ): void {
     if (value === this.formatDateForInput(task[field])) return;
-    this.updateLocalTaskField(task, field, value);
+    // Picker selections are complete edits. Save this synchronized task once
+    // immediately instead of leaving it behind a shared form debounce.
+    this.updateLocalTaskField(task, field, value, false);
     this.saveInlineTask(task);
   }
 
   // KEY FIX: updateLocalTaskField properly handles duration vs date changes
-  updateLocalTaskField(task: GmProjectScheduleTask, field: keyof GmProjectScheduleTask, value: any): void {
+  updateLocalTaskField(
+    task: GmProjectScheduleTask,
+    field: keyof GmProjectScheduleTask,
+    value: any,
+    queueAutoSave = true
+  ): void {
     if ((field === 'departmentCode' || field === 'resourceType') && !this.isActivity(task)) return;
     (task as any)[field] = value;
 
@@ -1267,7 +1283,7 @@ indentTask(): void {
       this.suppressFormAutoSave = false;
     }
 
-    this.queueTaskAutoSave(task);
+    if (queueAutoSave) this.queueTaskAutoSave(task);
   }
 
   private queueTaskAutoSave(task: GmProjectScheduleTask): void {

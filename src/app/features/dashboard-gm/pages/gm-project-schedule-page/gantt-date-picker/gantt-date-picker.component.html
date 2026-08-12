@@ -4,7 +4,15 @@
     <span class="gantt-date-picker-icon" aria-hidden="true">▾</span>
   </button>
 
-  <div #popover class="gantt-date-picker-popover" *ngIf="calendarOpen" [style.left.px]="popoverLeft" [style.top.px]="popoverTop" (click)="$event.stopPropagation()">
+  <div
+    #popover
+    class="gantt-date-picker-popover"
+    *ngIf="calendarOpen"
+    [style.left.px]="popoverLeft"
+    [style.top.px]="popoverTop"
+    (mousedown)="$event.stopPropagation()"
+    (click)="$event.stopPropagation()"
+  >
     <div class="gantt-date-picker-month">
       <button type="button" aria-label="Previous month" (click)="previousMonth($event)">‹</button>
       <strong>{{ monthLabel }}</strong>
@@ -25,7 +33,7 @@
         [disabled]="!day.inCurrentMonth || !day.working"
         [attr.aria-label]="day.value"
         [attr.aria-disabled]="!day.inCurrentMonth || !day.working"
-        (click)="selectDay($event, day)"
+        (mousedown)="selectDay($event, day)"
       >{{ day.label }}</button>
     </div>
   </div>
