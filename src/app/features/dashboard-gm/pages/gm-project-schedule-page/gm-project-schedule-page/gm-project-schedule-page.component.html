@@ -226,9 +226,12 @@
               <span *ngIf="isMilestone(task)" class="milestone-dot" [class.customer]="isCustomerMilestone(task)">◆</span>
               <input
                 class="grid-input text-input"
-                [value]="task.name || ''"
-                (input)="updateLocalTaskField(task, 'name', $any($event.target).value)"
-                (blur)="saveInlineTask(task)"
+                [value]="getInlineNameValue(task)"
+                (focus)="beginInlineNameEdit(task)"
+                (input)="updateInlineNameDraft(task, $any($event.target).value)"
+                (keydown.enter)="handleInlineNameEnter(task, $event)"
+                (keydown.escape)="cancelInlineNameEdit(task, $event)"
+                (blur)="commitInlineNameEdit(task)"
               />
             </div>
           </div>
@@ -431,8 +434,8 @@
               <span class="gantt-label" *ngIf="!isSummary(task)">{{ getTaskLabel(task) }}</span>
             </div>
 
-            <div *ngIf="isMilestone(task)" class="gantt-milestone" [class.customer]="isCustomerMilestone(task)" [style.left.px]="getBarLeft(task)" (contextmenu)="openContextMenu($event, task)"></div>
-            <div *ngIf="isMilestone(task)" class="gantt-milestone-label" [style.left.px]="getBarLeft(task) + 16">{{ task.name }}</div>
+            <div *ngIf="isMilestone(task)" class="gantt-milestone" [class.customer]="isCustomerMilestone(task)" [style.left.px]="getMilestoneLeft(task)" (contextmenu)="openContextMenu($event, task)"></div>
+            <div *ngIf="isMilestone(task)" class="gantt-milestone-label" [style.left.px]="getMilestoneLeft(task) + 16">{{ task.name }}</div>
           </div>
 
           <div *ngIf="tasks.length === 0" class="gantt-empty">No timeline to display.</div>
@@ -658,7 +661,16 @@
                 <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
               </select>
             </div>
-            <div><input class="sp-inline-input" type="text" [(ngModel)]="res.assignmentName" [ngModelOptions]="{ standalone: true }" (blur)="saveResource(res)" /></div>
+            <div>
+              <ng-container *ngIf="res.supplierId; else resourceAssignmentName">
+                <select class="sp-inline-select" [ngModel]="res.supplierId" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onExistingSupplierChange(res, $event)">
+                  <option *ngFor="let supplier of getSupplierOptionsFor(res)" [ngValue]="supplier.id">{{ supplierLabel(supplier) }}</option>
+                </select>
+              </ng-container>
+              <ng-template #resourceAssignmentName>
+                <input class="sp-inline-input" type="text" [(ngModel)]="res.assignmentName" [ngModelOptions]="{ standalone: true }" (blur)="saveResource(res)" />
+              </ng-template>
+            </div>
             <div><input class="sp-inline-input small" type="number" [(ngModel)]="res.quantity" [ngModelOptions]="{ standalone: true }" (blur)="saveResource(res)" /></div>
             <div><input class="sp-inline-input" type="number" [(ngModel)]="res.unitsPercent" [ngModelOptions]="{ standalone: true }" (blur)="saveResource(res)" /></div>
             <div><input class="sp-inline-input" type="number" [(ngModel)]="res.cost" [ngModelOptions]="{ standalone: true }" (blur)="saveResource(res)" /></div>
@@ -696,7 +708,12 @@
           <div class="sp-table-row resource-row new-resource-row supplier-row">
             <div><span class="sp-row-badge">S</span></div>
             <div><span class="sp-inline-chip">SUPPLIER</span></div>
-            <div><input class="sp-inline-input" type="text" placeholder="Supplier name" [(ngModel)]="newSupplier.assignmentName" [ngModelOptions]="{ standalone: true }" /></div>
+            <div>
+              <select class="sp-inline-select" [(ngModel)]="newSupplier.supplierId" [ngModelOptions]="{ standalone: true }">
+                <option [ngValue]="null">-- Select supplier --</option>
+                <option *ngFor="let supplier of supplierOptions" [ngValue]="supplier.id">{{ supplierLabel(supplier) }}</option>
+              </select>
+            </div>
             <div><input class="sp-inline-input small" type="number" [(ngModel)]="newSupplier.quantity" [ngModelOptions]="{ standalone: true }" /></div>
             <div><input class="sp-inline-input" type="number" [(ngModel)]="newSupplier.unitsPercent" [ngModelOptions]="{ standalone: true }" /></div>
             <div><input class="sp-inline-input" type="number" [(ngModel)]="newSupplier.cost" [ngModelOptions]="{ standalone: true }" /></div>

@@ -49,6 +49,17 @@
       Customers
       <span>{{ customers.length }}</span>
     </button>
+
+    <button
+      type="button"
+      role="tab"
+      [attr.aria-selected]="activeTab === 'suppliers'"
+      [class.active]="activeTab === 'suppliers'"
+      (click)="setTab('suppliers')"
+    >
+      Suppliers
+      <span>{{ suppliers.length }}</span>
+    </button>
   </div>
 
   <div class="toolbar">
@@ -133,6 +144,16 @@
         add
       </span>
       Add customer
+    </button>
+
+    <button
+      *ngIf="activeTab === 'suppliers'"
+      type="button"
+      class="primary-button"
+      (click)="openSupplier()"
+    >
+      <span class="material-symbols-outlined" aria-hidden="true">add</span>
+      Add supplier
     </button>
   </div>
 </section>
@@ -729,6 +750,61 @@
       </div>
     </ng-template>
   </ng-container>
+
+  <!-- =======================================================
+       SUPPLIERS
+  ======================================================== -->
+  <ng-container *ngSwitchCase="'suppliers'">
+    <header>
+      <div>
+        <h2>Suppliers</h2>
+        <p>Maintain the suppliers available to this organisation.</p>
+      </div>
+    </header>
+
+    <div class="table-scroll" *ngIf="filteredSuppliers.length; else emptySuppliers">
+      <table>
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Supplier</th>
+            <th>Contact</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th><span class="sr-only">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of filteredSuppliers">
+            <td data-label="Code"><strong>{{ item.code }}</strong></td>
+            <td data-label="Supplier">{{ item.name }}</td>
+            <td data-label="Contact">{{ item.contactPerson || '—' }}<small>{{ item.phone || '' }}</small></td>
+            <td data-label="Email">{{ item.email || '—' }}</td>
+            <td data-label="Status">
+              <span class="status" [class.inactive]="!item.active">{{ item.active ? 'Active' : 'Inactive' }}</span>
+            </td>
+            <td class="row-actions">
+              <button type="button" title="Edit supplier" (click)="openSupplier(item)">
+                <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+              </button>
+              <button type="button" class="danger" title="Deactivate supplier" [disabled]="!item.active" (click)="requestDelete('supplier', item)">
+                <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #emptySuppliers>
+      <div class="empty-state">
+        <span class="material-symbols-outlined" aria-hidden="true">local_shipping</span>
+        <h3>No matching suppliers</h3>
+        <p>Add a supplier or clear the search.</p>
+        <button type="button" (click)="openSupplier()">Add supplier</button>
+      </div>
+    </ng-template>
+  </ng-container>
 </section>
 
 
@@ -769,7 +845,9 @@
                 ? 'project type'
                 : dialogKind === 'resourceType'
                   ? 'resource type'
-                  : 'customer'
+                  : dialogKind === 'customer'
+                    ? 'customer'
+                    : 'supplier'
           }}
         </h2>
       </div>
@@ -1258,6 +1336,56 @@
       </footer>
     </form>
 
+    <form
+      *ngIf="dialogKind === 'supplier'"
+      [formGroup]="supplierForm"
+      (ngSubmit)="saveSupplier()"
+    >
+      <div class="form-grid">
+        <label>
+          Supplier name <span>*</span>
+          <input type="text" formControlName="name" autofocus autocomplete="organization" />
+        </label>
+        <label>
+          Supplier code <span>*</span>
+          <input type="text" formControlName="code" autocomplete="off" />
+        </label>
+        <label>
+          Contact person
+          <input type="text" formControlName="contactPerson" autocomplete="name" />
+        </label>
+        <label>
+          Email
+          <input type="email" formControlName="email" autocomplete="email" />
+        </label>
+        <label>
+          Phone
+          <input type="tel" formControlName="phone" autocomplete="tel" />
+        </label>
+        <label class="wide">
+          Address
+          <input type="text" formControlName="address" autocomplete="street-address" />
+        </label>
+        <label class="wide">
+          Notes
+          <textarea rows="3" formControlName="notes"></textarea>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" formControlName="active" />
+          Active supplier
+        </label>
+      </div>
+      <p class="validation" *ngIf="supplierForm.touched && supplierForm.invalid" role="alert">
+        Supplier name and code are required. Check the email and field lengths.
+      </p>
+      <footer>
+        <button type="button" class="secondary-button" [disabled]="saving" (click)="closeDialog()">Cancel</button>
+        <button type="submit" class="primary-button" [disabled]="supplierForm.invalid || saving">
+          {{ saving ? 'Saving…' : 'Save supplier' }}
+        </button>
+      </footer>
+    </form>
+
   </section>
 </div>
 
@@ -1290,12 +1418,13 @@
     </span>
 
     <h2 id="delete-configuration-title">
-      Delete {{ deleteTarget.name }}?
+      {{ deleteTarget.kind === 'supplier' ? 'Deactivate' : 'Delete' }} {{ deleteTarget.name }}?
     </h2>
 
     <p *ngIf="deleteTarget.projectsUsing === 0">
-      This record will be permanently removed from the organisation
-      configuration.
+      {{ deleteTarget.kind === 'supplier'
+        ? 'This supplier will be deactivated and retained for audit history.'
+        : 'This record will be permanently removed from the organisation configuration.' }}
     </p>
 
     <p *ngIf="deleteTarget.projectsUsing > 0">
@@ -1322,7 +1451,7 @@
         [disabled]="deleting"
         (click)="confirmDelete()"
       >
-        {{ deleting ? 'Deleting…' : 'Delete' }}
+        {{ deleting ? (deleteTarget.kind === 'supplier' ? 'Deactivating…' : 'Deleting…') : (deleteTarget.kind === 'supplier' ? 'Deactivate' : 'Delete') }}
       </button>
     </footer>
   </section>

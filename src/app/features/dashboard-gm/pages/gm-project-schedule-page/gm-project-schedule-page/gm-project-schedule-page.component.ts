@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   HostListener,
@@ -107,6 +108,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   importMenuOpen = false;
   private formAutoSaveTimer: any = null;
   private suppressFormAutoSave = false;
+  private readonly pendingCascadeSaveIds = new Set<number>();
 
   tasks: GmProjectScheduleTask[] = [];
   selectedTask: GmProjectScheduleTask | null = null;
@@ -129,7 +131,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   readonly summaryBarTop = 14;
   readonly summaryBarHeight = 4;
   readonly milestoneTop = 10;
-  readonly milestoneSize = 10;
+  readonly milestoneSize = 12;
 
   activeMode: 'baseline' | 'actual' = 'baseline';
   activeZoom: '2W' | '1M' | '2M' | 'Day' = '1M';
@@ -190,13 +192,14 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
     lagDays: 0
   };
 
-  newSupplier: any = {
+  newSupplier: TaskResourceAssignment = {
     resourceType: 'SUPPLIER',
     assignmentName: '',
     quantity: 1,
     unitsPercent: 100,
     cost: 0,
-    assignedUserId: null
+    assignedUserId: null,
+    supplierId: null
   };
 
   resourceOptions: { id: number; fullName: string; departmentCode: string; resourceType: string }[] = [];
@@ -233,6 +236,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   readonly plannerResizerWidth = 4;
 
   editedRows: Record<number, Partial<GmProjectScheduleTask>> = {};
+  private readonly inlineNameEdits = new Map<number, { original: string; value: string; committed: boolean }>();
   collapsedTaskIds = new Set<number>();
 
   exportModalOpen = false;
@@ -251,6 +255,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   } | null = null;
 
   taskResources: TaskResourceAssignment[] = [];
+  supplierOptions: { id: number; code: string | null; name: string }[] = [];
 
   newResource: TaskResourceAssignment = {
     resourceType: '',
@@ -288,7 +293,8 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
     private projectTimelineService: GmProjectTimelineService,
     private templateService: GmProjectTemplateService,
     private gmDashboardService: GmDashboardService,
-    private authService: AuthService
+    private authService: AuthService,
+    private readonly changeDetector: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -713,6 +719,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
     Object.assign(this.selectedTask, updated);
     const index = this.tasks.findIndex(t => t.id === updated.id);
     if (index !== -1) Object.assign(this.tasks[index], updated);
+    this.trackCascadeUpdates(this.cascadeDependentTaskDates(updated, this.getCascadeModes(changed)));
 
     this.suppressFormAutoSave = true;
     this.taskForm.patchValue({
@@ -723,7 +730,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
       departmentCode: updated.departmentCode ?? '', resourceType: updated.resourceType ?? '', assignedUserId: updated.assignedUserId ?? null
     }, { emitEvent: false });
     this.suppressFormAutoSave = false;
-    this.buildTimeline();
+    this.refreshGanttView();
   }
 
   // ---------------- Drawer ----------------
@@ -756,6 +763,10 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
       cost: 0,
       assignedUserId: null
     };
+    this.newSupplier = {
+      resourceType: 'SUPPLIER', assignmentName: '', quantity: 1,
+      unitsPercent: 100, cost: 0, assignedUserId: null, supplierId: null
+    };
    this.resourceSearchTerm = '';
 if (task.resourceType) {
   this.newResource.resourceType = task.resourceType;
@@ -771,6 +782,7 @@ if (task.resourceType) {
     }
 
     this.loadTaskResources(task.id);
+    this.loadSupplierOptions(task.id);
   }
 getTaskWbsById(taskId?: number | null): string {
   if (!taskId) return '—';
@@ -781,6 +793,7 @@ getTaskWbsById(taskId?: number | null): string {
     this.drawerOpen = false;
     this.selectedTask = null;
     this.taskResources = [];
+    this.supplierOptions = [];
     this.newDependency = { predecessorTaskId: null, dependencyType: 'FS', lagDays: 0 };
     this.newResource = {
       resourceType: '',
@@ -789,6 +802,10 @@ getTaskWbsById(taskId?: number | null): string {
       unitsPercent: 100,
       cost: 0,
       assignedUserId: null
+    };
+    this.newSupplier = {
+      resourceType: 'SUPPLIER', assignmentName: '', quantity: 1,
+      unitsPercent: 100, cost: 0, assignedUserId: null, supplierId: null
     };
 
     if (this.selectedTemplateScope === 'selected') {
@@ -1063,8 +1080,7 @@ indentTask(): void {
   private rebuildLocalTaskStructure(): void {
     this.recalculateWbsCodes();
     this.recalculateDisplayOrders();
-    this.recalculateSummaryDates();
-    this.syncSelectedTaskReference();
+    this.refreshGanttView();
     this.persistScheduleStructure();
   }
 
@@ -1218,6 +1234,67 @@ indentTask(): void {
 
   // ---------------- Inline edit ----------------
 
+  getInlineNameValue(task: GmProjectScheduleTask): string {
+    return this.inlineNameEdits.get(task.id)?.value ?? task.name ?? '';
+  }
+
+  beginInlineNameEdit(task: GmProjectScheduleTask): void {
+    if (!this.inlineNameEdits.has(task.id)) {
+      const name = task.name ?? '';
+      this.inlineNameEdits.set(task.id, { original: name, value: name, committed: false });
+    }
+  }
+
+  updateInlineNameDraft(task: GmProjectScheduleTask, value: string): void {
+    const edit = this.inlineNameEdits.get(task.id);
+    if (edit) {
+      edit.value = value;
+      edit.committed = false;
+      return;
+    }
+    this.inlineNameEdits.set(task.id, { original: task.name ?? '', value, committed: false });
+  }
+
+  commitInlineNameEdit(task: GmProjectScheduleTask): void {
+    const edit = this.inlineNameEdits.get(task.id);
+    if (!edit || edit.committed) return;
+
+    const name = edit.value.trim();
+    if (!name) {
+      // The task form already requires a name. Restore the last valid value
+      // instead of sending an invalid empty update from the inline field.
+      edit.value = edit.original;
+      return;
+    }
+
+    edit.committed = true;
+    if (name !== edit.original) {
+      this.updateLocalTaskField(task, 'name', name, false);
+      this.saveInlineTask(task);
+    }
+
+    // A keydown Enter commit is immediately followed by blur. Keep the
+    // committed marker through that blur, then release this edit state.
+    setTimeout(() => this.inlineNameEdits.delete(task.id));
+  }
+
+  handleInlineNameEnter(task: GmProjectScheduleTask, event: Event): void {
+    event.preventDefault();
+    this.commitInlineNameEdit(task);
+    (event.target as HTMLInputElement).blur();
+  }
+
+  cancelInlineNameEdit(task: GmProjectScheduleTask, event: Event): void {
+    event.preventDefault();
+    const edit = this.inlineNameEdits.get(task.id);
+    if (edit) {
+      edit.value = edit.original;
+      this.inlineNameEdits.delete(task.id);
+    }
+    (event.target as HTMLInputElement).value = task.name ?? '';
+    (event.target as HTMLInputElement).blur();
+  }
+
   onInlineDateChange(
     task: GmProjectScheduleTask,
     field: 'actualStart' | 'actualEnd' | 'baselineStart' | 'baselineEnd',
@@ -1247,6 +1324,7 @@ indentTask(): void {
     queueAutoSave = true
   ): void {
     if ((field === 'departmentCode' || field === 'resourceType') && !this.isActivity(task)) return;
+    const previousTaskState = { ...task };
     (task as any)[field] = value;
 
     if (field === 'taskType') this.clearNonActivityAssignments(task);
@@ -1268,18 +1346,21 @@ indentTask(): void {
 
     // When dates change → recalculate duration from dates
     if (changed && !this.synchronizeTaskDates(task, changed)) {
-      this.loadSchedule();
+      Object.assign(task, previousTaskState);
+      this.refreshGanttView();
       return;
     }
 
-    this.computeStats();
-    this.buildTimeline();
+    if (changed) {
+      this.trackCascadeUpdates(this.cascadeDependentTaskDates(task, this.getCascadeModes(changed)));
+    }
+    this.refreshGanttView();
 
     // Sync the detail panel form immediately
-    if (this.selectedTask?.id === task.id) {
-      this.selectedTask = task;
+    const selectedTask = this.selectedTask;
+    if (selectedTask?.id === task.id) {
       this.suppressFormAutoSave = true;
-      this.patchTaskForm(task);
+      this.patchTaskForm(selectedTask);
       this.suppressFormAutoSave = false;
     }
 
@@ -1329,6 +1410,7 @@ indentTask(): void {
 
     // Apply form values to selectedTask
     Object.assign(this.selectedTask, value);
+    this.refreshGanttView();
 
     this.pushHistory();
     this.saving = true;
@@ -1345,20 +1427,26 @@ indentTask(): void {
         }
 
         this.saving = false;
-        this.computeStats();
-        this.buildTimeline();
-        this.syncSelectedTaskReference();
+        this.refreshGanttView();
       },
       error: (err) => {
         console.error('Failed to update task', err);
         this.saving = false;
-        this.loadSchedule();
       }
     });
   }
 
   // KEY FIX: saveInlineTask syncs form after save without overwriting duration
   saveInlineTask(task: GmProjectScheduleTask): void {
+    clearTimeout(this.formAutoSaveTimer);
+    const tasksToSave = [task, ...[...this.pendingCascadeSaveIds]
+      .map(id => this.tasks.find(candidate => candidate.id === id))
+      .filter((candidate): candidate is GmProjectScheduleTask => !!candidate && candidate.id !== task.id)];
+    this.pendingCascadeSaveIds.clear();
+    tasksToSave.forEach(candidate => this.persistInlineTask(candidate));
+  }
+
+  private persistInlineTask(task: GmProjectScheduleTask): void {
     if (this.hasInvalidDateRange(task.baselineStart, task.baselineEnd)
       || this.hasInvalidDateRange(task.actualStart, task.actualEnd)) return;
     const payload = this.buildTaskUpdatePayload(task);
@@ -1381,12 +1469,11 @@ indentTask(): void {
           }
         }
 
-        this.refreshScheduleUi();
+        this.refreshGanttView();
         this.editedRows[task.id] = {};
       },
       error: err => {
         console.error('Failed to autosave task', err);
-        this.loadSchedule();
       }
     });
   }
@@ -1400,8 +1487,8 @@ indentTask(): void {
 
     const payload = this.buildTaskUpdatePayload(task);
     this.service.updateTask(this.projectId, task.id, payload).subscribe({
-      next: () => this.loadSchedule(),
-      error: err => { console.error('Failed to save dragged task', err); this.loadSchedule(); }
+      next: () => this.refreshGanttView(),
+      error: err => { console.error('Failed to save dragged task', err); }
     });
   }
 
@@ -1639,10 +1726,20 @@ indentTask(): void {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   }
 
-  private refreshScheduleUi(): void {
+  /**
+   * One local render path for every Gantt mutation. It never fetches the
+   * schedule: rows, bars, arrows and rollups all read this.tasks directly.
+   */
+  private refreshGanttView(): void {
+    this.recalculateSummaryDates();
+    this.tasks = this.tasks.map(task => ({
+      ...task,
+      dependencies: task.dependencies?.map(dependency => ({ ...dependency }))
+    }));
     this.computeStats();
     this.buildTimeline();
     this.syncSelectedTaskReference();
+    this.changeDetector.markForCheck();
   }
 
   // ---------------- WBS / indent ----------------
@@ -1719,10 +1816,9 @@ indentTask(): void {
     this.service.updateTaskStructure(this.projectId, structure).pipe(
       finalize(() => this.structureSaving = false)
     ).subscribe({
-      next: () => this.loadSchedule(),
+      next: () => { /* local hierarchy is already rendered and persisted */ },
       error: err => {
         console.error('Failed to persist task hierarchy', err);
-        this.loadSchedule();
       }
     });
   }
@@ -2005,20 +2101,24 @@ indentTask(): void {
 
   getBarLeft(task: GmProjectScheduleTask): number {
     if (this.activeMode === 'actual') return this.getLeftFromDate(task.actualStart ?? task.plannedStart);
-    return this.getLeftFromDate(this.activeBaselineId ? this.getBaselineStart(task) : task.plannedStart);
+    return this.getLeftFromDate(this.getBaselineStart(task));
   }
 
   getBarWidth(task: GmProjectScheduleTask): number {
     if (this.activeMode === 'actual') return this.getWidthFromDates(task.actualStart ?? task.plannedStart, task.actualEnd ?? task.plannedEnd, task.taskType);
-    return this.getWidthFromDates(this.activeBaselineId ? this.getBaselineStart(task) : task.plannedStart, this.activeBaselineId ? this.getBaselineEnd(task) : task.plannedEnd, task.taskType);
+    return this.getWidthFromDates(this.getBaselineStart(task), this.getBaselineEnd(task), task.taskType);
   }
 
-  getBaselineStart(task: GmProjectScheduleTask): string | null | undefined { return this.activeBaselineTasks.get(task.id)?.start ?? task.baselineStart ?? task.plannedStart; }
-  getBaselineEnd(task: GmProjectScheduleTask): string | null | undefined { return this.activeBaselineTasks.get(task.id)?.end ?? task.baselineEnd ?? task.plannedEnd; }
+  getBaselineStart(task: GmProjectScheduleTask): string | null | undefined { return task.baselineStart ?? task.plannedStart; }
+  getBaselineEnd(task: GmProjectScheduleTask): string | null | undefined { return task.baselineEnd ?? task.plannedEnd; }
   getBaselineLeft(task: GmProjectScheduleTask): number { return this.getLeftFromDate(this.getBaselineStart(task)); }
   getBaselineWidth(task: GmProjectScheduleTask): number { return this.getWidthFromDates(this.getBaselineStart(task), this.getBaselineEnd(task), task.taskType); }
   getActualLeft(task: GmProjectScheduleTask): number { return this.getLeftFromDate(task.actualStart); }
   getActualWidth(task: GmProjectScheduleTask): number { return this.getWidthFromDates(task.actualStart, task.actualEnd, task.taskType); }
+  getMilestoneLeft(task: GmProjectScheduleTask): number {
+    // Centre the diamond in the exact header day cell used for its date.
+    return this.getBarLeft(task) + ((this.dayWidth - 12) / 2);
+  }
   hasBaseline(task: GmProjectScheduleTask): boolean { return !!this.getBaselineStart(task) && !!this.getBaselineEnd(task); }
   hasActualDates(task: GmProjectScheduleTask): boolean { return !!task.actualStart && !!task.actualEnd; }
 
@@ -2087,7 +2187,12 @@ indentTask(): void {
   saveDependency(dep: TaskDependencyDto): void {
     if (!dep.id || !this.selectedTask) return;
     const payload: TaskDependencyDto = { id: dep.id, predecessorTaskId: dep.predecessorTaskId, successorTaskId: this.selectedTask.id, dependencyType: dep.dependencyType || 'FS', lagDays: Number(dep.lagDays ?? 0) };
-    this.service.updateDependency(this.projectId, dep.id, payload).subscribe({ next: () => { this.loadSchedule(); }, error: err => { console.error('Failed to update dependency', err); this.loadSchedule(); } });
+    this.trackCascadeUpdates(this.cascadeDependentTaskDates(this.selectedTask, ['actual', 'baseline'], true));
+    this.refreshGanttView();
+    this.service.updateDependency(this.projectId, dep.id, payload).subscribe({
+      next: () => this.saveInlineTask(this.selectedTask!),
+      error: err => console.error('Failed to update dependency', err)
+    });
   }
 
   getDependencyArrows(): DependencyArrow[] {
@@ -2137,8 +2242,8 @@ indentTask(): void {
   private getTaskVisualTop(task: GmProjectScheduleTask): number { if (this.isMilestone(task)) return 11; if (this.isSummary(task)) return 14; return 10; }
   private getTaskVisualHeight(task: GmProjectScheduleTask): number { if (this.isMilestone(task)) return 14; if (this.isSummary(task)) return 7; return 18; }
   private getTaskAnchorY(task: GmProjectScheduleTask, index: number): number { return (index * this.rowHeight) + this.getTaskVisualTop(task) + (this.getTaskVisualHeight(task) / 2); }
-  private getTaskStartX(task: GmProjectScheduleTask): number { if (this.isMilestone(task)) return this.getBarLeft(task) + (this.milestoneSize / 2); return this.getBarLeft(task); }
-  private getTaskEndX(task: GmProjectScheduleTask): number { if (this.isMilestone(task)) return this.getBarLeft(task) + (this.milestoneSize / 2); return this.getBarLeft(task) + this.getBarWidth(task); }
+  private getTaskStartX(task: GmProjectScheduleTask): number { if (this.isMilestone(task)) return this.getMilestoneLeft(task) + (this.milestoneSize / 2); return this.getBarLeft(task); }
+  private getTaskEndX(task: GmProjectScheduleTask): number { if (this.isMilestone(task)) return this.getMilestoneLeft(task) + (this.milestoneSize / 2); return this.getBarLeft(task) + this.getBarWidth(task); }
 
   get availablePredecessorTasks(): GmProjectScheduleTask[] {
     if (!this.selectedTask) return [];
@@ -2154,20 +2259,44 @@ indentTask(): void {
     if (alreadyExists) { console.error('Dependency already exists.'); return; }
     const payload: TaskDependencyDto = { predecessorTaskId, successorTaskId: this.selectedTask.id, dependencyType: this.newDependency.dependencyType || 'FS', lagDays: this.newDependency.lagDays ?? 0 };
     this.service.createDependency(this.projectId, payload).subscribe({
-      next: (created) => { if (this.selectedTask) this.selectedTask = { ...this.selectedTask, dependencies: [...(this.selectedTask.dependencies ?? []), created] }; this.newDependency = { predecessorTaskId: null, dependencyType: 'FS', lagDays: 0 }; this.loadSchedule(); },
+      next: (created) => {
+        if (this.selectedTask) {
+          this.selectedTask.dependencies = [...(this.selectedTask.dependencies ?? []), created];
+          this.trackCascadeUpdates(this.cascadeDependentTaskDates(this.selectedTask, ['actual', 'baseline'], true));
+          this.refreshGanttView();
+          this.saveInlineTask(this.selectedTask);
+        }
+        this.newDependency = { predecessorTaskId: null, dependencyType: 'FS', lagDays: 0 };
+      },
       error: (err) => { console.error('Failed to create dependency', err); }
     });
   }
 
   removeDependency(dependencyId?: number): void {
     if (!dependencyId) return;
-    this.service.deleteDependency(this.projectId, dependencyId).subscribe({ next: () => this.loadSchedule(), error: (err) => { console.error('Failed to delete dependency', err); } });
+    const task = this.selectedTask;
+    if (!task) return;
+    const previousDependencies = task.dependencies ?? [];
+    task.dependencies = previousDependencies.filter(dependency => dependency.id !== dependencyId);
+    this.trackCascadeUpdates(this.cascadeDependentTaskDates(task, ['actual', 'baseline'], true));
+    this.refreshGanttView();
+    this.service.deleteDependency(this.projectId, dependencyId).subscribe({
+      next: () => this.saveInlineTask(task),
+      error: (err) => { console.error('Failed to delete dependency', err); task.dependencies = previousDependencies; this.refreshGanttView(); }
+    });
   }
 
   // ---------------- Resources ----------------
 
   loadTaskResources(taskId: number): void {
     this.service.getTaskResources(this.projectId, taskId).subscribe({ next: (res) => { this.taskResources = res ?? []; }, error: (err) => { console.error('Failed to load task resources', err); this.taskResources = []; } });
+  }
+
+  loadSupplierOptions(taskId: number): void {
+    this.service.getTaskSupplierOptions(this.projectId, taskId).subscribe({
+      next: suppliers => this.supplierOptions = suppliers ?? [],
+      error: err => { console.error('Failed to load supplier options', err); this.supplierOptions = []; }
+    });
   }
 
   addResource(): void {
@@ -2196,6 +2325,27 @@ indentTask(): void {
     if (!this.selectedTask || !this.isActivity(this.selectedTask) || !resource.id) return;
     const payload: TaskResourceAssignment = { ...resource, resourceType: resource.resourceType?.trim() || undefined, assignmentName: resource.assignmentName?.trim() || undefined, quantity: resource.quantity ?? 1, unitsPercent: resource.unitsPercent ?? 100, cost: resource.cost ?? 0, assignedUserId: resource.assignedUserId ?? null };
     this.service.updateTaskResource(this.projectId, this.selectedTask.id, resource.id, payload).subscribe({ next: () => { this.loadTaskResources(this.selectedTask!.id); this.loadSchedule(); }, error: (err) => console.error('Failed to update task resource', err) });
+  }
+
+  getSupplierOptionsFor(resource: TaskResourceAssignment): { id: number; code: string | null; name: string }[] {
+    if (!resource.supplierId || this.supplierOptions.some(supplier => supplier.id === resource.supplierId)) {
+      return this.supplierOptions;
+    }
+    return [{ id: resource.supplierId, code: resource.supplierCode ?? null, name: resource.supplierName || resource.assignmentName || 'Inactive supplier' }, ...this.supplierOptions];
+  }
+
+  supplierLabel(supplier: { code: string | null; name: string }): string {
+    return supplier.code ? `${supplier.code} - ${supplier.name}` : supplier.name;
+  }
+
+  onExistingSupplierChange(resource: TaskResourceAssignment, supplierId: number | null): void {
+    const supplier = this.getSupplierOptionsFor(resource).find(item => item.id === Number(supplierId));
+    resource.supplierId = supplierId ? Number(supplierId) : null;
+    resource.supplierCode = supplier?.code ?? null;
+    resource.supplierName = supplier?.name ?? null;
+    resource.assignmentName = supplier?.name ?? '';
+    resource.resourceType = 'SUPPLIER';
+    this.saveResource(resource);
   }
 
   removeResource(assignmentId?: number): void {
@@ -2273,11 +2423,15 @@ indentTask(): void {
 
   addSupplierAssignment(): void {
     if (!this.selectedTask || !this.isActivity(this.selectedTask)) return;
-    const supplierName = this.newSupplier.assignmentName?.trim();
-    if (!supplierName) return;
-    const payload = { resourceType: 'SUPPLIER', assignmentName: supplierName, quantity: this.newSupplier.quantity ?? 1, unitsPercent: this.newSupplier.unitsPercent ?? 100, cost: this.newSupplier.cost ?? 0, assignedUserId: null };
+    const supplier = this.supplierOptions.find(item => item.id === Number(this.newSupplier.supplierId));
+    if (!supplier) { console.error('Please select a supplier.'); return; }
+    const payload: TaskResourceAssignment = {
+      resourceType: 'SUPPLIER', assignmentName: supplier.name,
+      quantity: this.newSupplier.quantity ?? 1, unitsPercent: this.newSupplier.unitsPercent ?? 100,
+      cost: this.newSupplier.cost ?? 0, assignedUserId: null, supplierId: supplier.id
+    };
     this.service.createTaskResource(this.projectId, this.selectedTask.id, payload).subscribe({
-      next: () => { this.newSupplier = { resourceType: 'SUPPLIER', assignmentName: '', quantity: 1, unitsPercent: 100, cost: 0, assignedUserId: null }; this.loadTaskResources(this.selectedTask!.id); this.loadSchedule(); },
+      next: () => { this.newSupplier = { resourceType: 'SUPPLIER', assignmentName: '', quantity: 1, unitsPercent: 100, cost: 0, assignedUserId: null, supplierId: null }; this.loadTaskResources(this.selectedTask!.id); this.loadSchedule(); },
       error: err => { console.error('Failed to create supplier assignment', err); }
     });
   }
@@ -2370,23 +2524,35 @@ if (this.columnVisibility.baselineEnd) total += 95;
   }
 
   private getLeftFromDate(value?: string | null): number {
-    if (!value || !this.timelineDays.length) return 0;
-    const start = this.toDateOnly(value).getTime();
-    const min = this.timelineDays[0].date.getTime();
-    const dayDiff = Math.floor((start - min) / 86400000);
-    return Math.max(0, dayDiff * this.dayWidth);
+    const dayIndex = this.getTimelineDayIndex(value);
+    return dayIndex < 0 ? 0 : dayIndex * this.dayWidth;
   }
 
   private getWidthFromDates(startValue?: string | null, endValue?: string | null, type?: string | null): number {
     if ((type || '').toUpperCase() === 'MILESTONE') return 12;
     if (!startValue || !endValue) return this.dayWidth;
-    const start = this.toDateOnly(startValue).getTime();
-    const end = this.toDateOnly(endValue).getTime();
-    const diffDays = Math.max(1, Math.floor((end - start) / 86400000) + 1);
-    return diffDays * this.dayWidth;
+    const startIndex = this.getTimelineDayIndex(startValue);
+    const endIndex = this.getTimelineDayIndex(endValue);
+    if (startIndex < 0 || endIndex < startIndex) return this.dayWidth;
+
+    // The timeline contains every calendar day, while task duration contains
+    // working days only. Geometry must span the displayed start/end cells.
+    return (endIndex - startIndex + 1) * this.dayWidth;
+  }
+
+  private getTimelineDayIndex(value?: string | null): number {
+    if (!value || !this.timelineDays.length) return -1;
+    const dateKey = this.dateToString(this.toDateOnly(value));
+    return this.timelineDays.findIndex(day => this.dateToString(day.date) === dateKey);
   }
 
   private toDateOnly(value: string): Date {
+    const isoDate = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+    if (isoDate) return new Date(Number(isoDate[1]), Number(isoDate[2]) - 1, Number(isoDate[3]));
+
+    const displayDate = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(value);
+    if (displayDate) return new Date(Number(displayDate[3]), Number(displayDate[2]) - 1, Number(displayDate[1]));
+
     const d = new Date(value);
     return new Date(d.getFullYear(), d.getMonth(), d.getDate());
   }
@@ -2476,8 +2642,11 @@ if (this.columnVisibility.baselineEnd) total += 95;
     return this.compareDateStrings(a, b) >= 0 ? a : b;
   }
 
-  private getTaskDurationDays(task: GmProjectScheduleTask): number {
-    return this.calculateDurationDays(task.baselineStart ?? task.plannedStart, task.baselineEnd ?? task.plannedEnd, this.isMilestone(task));
+  private getTaskDurationDays(task: GmProjectScheduleTask, mode: 'actual' | 'baseline'): number {
+    if (this.isMilestone(task)) return 0;
+    const start = mode === 'actual' ? task.actualStart : task.baselineStart ?? task.plannedStart;
+    const end = mode === 'actual' ? task.actualEnd : task.baselineEnd ?? task.plannedEnd;
+    return start && end ? this.calculateScheduledDurationDays(start, end) : this.normalizeDuration(task.durationDays);
   }
 
   private buildTaskUpdatePayload(task: GmProjectScheduleTask): GmUpdateProjectTaskRequest {
@@ -2511,13 +2680,20 @@ if (this.columnVisibility.baselineEnd) total += 95;
     };
   }
 
-  private recalculateTaskFromPredecessors(task: GmProjectScheduleTask): boolean {
+  private recalculateTaskFromPredecessors(
+    task: GmProjectScheduleTask,
+    mode: 'actual' | 'baseline'
+  ): boolean {
     const deps = (task.dependencies ?? []).filter(dep => !!dep.predecessorTaskId);
     if (!deps.length) return false;
     if ((task.scheduleMode || 'AUTO').toUpperCase() === 'MANUAL') return false;
-    const oldStart = task.baselineStart ?? null;
-    const oldEnd = task.baselineEnd ?? null;
-    const duration = this.getTaskDurationDays(task);
+    const oldStart = mode === 'actual'
+      ? task.actualStart ?? null
+      : task.baselineStart ?? task.plannedStart ?? null;
+    const oldEnd = mode === 'actual'
+      ? task.actualEnd ?? null
+      : task.baselineEnd ?? task.plannedEnd ?? null;
+    const duration = this.getTaskDurationDays(task, mode);
     let requiredStart: string | null = null;
     let requiredEnd: string | null = null;
     for (const dep of deps) {
@@ -2525,14 +2701,23 @@ if (this.columnVisibility.baselineEnd) total += 95;
       if (!predecessor) continue;
       const lag = dep.lagDays ?? 0;
       const type = (dep.dependencyType || 'FS').toUpperCase();
-      const predStart = predecessor.baselineStart ? this.normalizeDateString(predecessor.baselineStart) : null;
-      const predEnd = predecessor.baselineEnd ? this.normalizeDateString(predecessor.baselineEnd) : predStart;
+      const predStartValue = mode === 'actual'
+        ? predecessor.actualStart
+        : predecessor.baselineStart ?? predecessor.plannedStart;
+      const predEndValue = mode === 'actual'
+        ? predecessor.actualEnd
+        : predecessor.baselineEnd ?? predecessor.plannedEnd;
+      const predStart = predStartValue ? this.normalizeDateString(predStartValue) : null;
+      const predEnd = predEndValue ? this.normalizeDateString(predEndValue) : predStart;
       if (!predStart && !predEnd) continue;
       switch (type) {
-        case 'SS': if (predStart) requiredStart = this.maxDateString(requiredStart, this.addDaysToDateString(predStart, lag)); break;
-        case 'FF': if (predEnd) requiredEnd = this.maxDateString(requiredEnd, this.addDaysToDateString(predEnd, lag)); break;
-        case 'SF': if (predStart) requiredEnd = this.maxDateString(requiredEnd, this.addDaysToDateString(predStart, lag)); break;
-        default: if (predEnd) requiredStart = this.maxDateString(requiredStart, this.addDaysToDateString(predEnd, lag)); break;
+        case 'SS': if (predStart) requiredStart = this.maxDateString(requiredStart, this.addScheduledDaysToDateString(predStart, lag)); break;
+        case 'FF': if (predEnd) requiredEnd = this.maxDateString(requiredEnd, this.addScheduledDaysToDateString(predEnd, lag)); break;
+        case 'SF': if (predStart) requiredEnd = this.maxDateString(requiredEnd, this.addScheduledDaysToDateString(predStart, lag)); break;
+        default:
+          // Finish-to-start begins on the next working day for zero lag.
+          if (predEnd) requiredStart = this.maxDateString(requiredStart, this.addScheduledDaysToDateString(predEnd, lag + 1));
+          break;
       }
     }
     let newStart = oldStart;
@@ -2542,19 +2727,62 @@ if (this.columnVisibility.baselineEnd) total += 95;
       if (!milestoneDate) return false;
       newStart = milestoneDate; newEnd = milestoneDate;
     } else if (requiredStart && requiredEnd) {
-      const startFromEnd = this.addDaysToDateString(requiredEnd, -(duration - 1));
+      const startFromEnd = this.addScheduledDaysToDateString(requiredEnd, -(duration - 1));
       newStart = this.maxDateString(requiredStart, startFromEnd);
-      newEnd = this.addDaysToDateString(newStart!, duration - 1);
-      if (this.compareDateStrings(newEnd, requiredEnd) < 0) { newEnd = requiredEnd; newStart = this.addDaysToDateString(newEnd, -(duration - 1)); }
-    } else if (requiredStart) { newStart = requiredStart; newEnd = this.addDaysToDateString(newStart, duration - 1); }
-    else if (requiredEnd) { newEnd = requiredEnd; newStart = this.addDaysToDateString(newEnd, -(duration - 1)); }
+      newEnd = this.addScheduledDaysToDateString(newStart!, duration - 1);
+      if (this.compareDateStrings(newEnd, requiredEnd) < 0) { newEnd = requiredEnd; newStart = this.addScheduledDaysToDateString(newEnd, -(duration - 1)); }
+    } else if (requiredStart) { newStart = requiredStart; newEnd = this.addScheduledDaysToDateString(newStart, duration - 1); }
+    else if (requiredEnd) { newEnd = requiredEnd; newStart = this.addScheduledDaysToDateString(newEnd, -(duration - 1)); }
     newStart = this.normalizeDateString(newStart);
     newEnd = this.normalizeDateString(newEnd);
     const changed = newStart !== oldStart || newEnd !== oldEnd;
     if (!changed) return false;
-    task.baselineStart = newStart ?? undefined;
-    task.baselineEnd = newEnd ?? undefined;
+    if (mode === 'actual') {
+      task.actualStart = newStart ?? undefined;
+      task.actualEnd = newEnd ?? undefined;
+    } else {
+      task.baselineStart = newStart ?? undefined;
+      task.baselineEnd = newEnd ?? undefined;
+      task.plannedStart = task.baselineStart;
+      task.plannedEnd = task.baselineEnd;
+    }
     return true;
+  }
+
+  private getCascadeModes(changed: 'baselineStart' | 'baselineEnd' | 'actualStart' | 'actualEnd' | 'duration'): Array<'actual' | 'baseline'> {
+    if (changed === 'actualStart' || changed === 'actualEnd') return ['actual'];
+    if (changed === 'baselineStart' || changed === 'baselineEnd') return ['baseline'];
+    return ['actual', 'baseline'];
+  }
+
+  private cascadeDependentTaskDates(
+    source: GmProjectScheduleTask,
+    modes: Array<'actual' | 'baseline'>,
+    recalculateSource = false
+  ): number[] {
+    const changedIds = new Set<number>();
+    const successorsOf = (taskId: number) => this.tasks.filter(task =>
+      (task.dependencies ?? []).some(dependency => dependency.predecessorTaskId === taskId)
+    );
+
+    for (const mode of modes) {
+      const queue = recalculateSource ? [source] : successorsOf(source.id);
+      const visited = new Set<number>();
+      while (queue.length) {
+        const task = queue.shift()!;
+        if (visited.has(task.id)) continue;
+        visited.add(task.id);
+        if (this.recalculateTaskFromPredecessors(task, mode)) {
+          changedIds.add(task.id);
+          queue.push(...successorsOf(task.id));
+        }
+      }
+    }
+    return [...changedIds];
+  }
+
+  private trackCascadeUpdates(taskIds: number[]): void {
+    taskIds.forEach(id => this.pendingCascadeSaveIds.add(id));
   }
 
   private persistShiftedTasks(taskIds: number[]) {
@@ -2850,6 +3078,17 @@ if (this.columnVisibility.baselineEnd) total += 95;
     if (nextPredecessorId !== null && !this.getAvailablePredecessors(task).some(candidate => candidate.id === nextPredecessorId)) return;
     if (!existing && nextPredecessorId === null) return;
 
+    const previousDependencies = (task.dependencies ?? []).map(dependency => ({ ...dependency }));
+    if (nextPredecessorId === null) {
+      task.dependencies = (task.dependencies ?? []).filter(dependency => dependency.id !== existing!.id);
+    } else if (existing) {
+      task.dependencies = [{ ...existing, predecessorTaskId: nextPredecessorId }, ...(task.dependencies ?? []).slice(1)];
+    } else {
+      task.dependencies = [{ predecessorTaskId: nextPredecessorId, successorTaskId: task.id, dependencyType: 'FS', lagDays: 0 }];
+    }
+    this.trackCascadeUpdates(this.cascadeDependentTaskDates(task, ['actual', 'baseline'], true));
+    this.refreshGanttView();
+
     const save = nextPredecessorId === null
       ? this.service.deleteDependency(this.projectId, existing!.id!)
       : existing?.id
@@ -2866,10 +3105,18 @@ if (this.columnVisibility.baselineEnd) total += 95;
           });
 
     save.subscribe({
-      next: () => this.loadSchedule(),
+      next: saved => {
+        if (nextPredecessorId !== null && !existing && saved) {
+          const local = task.dependencies?.[0];
+          if (local) task.dependencies = [{ ...local, ...saved }, ...(task.dependencies ?? []).slice(1)];
+          this.refreshGanttView();
+        }
+        this.saveInlineTask(task);
+      },
       error: err => {
         console.error('Failed to save inline predecessor', err);
-        this.loadSchedule();
+        task.dependencies = previousDependencies;
+        this.refreshGanttView();
       }
     });
   }
