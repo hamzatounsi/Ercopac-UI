@@ -4,6 +4,9 @@ export interface TaskResourceAssignment {
   taskId?: number;
   assignedUserId?: number | null;
   assignedUserName?: string | null;
+  supplierId?: number | null;
+  supplierCode?: string | null;
+  supplierName?: string | null;
   resourceType?: string | null;
   assignmentName?: string | null;
   quantity?: number | null;

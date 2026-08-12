@@ -21,7 +21,9 @@ import {
   SaveOrganisationResourceType,
   SaveProjectCategoryConfig,
   SaveProjectTypeConfig,
+  SaveSupplierConfig,
   SecuritySettings,
+  SupplierConfig,
   UpdateOrganisationProfile
 } from '../models/org-admin.models';
 
@@ -178,6 +180,20 @@ export class OrgAdminService {
 
   deleteCustomer(id: number): Observable<void> {
     return this.http.delete<void>(`${this.configurationUrl}/customers/${id}`);
+  }
+
+  getSuppliers(): Observable<SupplierConfig[]> {
+    return this.http.get<SupplierConfig[]>(`${this.baseUrl}/suppliers`);
+  }
+
+  saveSupplier(id: number | null, request: SaveSupplierConfig): Observable<SupplierConfig> {
+    return id === null
+      ? this.http.post<SupplierConfig>(`${this.baseUrl}/suppliers`, request)
+      : this.http.put<SupplierConfig>(`${this.baseUrl}/suppliers/${id}`, request);
+  }
+
+  deactivateSupplier(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/suppliers/${id}`);
   }
 }
 

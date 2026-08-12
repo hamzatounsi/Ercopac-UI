@@ -203,3 +203,19 @@ export interface CustomerConfig {
 }
 
 export type SaveCustomerConfig = Omit<CustomerConfig, 'id' | 'projectsUsing'>;
+
+export interface SupplierConfig {
+  id: number;
+  name: string;
+  code: string;
+  contactPerson: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  notes: string | null;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type SaveSupplierConfig = Omit<SupplierConfig, 'id' | 'createdAt' | 'updatedAt'>;
