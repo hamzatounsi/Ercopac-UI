@@ -54,7 +54,9 @@ export class GanttDatePickerComponent implements OnChanges, OnDestroy {
     const month = this.viewDate.getMonth();
     const first = new Date(year, month, 1);
     const offset = (first.getDay() || 7) - 1;
-    const workingDays = new Set(this.workingDays);
+    const workingDays = new Set(
+      this.workingDays.map(day => Number(day)).filter(day => Number.isInteger(day) && day >= 1 && day <= 7)
+    );
 
     return Array.from({ length: 42 }, (_, index) => {
       const date = new Date(year, month, index - offset + 1);
@@ -98,6 +100,7 @@ export class GanttDatePickerComponent implements OnChanges, OnDestroy {
   }
 
   selectDay(event: MouseEvent, day: CalendarDay): void {
+    event.preventDefault();
     event.stopPropagation();
     if (this.disabled || !day.inCurrentMonth || !day.working) return;
     this.valueChange.emit(day.value);
