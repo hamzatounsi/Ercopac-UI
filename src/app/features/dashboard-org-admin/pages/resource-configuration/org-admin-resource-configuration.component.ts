@@ -182,6 +182,37 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
     const query = this.normalizedSearch;
     return this.resourceTypes.filter(item => !query || `${item.code} ${item.label || ''}`.toLowerCase().includes(query));
   }
+
+  get filteredSuppliers(): SupplierConfig[] {
+    const query = this.normalizedSearch;
+    return this.suppliers.filter(item => !query || [
+      item.code, item.name, item.contactPerson, item.email, item.phone
+    ].filter(Boolean).join(' ').toLowerCase().includes(query));
+  }
+
+  openSupplier(item?: SupplierConfig): void {
+    this.dialogKind = 'supplier';
+    this.editingId = item?.id ?? null;
+    this.supplierForm.reset({
+      name: item?.name ?? '', code: item?.code ?? '', contactPerson: item?.contactPerson ?? '',
+      email: item?.email ?? '', phone: item?.phone ?? '', address: item?.address ?? '',
+      notes: item?.notes ?? '', active: item?.active ?? true
+    });
+  }
+
+  saveSupplier(): void {
+    if (this.supplierForm.invalid || this.saving) { this.supplierForm.markAllAsTouched(); return; }
+    const value = this.supplierForm.getRawValue();
+    const payload: SaveSupplierConfig = {
+      name: value.name.trim(), code: value.code.trim().toUpperCase(),
+      contactPerson: this.optional(value.contactPerson),
+      email: this.optional(value.email)?.toLowerCase() ?? null,
+      phone: this.optional(value.phone), address: this.optional(value.address),
+      notes: this.optional(value.notes), active: value.active
+    };
+    this.saveConfiguration(this.adminService.saveSupplier(this.editingId, payload), 'supplier');
+  }
+
   openResourceType(item?: OrganisationResourceType): void {
   this.dialogKind = 'resourceType';
   this.editingId = item?.id ?? null;
