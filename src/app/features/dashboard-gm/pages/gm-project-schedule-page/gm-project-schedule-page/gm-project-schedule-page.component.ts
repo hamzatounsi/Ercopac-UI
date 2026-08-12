@@ -30,19 +30,13 @@ import { TaskConsoleConfig } from '../../../models/task-console-config.model';
 import { TaskConsoleLog } from '../../../models/task-console-log.model';
 import { ProjectDashboardRow } from '../../../models/project-dashboard-row.model';
 import { GmDashboardService } from '../../../services/gm-dashboard.service';
+import { AuthService } from '../../../../../core/auth/auth.service';
 import * as XLSX from 'xlsx';
 
 export interface TimelineDay {
   label: string;
   date: Date;
-  weekNumber: number;
-  isWeekStart: boolean;
-}
-
-export interface TimelineWeek {
-  weekNumber: number;
-  startLabel: string;
-  width: number;
+  isMonthStart: boolean;
 }
 
 export interface DependencySegment {
@@ -68,6 +62,31 @@ export interface TimelineMonth {
   width: number;
 }
 
+type GanttColumnVisibility = {
+  id: boolean;
+  wbs: boolean;
+  customer: boolean;
+  name: boolean;
+  type: boolean;
+  resourceType: boolean;
+  department: boolean;
+  actualStart: boolean;
+  actualFinish: boolean;
+  duration: boolean;
+  predecessors: boolean;
+  progress: boolean;
+  baselineStart: boolean;
+  baselineEnd: boolean;
+};
+
+interface GanttDisplayPreferences {
+  version: 1;
+  columnVisibility?: Partial<GanttColumnVisibility>;
+  activeZoom?: '2W' | '1M' | '2M' | 'Day';
+  activeMode?: 'baseline' | 'actual';
+  leftPaneWidth?: number;
+}
+
 @Component({
   selector: 'app-gm-project-schedule-page',
   templateUrl: './gm-project-schedule-page.component.html',
@@ -79,6 +98,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   @ViewChild('timelineHeaderScroll') timelineHeaderScroll!: ElementRef<HTMLDivElement>;
   @ViewChild('leftHeaderScroll') leftHeaderScroll!: ElementRef<HTMLDivElement>;
   @ViewChild('monthHeaderScroll') monthHeaderScroll!: ElementRef<HTMLDivElement>;
+  @ViewChild('plannerMain') plannerMain?: ElementRef<HTMLElement>;
 
   projectId!: number;
   loading = false;
@@ -153,6 +173,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   }[] = [];
 
   calendars: ProjectCalendar[] = [];
+  activeWorkingDays: number[] = [1, 2, 3, 4, 5];
   calendarEditorOpen = false;
   editingCalendarId: number | null = null;
   calendarName = '';
@@ -187,7 +208,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   selectedLevelFilter: number | 'ALL' = 'ALL';
   selectedDepartmentFilter = 'ALL';
 
-  columnVisibility = {
+  columnVisibility: GanttColumnVisibility = {
     id: true,
     wbs: true,
     customer: true,
@@ -206,8 +227,10 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
 
   leftPaneWidth = 750;
   private isResizing = false;
-  readonly minLeftPaneWidth = 520;
-  readonly maxLeftPaneWidth = 1300;
+  structureSaving = false;
+  readonly minLeftPaneWidth = 120;
+  readonly minTimelineWidth = 120;
+  readonly plannerResizerWidth = 4;
 
   editedRows: Record<number, Partial<GmProjectScheduleTask>> = {};
   collapsedTaskIds = new Set<number>();
@@ -264,7 +287,8 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
     private calendarService: GmProjectCalendarService,
     private projectTimelineService: GmProjectTimelineService,
     private templateService: GmProjectTemplateService,
-    private gmDashboardService: GmDashboardService
+    private gmDashboardService: GmDashboardService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -278,18 +302,15 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
       if (!Number.isSafeInteger(projectId) || projectId <= 0) return;
       this.projectId = projectId;
       this.isMyCsSchedule = this.router.url.includes('/my-cs/');
+      this.restoreGanttDisplayPreferences();
       this.loadSchedule();
       this.loadResourceOptions();
       this.loadProjectName();
     });
 
-    const savedWidth = localStorage.getItem('gmScheduleLeftPaneWidth');
-    if (savedWidth) {
-      this.leftPaneWidth = Number(savedWidth);
-    }
   }
 
-  ngAfterViewInit(): void {}
+  ngAfterViewInit(): void { this.clampLeftPaneWidth(); }
 
   @HostListener('document:keydown', ['$event'])
   handleDocumentKeydown(event: KeyboardEvent): void {
@@ -319,6 +340,76 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
         this.projectName = `Project ${this.projectId}`;
       }
     });
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    const previousWidth = this.leftPaneWidth;
+    this.clampLeftPaneWidth();
+    if (this.leftPaneWidth !== previousWidth) this.persistGanttDisplayPreferences();
+  }
+
+  // ---------------- Display preferences ----------------
+
+  private getGanttDisplayPreferencesKey(): string | null {
+    const userId = this.authService.getCurrentUserId();
+    if (userId === null || !Number.isSafeInteger(userId) || userId <= 0 || !Number.isSafeInteger(this.projectId) || this.projectId <= 0) {
+      return null;
+    }
+    return `projectum:gantt:preferences:${userId}:${this.projectId}`;
+  }
+
+  private restoreGanttDisplayPreferences(): void {
+    const key = this.getGanttDisplayPreferencesKey();
+    if (!key) return;
+
+    try {
+      const saved = JSON.parse(localStorage.getItem(key) || 'null') as GanttDisplayPreferences | null;
+      if (!saved || typeof saved !== 'object' || saved.version !== 1) return;
+
+      if (saved.columnVisibility && typeof saved.columnVisibility === 'object') {
+        (Object.keys(this.columnVisibility) as Array<keyof GanttColumnVisibility>).forEach(column => {
+          const visible = saved.columnVisibility?.[column];
+          if (typeof visible === 'boolean') this.columnVisibility[column] = visible;
+        });
+      }
+      if (saved.activeMode === 'baseline' || saved.activeMode === 'actual') this.activeMode = saved.activeMode;
+      if (saved.activeZoom === '2W' || saved.activeZoom === '1M' || saved.activeZoom === '2M' || saved.activeZoom === 'Day') {
+        this.activeZoom = saved.activeZoom;
+        this.dayWidth = this.getDayWidth(saved.activeZoom);
+      }
+      if (typeof saved.leftPaneWidth === 'number' && Number.isFinite(saved.leftPaneWidth)) this.leftPaneWidth = saved.leftPaneWidth;
+    } catch {
+      // Invalid local display preferences are ignored so the schedule uses defaults.
+    }
+  }
+
+  private persistGanttDisplayPreferences(): void {
+    const key = this.getGanttDisplayPreferencesKey();
+    if (!key) return;
+
+    const preferences: GanttDisplayPreferences = {
+      version: 1,
+      columnVisibility: { ...this.columnVisibility },
+      activeZoom: this.activeZoom,
+      activeMode: this.activeMode,
+      leftPaneWidth: this.leftPaneWidth
+    };
+
+    try {
+      localStorage.setItem(key, JSON.stringify(preferences));
+    } catch {
+      // Storage can be unavailable or full; display changes still work for this session.
+    }
+  }
+
+  private getDayWidth(zoom: '2W' | '1M' | '2M' | 'Day'): number {
+    switch (zoom) {
+      case '2W': return 22;
+      case '1M': return 40;
+      case '2M': return 28;
+      case 'Day': return 54;
+    }
   }
 
   // ---------------- Schedule loading ----------------
@@ -362,7 +453,10 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
             }
           }
 
-          setTimeout(() => this.resetScroll(), 0);
+          setTimeout(() => {
+            this.clampLeftPaneWidth();
+            this.resetScroll();
+          }, 0);
         } catch (err) {
           // A malformed task must not strand the route on the loading screen.
           console.error('Failed to initialize project schedule', err);
@@ -485,6 +579,11 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
     }
   }
 
+  setTaskFormDate(field: 'baselineStart' | 'baselineEnd' | 'actualStart' | 'actualEnd', value: string): void {
+    const control = this.taskForm.get(field);
+    if (control && control.value !== value) control.setValue(value);
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
@@ -561,31 +660,31 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
 
   /** Uses the persisted active project calendar, or the standard Mon-Fri fallback. */
   private getWorkingDays(): Set<number> {
-    const calendar = this.calendars.find(item => item.isDefault);
-    const days = calendar?.workingDays?.filter(day => Number.isInteger(day) && day >= 1 && day <= 7);
-    return days?.length ? new Set(days) : new Set([1, 2, 3, 4, 5]);
+    return new Set(this.activeWorkingDays);
+  }
+
+  private isWorkingDate(date: Date): boolean {
+    return this.getWorkingDays().has(date.getDay() || 7);
   }
 
   private calculateScheduledDurationDays(start: string, end: string): number {
-    const workingDays = this.getWorkingDays();
     const cursor = this.toDateOnly(start);
     const last = this.toDateOnly(end);
     let duration = 0;
     while (cursor <= last) {
-      if (workingDays.has(cursor.getDay() || 7)) duration++;
+      if (this.isWorkingDate(cursor)) duration++;
       cursor.setDate(cursor.getDate() + 1);
     }
     return Math.max(1, duration);
   }
 
   private addScheduledDaysToDateString(dateStr: string, days: number): string {
-    const workingDays = this.getWorkingDays();
     const cursor = this.toDateOnly(dateStr);
     const direction = days < 0 ? -1 : 1;
     let remaining = Math.abs(days);
     while (remaining > 0) {
       cursor.setDate(cursor.getDate() + direction);
-      if (workingDays.has(cursor.getDay() || 7)) remaining--;
+      if (this.isWorkingDate(cursor)) remaining--;
     }
     return `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`;
   }
@@ -628,6 +727,17 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   }
 
   // ---------------- Drawer ----------------
+
+  selectTask(task: GmProjectScheduleTask): void {
+    this.closeContextMenu();
+    this.selectedTask = task;
+  }
+
+  openTaskDrawerFromRow(event: MouseEvent, task: GmProjectScheduleTask): void {
+    const target = event.target as HTMLElement;
+    if (target.closest('input, select, textarea, button, label')) return;
+    this.openTaskDrawer(task);
+  }
 
   openTaskDrawer(task: GmProjectScheduleTask): void {
     this.closeContextMenu();
@@ -891,17 +1001,84 @@ indentTask(): void {
   this.syncSelectedTaskReference();
 }
 
+  indentTaskPersisted(): void {
+    if (!this.selectedTask || this.structureSaving) return;
+    const index = this.tasks.findIndex(task => task.id === this.selectedTask!.id);
+    if (index <= 0) return;
+
+    const current = this.tasks[index];
+    const previous = this.tasks[index - 1];
+    if (this.getWbsLevel(current) > this.getWbsLevel(previous)) return;
+
+    const parent = this.isSummary(previous)
+      ? previous
+      : this.tasks.find(task => task.id === previous.parentId) ?? null;
+    if (!parent || !this.isSummary(parent)) {
+      alert('A task can only be indented under a Summary task.');
+      return;
+    }
+    if (parent.id === current.id || this.getSubtreeTaskIds(current.id).has(parent.id)) return;
+
+    this.pushHistory();
+    current.parentId = parent.id;
+    this.rebuildLocalTaskStructure();
+  }
+
+  outdentTaskPersisted(): void {
+    if (!this.selectedTask || this.structureSaving) return;
+    const current = this.tasks.find(task => task.id === this.selectedTask!.id);
+    const parent = current ? this.tasks.find(task => task.id === current.parentId) ?? null : null;
+    if (!current || !parent) return;
+
+    this.pushHistory();
+    const subtreeIds = this.getSubtreeTaskIds(current.id);
+    const currentSubtree = this.tasks.filter(task => subtreeIds.has(task.id));
+    const parentSubtreeIds = this.getSubtreeTaskIds(parent.id, subtreeIds);
+    const withoutCurrent = this.tasks.filter(task => !subtreeIds.has(task.id));
+    const insertAfterIndex = withoutCurrent.reduce(
+      (lastIndex, task, index) => parentSubtreeIds.has(task.id) ? index : lastIndex,
+      -1
+    );
+
+    current.parentId = parent.parentId ?? null;
+    this.tasks = [
+      ...withoutCurrent.slice(0, insertAfterIndex + 1),
+      ...currentSubtree,
+      ...withoutCurrent.slice(insertAfterIndex + 1)
+    ];
+    this.rebuildLocalTaskStructure();
+  }
+
+  private getSubtreeTaskIds(rootId: number, excludedIds = new Set<number>()): Set<number> {
+    const ids = new Set<number>();
+    const collect = (taskId: number): void => {
+      if (ids.has(taskId) || excludedIds.has(taskId)) return;
+      ids.add(taskId);
+      this.tasks.filter(task => task.parentId === taskId).forEach(task => collect(task.id));
+    };
+    collect(rootId);
+    return ids;
+  }
+
+  private rebuildLocalTaskStructure(): void {
+    this.recalculateWbsCodes();
+    this.recalculateDisplayOrders();
+    this.recalculateSummaryDates();
+    this.syncSelectedTaskReference();
+    this.persistScheduleStructure();
+  }
+
   indentTaskFromContext(): void {
     if (!this.contextMenuTask) return;
     this.selectedTask = this.contextMenuTask;
-    this.indentTask();
+    this.indentTaskPersisted();
     this.closeContextMenu();
   }
 
   outdentTaskFromContext(): void {
     if (!this.contextMenuTask) return;
     this.selectedTask = this.contextMenuTask;
-    this.outdentTask();
+    this.outdentTaskPersisted();
     this.closeContextMenu();
   }
 
@@ -974,7 +1151,12 @@ indentTask(): void {
   toggleColumnsMenu(): void { this.columnsMenuOpen = !this.columnsMenuOpen; this.levelMenuOpen = false; this.deptMenuOpen = false; }
   setLevelFilter(level: number | 'ALL'): void { this.selectedLevelFilter = level; this.levelMenuOpen = false; }
   setDepartmentFilter(dept: string): void { this.selectedDepartmentFilter = dept; this.deptMenuOpen = false; }
-  toggleColumn(columnKey: keyof typeof this.columnVisibility): void { this.columnVisibility[columnKey] = !this.columnVisibility[columnKey]; }
+  toggleColumn(columnKey: keyof typeof this.columnVisibility): void {
+    this.columnVisibility[columnKey] = !this.columnVisibility[columnKey];
+    this.persistGanttDisplayPreferences();
+  }
+
+  onColumnVisibilityChange(): void { this.persistGanttDisplayPreferences(); }
 
   getWbsLevel(task: GmProjectScheduleTask): number {
     if (!task.wbsCode) return 1;
@@ -1012,17 +1194,14 @@ indentTask(): void {
     this.activeMode = mode;
     if (this.selectedTask) this.patchTaskForm(this.selectedTask);
     this.buildTimeline();
+    this.persistGanttDisplayPreferences();
   }
 
   setZoom(zoom: '2W' | '1M' | '2M' | 'Day'): void {
     this.activeZoom = zoom;
-    switch (zoom) {
-      case '2W': this.dayWidth = 22; break;
-      case '1M': this.dayWidth = 40; break;
-      case '2M': this.dayWidth = 28; break;
-      case 'Day': this.dayWidth = 54; break;
-    }
+    this.dayWidth = this.getDayWidth(zoom);
     this.buildTimeline();
+    this.persistGanttDisplayPreferences();
   }
 
   getTaskTypeShort(type?: string): string {
@@ -1041,7 +1220,7 @@ indentTask(): void {
 
   onInlineDateChange(
     task: GmProjectScheduleTask,
-    field: 'actualStart' | 'actualEnd',
+    field: 'actualStart' | 'actualEnd' | 'baselineStart' | 'baselineEnd',
     value: string
   ): void {
     if (value === this.formatDateForInput(task[field])) return;
@@ -1367,6 +1546,7 @@ indentTask(): void {
     if (task.durationDays !== undefined && (task.durationDays < 0 || (taskType === 'ACTIVITY' && task.durationDays === 0))) {
       throw new Error(`Import row ${rowNumber}: duration is invalid for this task type.`);
     }
+    this.normalizeImportedTaskDates(task);
     const importedChange = task.durationDays !== undefined
       ? (task.baselineStart ? 'baselineStart' : task.actualStart ? 'actualStart' : 'duration')
       : (task.baselineEnd ? 'baselineEnd' : task.actualEnd ? 'actualEnd' : 'duration');
@@ -1374,6 +1554,39 @@ indentTask(): void {
       throw new Error(`Import row ${rowNumber}: an end date cannot be before its start date.`);
     }
     return this.buildTaskUpdatePayload(task);
+  }
+
+  /** Import is the one place legacy/non-working endpoints are normalized before persistence. */
+  private normalizeImportedTaskDates(task: GmProjectScheduleTask): void {
+    const moveToWorkingDay = (value: string | null | undefined, direction: 1 | -1): string | undefined => {
+      if (!value) return undefined;
+      const date = this.toDateOnly(value);
+      while (!this.isWorkingDate(date)) date.setDate(date.getDate() + direction);
+      return this.dateToString(date);
+    };
+
+    if (this.isMilestone(task)) {
+      const baselineDate = moveToWorkingDay(task.baselineStart ?? task.plannedStart ?? task.baselineEnd ?? task.plannedEnd, 1);
+      const actualDate = moveToWorkingDay(task.actualStart ?? task.actualEnd, 1);
+      task.baselineStart = baselineDate;
+      task.baselineEnd = baselineDate;
+      task.plannedStart = baselineDate;
+      task.plannedEnd = baselineDate;
+      task.actualStart = actualDate;
+      task.actualEnd = actualDate;
+      return;
+    }
+
+    task.baselineStart = moveToWorkingDay(task.baselineStart, 1);
+    task.plannedStart = moveToWorkingDay(task.plannedStart, 1);
+    task.actualStart = moveToWorkingDay(task.actualStart, 1);
+    task.baselineEnd = moveToWorkingDay(task.baselineEnd, -1);
+    task.plannedEnd = moveToWorkingDay(task.plannedEnd, -1);
+    task.actualEnd = moveToWorkingDay(task.actualEnd, -1);
+
+    if (this.hasInvalidDateRange(task.baselineStart, task.baselineEnd)) task.baselineEnd = task.baselineStart;
+    if (this.hasInvalidDateRange(task.plannedStart, task.plannedEnd)) task.plannedEnd = task.plannedStart;
+    if (this.hasInvalidDateRange(task.actualStart, task.actualEnd)) task.actualEnd = task.actualStart;
   }
 
   private normalizeImportHeader(value: string): string {
@@ -1403,6 +1616,10 @@ indentTask(): void {
       if (!Number.isNaN(parsed.getTime())) date = parsed;
     }
     if (!date || Number.isNaN(date.getTime())) throw new Error(`Import row ${row}: date is invalid.`);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  }
+
+  private dateToString(date: Date): string {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   }
 
@@ -1476,10 +1693,21 @@ indentTask(): void {
   }
 
   private persistScheduleStructure(): void {
-    const requests = this.tasks.map(task => this.service.updateTask(this.projectId, task.id, this.buildTaskUpdatePayload(task)));
-    forkJoin(requests).subscribe({
-      next: () => { this.computeStats(); this.buildTimeline(); this.syncSelectedTaskReference(); },
-      error: err => { console.error('Failed to persist WBS structure', err); this.loadSchedule(); }
+    if (this.structureSaving) return;
+    this.structureSaving = true;
+    const structure = this.tasks.map(task => ({
+      taskId: task.id,
+      parentId: task.parentId ?? null,
+      displayOrder: task.displayOrder ?? 0
+    }));
+    this.service.updateTaskStructure(this.projectId, structure).pipe(
+      finalize(() => this.structureSaving = false)
+    ).subscribe({
+      next: () => this.loadSchedule(),
+      error: err => {
+        console.error('Failed to persist task hierarchy', err);
+        this.loadSchedule();
+      }
     });
   }
 
@@ -1497,20 +1725,32 @@ indentTask(): void {
 
   // ---------------- Resize ----------------
 
+  private getLeftPaneWidthLimits(): { min: number; max: number } {
+    const containerWidth = this.plannerMain?.nativeElement.clientWidth ?? window.innerWidth;
+    const min = Math.min(this.minLeftPaneWidth, Math.max(0, containerWidth - this.plannerResizerWidth));
+    const max = Math.max(min, containerWidth - this.minTimelineWidth - this.plannerResizerWidth);
+    return { min, max };
+  }
+
+  private clampLeftPaneWidth(width = this.leftPaneWidth): void {
+    const { min, max } = this.getLeftPaneWidthLimits();
+    this.leftPaneWidth = Math.min(max, Math.max(min, width));
+  }
+
   startResize(event: MouseEvent): void {
     event.preventDefault();
     this.isResizing = true;
     const onMouseMove = (moveEvent: MouseEvent) => {
       if (!this.isResizing) return;
-      const newWidth = moveEvent.clientX;
-      this.leftPaneWidth = Math.min(this.maxLeftPaneWidth, Math.max(this.minLeftPaneWidth, newWidth));
-      localStorage.setItem('gmScheduleLeftPaneWidth', String(this.leftPaneWidth));
+      const containerLeft = this.plannerMain?.nativeElement.getBoundingClientRect().left ?? 0;
+      this.clampLeftPaneWidth(moveEvent.clientX - containerLeft);
     };
     const onMouseUp = () => {
       this.isResizing = false;
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
       document.body.classList.remove('resizing-pane');
+      this.persistGanttDisplayPreferences();
     };
     document.body.classList.add('resizing-pane');
     window.addEventListener('mousemove', onMouseMove);
@@ -1612,7 +1852,23 @@ indentTask(): void {
   }
 
   loadCalendars(): void {
-    this.calendarService.getCalendars(this.projectId).pipe(takeUntil(this.destroy$)).subscribe({ next: (res) => { this.calendars = res ?? []; }, error: (err) => { console.error('Failed to load calendars', err); this.calendars = []; } });
+    this.calendarService.getCalendars(this.projectId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (res) => {
+        this.calendars = res ?? [];
+        this.refreshActiveWorkingDays();
+      },
+      error: (err) => {
+        console.error('Failed to load calendars', err);
+        this.calendars = [];
+        this.refreshActiveWorkingDays();
+      }
+    });
+  }
+
+  private refreshActiveWorkingDays(): void {
+    const calendar = this.calendars.find(item => item.isDefault);
+    const days = calendar?.workingDays?.filter(day => Number.isInteger(day) && day >= 1 && day <= 7);
+    this.activeWorkingDays = days?.length ? [...days] : [1, 2, 3, 4, 5];
   }
 
   // ---------------- Baselines ----------------
@@ -1698,7 +1954,11 @@ indentTask(): void {
     const days: TimelineDay[] = [];
     const cursor = new Date(min);
     while (cursor <= max) {
-      days.push({ date: new Date(cursor), label: cursor.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }).toUpperCase(), weekNumber: this.getWeekNumber(cursor), isWeekStart: cursor.getDay() === 1 || days.length === 0 });
+      days.push({
+        date: new Date(cursor),
+        label: cursor.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }).toUpperCase(),
+        isMonthStart: cursor.getDate() === 1 || days.length === 0
+      });
       cursor.setDate(cursor.getDate() + 1);
     }
     this.timelineDays = days;
@@ -1722,24 +1982,9 @@ indentTask(): void {
     return months;
   }
 
-  getTimelineWeeks(): TimelineWeek[] {
-    if (!this.timelineDays.length) return [];
-    const weeks: TimelineWeek[] = [];
-    let currentWeekKey = '', currentWeekNumber = 0, currentStartLabel = '', currentCount = 0;
-    this.timelineDays.forEach((day, index) => {
-      const key = `${day.date.getFullYear()}-${day.weekNumber}`;
-      if (key !== currentWeekKey) {
-        if (currentCount > 0) weeks.push({ weekNumber: currentWeekNumber, startLabel: currentStartLabel, width: currentCount * this.dayWidth });
-        currentWeekKey = key; currentWeekNumber = day.weekNumber;
-        currentStartLabel = day.date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }).toUpperCase();
-        currentCount = 1;
-      } else { currentCount++; }
-      if (index === this.timelineDays.length - 1) weeks.push({ weekNumber: currentWeekNumber, startLabel: currentStartLabel, width: currentCount * this.dayWidth });
-    });
-    return weeks;
-  }
-
   trackTimelineDay(index: number): number { return index; }
+  getTimelineDayLabel(day: TimelineDay): string { return String(day.date.getDate()).padStart(2, '0'); }
+  isNonWorkingDay(day: TimelineDay): boolean { return !this.isWorkingDate(day.date); }
   getTodayLineLeft(): number { return this.getLeftFromDate(this.getTodayDateString()); }
 
   getBarLeft(task: GmProjectScheduleTask): number {
@@ -2128,14 +2373,6 @@ if (this.columnVisibility.baselineEnd) total += 95;
   private toDateOnly(value: string): Date {
     const d = new Date(value);
     return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  }
-
-  private getWeekNumber(date: Date): number {
-    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    const dayNum = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
   }
 
   private cloneTasks(tasks: GmProjectScheduleTask[]): GmProjectScheduleTask[] { return JSON.parse(JSON.stringify(tasks)); }
@@ -2548,4 +2785,71 @@ if (this.columnVisibility.baselineEnd) total += 95;
 
   toggleBaselineDetails(baseline: ProjectBaseline): void { baseline.expanded = !baseline.expanded; }
   trackBaseline(_: number, baseline: ProjectBaseline): number { return baseline.id; }
+
+  getPrimaryPredecessorId(task: GmProjectScheduleTask): number | null {
+    return task.dependencies?.[0]?.predecessorTaskId ?? null;
+  }
+
+  getAvailablePredecessors(task: GmProjectScheduleTask): GmProjectScheduleTask[] {
+    const additionalPredecessors = new Set((task.dependencies ?? []).slice(1).map(dep => dep.predecessorTaskId));
+    return this.tasks.filter(candidate =>
+      candidate.id !== task.id
+      && !additionalPredecessors.has(candidate.id)
+      && !this.hasDependencyPath(task.id, candidate.id)
+    );
+  }
+
+  private hasDependencyPath(fromTaskId: number, targetTaskId: number): boolean {
+    const successors = new Map<number, number[]>();
+    this.tasks.forEach(successor => {
+      (successor.dependencies ?? []).forEach(dependency => {
+        const next = successors.get(dependency.predecessorTaskId) ?? [];
+        next.push(successor.id);
+        successors.set(dependency.predecessorTaskId, next);
+      });
+    });
+
+    const visited = new Set<number>();
+    const pending = [...(successors.get(fromTaskId) ?? [])];
+    while (pending.length) {
+      const taskId = pending.pop()!;
+      if (taskId === targetTaskId) return true;
+      if (visited.has(taskId)) continue;
+      visited.add(taskId);
+      pending.push(...(successors.get(taskId) ?? []));
+    }
+    return false;
+  }
+
+  onInlinePredecessorChange(task: GmProjectScheduleTask, predecessorTaskId: number | null): void {
+    const nextPredecessorId = predecessorTaskId === null ? null : Number(predecessorTaskId);
+    const existing = task.dependencies?.[0];
+    if (nextPredecessorId === (existing?.predecessorTaskId ?? null)) return;
+    if (nextPredecessorId !== null && !this.getAvailablePredecessors(task).some(candidate => candidate.id === nextPredecessorId)) return;
+    if (!existing && nextPredecessorId === null) return;
+
+    const save = nextPredecessorId === null
+      ? this.service.deleteDependency(this.projectId, existing!.id!)
+      : existing?.id
+        ? this.service.updateDependency(this.projectId, existing.id, {
+            ...existing,
+            predecessorTaskId: nextPredecessorId,
+            successorTaskId: task.id
+          })
+        : this.service.createDependency(this.projectId, {
+            predecessorTaskId: nextPredecessorId,
+            successorTaskId: task.id,
+            dependencyType: 'FS',
+            lagDays: 0
+          });
+
+    save.subscribe({
+      next: () => this.loadSchedule(),
+      error: err => {
+        console.error('Failed to save inline predecessor', err);
+        this.loadSchedule();
+      }
+    });
+  }
+
 }

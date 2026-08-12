@@ -1,0 +1,32 @@
+<div class="gantt-date-picker" [class.is-disabled]="disabled">
+  <button #trigger type="button" class="gantt-date-picker-trigger" [disabled]="disabled" [attr.aria-label]="ariaLabel" (click)="toggleCalendar($event)">
+    <span [class.placeholder]="!value">{{ formatDisplayDate(value) }}</span>
+    <span class="gantt-date-picker-icon" aria-hidden="true">▾</span>
+  </button>
+
+  <div #popover class="gantt-date-picker-popover" *ngIf="calendarOpen" [style.left.px]="popoverLeft" [style.top.px]="popoverTop" (click)="$event.stopPropagation()">
+    <div class="gantt-date-picker-month">
+      <button type="button" aria-label="Previous month" (click)="previousMonth($event)">‹</button>
+      <strong>{{ monthLabel }}</strong>
+      <button type="button" aria-label="Next month" (click)="nextMonth($event)">›</button>
+    </div>
+    <div class="gantt-date-picker-weekdays">
+      <span *ngFor="let weekday of weekdayLabels">{{ weekday }}</span>
+    </div>
+    <div class="gantt-date-picker-days">
+      <button
+        type="button"
+        *ngFor="let day of calendarDays"
+        class="gantt-date-picker-day"
+        [class.outside-month]="!day.inCurrentMonth"
+        [class.non-working]="!day.working"
+        [class.selected]="isSelected(day)"
+        [class.today]="isToday(day)"
+        [disabled]="!day.inCurrentMonth || !day.working"
+        [attr.aria-label]="day.value"
+        [attr.aria-disabled]="!day.inCurrentMonth || !day.working"
+        (click)="selectDay($event, day)"
+      >{{ day.label }}</button>
+    </div>
+  </div>
+</div>
