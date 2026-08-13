@@ -26,8 +26,9 @@ export class GmProjectForecastPageComponent implements OnInit {
   summary: ForecastSummary | null = null;
 
   periods = 12;
-  searchTerm = '';
+  searchTerm = ''; // ✅ AJOUTÉ (correction de l'erreur TS2339)
   viewMode: 'week' | 'month' = 'month';
+  periodType = 'month'; // ✅ AJOUTÉ pour gérer week/month
 
   savingCellKey: string | null = null;
   savingFieldKey: string | null = null;
@@ -65,7 +66,8 @@ export class GmProjectForecastPageComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
-    this.forecastService.getForecastGrid(this.projectId, this.periods).subscribe({
+    // ✅ Passe maintenant les 3 arguments (le service a été mis à jour ci-dessous)
+    this.forecastService.getForecastGrid(this.projectId, this.periods, this.periodType).subscribe({
       next: (rows) => {
         this.rows = rows ?? [];
         this.applyFilters();
@@ -90,8 +92,6 @@ export class GmProjectForecastPageComponent implements OnInit {
     });
   }
 
-  // ---------- Type / labels ----------
-
   getRowType(row: ForecastRow): string {
     return row.rowType || 'COST';
   }
@@ -114,8 +114,6 @@ export class GmProjectForecastPageComponent implements OnInit {
     return this.getRowType(row) !== 'SUMMARY';
   }
 
-  // ---------- Formatting & Calculations ----------
-
   getRemainingPercent(row: ForecastRow): number {
     const budget = row.budget || 0;
     const remaining = this.getRemaining(row);
@@ -131,13 +129,11 @@ export class GmProjectForecastPageComponent implements OnInit {
     return this.getRowType(row) === 'HOUR' ? this.formatHours(row.actualCost) : this.formatMoney(row.actualCost);
   }
 
-  // ✅ 1. REMAINING CLASSIQUE (Budget - Actual)
   formatRemainingOrHours(row: ForecastRow): string {
     const remaining = this.getRemaining(row);
     return this.getRowType(row) === 'HOUR' ? this.formatHours(remaining) : this.formatMoney(remaining);
   }
 
-  // ✅ 2. REMAINING SCHEDULE (Heures restantes × Taux du Resource Type)
   formatRemainingSchedule(row: ForecastRow): string {
     return this.formatMoney(row.remainingCost);
   }
@@ -159,16 +155,18 @@ export class GmProjectForecastPageComponent implements OnInit {
   getHeaderYearLabel(index: number): string | null {
     const keys = this.getPeriodKeys();
     if (!keys.length) return null;
-    const years = [...new Set(keys.map(k => k.split('-')[0]))];
+    
+    const years = [...new Set(keys.map(k => {
+      if (k.includes('-W')) return k.split('-W')[0];
+      return k.split('-')[0];
+    }))];
+    
     return years[index] ?? null;
   }
 
-  // ✅ Calcul du Remaining Classique
   getRemaining(row: ForecastRow): number {
     return Math.max(0, (row.budget || 0) - (row.actualCost || 0));
   }
-
-  // ---------- Filtering / view ----------
 
   applyFilters(): void {
     const term = this.searchTerm.trim().toLowerCase();
@@ -184,13 +182,13 @@ export class GmProjectForecastPageComponent implements OnInit {
 
   setViewMode(mode: 'week' | 'month'): void {
     this.viewMode = mode;
+    this.periodType = mode; // ✅ Change le type de période
+    this.loadData(); // ✅ Recharge les données
   }
 
   onPeriodsChange(): void {
     this.loadData();
   }
-
-  // ---------- Editing Cells ----------
 
   private cellKey(row: ForecastRow, periodKey: string): string {
     return `${row.wbsCode}__${periodKey}`;
@@ -202,7 +200,6 @@ export class GmProjectForecastPageComponent implements OnInit {
 
   onCellChange(row: ForecastRow, periodKey: string, rawValue: string): void {
     const amount = Number(rawValue || 0);
-
     if (Number.isNaN(amount) || amount < 0) {
       this.error = 'Invalid value entered.';
       return;
@@ -237,7 +234,6 @@ export class GmProjectForecastPageComponent implements OnInit {
         this.error = 'Failed to update forecast value.';
         this.saving = false;
         this.savingCellKey = null;
-
         if (cell) {
           cell.amount = previousAmount;
           row.totalForecast = (row.periods || []).reduce((sum, p) => sum + (p.amount || 0), 0);
@@ -246,90 +242,16 @@ export class GmProjectForecastPageComponent implements OnInit {
     });
   }
 
-  // ---------- Editing Fields & Level ----------
-
-  private fieldKey(row: ForecastRow, field: string): string {
-    return `${row.wbsCode}__${field}`;
-  }
-
-  isFieldSaving(row: ForecastRow, field: string): boolean {
-    return this.savingFieldKey === this.fieldKey(row, field);
-  }
-
-  // ✅ NOUVELLE MÉTHODE : Mettre à jour le Level
   updateLevel(row: ForecastRow): void {
     this.forecastService.updateWbsLevel(this.projectId, row.financeEntryId, row.level).subscribe({
-      next: () => {
-        // Level updated successfully
-      },
+      next: () => {},
       error: (err) => {
         console.error(err);
         this.error = 'Failed to update level.';
-        this.loadData(); // Rollback on error
-      }
-    });
-  }
-
-  private saveRowField(
-    row: ForecastRow,
-    field: 'description' | 'budget' | 'actualCost',
-    value: string | number,
-    rollback: () => void
-  ): void {
-    this.saving = true;
-    this.savingFieldKey = this.fieldKey(row, field);
-    this.error = null;
-
-    this.forecastService.updateForecastRow(this.projectId, {
-      wbsCode: row.wbsCode,
-      field,
-      value
-    }).subscribe({
-      next: () => {
-        this.saving = false;
-        this.savingFieldKey = null;
         this.loadData();
-      },
-      error: (err) => {
-        console.error(err);
-        this.error = `Failed to update ${field}.`;
-        this.saving = false;
-        this.savingFieldKey = null;
-        rollback();
       }
     });
   }
-
-  onDescriptionChange(row: ForecastRow, rawValue: string): void {
-    const previous = row.description;
-    const value = (rawValue || '').trim();
-    row.description = value;
-    this.saveRowField(row, 'description', value, () => { row.description = previous; });
-  }
-
-  onBudgetChange(row: ForecastRow, rawValue: string): void {
-    const amount = Number(rawValue || 0);
-    if (Number.isNaN(amount) || amount < 0) {
-      this.error = 'Invalid budget value.';
-      return;
-    }
-    const previous = row.budget;
-    row.budget = amount;
-    this.saveRowField(row, 'budget', amount, () => { row.budget = previous; });
-  }
-
-  onActualChange(row: ForecastRow, rawValue: string): void {
-    const amount = Number(rawValue || 0);
-    if (Number.isNaN(amount) || amount < 0) {
-      this.error = 'Invalid actual cost value.';
-      return;
-    }
-    const previous = row.actualCost;
-    row.actualCost = amount;
-    this.saveRowField(row, 'actualCost', amount, () => { row.actualCost = previous; });
-  }
-
-  // ---------- Helpers ----------
 
   getCellAmount(row: ForecastRow, periodKey: string): number | null {
     const cell = row.periods.find(p => p.periodKey === periodKey);
@@ -342,6 +264,10 @@ export class GmProjectForecastPageComponent implements OnInit {
   }
 
   formatMonth(periodKey: string): string {
+    if (periodKey.includes('-W')) {
+      const parts = periodKey.split('-W');
+      return `W${parts[1]} '${parts[0].slice(2)}`;
+    }
     const [year, month] = periodKey.split('-');
     const date = new Date(Number(year), Number(month) - 1, 1);
     return date.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
@@ -356,7 +282,6 @@ export class GmProjectForecastPageComponent implements OnInit {
     }).format(value);
   }
 
-  // ---------- Navigation ----------
   goToProjectum(): void { this.router.navigate(['/gm/projectum']); }
   goToSchedule(): void { this.router.navigate(['/gm/projects', this.projectId, 'schedule']); }
   goToActions(): void { this.router.navigate(['/gm/projects', this.projectId, 'actions']); }
