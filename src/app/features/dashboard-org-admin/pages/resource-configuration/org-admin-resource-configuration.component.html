@@ -14,6 +14,17 @@
     <button type="button" role="tab" [attr.aria-selected]="activeTab === 'customers'" [class.active]="activeTab === 'customers'" (click)="setTab('customers')">
       Customers <span>{{ customers.length }}</span>
     </button>
+
+    <button
+      type="button"
+      role="tab"
+      [attr.aria-selected]="activeTab === 'suppliers'"
+      [class.active]="activeTab === 'suppliers'"
+      (click)="setTab('suppliers')"
+    >
+      Suppliers
+      <span>{{ suppliers.length }}</span>
+    </button>
   </div>
 
   <div class="toolbar">
@@ -40,6 +51,16 @@
     </button>
     <button *ngIf="activeTab === 'customers'" type="button" class="primary-button" (click)="openCustomer()">
       <span class="material-symbols-outlined" aria-hidden="true">add</span> Add customer
+    </button>
+
+    <button
+      *ngIf="activeTab === 'suppliers'"
+      type="button"
+      class="primary-button"
+      (click)="openSupplier()"
+    >
+      <span class="material-symbols-outlined" aria-hidden="true">add</span>
+      Add supplier
     </button>
   </div>
 </section>
@@ -176,6 +197,61 @@
     </div>
     <ng-template #emptyCustomers><div class="empty-state"><span class="material-symbols-outlined" aria-hidden="true">handshake</span><h3>No matching customers</h3><p>Add a customer, import a CSV file, or clear the search.</p><button type="button" (click)="openCustomer()">Add customer</button></div></ng-template>
   </ng-container>
+
+  <!-- =======================================================
+       SUPPLIERS
+  ======================================================== -->
+  <ng-container *ngSwitchCase="'suppliers'">
+    <header>
+      <div>
+        <h2>Suppliers</h2>
+        <p>Maintain the suppliers available to this organisation.</p>
+      </div>
+    </header>
+
+    <div class="table-scroll" *ngIf="filteredSuppliers.length; else emptySuppliers">
+      <table>
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Supplier</th>
+            <th>Contact</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th><span class="sr-only">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of filteredSuppliers">
+            <td data-label="Code"><strong>{{ item.code }}</strong></td>
+            <td data-label="Supplier">{{ item.name }}</td>
+            <td data-label="Contact">{{ item.contactPerson || '—' }}<small>{{ item.phone || '' }}</small></td>
+            <td data-label="Email">{{ item.email || '—' }}</td>
+            <td data-label="Status">
+              <span class="status" [class.inactive]="!item.active">{{ item.active ? 'Active' : 'Inactive' }}</span>
+            </td>
+            <td class="row-actions">
+              <button type="button" title="Edit supplier" (click)="openSupplier(item)">
+                <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+              </button>
+              <button type="button" class="danger" title="Deactivate supplier" [disabled]="!item.active" (click)="requestDelete('supplier', item)">
+                <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #emptySuppliers>
+      <div class="empty-state">
+        <span class="material-symbols-outlined" aria-hidden="true">local_shipping</span>
+        <h3>No matching suppliers</h3>
+        <p>Add a supplier or clear the search.</p>
+        <button type="button" (click)="openSupplier()">Add supplier</button>
+      </div>
+    </ng-template>
+  </ng-container>
 </section>
 
 <!-- SHARED CREATE / EDIT DIALOG -->
@@ -275,6 +351,66 @@
         <button type="submit" class="primary-button" [disabled]="customerForm.invalid || saving">{{ saving ? 'Saving…' : 'Save customer' }}</button>
       </footer>
     </form>
+
+<div
+  class="dialog-backdrop"
+  *ngIf="deleteTarget"
+  (mousedown)="
+    $event.target === $event.currentTarget &&
+    !deleting &&
+    (deleteTarget = null)
+  "
+>
+  <section
+    class="confirm-dialog"
+    role="alertdialog"
+    aria-modal="true"
+    aria-labelledby="delete-configuration-title"
+    (mousedown)="$event.stopPropagation()"
+  >
+    <span
+      class="warning-icon material-symbols-outlined"
+      aria-hidden="true"
+    >
+      warning
+    </span>
+
+    <h2 id="delete-configuration-title">
+      {{ deleteTarget.kind === 'supplier' ? 'Deactivate' : 'Delete' }} {{ deleteTarget.name }}?
+    </h2>
+
+    <p *ngIf="deleteTarget.projectsUsing === 0">
+      {{ deleteTarget.kind === 'supplier'
+        ? 'This supplier will be deactivated and retained for audit history.'
+        : 'This record will be permanently removed from the organisation configuration.' }}
+    </p>
+
+    <p *ngIf="deleteTarget.projectsUsing > 0">
+      <strong>
+        {{ deleteTarget.projectsUsing }} project(s)
+      </strong>
+      currently use this record. Deletion will be rejected if those
+      references must be preserved.
+    </p>
+
+    <footer>
+      <button
+        type="button"
+        class="secondary-button"
+        [disabled]="deleting"
+        (click)="deleteTarget = null"
+      >
+        Cancel
+      </button>
+
+      <button
+        type="button"
+        class="danger-button"
+        [disabled]="deleting"
+        (click)="confirmDelete()"
+      >
+        {{ deleting ? (deleteTarget.kind === 'supplier' ? 'Deactivating…' : 'Deleting…') : (deleteTarget.kind === 'supplier' ? 'Deactivate' : 'Delete') }}
+      </button>
   </section>
 </div>
 

@@ -11,6 +11,7 @@ import { GmLayoutComponent } from './pages/gm-layout/gm-layout.component';
 import { GmProjectTasksComponent } from './pages/gm-project-tasks/gm-project-tasks/gm-project-tasks.component';
 import { GmProjectumPageComponent } from './pages/gm-projectum-page/gm-projectum-page/gm-projectum-page.component';
 import { GmProjectSchedulePageComponent } from './pages/gm-project-schedule-page/gm-project-schedule-page/gm-project-schedule-page.component';
+import { GanttDatePickerComponent } from './pages/gm-project-schedule-page/gantt-date-picker/gantt-date-picker.component';
 import { GmProjectFinancePageComponent } from './pages/gm-project-finance-page/gm-project-finance-page.component';
 import { GmProjectForecastPageComponent } from './pages/gm-project-forecast-page/gm-project-forecast-page.component';
 import { GmProjectRisksPageComponent } from './pages/gm-project-risks-page/gm-project-risks-page.component';
@@ -40,6 +41,7 @@ import { SecurityTabComponent } from './pages/gm-admin-settings-page/components/
     GmProjectTasksComponent,
     GmProjectumPageComponent,
     GmProjectSchedulePageComponent,
+    GanttDatePickerComponent,
     GmProjectFinancePageComponent,
     GmProjectForecastPageComponent,
     GmProjectRisksPageComponent,

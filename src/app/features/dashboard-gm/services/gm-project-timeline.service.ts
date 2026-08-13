@@ -29,6 +29,13 @@ export class GmProjectTimelineService {
     );
   }
 
+  updateTaskStructure(
+    projectId: number,
+    tasks: Array<{ taskId: number; parentId: number | null; displayOrder: number }>
+  ): Observable<void> {
+    return this.http.put<void>(`${API_PROJECTS_URL}/${projectId}/tasks/structure`, { tasks });
+  }
+
   insertTaskBelow(projectId: number, afterTaskId: number, payload: any): Observable<GmProjectScheduleTask> {
     return this.http.post<GmProjectScheduleTask>(
       `${API_PROJECTS_URL}/${projectId}/tasks/below/${afterTaskId}`,
@@ -66,6 +73,12 @@ export class GmProjectTimelineService {
 
   getTaskResources(projectId: number, taskId: number): Observable<TaskResourceAssignment[]> {
     return this.http.get<TaskResourceAssignment[]>(`${API_PROJECTS_URL}/${projectId}/tasks/${taskId}/resources`);
+  }
+
+  getTaskSupplierOptions(projectId: number, taskId: number): Observable<{ id: number; code: string | null; name: string }[]> {
+    return this.http.get<{ id: number; code: string | null; name: string }[]>(
+      `${API_PROJECTS_URL}/${projectId}/tasks/${taskId}/resources/suppliers`
+    );
   }
 
   createTaskResource(projectId: number, taskId: number, payload: TaskResourceAssignment): Observable<TaskResourceAssignment> {

@@ -70,11 +70,11 @@
 
       <div class="toolbar-divider"></div>
 
-      <button type="button" class="toolbar-main-btn" (click)="outdentTask()" [disabled]="!selectedTask">
+    <button type="button" class="toolbar-main-btn" (click)="outdentTaskPersisted()" [disabled]="!selectedTask || structureSaving">
         <span class="material-symbols-outlined">format_indent_decrease</span>
         <span>Outdent</span>
       </button>
-      <button type="button" class="toolbar-main-btn" (click)="indentTask()" [disabled]="!selectedTask">
+    <button type="button" class="toolbar-main-btn" (click)="indentTaskPersisted()" [disabled]="!selectedTask || structureSaving">
         <span class="material-symbols-outlined">format_indent_increase</span>
         <span>Indent</span>
       </button>
@@ -136,20 +136,20 @@
           <span class="material-symbols-outlined mini-arrow">expand_more</span>
         </button>
         <div class="toolbar-dropdown-menu columns-menu dark-menu" *ngIf="columnsMenuOpen">
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.id" [ngModelOptions]="{ standalone: true }" /><span>ID</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.wbs" [ngModelOptions]="{ standalone: true }" /><span>Level (WBS)</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.customer" [ngModelOptions]="{ standalone: true }" /><span>Customer (C)</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.name" [ngModelOptions]="{ standalone: true }" /><span>Activity</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.type" [ngModelOptions]="{ standalone: true }" /><span>Type</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.resourceType" [ngModelOptions]="{ standalone: true }" /><span>Resource Type</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.department" [ngModelOptions]="{ standalone: true }" /><span>Department</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.actualStart" [ngModelOptions]="{ standalone: true }" /><span>Actual Start</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.actualFinish" [ngModelOptions]="{ standalone: true }" /><span>Actual Finish</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.duration" [ngModelOptions]="{ standalone: true }" /><span>Duration</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.predecessors" [ngModelOptions]="{ standalone: true }" /><span>Predecessors</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.progress" [ngModelOptions]="{ standalone: true }" /><span>% Done</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.baselineStart" [ngModelOptions]="{ standalone: true }" /><span>Baseline Start</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.baselineEnd" [ngModelOptions]="{ standalone: true }" /><span>Baseline End</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.id" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>ID</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.wbs" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Level (WBS)</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.customer" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Customer (C)</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.name" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Activity</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.type" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Type</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.resourceType" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Resource Type</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.department" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Department</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.actualStart" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Actual Start</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.actualFinish" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Actual Finish</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.duration" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Duration</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.predecessors" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Predecessors</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.progress" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>% Done</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.baselineStart" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Baseline Start</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.baselineEnd" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Baseline End</span></label>
         </div>
       </div>
     </div>
@@ -171,7 +171,7 @@
   </section>
 
   <!-- MAIN -->
-  <section class="planner-main" *ngIf="!loading">
+  <section class="planner-main" #plannerMain *ngIf="!loading">
     <!-- LEFT -->
     <div class="planner-left" [style.width.px]="leftPaneWidth">
       <div class="left-header" #leftHeaderScroll>
@@ -203,7 +203,8 @@
           [class.odd]="i % 2 !== 0"
           [class.summary-row]="isSummary(task)"
           [class.selected-row]="selectedTask?.id === task.id"
-          (click)="openTaskDrawer(task)"
+          (click)="selectTask(task)"
+          (dblclick)="openTaskDrawerFromRow($event, task)"
           (contextmenu)="openContextMenu($event, task)"
         >
           <div class="cell cell-id col-id" *ngIf="columnVisibility.id">{{ task.displayOrder }}</div>
@@ -225,9 +226,12 @@
               <span *ngIf="isMilestone(task)" class="milestone-dot" [class.customer]="isCustomerMilestone(task)">◆</span>
               <input
                 class="grid-input text-input"
-                [value]="task.name || ''"
-                (input)="updateLocalTaskField(task, 'name', $any($event.target).value)"
-                (blur)="saveInlineTask(task)"
+                [value]="getInlineNameValue(task)"
+                (focus)="beginInlineNameEdit(task)"
+                (input)="updateInlineNameDraft(task, $any($event.target).value)"
+                (keydown.enter)="handleInlineNameEnter(task, $event)"
+                (keydown.escape)="cancelInlineNameEdit(task, $event)"
+                (blur)="commitInlineNameEdit(task)"
               />
             </div>
           </div>
@@ -279,28 +283,19 @@
 
           <!-- KEY FIX: use [ngModel] instead of [value] for reactive display -->
           <div class="cell editable-cell col-date mono-date" *ngIf="columnVisibility.actualStart" [class.milestone-date-cell]="isMilestone(task) && columnVisibility.actualFinish" (click)="$event.stopPropagation()">
-            <input
-              class="grid-input date-input"
-              type="date"
-              [value]="formatDateForInput(task.actualStart)"
-              [attr.aria-label]="isMilestone(task) ? 'Milestone Date' : 'Actual Start'"
-              (change)="onInlineDateChange(task, 'actualStart', $any($event.target).value)"
-            />
+            <span *ngIf="isSummary(task); else actualStartPicker" class="readonly-date-value">{{ formatDateForDisplay(task.actualStart) }}</span>
+            <ng-template #actualStartPicker><app-gantt-date-picker [value]="formatDateForInput(task.actualStart)" [workingDays]="activeWorkingDays" [ariaLabel]="isMilestone(task) ? 'Milestone Date' : 'Actual Start'" (valueChange)="onInlineDateChange(task, 'actualStart', $event)"></app-gantt-date-picker></ng-template>
           </div>
 
           <div class="cell editable-cell col-date mono-date" *ngIf="columnVisibility.actualFinish && (!isMilestone(task) || !columnVisibility.actualStart)" (click)="$event.stopPropagation()">
-            <input
-              class="grid-input date-input"
-              type="date"
-              [value]="formatDateForInput(isMilestone(task) ? task.actualStart : task.actualEnd)"
-              [attr.aria-label]="isMilestone(task) ? 'Milestone Date' : 'Actual Finish'"
-              (change)="onInlineDateChange(task, isMilestone(task) ? 'actualStart' : 'actualEnd', $any($event.target).value)"
-            />
+            <span *ngIf="isSummary(task); else actualEndPicker" class="readonly-date-value">{{ formatDateForDisplay(task.actualEnd) }}</span>
+            <ng-template #actualEndPicker><app-gantt-date-picker [value]="formatDateForInput(isMilestone(task) ? task.actualStart : task.actualEnd)" [workingDays]="activeWorkingDays" [ariaLabel]="isMilestone(task) ? 'Milestone Date' : 'Actual Finish'" (valueChange)="onInlineDateChange(task, isMilestone(task) ? 'actualStart' : 'actualEnd', $event)"></app-gantt-date-picker></ng-template>
           </div>
 
           <!-- KEY FIX: [ngModel] so duration re-renders when selectedTask changes it -->
           <div class="cell editable-cell col-dur" *ngIf="columnVisibility.duration" (click)="$event.stopPropagation()">
-            <input
+            <span *ngIf="isSummary(task); else durationInput" class="readonly-duration-value">{{ task.durationDays ?? 0 }}</span>
+            <ng-template #durationInput><input
               class="grid-input number-input"
               type="number"
               min="0"
@@ -309,7 +304,7 @@
               [disabled]="!!task && isMilestone(task)"
               (ngModelChange)="updateLocalTaskField(task, 'durationDays', toNumber($event))"
               (blur)="saveInlineTask(task)"
-            />
+            /></ng-template>
           </div>
 
           <!-- KEY FIX: [ngModel] for progress too -->
@@ -332,13 +327,27 @@
             </div>
           </div>
 
-          <div class="cell col-pred pred-cell" *ngIf="columnVisibility.predecessors">{{ getPredecessorText(task) }}</div>
-          <div class="cell cell-date col-date mono-date" *ngIf="columnVisibility.baselineStart" [class.milestone-date-cell]="isMilestone(task) && columnVisibility.baselineEnd">
-  {{ formatDateForInput(getBaselineStart(task)) }}
-</div>
-<div class="cell cell-date col-date mono-date" *ngIf="columnVisibility.baselineEnd && (!isMilestone(task) || !columnVisibility.baselineStart)">
-  {{ formatDateForInput(isMilestone(task) ? getBaselineStart(task) : getBaselineEnd(task)) }}
-</div>
+          <div class="cell editable-cell col-pred pred-cell" *ngIf="columnVisibility.predecessors" (click)="$event.stopPropagation()">
+            <select
+              class="grid-select predecessor-select"
+              [ngModel]="getPrimaryPredecessorId(task)"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="onInlinePredecessorChange(task, $event)"
+            >
+              <option [ngValue]="null">—</option>
+              <option *ngFor="let predecessor of getAvailablePredecessors(task)" [ngValue]="predecessor.id">
+                {{ predecessor.wbsCode }} - {{ predecessor.name }}
+              </option>
+            </select>
+          </div>
+          <div class="cell editable-cell col-date mono-date" *ngIf="columnVisibility.baselineStart" [class.milestone-date-cell]="isMilestone(task) && columnVisibility.baselineEnd" (click)="$event.stopPropagation()">
+            <span *ngIf="isSummary(task); else baselineStartPicker" class="readonly-date-value">{{ formatDateForDisplay(getBaselineStart(task)) }}</span>
+            <ng-template #baselineStartPicker><app-gantt-date-picker [value]="formatDateForInput(getBaselineStart(task))" [workingDays]="activeWorkingDays" [ariaLabel]="isMilestone(task) ? 'Milestone Baseline Date' : 'Baseline Start'" (valueChange)="onInlineDateChange(task, 'baselineStart', $event)"></app-gantt-date-picker></ng-template>
+          </div>
+          <div class="cell editable-cell col-date mono-date" *ngIf="columnVisibility.baselineEnd && (!isMilestone(task) || !columnVisibility.baselineStart)" (click)="$event.stopPropagation()">
+            <span *ngIf="isSummary(task); else baselineEndPicker" class="readonly-date-value">{{ formatDateForDisplay(getBaselineEnd(task)) }}</span>
+            <ng-template #baselineEndPicker><app-gantt-date-picker [value]="formatDateForInput(isMilestone(task) ? getBaselineStart(task) : getBaselineEnd(task))" [workingDays]="activeWorkingDays" [ariaLabel]="isMilestone(task) ? 'Milestone Baseline Date' : 'Baseline End'" (valueChange)="onInlineDateChange(task, isMilestone(task) ? 'baselineStart' : 'baselineEnd', $event)"></app-gantt-date-picker></ng-template>
+          </div>
         </div>
 
         <div *ngIf="visibleTasks.length === 0" class="empty-state-line">No schedule tasks found for this project.</div>
@@ -357,11 +366,14 @@
           </div>
         </div>
         <div class="timeline-header-scroll" #timelineHeaderScroll>
-          <div class="timeline-header weeks-only-header" [style.width.px]="getTimelineWidth()">
-            <div class="timeline-week-cell" *ngFor="let week of getTimelineWeeks()" [style.width.px]="week.width">
-              <div class="timeline-week-code">W{{ week.weekNumber }}</div>
-              <div class="timeline-week-start">{{ week.startLabel }}</div>
-            </div>
+          <div class="timeline-header day-number-header" [style.width.px]="getTimelineWidth()">
+            <div
+              *ngFor="let day of timelineDays; trackBy: trackTimelineDay"
+              class="timeline-day-cell"
+              [class.non-working-day]="isNonWorkingDay(day)"
+              [class.month-separator]="day.isMonthStart"
+              [style.width.px]="dayWidth"
+            >{{ getTimelineDayLabel(day) }}</div>
           </div>
         </div>
       </div>
@@ -395,7 +407,13 @@
             (click)="openTaskDrawer(task)"
             (contextmenu)="openContextMenu($event, task)"
           >
-            <div class="gantt-grid-line" *ngFor="let day of timelineDays; trackBy: trackTimelineDay" [class.week-separator]="day.isWeekStart"></div>
+            <div
+              class="gantt-grid-line"
+              *ngFor="let day of timelineDays; trackBy: trackTimelineDay"
+              [class.non-working-day]="isNonWorkingDay(day)"
+              [class.month-separator]="day.isMonthStart"
+              [style.width.px]="dayWidth"
+            ></div>
 
             <div *ngIf="hasBaseline(task) && !isMilestone(task)" class="gantt-baseline-bar" [class.summary-baseline]="isSummary(task)" [style.left.px]="getBaselineLeft(task)" [style.width.px]="getBaselineWidth(task)"></div>
 
@@ -416,8 +434,8 @@
               <span class="gantt-label" *ngIf="!isSummary(task)">{{ getTaskLabel(task) }}</span>
             </div>
 
-            <div *ngIf="isMilestone(task)" class="gantt-milestone" [class.customer]="isCustomerMilestone(task)" [style.left.px]="getBarLeft(task)" (contextmenu)="openContextMenu($event, task)"></div>
-            <div *ngIf="isMilestone(task)" class="gantt-milestone-label" [style.left.px]="getBarLeft(task) + 16">{{ task.name }}</div>
+            <div *ngIf="isMilestone(task)" class="gantt-milestone" [class.customer]="isCustomerMilestone(task)" [style.left.px]="getMilestoneLeft(task)" (contextmenu)="openContextMenu($event, task)"></div>
+            <div *ngIf="isMilestone(task)" class="gantt-milestone-label" [style.left.px]="getMilestoneLeft(task) + 16">{{ task.name }}</div>
           </div>
 
           <div *ngIf="tasks.length === 0" class="gantt-empty">No timeline to display.</div>
@@ -467,7 +485,8 @@
                 </div>
                 <div class="sp-field sp-col-duration" *ngIf="!isMilestone(selectedTask)">
                   <label>Duration (d)</label>
-                  <input type="number" formControlName="durationDays" />
+                  <span *ngIf="isSummary(selectedTask); else detailDurationInput" class="sp-readonly-value">{{ taskForm.get('durationDays')?.value ?? 0 }}</span>
+                  <ng-template #detailDurationInput><input type="number" formControlName="durationDays" /></ng-template>
                 </div>
                 <div class="sp-field sp-col-priority">
                   <label>Priority</label>
@@ -491,27 +510,35 @@
 
             <div class="sp-card">
               <div class="sp-dates-grid two-date-modes">
-                <div class="sp-date-box baseline">
-                  <div class="sp-card-title amber-dot">Baseline Dates</div>
-                  <div class="sp-date-row" [class.milestone-date-row]="isMilestone(selectedTask)">
-                    <ng-container *ngIf="isMilestone(selectedTask); else baselineDateRange">
-                      <div class="sp-field"><label>Baseline Date</label><input type="date" formControlName="baselineStart" /></div>
-                    </ng-container>
-                    <ng-template #baselineDateRange>
-                      <div class="sp-field"><label>Baseline Start</label><input type="date" formControlName="baselineStart" /></div>
-                      <div class="sp-field"><label>Baseline Finish</label><input type="date" formControlName="baselineEnd" /></div>
-                    </ng-template>
-                  </div>
-                </div>
                 <div class="sp-date-box actual">
                   <div class="sp-card-title blue-dot">Actual Dates</div>
                   <div class="sp-date-row" [class.milestone-date-row]="isMilestone(selectedTask)">
-                    <ng-container *ngIf="isMilestone(selectedTask); else actualDateRange">
-                      <div class="sp-field"><label>Actual Date</label><input type="date" formControlName="actualStart" /></div>
+                    <ng-container *ngIf="isSummary(selectedTask); else actualDateEditor">
+                      <div class="sp-field"><label>Actual Start</label><span class="sp-readonly-value">{{ formatDateForDisplay(taskForm.get('actualStart')?.value) }}</span></div>
+                      <div class="sp-field"><label>Actual End</label><span class="sp-readonly-value">{{ formatDateForDisplay(taskForm.get('actualEnd')?.value) }}</span></div>
                     </ng-container>
+                    <ng-template #actualDateEditor><ng-container *ngIf="isMilestone(selectedTask); else actualDateRange">
+                      <div class="sp-field"><label>Actual Date</label><app-gantt-date-picker [value]="taskForm.get('actualStart')?.value" [workingDays]="activeWorkingDays" ariaLabel="Actual milestone date" (valueChange)="setTaskFormDate('actualStart', $event)"></app-gantt-date-picker></div>
+                    </ng-container></ng-template>
                     <ng-template #actualDateRange>
-                      <div class="sp-field"><label>Actual Start</label><input type="date" formControlName="actualStart" /></div>
-                      <div class="sp-field"><label>Actual Finish</label><input type="date" formControlName="actualEnd" /></div>
+                      <div class="sp-field"><label>Actual Start</label><app-gantt-date-picker [value]="taskForm.get('actualStart')?.value" [workingDays]="activeWorkingDays" ariaLabel="Actual start" (valueChange)="setTaskFormDate('actualStart', $event)"></app-gantt-date-picker></div>
+                      <div class="sp-field"><label>Actual End</label><app-gantt-date-picker [value]="taskForm.get('actualEnd')?.value" [workingDays]="activeWorkingDays" ariaLabel="Actual end" (valueChange)="setTaskFormDate('actualEnd', $event)"></app-gantt-date-picker></div>
+                    </ng-template>
+                  </div>
+                </div>
+                <div class="sp-date-box baseline">
+                  <div class="sp-card-title amber-dot">Baseline Dates</div>
+                  <div class="sp-date-row" [class.milestone-date-row]="isMilestone(selectedTask)">
+                    <ng-container *ngIf="isSummary(selectedTask); else baselineDateEditor">
+                      <div class="sp-field"><label>Baseline Start</label><span class="sp-readonly-value">{{ formatDateForDisplay(taskForm.get('baselineStart')?.value) }}</span></div>
+                      <div class="sp-field"><label>Baseline End</label><span class="sp-readonly-value">{{ formatDateForDisplay(taskForm.get('baselineEnd')?.value) }}</span></div>
+                    </ng-container>
+                    <ng-template #baselineDateEditor><ng-container *ngIf="isMilestone(selectedTask); else baselineDateRange">
+                      <div class="sp-field"><label>Baseline Date</label><app-gantt-date-picker [value]="taskForm.get('baselineStart')?.value" [workingDays]="activeWorkingDays" ariaLabel="Baseline milestone date" (valueChange)="setTaskFormDate('baselineStart', $event)"></app-gantt-date-picker></div>
+                    </ng-container></ng-template>
+                    <ng-template #baselineDateRange>
+                      <div class="sp-field"><label>Baseline Start</label><app-gantt-date-picker [value]="taskForm.get('baselineStart')?.value" [workingDays]="activeWorkingDays" ariaLabel="Baseline start" (valueChange)="setTaskFormDate('baselineStart', $event)"></app-gantt-date-picker></div>
+                      <div class="sp-field"><label>Baseline End</label><app-gantt-date-picker [value]="taskForm.get('baselineEnd')?.value" [workingDays]="activeWorkingDays" ariaLabel="Baseline end" (valueChange)="setTaskFormDate('baselineEnd', $event)"></app-gantt-date-picker></div>
                     </ng-template>
                   </div>
                 </div>
@@ -634,7 +661,16 @@
                 <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
               </select>
             </div>
-            <div><input class="sp-inline-input" type="text" [(ngModel)]="res.assignmentName" [ngModelOptions]="{ standalone: true }" (blur)="saveResource(res)" /></div>
+            <div>
+              <ng-container *ngIf="res.supplierId; else resourceAssignmentName">
+                <select class="sp-inline-select" [ngModel]="res.supplierId" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onExistingSupplierChange(res, $event)">
+                  <option *ngFor="let supplier of getSupplierOptionsFor(res)" [ngValue]="supplier.id">{{ supplierLabel(supplier) }}</option>
+                </select>
+              </ng-container>
+              <ng-template #resourceAssignmentName>
+                <input class="sp-inline-input" type="text" [(ngModel)]="res.assignmentName" [ngModelOptions]="{ standalone: true }" (blur)="saveResource(res)" />
+              </ng-template>
+            </div>
             <div><input class="sp-inline-input small" type="number" [(ngModel)]="res.quantity" [ngModelOptions]="{ standalone: true }" (blur)="saveResource(res)" /></div>
             <div><input class="sp-inline-input" type="number" [(ngModel)]="res.unitsPercent" [ngModelOptions]="{ standalone: true }" (blur)="saveResource(res)" /></div>
             <div><input class="sp-inline-input" type="number" [(ngModel)]="res.cost" [ngModelOptions]="{ standalone: true }" (blur)="saveResource(res)" /></div>
@@ -672,7 +708,12 @@
           <div class="sp-table-row resource-row new-resource-row supplier-row">
             <div><span class="sp-row-badge">S</span></div>
             <div><span class="sp-inline-chip">SUPPLIER</span></div>
-            <div><input class="sp-inline-input" type="text" placeholder="Supplier name" [(ngModel)]="newSupplier.assignmentName" [ngModelOptions]="{ standalone: true }" /></div>
+            <div>
+              <select class="sp-inline-select" [(ngModel)]="newSupplier.supplierId" [ngModelOptions]="{ standalone: true }">
+                <option [ngValue]="null">-- Select supplier --</option>
+                <option *ngFor="let supplier of supplierOptions" [ngValue]="supplier.id">{{ supplierLabel(supplier) }}</option>
+              </select>
+            </div>
             <div><input class="sp-inline-input small" type="number" [(ngModel)]="newSupplier.quantity" [ngModelOptions]="{ standalone: true }" /></div>
             <div><input class="sp-inline-input" type="number" [(ngModel)]="newSupplier.unitsPercent" [ngModelOptions]="{ standalone: true }" /></div>
             <div><input class="sp-inline-input" type="number" [(ngModel)]="newSupplier.cost" [ngModelOptions]="{ standalone: true }" /></div>

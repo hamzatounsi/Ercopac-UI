@@ -10,13 +10,15 @@ import {
   SaveCustomerConfig,
   SaveOrganisationResourceType,
   SaveProjectCategoryConfig,
-  SaveProjectTypeConfig
+  SaveProjectTypeConfig,
+  SaveSupplierConfig,
+  SupplierConfig
 } from '../../models/org-admin.models';
 import { adminErrorMessage, OrgAdminService } from '../../services/org-admin.service';
 import { AdminToastService } from '../../shared/admin-toast.service';
 
-type ConfigurationTab = 'categories' | 'types' | 'resourceTypes' | 'customers';
-type ConfigurationKind = 'category' | 'type' | 'customer';
+type ConfigurationTab = 'categories' | 'types' | 'resourceTypes' | 'customers' | 'suppliers';
+type ConfigurationKind = 'category' | 'type' | 'customer' | 'supplier';
 type DialogKind = ConfigurationKind | 'resourceType';
 
 interface DeleteTarget {
@@ -38,6 +40,7 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
   categories: ProjectCategoryConfig[] = [];
   projectTypes: ProjectTypeConfig[] = [];
   customers: CustomerConfig[] = [];
+  suppliers: SupplierConfig[] = [];
   departments: OrganisationDepartment[] = [];
   resourceTypes: OrganisationResourceType[] = [];
   search = '';
@@ -93,6 +96,17 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
     active: [true]
   });
 
+  readonly supplierForm = this.formBuilder.nonNullable.group({
+    name: ['', [Validators.required, Validators.maxLength(150)]],
+    code: ['', [Validators.required, Validators.pattern(/^[A-Za-z0-9_-]{1,50}$/)]],
+    contactPerson: ['', Validators.maxLength(150)],
+    email: ['', [Validators.email, Validators.maxLength(180)]],
+    phone: ['', Validators.maxLength(50)],
+    address: ['', Validators.maxLength(500)],
+    notes: ['', Validators.maxLength(2000)],
+    active: [true]
+  });
+
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly adminService: OrgAdminService,
@@ -124,7 +138,8 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
       projectTypes: this.adminService.getProjectTypes(),
       customers: this.adminService.getCustomers(),
       departments: this.adminService.getDepartments(),
-      resourceTypes: this.adminService.getResourceTypes()
+      resourceTypes: this.adminService.getResourceTypes(),
+      suppliers: this.adminService.getSuppliers()
     }).pipe(
       takeUntil(this.destroy$),
       finalize(() => this.loading = false)
@@ -135,6 +150,7 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
         this.customers = response.customers;
         this.departments = response.departments;
         this.resourceTypes = response.resourceTypes;
+        this.suppliers = response.suppliers;
       },
       error: error => this.errorMessage = adminErrorMessage(error, 'Could not load resource configuration.')
     });
@@ -310,12 +326,12 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
     this.saveConfiguration(this.adminService.saveCustomer(this.editingId, payload), 'customer');
   }
 
-  requestDelete(kind: ConfigurationKind, item: ProjectCategoryConfig | ProjectTypeConfig | CustomerConfig): void {
+  requestDelete(kind: ConfigurationKind, item: ProjectCategoryConfig | ProjectTypeConfig | CustomerConfig | SupplierConfig): void {
     this.deleteTarget = {
       kind,
       id: item.id,
       name: item.name,
-      projectsUsing: item.projectsUsing
+      projectsUsing: 'projectsUsing' in item ? item.projectsUsing : 0
     };
   }
 
@@ -326,7 +342,9 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
       ? this.adminService.deleteCategory(target.id)
       : target.kind === 'type'
         ? this.adminService.deleteProjectType(target.id)
-        : this.adminService.deleteCustomer(target.id);
+        : target.kind === 'customer'
+          ? this.adminService.deleteCustomer(target.id)
+          : this.adminService.deactivateSupplier(target.id);
 
     this.deleting = true;
     request.pipe(finalize(() => this.deleting = false)).subscribe({
@@ -334,8 +352,9 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
         if (target.kind === 'category') this.categories = this.categories.filter(item => item.id !== target.id);
         if (target.kind === 'type') this.projectTypes = this.projectTypes.filter(item => item.id !== target.id);
         if (target.kind === 'customer') this.customers = this.customers.filter(item => item.id !== target.id);
+        if (target.kind === 'supplier') this.suppliers = this.suppliers.map(item => item.id === target.id ? { ...item, active: false } : item);
         this.deleteTarget = null;
-        this.toast.show(`${this.kindLabel(target.kind)} deleted.`, 'success');
+        this.toast.show(`${this.kindLabel(target.kind)} ${target.kind === 'supplier' ? 'deactivated' : 'deleted'}.`, 'success');
       },
       error: error => this.toast.show(adminErrorMessage(error, `Could not delete ${this.kindLabel(target.kind).toLowerCase()}.`), 'error')
     });
@@ -403,7 +422,7 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
     return line.split(',').map(value => value.trim().replace(/^"|"$/g, ''));
   }
 
-  private saveConfiguration<T extends ProjectCategoryConfig | ProjectTypeConfig | CustomerConfig>(
+  private saveConfiguration<T extends ProjectCategoryConfig | ProjectTypeConfig | CustomerConfig | SupplierConfig>(
     request: Observable<T>,
     kind: ConfigurationKind
   ): void {
@@ -414,6 +433,7 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
         if (kind === 'category') this.categories = this.upsert(this.categories, item as ProjectCategoryConfig);
         if (kind === 'type') this.projectTypes = this.upsert(this.projectTypes, item as ProjectTypeConfig);
         if (kind === 'customer') this.customers = this.upsert(this.customers, item as CustomerConfig);
+        if (kind === 'supplier') this.suppliers = this.upsert(this.suppliers, item as SupplierConfig);
         this.dialogKind = null;
         this.editingId = null;
         this.toast.show(`${this.kindLabel(kind)} ${editing ? 'updated' : 'created'}.`, 'success');
@@ -428,7 +448,7 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
   }
 
   private kindLabel(kind: ConfigurationKind): string {
-    return kind === 'category' ? 'Category' : kind === 'type' ? 'Project type' : 'Customer';
+    return kind === 'category' ? 'Category' : kind === 'type' ? 'Project type' : kind === 'customer' ? 'Customer' : 'Supplier';
   }
 
   private optional(value: string | null | undefined): string | null {
