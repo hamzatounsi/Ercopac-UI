@@ -272,7 +272,7 @@
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 590px 1fr;
+  grid-template-columns: 820px 1fr; /* Élargi pour 8 colonnes */
   gap: 0;
   padding: 0 16px;
   overflow: hidden;
@@ -296,10 +296,11 @@
   overflow: hidden;
 }
 
+/* ✅ 8 COLONNES : WBS, Icon, Description, Level, Budget, Actual, Remaining, Remaining Schedule */
 #wbs-panel-hdr,
 .wbs-row {
   display: grid;
-  grid-template-columns: 150px 36px 1fr 120px 110px 120px;
+  grid-template-columns: 140px 36px 1fr 70px 100px 100px 110px 140px;
   align-items: center;
   min-height: 43px;
 }
@@ -337,9 +338,11 @@
 .col-wbs,
 .col-icon,
 .col-type,
+.col-level,
 .col-budget,
 .col-actual,
-.col-remaining {
+.col-remaining,
+.col-remaining-schedule {
   min-height: 43px;
   display: flex;
   align-items: center;
@@ -375,36 +378,7 @@
   font-weight: 600;
 }
 
-.desc-input {
-  flex: 1;
-  min-width: 0;
-  border: 1px solid transparent;
-  background: transparent;
-  border-radius: 5px;
-  padding: 5px 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #26354d;
-  transition: border-color .15s, background .15s;
-}
-
-.desc-input:hover {
-  background: #f1f5f9;
-}
-
-.desc-input:focus {
-  outline: none;
-  border-color: var(--accent);
-  background: white;
-}
-
-.desc-input:disabled {
-  opacity: .5;
-  cursor: not-allowed;
-}
-
-.type-badge,
-.type-badge-select {
+.type-badge {
   flex: 0 0 auto;
   border-radius: 6px;
   padding: 3px 8px;
@@ -413,43 +387,17 @@
   line-height: 1;
 }
 
-.type-badge-select {
-  border: 1px solid transparent;
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  text-align: center;
-  transition: border-color .15s;
-}
-
-.type-badge-select:hover {
-  border-color: var(--border2);
-}
-
-.type-badge-select:focus {
-  outline: none;
-  border-color: var(--accent);
-}
-
-.type-badge-select:disabled {
-  opacity: .5;
-  cursor: not-allowed;
-}
-
-.type-badge.hours,
-.type-badge-select.hours {
+.type-badge.hours {
   background: #ede9fe;
   color: #6d28d9;
 }
 
-.type-badge.cost,
-.type-badge-select.cost {
+.type-badge.cost {
   background: #fef3c7;
   color: #b45309;
 }
 
-.type-badge.summary,
-.type-badge-select.summary {
+.type-badge.summary {
   background: #e2e8f0;
   color: #334155;
 }
@@ -460,75 +408,58 @@
   font-variant-numeric: tabular-nums;
 }
 
-.row-num-input {
-  width: 100%;
-  text-align: right;
-  border: 1px solid transparent;
-  background: transparent;
-  border-radius: 5px;
-  padding: 5px 6px;
-  font-size: 12px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: inherit;
-  transition: border-color .15s, background .15s;
-}
-
-.row-num-input:hover {
-  background: #f1f5f9;
-}
-
-.row-num-input:focus {
-  outline: none;
-  border-color: var(--accent);
-  background: white;
-}
-
-.row-num-input:disabled {
-  opacity: .5;
-  cursor: not-allowed;
-}
-
-.row-num-input {
-  -moz-appearance: textfield;
-}
-
-.row-num-input::-webkit-outer-spin-button,
-.row-num-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
 .actual-cell {
   color: #0f88b7;
 }
 
-.remaining-wrap {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
+/* Level Dropdown */
+.level-cell {
+  justify-content: center;
 }
 
-.mini-bar-track {
-  width: 36px;
-  height: 8px;
-  border-radius: 999px;
-  background: #e2e8f0;
-  overflow: hidden;
+.level-select {
+  padding: 4px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #fff;
+  cursor: pointer;
+  width: 60px;
+  &:hover { border-color: #3b82f6; }
 }
 
-.mini-bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #16a34a, #22c55e);
-  border-radius: 999px;
-}
-
+/* Remaining Classique */
 .remaining-cell {
   color: #16a34a;
 }
 
+/* ✅ Remaining Schedule */
+.col-remaining-schedule {
+  background: #f0f9ff;
+  border-left: 1px solid #e0f2fe;
+}
+
+.remaining-schedule-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.remaining-schedule-cost {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #0f88b7;
+}
+
+.remaining-schedule-hint {
+  font-size: 10px;
+  color: #888;
+  font-weight: 500;
+}
+
+/* Calendar Panel */
 #cal-hdr {
   display: flex;
   flex-direction: column;
@@ -603,29 +534,10 @@
   color: #6c7788;
 }
 
-.f-cell.editing {
-  background: #eef6ff;
-}
-
-.cell-text {
-  font-size: 13px;
-  font-weight: 600;
-}
-
 .f-cell-total {
   font-weight: 800;
   color: #5d6d84;
   min-width: 110px;
-}
-
-/* ---- editable forecast cell ---- */
-
-.cell-edit-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  width: 100%;
 }
 
 .cell-input {
@@ -658,7 +570,6 @@
   cursor: not-allowed;
 }
 
-/* remove native number input spinners */
 .cell-input {
   -moz-appearance: textfield;
 }
@@ -669,12 +580,7 @@
   margin: 0;
 }
 
-.cell-unit {
-  font-size: 10px;
-  color: var(--txt3);
-  font-weight: 700;
-}
-
+/* Footer */
 #footer-strip {
   min-height: 44px;
   background: #ffffff;
@@ -722,14 +628,15 @@
   color: #dc2626;
 }
 
+/* Responsive */
 @media (max-width: 1500px) {
   #main-wrap {
-    grid-template-columns: 520px 1fr;
+    grid-template-columns: 780px 1fr;
   }
 
   #wbs-panel-hdr,
   .wbs-row {
-    grid-template-columns: 140px 32px 1fr 110px 100px 110px;
+    grid-template-columns: 130px 32px 1fr 60px 90px 90px 100px 130px;
   }
 }
 

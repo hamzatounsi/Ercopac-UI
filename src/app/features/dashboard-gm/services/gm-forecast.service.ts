@@ -13,13 +13,16 @@ export class GmForecastService {
 
   constructor(private http: HttpClient) {}
 
-  getForecastGrid(projectId: number, periods: number): Observable<ForecastRow[]> {
-    const params = new HttpParams().set('periods', periods);
+  // ✅ CORRECTION : Ajout du 3ème argument 'periodType' avec une valeur par défaut 'month'
+  getForecastGrid(projectId: number, periods: number, periodType: string = 'month'): Observable<ForecastRow[]> {
+    const params = new HttpParams()
+      .set('periods', periods.toString())
+      .set('periodType', periodType);
     return this.http.get<ForecastRow[]>(`${this.baseUrl}/${projectId}/forecast`, { params });
   }
 
   getForecastSummary(projectId: number, periods: number): Observable<ForecastSummary> {
-    const params = new HttpParams().set('periods', periods);
+    const params = new HttpParams().set('periods', periods.toString());
     return this.http.get<ForecastSummary>(`${this.baseUrl}/${projectId}/forecast/summary`, { params });
   }
 
@@ -37,5 +40,9 @@ export class GmForecastService {
     value: string | number;
   }): Observable<void> {
     return this.http.put<void>(`${this.baseUrl}/${projectId}/forecast/row`, payload);
+  }
+
+  updateWbsLevel(projectId: number, financeEntryId: number, level: number): Observable<any> {
+    return this.http.patch(`${this.baseUrl}/${projectId}/forecast/level`, { financeEntryId, level });
   }
 }
