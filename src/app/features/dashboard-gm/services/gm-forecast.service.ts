@@ -17,7 +17,10 @@ export class GmForecastService {
     const params = new HttpParams().set('periods', periods);
     return this.http.get<ForecastRow[]>(`${this.baseUrl}/${projectId}/forecast`, { params });
   }
-
+  // ✅ NOUVELLE MÉTHODE
+  updateWbsLevel(projectId: number, financeEntryId: number, level: number): Observable<any> {
+    return this.http.patch(`${this.baseUrl}/projects/${projectId}/forecast/level`, { financeEntryId, level });
+  }
   getForecastSummary(projectId: number, periods: number): Observable<ForecastSummary> {
     const params = new HttpParams().set('periods', periods);
     return this.http.get<ForecastSummary>(`${this.baseUrl}/${projectId}/forecast/summary`, { params });

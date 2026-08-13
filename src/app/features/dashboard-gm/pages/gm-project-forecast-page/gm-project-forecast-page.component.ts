@@ -90,7 +90,7 @@ export class GmProjectForecastPageComponent implements OnInit {
     });
   }
 
-  // ---------- Type / labels (Backend-driven) ----------
+  // ---------- Type / labels ----------
 
   getRowType(row: ForecastRow): string {
     return row.rowType || 'COST';
@@ -114,7 +114,7 @@ export class GmProjectForecastPageComponent implements OnInit {
     return this.getRowType(row) !== 'SUMMARY';
   }
 
-  // ---------- Formatting ----------
+  // ---------- Formatting & Calculations ----------
 
   getRemainingPercent(row: ForecastRow): number {
     const budget = row.budget || 0;
@@ -131,9 +131,15 @@ export class GmProjectForecastPageComponent implements OnInit {
     return this.getRowType(row) === 'HOUR' ? this.formatHours(row.actualCost) : this.formatMoney(row.actualCost);
   }
 
+  // ✅ 1. REMAINING CLASSIQUE (Budget - Actual)
   formatRemainingOrHours(row: ForecastRow): string {
     const remaining = this.getRemaining(row);
     return this.getRowType(row) === 'HOUR' ? this.formatHours(remaining) : this.formatMoney(remaining);
+  }
+
+  // ✅ 2. REMAINING SCHEDULE (Heures restantes × Taux du Resource Type)
+  formatRemainingSchedule(row: ForecastRow): string {
+    return this.formatMoney(row.remainingCost);
   }
 
   formatTotalForecast(row: ForecastRow): string {
@@ -155,6 +161,11 @@ export class GmProjectForecastPageComponent implements OnInit {
     if (!keys.length) return null;
     const years = [...new Set(keys.map(k => k.split('-')[0]))];
     return years[index] ?? null;
+  }
+
+  // ✅ Calcul du Remaining Classique
+  getRemaining(row: ForecastRow): number {
+    return Math.max(0, (row.budget || 0) - (row.actualCost || 0));
   }
 
   // ---------- Filtering / view ----------
@@ -179,7 +190,7 @@ export class GmProjectForecastPageComponent implements OnInit {
     this.loadData();
   }
 
-  // ---------- Editing ----------
+  // ---------- Editing Cells ----------
 
   private cellKey(row: ForecastRow, periodKey: string): string {
     return `${row.wbsCode}__${periodKey}`;
@@ -235,12 +246,28 @@ export class GmProjectForecastPageComponent implements OnInit {
     });
   }
 
+  // ---------- Editing Fields & Level ----------
+
   private fieldKey(row: ForecastRow, field: string): string {
     return `${row.wbsCode}__${field}`;
   }
 
   isFieldSaving(row: ForecastRow, field: string): boolean {
     return this.savingFieldKey === this.fieldKey(row, field);
+  }
+
+  // ✅ NOUVELLE MÉTHODE : Mettre à jour le Level
+  updateLevel(row: ForecastRow): void {
+    this.forecastService.updateWbsLevel(this.projectId, row.financeEntryId, row.level).subscribe({
+      next: () => {
+        // Level updated successfully
+      },
+      error: (err) => {
+        console.error(err);
+        this.error = 'Failed to update level.';
+        this.loadData(); // Rollback on error
+      }
+    });
   }
 
   private saveRowField(
@@ -302,9 +329,7 @@ export class GmProjectForecastPageComponent implements OnInit {
     this.saveRowField(row, 'actualCost', amount, () => { row.actualCost = previous; });
   }
 
-  getRemaining(row: ForecastRow): number {
-    return Math.max(0, (row.budget || 0) - (row.actualCost || 0));
-  }
+  // ---------- Helpers ----------
 
   getCellAmount(row: ForecastRow, periodKey: string): number | null {
     const cell = row.periods.find(p => p.periodKey === periodKey);

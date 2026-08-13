@@ -52,6 +52,7 @@
   color: #214a8a;
 }
 
+
 .app-name span {
   color: var(--accent);
 }
@@ -296,12 +297,59 @@
   overflow: hidden;
 }
 
+// ✅ ANCIEN (6 colonnes) → NOUVEAU (8 colonnes)
 #wbs-panel-hdr,
 .wbs-row {
   display: grid;
-  grid-template-columns: 150px 36px 1fr 120px 110px 120px;
+  /* 8 colonnes : WBS, Icon, Description, Level, Budget, Actual, Remaining, Remaining Schedule */
+  grid-template-columns: 140px 36px 1fr 70px 100px 100px 110px 140px;
   align-items: center;
   min-height: 43px;
+}
+
+
+// ✅ Media Query corrigée
+@media (max-width: 1500px) {
+  #main-wrap {
+    grid-template-columns: 620px 1fr;
+  }
+
+  #wbs-panel-hdr,
+  .wbs-row {
+    grid-template-columns: 130px 32px 1fr 60px 90px 90px 100px 130px;
+  }
+}
+
+// ✅ Styles pour la nouvelle colonne Remaining Schedule
+.col-remaining-schedule {
+  min-height: 43px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.remaining-schedule-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.remaining-schedule-cost {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #0f88b7; /* Bleu pour distinguer du Remaining classique */
+}
+
+.remaining-schedule-hint {
+  font-size: 10px;
+  color: #888;
+  font-weight: 500;
+}
+
+.remaining-schedule-cell {
+  background: #f0f9ff; /* Fond légèrement bleu pour distinguer */
 }
 
 #wbs-panel-hdr {
@@ -724,12 +772,13 @@
 
 @media (max-width: 1500px) {
   #main-wrap {
-    grid-template-columns: 520px 1fr;
+    grid-template-columns: 560px 1fr; /* Légèrement élargi pour accommoder la nouvelle colonne */
   }
 
   #wbs-panel-hdr,
   .wbs-row {
-    grid-template-columns: 140px 32px 1fr 110px 100px 110px;
+    /* ✅ NOUVEAU : 7 colonnes adaptées pour écran plus petit */
+    grid-template-columns: 140px 32px 1fr 60px 100px 90px 120px;
   }
 }
 

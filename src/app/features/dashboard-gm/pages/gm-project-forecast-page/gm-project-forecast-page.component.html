@@ -42,9 +42,11 @@
         <div class="col-wbs hdr-cell">WBS</div>
         <div class="col-icon hdr-cell">Type</div>
         <div class="col-type hdr-cell">Description</div>
+        <div class="col-level hdr-cell">Level</div>
         <div class="col-budget hdr-cell">Budget</div>
         <div class="col-actual hdr-cell">Actual</div>
         <div class="col-remaining hdr-cell">Remaining</div>
+        <div class="col-remaining-schedule hdr-cell">Remaining Schedule</div> <!-- ✅ NOUVELLE COLONNE -->
       </div>
 
       <div id="wbs-list-body">
@@ -57,14 +59,32 @@
             <div class="desc-main" [title]="row.description">{{ row.description }}</div>
             <span class="type-badge" [ngClass]="getTypeBadgeClass(row)">{{ getTypeLabel(row) }}</span>
           </div>
+          
+          <!-- ✅ DROPDOWN LEVEL -->
+          <div class="col-level level-cell">
+            <select [(ngModel)]="row.level" (ngModelChange)="updateLevel(row)" class="level-select">
+              <option [ngValue]="1">L1</option>
+              <option [ngValue]="2">L2</option>
+              <option [ngValue]="3">L3</option>
+              <option [ngValue]="4">L4</option>
+            </select>
+          </div>
+
           <div class="col-budget money">{{ formatBudgetOrHours(row) }}</div>
           <div class="col-actual money actual-cell">{{ formatActualOrHours(row) }}</div>
+          
+          <!-- ✅ REMAINING CLASSIQUE (Budget - Actual) -->
           <div class="col-remaining money remaining-cell">
             <div class="remaining-wrap">
-              <div class="mini-bar-track">
-                <div class="mini-bar-fill" [style.width.%]="getRemainingPercent(row)"></div>
-              </div>
-              <span>{{ formatRemainingOrHours(row) }}</span>
+              <span class="remaining-cost">{{ formatRemainingOrHours(row) }}</span>
+            </div>
+          </div>
+
+          <!-- ✅ REMAINING SCHEDULE (Heures × Taux du Resource Type) -->
+          <div class="col-remaining-schedule money remaining-schedule-cell">
+            <div class="remaining-schedule-wrap">
+              <span class="remaining-schedule-cost">{{ formatRemainingSchedule(row) }}</span>
+              <span class="remaining-schedule-hint">{{ row.remainingHours || 0 }}h × Rate</span>
             </div>
           </div>
         </div>
