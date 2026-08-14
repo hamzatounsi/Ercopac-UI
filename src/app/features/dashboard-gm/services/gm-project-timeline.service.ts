@@ -75,8 +75,8 @@ export class GmProjectTimelineService {
     return this.http.get<TaskResourceAssignment[]>(`${API_PROJECTS_URL}/${projectId}/tasks/${taskId}/resources`);
   }
 
-  getTaskSupplierOptions(projectId: number, taskId: number): Observable<{ id: number; code: string | null; name: string }[]> {
-    return this.http.get<{ id: number; code: string | null; name: string }[]>(
+  getTaskSupplierOptions(projectId: number, taskId: number): Observable<{ id: number; code: string | null; name: string; resourceTypeCodes: string[] }[]> {
+    return this.http.get<{ id: number; code: string | null; name: string; resourceTypeCodes: string[] }[]>(
       `${API_PROJECTS_URL}/${projectId}/tasks/${taskId}/resources/suppliers`
     );
   }

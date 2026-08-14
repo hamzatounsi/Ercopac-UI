@@ -39,6 +39,7 @@ export interface UpsertProjectRequest {
   name: string;
   code: string;
   customer?: string;
+  customerId?: number | null;
   category?: string;
   categoryId?: number | null;
   country?: string;
@@ -58,7 +59,7 @@ export interface UpsertProjectRequest {
 }
 
 export interface ProjectFormUserOption { id: number; fullName: string; departmentCode?: string | null; resourceTypeCode?: string | null; }
-export interface ProjectFormOptions { categories: { id: number; name: string }[]; projectManagers: ProjectFormUserOption[]; salesManagers: ProjectFormUserOption[]; }
+export interface ProjectFormOptions { categories: { id: number; name: string }[]; customers: { id: number; code?: string | null; name: string }[]; projectManagers: ProjectFormUserOption[]; salesManagers: ProjectFormUserOption[]; }
 
 @Injectable({
   providedIn: 'root'
