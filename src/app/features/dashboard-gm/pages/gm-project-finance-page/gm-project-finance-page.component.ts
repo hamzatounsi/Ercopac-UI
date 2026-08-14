@@ -10,7 +10,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 
-type SettingsTab = 'wbs' | 'import' | 'apply';
+type SettingsTab = 'wbs' | 'import';
 
 @Component({
   selector: 'app-gm-project-finance-page',
@@ -53,6 +53,7 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
   applyLoading = false;
   settingsError: string | null = null;
   activeSettingsTab: SettingsTab = 'wbs';
+  applyResultMessage: string | null = null;
 
   financeSettings: FinanceSettings = {
     defaultHourlyRate: 65,
@@ -66,18 +67,12 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
   importDragOver = false;
   odsTemplateLoading = false;
 
-  applyProjectsList: any[] = [];
-  applyProjectsLoading = false;
-  applyResultMessage: string | null = null;
-
   departments: Department[] = [];
   usersByDepartment: { [deptId: number]: AppUser[] } = {};
   loadingDepartments = false;
-  
-  resourceTypes: any[] = []; // ✅ AJOUTÉ
+  resourceTypes: any[] = [];
 
   erpConnecting = false;
-
   readonly rowTypeOptions: FinanceWbsRowType[] = ['SUMMARY', 'HOUR', 'EXPENSES', 'COST'];
 
   constructor(
@@ -288,7 +283,8 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
       templateRows: this.financeSettings?.templateRows ?? []
     };
     setTimeout(() => this.attachOverlayToBody());
-    this.financeService.getFinanceSettings().subscribe({
+    
+    this.financeService.getFinanceSettings(this.projectId).subscribe({
       next: (settings) => {
         this.financeSettings = {
           defaultHourlyRate: settings?.defaultHourlyRate ?? 65,
@@ -296,7 +292,7 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
         };
         this.settingsLoading = false;
         this.loadDepartments();
-        this.loadResourceTypes(); // ✅ AJOUTÉ
+        this.loadResourceTypes();
       },
       error: (err) => {
         this.settingsLoading = false;
@@ -309,6 +305,7 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     this.detachOverlayFromBody();
     this.settingsOpen = false;
     this.settingsError = null;
+    this.applyResultMessage = null;
   }
 
   private attachOverlayToBody(): void {
@@ -341,7 +338,8 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     }
     this.settingsSaving = true;
     this.normalizeTemplateSortOrder();
-    this.financeService.saveFinanceSettings(this.financeSettings).subscribe({
+    
+    this.financeService.saveFinanceSettings(this.financeSettings, this.projectId).subscribe({
       next: (saved) => {
         this.financeSettings = {
           defaultHourlyRate: saved.defaultHourlyRate ?? 65,
@@ -354,45 +352,29 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
   }
 
   applyTemplateToCurrentProject(): void {
+    if (this.financeSettings.templateRows.length === 0) {
+      this.settingsError = 'Please add at least one WBS row before applying.';
+      return;
+    }
     this.applyLoading = true;
     this.settingsError = null;
     this.applyResultMessage = null;
-    this.financeService.applyFinanceTemplate({ projectIds: [this.projectId] }).subscribe({
+
+    this.financeService.applyFinanceTemplateToCurrentProject(this.projectId).subscribe({
       next: (result) => {
         this.applyLoading = false;
-        this.applyResultMessage = `Applied to ${result?.projectsProcessed ?? 1} project(s), ${result?.rowsGenerated ?? 0} rows generated.`;
+        this.applyResultMessage = `✅ WBS applied successfully to "${this.projectName}" - ${result?.rowsGenerated ?? 0} rows generated.`;
         this.loadData();
       },
-      error: () => { this.applyLoading = false; this.settingsError = 'Failed to apply finance template.'; }
-    });
-  }
-
-  loadApplyProjectsList(): void {
-    this.applyProjectsLoading = true;
-    this.dashboardService.getProjects().subscribe({
-      next: (projects) => { this.applyProjectsList = projects ?? []; this.applyProjectsLoading = false; },
-      error: () => { this.applyProjectsLoading = false; this.settingsError = 'Failed to load the projects list.'; }
-    });
-  }
-
-  applyTemplateToAllProjects(): void {
-    if (this.applyProjectsList.length === 0) { this.settingsError = 'No projects found.'; return; }
-    this.applyLoading = true;
-    this.settingsError = null;
-    this.applyResultMessage = null;
-    this.financeService.applyFinanceTemplateToAll().subscribe({
-      next: (result) => {
+      error: () => {
         this.applyLoading = false;
-        this.applyResultMessage = `Applied to ${result?.projectsProcessed ?? this.applyProjectsList.length} project(s), ${result?.rowsGenerated ?? 0} rows generated.`;
-        this.loadData();
-      },
-      error: () => { this.applyLoading = false; this.settingsError = 'Failed to apply the WBS template to all projects.'; }
+        this.settingsError = 'Failed to apply finance template to current project.';
+      }
     });
   }
 
   setSettingsTab(tab: SettingsTab): void {
     this.activeSettingsTab = tab;
-    if (tab === 'apply' && this.applyProjectsList.length === 0) this.loadApplyProjectsList();
   }
 
   addTemplateRow(): void {
@@ -420,16 +402,10 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ✅ NOUVEAU : Charger les Resource Types depuis le backend
   loadResourceTypes(): void {
     this.http.get<any[]>(`${environment.apiUrl}/resource-types`).subscribe({
-      next: (types) => {
-        this.resourceTypes = (types || []).filter((t: any) => t.active && t.assignable);
-      },
-      error: () => {
-        // Fallback si l'API échoue
-        this.resourceTypes = []; 
-      }
+      next: (types) => { this.resourceTypes = (types || []).filter((t: any) => t.active && t.assignable); },
+      error: () => { this.resourceTypes = []; }
     });
   }
 
@@ -547,7 +523,7 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
         departmentId: null, departmentName: null, ownerId: null, ownerName: null,
         ownerKey: r['OWNER KEY'] ?? r['Owner Key'] ?? r['ownerKey'] ?? null,
         hourRate: r['HOUR RATE'] ?? r['Hour Rate'] ?? r['hourRate'] ?? null,
-        resourceType: r['RESOURCE TYPE'] ?? r['Resource Type'] ?? r['resourceType'] ?? null // ✅ AJOUTÉ
+        resourceType: r['RESOURCE TYPE'] ?? r['Resource Type'] ?? r['resourceType'] ?? null
       };
     }).filter(row => row.codeTemplate && row.description);
   }
@@ -563,7 +539,8 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     if (this.importPreviewRows.length === 0) { this.settingsError = 'Please select a valid WBS file first.'; return; }
     this.importLoading = true;
     this.settingsError = null;
-    this.financeService.importWbsTemplate(this.importPreviewRows, this.importReplaceExisting).subscribe({
+    
+    this.financeService.importWbsTemplate(this.importPreviewRows, this.importReplaceExisting, this.projectId).subscribe({
       next: (saved) => {
         this.financeSettings = {
           defaultHourlyRate: saved.defaultHourlyRate ?? 65,

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { GmForecastService } from '../../services/gm-forecast.service';
 import { ForecastRow } from '../../models/forecast-row.model';
@@ -11,6 +11,9 @@ import { GmDashboardService } from '../../services/gm-dashboard.service';
   styleUrls: ['./gm-project-forecast-page.component.scss']
 })
 export class GmProjectForecastPageComponent implements OnInit {
+  @ViewChild('wbsBody') wbsBody!: ElementRef<HTMLElement>;
+  @ViewChild('calBody') calBody!: ElementRef<HTMLElement>;
+
   projectId!: number;
 
   loading = false;
@@ -26,12 +29,14 @@ export class GmProjectForecastPageComponent implements OnInit {
   summary: ForecastSummary | null = null;
 
   periods = 12;
-  searchTerm = ''; // ✅ AJOUTÉ (correction de l'erreur TS2339)
+  searchTerm = '';
   viewMode: 'week' | 'month' = 'month';
-  periodType = 'month'; // ✅ AJOUTÉ pour gérer week/month
+  periodType = 'month';
 
   savingCellKey: string | null = null;
   savingFieldKey: string | null = null;
+
+  private isScrolling = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -66,7 +71,6 @@ export class GmProjectForecastPageComponent implements OnInit {
     this.loading = true;
     this.error = null;
 
-    // ✅ Passe maintenant les 3 arguments (le service a été mis à jour ci-dessous)
     this.forecastService.getForecastGrid(this.projectId, this.periods, this.periodType).subscribe({
       next: (rows) => {
         this.rows = rows ?? [];
@@ -155,12 +159,10 @@ export class GmProjectForecastPageComponent implements OnInit {
   getHeaderYearLabel(index: number): string | null {
     const keys = this.getPeriodKeys();
     if (!keys.length) return null;
-    
     const years = [...new Set(keys.map(k => {
       if (k.includes('-W')) return k.split('-W')[0];
       return k.split('-')[0];
     }))];
-    
     return years[index] ?? null;
   }
 
@@ -182,8 +184,8 @@ export class GmProjectForecastPageComponent implements OnInit {
 
   setViewMode(mode: 'week' | 'month'): void {
     this.viewMode = mode;
-    this.periodType = mode; // ✅ Change le type de période
-    this.loadData(); // ✅ Recharge les données
+    this.periodType = mode;
+    this.loadData();
   }
 
   onPeriodsChange(): void {
@@ -280,6 +282,35 @@ export class GmProjectForecastPageComponent implements OnInit {
       currency: 'EUR',
       maximumFractionDigits: 0
     }).format(value);
+  }
+
+  // ✅ NOUVELLE MÉTHODE : Synchronisation du scroll WBS → Calendar
+  onWbsScroll(event: Event): void {
+    if (this.isScrolling) return;
+    this.isScrolling = true;
+    const wbsBody = this.wbsBody.nativeElement;
+    const calBody = this.calBody.nativeElement;
+    calBody.scrollTop = wbsBody.scrollTop;
+    requestAnimationFrame(() => {
+      this.isScrolling = false;
+    });
+  }
+
+  // ✅ NOUVELLE MÉTHODE : Synchronisation du scroll Calendar → WBS
+  onCalScroll(event: Event): void {
+    if (this.isScrolling) return;
+    this.isScrolling = true;
+    const wbsBody = this.wbsBody.nativeElement;
+    const calBody = this.calBody.nativeElement;
+    wbsBody.scrollTop = calBody.scrollTop;
+    requestAnimationFrame(() => {
+      this.isScrolling = false;
+    });
+  }
+
+  // ✅ NOUVELLE MÉTHODE : TrackBy pour optimiser le *ngFor
+  trackByRow(index: number, row: any): number {
+    return row.financeEntryId || index;
   }
 
   goToProjectum(): void { this.router.navigate(['/gm/projectum']); }

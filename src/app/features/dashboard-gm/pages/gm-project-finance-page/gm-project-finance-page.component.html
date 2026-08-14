@@ -137,20 +137,32 @@
         <aside class="settings-sidebar-menu">
           <button class="settings-tab" [class.active]="activeSettingsTab === 'wbs'" (click)="setSettingsTab('wbs')">📋 WBS Structure</button>
           <button class="settings-tab" [class.active]="activeSettingsTab === 'import'" (click)="setSettingsTab('import')">📥 Import WBS</button>
-          <button class="settings-tab" [class.active]="activeSettingsTab === 'apply'" (click)="setSettingsTab('apply')">🔄 Apply to Projects</button>
+          <!-- ✅ L'onglet "Apply to Projects" a été supprimé ici -->
         </aside>
 
         <section class="settings-content">
           <div *ngIf="settingsLoading" class="settings-empty">Loading settings...</div>
           <div *ngIf="settingsError && !settingsLoading" class="settings-error">{{ settingsError }}</div>
+          
+          <!-- ✅ Message de succès pour l'application au projet actuel -->
+          <div *ngIf="applyResultMessage" class="callout" style="margin: 16px; background:#effcf3; border-color:#bfead0; color:#166534; padding: 12px; border-radius: 8px;">
+            {{ applyResultMessage }}
+          </div>
 
           <ng-container *ngIf="!settingsLoading">
             
-            <!-- ✅ WBS STRUCTURE TAB (Avec colonne Resource Type) -->
+            <!-- ✅ WBS STRUCTURE TAB -->
             <div *ngIf="activeSettingsTab === 'wbs'" class="settings-section">
               <div class="section-top">
-                <div><h2>📋 WBS Structure Template</h2><p>Define the standard WBS applied to all projects.</p></div>
+                <div>
+                  <h2>📋 WBS Structure Template</h2>
+                  <p>Define the WBS structure specific to this project.</p>
+                </div>
                 <div class="section-actions">
+                  <!-- ✅ NOUVEAU BOUTON : Apply to Current Project -->
+                  <button class="btn primary" (click)="applyTemplateToCurrentProject()" [disabled]="applyLoading || financeSettings.templateRows.length === 0">
+                    {{ applyLoading ? 'Applying...' : '⚡ Apply to Current Project' }}
+                  </button>
                   <button class="btn ghost" (click)="addTemplateRow()">＋ Add Row</button>
                   <button class="btn primary" (click)="saveSettings()">💾 Save</button>
                 </div>
@@ -171,7 +183,7 @@
                       <th style="width:120px;">TYPE</th>
                       <th style="width:150px;">DEPARTMENT</th>
                       <th style="width:150px;">OWNER</th>
-                      <th style="width:160px;">RESOURCE TYPE</th> <!-- ✅ AJOUTÉ -->
+                      <th style="width:160px;">RESOURCE TYPE</th>
                       <th style="width:50px;"></th>
                     </tr>
                   </thead>
@@ -197,7 +209,6 @@
                           <option *ngFor="let user of usersByDepartment[row.departmentId!] || []" [ngValue]="user.id">{{ user.fullName }}</option>
                         </select>
                       </td>
-                      <!-- ✅ NOUVELLE COLONNE RESOURCE TYPE -->
                       <td>
                         <select [(ngModel)]="row.resourceType" class="tbl-select">
                           <option [ngValue]="null">— None —</option>
@@ -253,35 +264,6 @@
                   </tbody>
                 </table>
               </div>
-            </div>
-
-            <!-- ✅ APPLY TAB -->
-            <div *ngIf="activeSettingsTab === 'apply'" class="settings-section">
-              <div class="section-top">
-                <div><h2>🔄 Apply WBS to Projects</h2><p>Generate or update the WBS data in Finance & Forecast pages.</p></div>
-                <div class="section-actions">
-                  <button class="btn primary" (click)="applyTemplateToAllProjects()" [disabled]="applyLoading || applyProjectsLoading">{{ applyLoading ? 'Applying...' : '⚡ Apply to All Projects' }}</button>
-                </div>
-              </div>
-              <div *ngIf="applyResultMessage" class="callout" style="background:#effcf3;border-color:#bfead0;color:#166534;">✅ {{ applyResultMessage }}</div>
-              <div *ngIf="applyProjectsLoading" class="settings-empty">Loading projects...</div>
-              <ng-container *ngIf="!applyProjectsLoading">
-                <div class="callout" style="background:#fff7ed;border-color:#fed7aa;color:#9a3412;" *ngIf="applyProjectsList.length === 0">No projects found. Create projects in the Dashboard first.</div>
-                <div class="settings-table-wrap" *ngIf="applyProjectsList.length > 0">
-                  <table class="settings-table">
-                    <thead><tr><th>PROJECT</th><th style="width:160px;">STATUS</th><th style="width:100px;"></th></tr></thead>
-                    <tbody>
-                      <tr *ngFor="let p of applyProjectsList">
-                        <td>{{ p.name || ('Project #' + p.id) }}</td>
-                        <td>{{ p.status || '—' }}</td>
-                        <td>
-                          <button class="btn ghost" type="button" style="height:30px; padding:0 10px; font-size:12px;" (click)="applyTemplateToCurrentProject()" *ngIf="p.id === projectId" [disabled]="applyLoading">This project</button>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </ng-container>
             </div>
 
           </ng-container>
