@@ -436,23 +436,25 @@
   color: #0f88b7;
 }
 
-/* Level Dropdown - Compact */
+/* Level Cell */
 .level-cell {
   justify-content: center;
 }
 
-.level-select {
-  padding: 2px 4px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  background: #fff;
-  cursor: pointer;
-  width: 56px;
+/* ✅ Badge de niveau hiérarchique (Schedule) - MOVED OUTSIDE MEDIA QUERY */
+.level-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
   height: 26px;
-  line-height: 1;
-  &:hover { border-color: #3b82f6; }
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: Consolas, monospace;
 }
 
 /* Remaining Classique */
@@ -700,4 +702,25 @@
     border-right: 1px solid var(--border);
     border-bottom: none;
   }
+ 
+}
+ /* ✅ Dropdown pour la liaison WBS Schedule */
+.linked-wbs-select {
+  padding: 2px 4px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  background: #fff;
+  cursor: pointer;
+  width: 100%;
+  max-width: 140px;
+  height: 26px;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  
+  &:hover { border-color: #3b82f6; }
+  &:focus { outline: none; border-color: #1664c0; }
 }

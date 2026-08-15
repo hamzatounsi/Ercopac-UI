@@ -307,7 +307,26 @@ export class GmProjectForecastPageComponent implements OnInit {
       this.isScrolling = false;
     });
   }
-
+  // ✅ MÉTHODE POUR LIER UNE TÂCHE SCHEDULE AU FORECAST
+  onLinkedWbsChange(row: ForecastRow): void {
+    this.saving = true;
+    
+    this.forecastService.updateLinkedScheduleWbs(
+      this.projectId, 
+      row.financeEntryId, 
+      row.linkedScheduleWbs || null
+    ).subscribe({
+      next: () => {
+        this.saving = false;
+        this.loadData(); // Recharger pour recalculer Remaining Schedule
+      },
+      error: (err: any) => {
+        console.error(err);
+        this.error = 'Failed to update linked task.';
+        this.saving = false;
+      }
+    });
+  }
   // ✅ NOUVELLE MÉTHODE : TrackBy pour optimiser le *ngFor
   trackByRow(index: number, row: any): number {
     return row.financeEntryId || index;

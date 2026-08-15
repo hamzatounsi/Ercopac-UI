@@ -65,14 +65,16 @@
             <div class="desc-main" [title]="row.description">{{ row.description }}</div>
             <span class="type-badge" [ngClass]="getTypeBadgeClass(row)">{{ getTypeLabel(row) }}</span>
           </div>
-          <div class="col-level level-cell">
-            <select [(ngModel)]="row.level" (ngModelChange)="updateLevel(row)" class="level-select">
-              <option [ngValue]="1">L1</option>
-              <option [ngValue]="2">L2</option>
-              <option [ngValue]="3">L3</option>
-              <option [ngValue]="4">L4</option>
-            </select>
-          </div>
+          <!-- ✅ NIVEAU HIÉRARCHIQUE DU SCHEDULE (Lecture seule) -->
+        <!-- ✅ INPUT EDITABLE : Sélection d'une tâche Schedule pour calcul automatique -->
+<div class="col-level level-cell">
+  <select [(ngModel)]="row.linkedScheduleWbs" (change)="onLinkedWbsChange(row)" class="linked-wbs-select">
+    <option [ngValue]="null">-- Select Task --</option>
+    <option *ngFor="let task of row.availableScheduleTasks" [ngValue]="task.wbsCode">
+      {{ task.wbsCode }} - {{ task.name }} (L{{ task.outlineLevel }})
+    </option>
+  </select>
+</div>
           <div class="col-budget money">{{ formatBudgetOrHours(row) }}</div>
           <div class="col-actual money actual-cell">{{ formatActualOrHours(row) }}</div>
           <div class="col-remaining money remaining-cell">
