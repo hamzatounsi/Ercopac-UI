@@ -120,7 +120,7 @@
           *ngFor="let p of projectOptions"
           [value]="p.projectId"
         >
-          {{ p.projectCode }} · {{ p.projectName }}
+          {{ projectDisplayName(p) }}
         </option>
       </select>
     </div>
