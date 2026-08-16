@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import * as XLSX from 'xlsx';
+import { assertSpreadsheetFile, assertSpreadsheetRowLimit, assertValidWorkbook } from 'src/app/core/utils/spreadsheet-import.utils';
 
 import { GmResourceService } from '../../services/gm-resource.service';
 import { GmSupplierService } from '../../services/gm-supplier.service';
@@ -348,16 +349,23 @@ export class GmResourceManagementPageComponent implements OnInit {
     const file = input.files?.[0];
 
     if (!file) return;
+    try { assertSpreadsheetFile(file, ['.xlsx', '.xls']); }
+    catch (error) { this.error = error instanceof Error ? error.message : 'Invalid or unsupported spreadsheet file.'; input.value = ''; return; }
 
     const reader = new FileReader();
 
     reader.onload = () => {
-      const data = new Uint8Array(reader.result as ArrayBuffer);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json<any>(sheet);
-
-      this.createResourcesFromImportRows(rows, 'Failed to import resources.');
+      try {
+        const data = new Uint8Array(reader.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[assertValidWorkbook(workbook)];
+        const rows = XLSX.utils.sheet_to_json<any>(sheet, { defval: null });
+        assertSpreadsheetRowLimit(rows);
+        if (!rows.length) throw new Error('Excel file is empty.');
+        const headers = Object.keys(rows[0]).map(header => header.replace(/[^a-z0-9]/gi, '').toLowerCase());
+        if (!headers.some(header => ['fullname', 'name'].includes(header))) throw new Error('Resource spreadsheet must include a Full Name or Name header.');
+        this.createResourcesFromImportRows(rows, 'Failed to import resources.');
+      } catch (error) { this.error = error instanceof Error ? error.message : 'Invalid or unsupported spreadsheet file.'; }
     };
 
     reader.readAsArrayBuffer(file);
@@ -399,29 +407,45 @@ export class GmResourceManagementPageComponent implements OnInit {
   }
 
   private createResourcesFromImportRows(rows: any[], errorMessage: string): void {
-    const requests = rows
-      .filter(row => row)
-      .map(row => this.gmResourceService.createResource({
-        fullName: row.fullName || row.FullName || row.name || row.Name || 'New Resource',
-        email: row.email || row.Email || '',
-        password: row.password || row.Password || 'Resource123!',
-        role: row.role || row.Role || 'EMPLOYEE',
-        employeeCode: row.employeeCode || row.EmployeeCode || row.code || row.Code || '',
-        departmentCode: row.departmentCode || row.DepartmentCode || row.department || row.Department || '',
-        resourceType: row.resourceType || row.ResourceType || '',
-        jobTitle: row.jobTitle || row.JobTitle || row.roleTitle || '',
-        seniority: row.seniority || row.Seniority || '',
+    if (!Array.isArray(rows) || rows.length > 10000) { this.error = 'Invalid or unsupported spreadsheet file.'; return; }
+    let requests;
+    try {
+      requests = rows
+      .filter(row => row && typeof row === 'object')
+      .map((row, index) => {
+        const text = (...values: unknown[]): string => String(values.find(value => value !== undefined && value !== null) ?? '').trim();
+        const fullName = String(row.fullName ?? row.FullName ?? row.name ?? row.Name ?? '').trim();
+        if (!fullName) throw new Error(`Resource row ${index + 1} requires a name.`);
+        const hoursPerDay = Number(row.hoursPerDay ?? row.HoursPerDay ?? 8);
+        const daysPerWeek = Number(row.daysPerWeek ?? row.DaysPerWeek ?? 5);
+        const defaultRate = Number(row.defaultRate ?? row.DefaultRate ?? row.rate ?? row.Rate ?? 0);
+        if (![hoursPerDay, daysPerWeek, defaultRate].every(Number.isFinite) || hoursPerDay < 0 || daysPerWeek < 0 || defaultRate < 0) throw new Error(`Resource row ${index + 1} contains invalid numeric values.`);
+        return this.gmResourceService.createResource({
+        fullName,
+        email: text(row.email, row.Email),
+        password: text(row.password, row.Password) || 'Resource123!',
+        role: text(row.role, row.Role) || 'EMPLOYEE',
+        employeeCode: text(row.employeeCode, row.EmployeeCode, row.code, row.Code),
+        departmentCode: text(row.departmentCode, row.DepartmentCode, row.department, row.Department),
+        resourceType: text(row.resourceType, row.ResourceType),
+        jobTitle: text(row.jobTitle, row.JobTitle, row.roleTitle),
+        seniority: text(row.seniority, row.Seniority),
         internalUser: this.parseBoolean(row.internalUser ?? row.InternalUser ?? true),
-        hoursPerDay: Number(row.hoursPerDay || row.HoursPerDay || 8),
-        daysPerWeek: Number(row.daysPerWeek || row.DaysPerWeek || 5),
-        workdays: row.workdays || row.Workdays || 'MON-FRI',
-        defaultRate: Number(row.defaultRate || row.DefaultRate || row.rate || row.Rate || 0),
-        rateType: row.rateType || row.RateType || 'daily',
-        currency: row.currency || row.Currency || 'EUR',
-        color: row.color || row.Color || '',
-        notes: row.notes || row.Notes || '',
+        hoursPerDay,
+        daysPerWeek,
+        workdays: text(row.workdays, row.Workdays) || 'MON-FRI',
+        defaultRate,
+        rateType: text(row.rateType, row.RateType) || 'daily',
+        currency: text(row.currency, row.Currency) || 'EUR',
+        color: text(row.color, row.Color),
+        notes: text(row.notes, row.Notes),
         active: true
-      }));
+      });
+      });
+    } catch (error) {
+      this.error = error instanceof Error ? error.message : 'Invalid or unsupported spreadsheet file.';
+      return;
+    }
 
     if (!requests.length) {
       this.error = 'No rows found to import.';

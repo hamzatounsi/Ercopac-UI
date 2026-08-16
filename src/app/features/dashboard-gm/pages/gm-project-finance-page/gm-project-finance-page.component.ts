@@ -9,6 +9,7 @@ import { HttpClient } from '@angular/common/http';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
+import { assertSpreadsheetFile, assertSpreadsheetRowLimit, assertValidWorkbook } from 'src/app/core/utils/spreadsheet-import.utils';
 
 type SettingsTab = 'wbs' | 'import';
 
@@ -206,31 +207,45 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
+    try { assertSpreadsheetFile(file, ['.xlsx', '.xls']); }
+    catch (error) { this.error = error instanceof Error ? error.message : 'Invalid or unsupported spreadsheet file.'; input.value = ''; return; }
     const reader = new FileReader();
     reader.onload = (e: ProgressEvent<FileReader>) => {
-      const binary = e.target?.result;
-      if (!binary) return;
-      const workbook = XLSX.read(binary, { type: 'binary' });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" }) as any[][];
-      let headerRowIndex = 0;
-      for (let i = 0; i < Math.min(rawData.length, 10); i++) {
-        const rowStr = rawData[i].map(cell => String(cell).trim().toLowerCase()).join(" ");
-        if (rowStr.includes("wbs") || rowStr.includes("level")) { headerRowIndex = i; break; }
+      try {
+        const binary = e.target?.result;
+        if (!binary) throw new Error('Invalid or unsupported spreadsheet file.');
+        const workbook = XLSX.read(binary, { type: 'binary' });
+        const sheet = workbook.Sheets[assertValidWorkbook(workbook)];
+        const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" }) as any[][];
+        assertSpreadsheetRowLimit(rawData);
+        let headerRowIndex = -1;
+        for (let i = 0; i < Math.min(rawData.length, 10); i++) {
+          const rowStr = rawData[i].map(cell => String(cell).trim().toLowerCase()).join(" ");
+          if (rowStr.includes("wbs") && rowStr.includes("description")) { headerRowIndex = i; break; }
+        }
+        if (headerRowIndex < 0) throw new Error('Finance spreadsheet must include WBS and Description headers.');
+        const data = XLSX.utils.sheet_to_json(sheet, { range: headerRowIndex, defval: "" }) as any[];
+        assertSpreadsheetRowLimit(data);
+        this.importFinance(data);
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'Invalid or unsupported spreadsheet file.';
       }
-      const data = XLSX.utils.sheet_to_json(sheet, { range: headerRowIndex, defval: "" });
-      this.importFinance(data as any[]);
     };
     reader.readAsBinaryString(file);
   }
 
   importFinance(rows: any[]): void {
     if (!rows || rows.length === 0) { this.error = 'Excel file is empty.'; return; }
+    try { assertSpreadsheetRowLimit(rows); } catch (error) { this.error = error instanceof Error ? error.message : 'Invalid or unsupported spreadsheet file.'; return; }
     const safeNumber = (val: any): number => {
       if (val === null || val === undefined || val === '') return 0;
-      if (typeof val === 'number') return val;
-      const parsed = parseFloat(String(val).replace(/,/g, '').trim());
-      return isNaN(parsed) ? 0 : parsed;
+      if (typeof val === 'number') {
+        if (!Number.isFinite(val)) throw new Error('Finance spreadsheet contains an invalid number.');
+        return val;
+      }
+      const parsed = Number(String(val).replace(/,/g, '').trim());
+      if (!Number.isFinite(parsed)) throw new Error('Finance spreadsheet contains an invalid number.');
+      return parsed;
     };
     const getValue = (row: any, keys: string[]) => {
       for (const key of Object.keys(row)) {
@@ -246,19 +261,14 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
       }
       return '';
     };
-    const mapped = rows.map((r) => ({
-      wbsCode: getStr(r, ['WBS', 'wbs', 'wbsCode']),
-      description: getStr(r, ['Description', 'description', 'DESCRIPTION']),
-      level: Number(r['LEVEL'] ?? r['Level'] ?? r['level'] ?? r['LVL'] ?? 1),
-      sales: safeNumber(getValue(r, ['Sales', 'sales'])),
-      budget: safeNumber(getValue(r, ['Budget', 'budget', 'Budjet', 'budjet'])),
-      costReserve: safeNumber(getValue(r, ['CR', 'cr', 'Cost Reserve'])),
-      updatedBudget: safeNumber(getValue(r, ['Updated budget', 'Updated budjet', 'updatedBudget', 'updated_budget'])),
-      commitment: safeNumber(getValue(r, ['Commitment', 'commitment', 'COMMITMENT'])),
-      actualCost: safeNumber(getValue(r, ['Actual', 'actual', 'ACTUAL', 'Actual Cost'])),
-      forecast: safeNumber(getValue(r, ['Forecast', 'Forcast', 'forecast', 'FORECAST'])),
-      ownerName: getStr(r, ['Owner', 'ownerName', 'OWNER'])
-    }));
+    const mapped = rows.map((r, index) => {
+      if (!r || typeof r !== 'object') throw new Error(`Finance row ${index + 1} is malformed.`);
+      const wbsCode = getStr(r, ['WBS', 'wbs', 'wbsCode']);
+      const description = getStr(r, ['Description', 'description', 'DESCRIPTION']);
+      const level = Number(r['LEVEL'] ?? r['Level'] ?? r['level'] ?? r['LVL'] ?? 1);
+      if (!wbsCode || !description || !Number.isInteger(level) || level < 1) throw new Error(`Finance row ${index + 1} is invalid.`);
+      return { wbsCode, description, level, sales: safeNumber(getValue(r, ['Sales', 'sales'])), budget: safeNumber(getValue(r, ['Budget', 'budget', 'Budjet', 'budjet'])), costReserve: safeNumber(getValue(r, ['CR', 'cr', 'Cost Reserve'])), updatedBudget: safeNumber(getValue(r, ['Updated budget', 'Updated budjet', 'updatedBudget', 'updated_budget'])), commitment: safeNumber(getValue(r, ['Commitment', 'commitment', 'COMMITMENT'])), actualCost: safeNumber(getValue(r, ['Actual', 'actual', 'ACTUAL', 'Actual Cost'])), forecast: safeNumber(getValue(r, ['Forecast', 'Forcast', 'forecast', 'FORECAST'])), ownerName: getStr(r, ['Owner', 'ownerName', 'OWNER']) };
+    });
     this.financeService.importFinance(this.projectId, mapped).subscribe({
       next: () => { this.loadData(); this.error = null; },
       error: () => { this.error = 'Failed to import finance file.'; }
@@ -450,6 +460,8 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     this.importMessage = null;
     this.settingsError = null;
     const fileName = file.name.toLowerCase();
+    try { assertSpreadsheetFile(file, ['.json', '.csv', '.xlsx', '.xls', '.ods']); }
+    catch (error) { this.settingsError = error instanceof Error ? error.message : 'Invalid or unsupported spreadsheet file.'; return; }
     if (fileName.endsWith('.json')) this.readWbsJson(file);
     else if (fileName.endsWith('.csv')) this.readWbsCsv(file);
     else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.ods')) this.readWbsExcel(file);
@@ -476,6 +488,8 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
       try {
         const parsed = JSON.parse(String(reader.result));
         this.importPreviewRows = this.normalizeImportedWbsRows(Array.isArray(parsed) ? parsed : parsed.rows);
+        assertSpreadsheetRowLimit(this.importPreviewRows);
+        if (!this.importPreviewRows.length) throw new Error('WBS file is empty or malformed.');
         this.importMessage = `${this.importPreviewRows.length} WBS rows ready to import.`;
       } catch (err: any) { this.settingsError = `Import Error: ${err.message}`; this.importPreviewRows = []; }
     };
@@ -487,7 +501,11 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     reader.onload = () => {
       try {
         const workbook = XLSX.read(String(reader.result ?? ''), { type: 'string' });
-        this.importPreviewRows = this.normalizeImportedWbsRows(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]) as any[]);
+        const sheet = workbook.Sheets[assertValidWorkbook(workbook)];
+        const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' }) as any[];
+        assertSpreadsheetRowLimit(rows);
+        this.importPreviewRows = this.normalizeImportedWbsRows(rows);
+        if (!this.importPreviewRows.length) throw new Error('WBS file is empty or malformed.');
         this.importMessage = `${this.importPreviewRows.length} WBS rows ready to import.`;
       } catch (err: any) { this.settingsError = `Import Error: ${err.message}`; this.importPreviewRows = []; }
     };
@@ -499,7 +517,11 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     reader.onload = (e: ProgressEvent<FileReader>) => {
       try {
         const workbook = XLSX.read(e.target?.result as any, { type: 'binary' });
-        this.importPreviewRows = this.normalizeImportedWbsRows(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]) as any[]);
+        const sheet = workbook.Sheets[assertValidWorkbook(workbook)];
+        const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' }) as any[];
+        assertSpreadsheetRowLimit(rows);
+        this.importPreviewRows = this.normalizeImportedWbsRows(rows);
+        if (!this.importPreviewRows.length) throw new Error('WBS file is empty or malformed.');
         this.importMessage = `${this.importPreviewRows.length} WBS rows ready to import.`;
       } catch (err: any) { this.settingsError = `Import Error: ${err.message}`; this.importPreviewRows = []; }
     };
@@ -507,10 +529,13 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
   }
 
   private normalizeImportedWbsRows(rows: any[]): FinanceWbsTemplateRow[] {
-    return (rows ?? []).map((r, index) => {
+    if (!Array.isArray(rows)) throw new Error('WBS file contains malformed rows.');
+    return rows.map((r, index) => {
+      if (!r || typeof r !== 'object') throw new Error(`WBS row ${index + 1} is malformed.`);
       const codeTemplate = String(r['WBS CODE'] ?? r['WBS'] ?? r['Code'] ?? r['codeTemplate'] ?? r['wbsCode'] ?? '').trim();
       const description = String(r['DESCRIPTION'] ?? r['Description'] ?? r['description'] ?? '').trim();
       const level = Number(r['LVL'] ?? r['Level'] ?? r['LEVEL'] ?? r['level'] ?? this.detectWbsLevel(codeTemplate));
+      if (!codeTemplate || !description || !Number.isInteger(level) || level < 1) throw new Error(`WBS row ${index + 1} is invalid.`);
       const explicitTypeRaw = r['TYPE'] ?? r['Type'] ?? r['type'] ?? 'COST';
       const upper = String(explicitTypeRaw).toUpperCase().trim();
       let type: FinanceWbsRowType = 'COST';
@@ -521,9 +546,9 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
       return {
         sortOrder: index + 1, level, codeTemplate, description, type,
         departmentId: null, departmentName: null, ownerId: null, ownerName: null,
-        ownerKey: r['OWNER KEY'] ?? r['Owner Key'] ?? r['ownerKey'] ?? null,
+        ownerKey: String(r['OWNER KEY'] ?? r['Owner Key'] ?? r['ownerKey'] ?? '').trim() || null,
         hourRate: r['HOUR RATE'] ?? r['Hour Rate'] ?? r['hourRate'] ?? null,
-        resourceType: r['RESOURCE TYPE'] ?? r['Resource Type'] ?? r['resourceType'] ?? null
+        resourceType: String(r['RESOURCE TYPE'] ?? r['Resource Type'] ?? r['resourceType'] ?? '').trim() || null
       };
     }).filter(row => row.codeTemplate && row.description);
   }

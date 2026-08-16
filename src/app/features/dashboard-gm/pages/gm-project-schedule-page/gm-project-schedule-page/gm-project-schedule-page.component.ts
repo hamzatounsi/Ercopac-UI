@@ -34,6 +34,7 @@ import { GmDashboardService } from '../../../services/gm-dashboard.service';
 import { AuthService } from '../../../../../core/auth/auth.service';
 import { ResourceConfigService } from '../../../services/resource-config.service';
 import * as XLSX from 'xlsx';
+import { assertSpreadsheetFile, assertSpreadsheetRowLimit, assertValidWorkbook } from 'src/app/core/utils/spreadsheet-import.utils';
 
 export interface TimelineDay {
   label: string;
@@ -1579,6 +1580,7 @@ indentTask(): void {
 
   private async readImportRows(file: File): Promise<Record<string, unknown>[]> {
     const filename = file.name.toLowerCase();
+    assertSpreadsheetFile(file, ['.json', '.xlsx']);
     if (filename.endsWith('.json')) {
       const parsed = JSON.parse(await file.text());
       const rows = Array.isArray(parsed) ? parsed : parsed?.tasks;
@@ -1587,9 +1589,13 @@ indentTask(): void {
     }
     if (filename.endsWith('.xlsx')) {
       const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: true });
-      const firstSheet = workbook.SheetNames[0];
-      if (!firstSheet) throw new Error('Excel file does not contain a worksheet.');
-      return XLSX.utils.sheet_to_json<Record<string, unknown>>(workbook.Sheets[firstSheet], { defval: null, raw: true });
+      const firstSheet = assertValidWorkbook(workbook);
+      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(workbook.Sheets[firstSheet], { defval: null, raw: true });
+      assertSpreadsheetRowLimit(rows);
+      if (!rows.length) throw new Error('Excel file is empty.');
+      const headers = Object.keys(rows[0]).map(header => this.normalizeImportHeader(header));
+      if (!headers.some(header => ['task', 'taskname', 'name'].includes(header))) throw new Error('Schedule spreadsheet must include a Task or Name header.');
+      return rows;
     }
     throw new Error('Choose a JSON or .xlsx schedule file.');
   }
