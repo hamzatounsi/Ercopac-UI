@@ -1,0 +1,51 @@
+name: Deploy Frontend to Production
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy Frontend
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Deploy frontend on production server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          port: 22
+          script_stop: true
+          script: |
+            set -e
+
+            echo "=== Move to frontend source ==="
+            cd /opt/projectum/frontend
+
+            echo "=== Update frontend source ==="
+            git fetch origin main
+            git checkout main
+            git pull --ff-only origin main
+
+            echo "=== Rebuild frontend ==="
+            cd /opt/projectum
+            docker compose build projectum-frontend
+
+            echo "=== Recreate frontend container ==="
+            docker compose up -d --no-deps projectum-frontend
+
+            echo "=== Wait for startup ==="
+            sleep 5
+
+            echo "=== Frontend status ==="
+            docker compose ps projectum-frontend
+
+            echo "=== Frontend HTTP check ==="
+            curl --fail --silent --show-error http://localhost:8080/ > /dev/null
+
+            echo "=== Frontend deployment successful ==="
