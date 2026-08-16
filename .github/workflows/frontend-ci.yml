@@ -30,3 +30,15 @@ jobs:
 
       - name: Build Angular production bundle
         run: npm run build -- --configuration production
+
+      - name: Build frontend Docker image
+        run: docker build -t projectum-frontend:${{ github.sha }} .
+
+      - name: Scan frontend Docker image
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: projectum-frontend:${{ github.sha }}
+          format: table
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "0"
