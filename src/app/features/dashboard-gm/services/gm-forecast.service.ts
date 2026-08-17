@@ -13,7 +13,6 @@ export class GmForecastService {
 
   constructor(private http: HttpClient) {}
 
-  // ✅ CORRECTION : Ajout du 3ème argument 'periodType' avec une valeur par défaut 'month'
   getForecastGrid(projectId: number, periods: number, periodType: string = 'month'): Observable<ForecastRow[]> {
     const params = new HttpParams()
       .set('periods', periods.toString())
@@ -44,5 +43,13 @@ export class GmForecastService {
 
   updateWbsLevel(projectId: number, financeEntryId: number, level: number): Observable<any> {
     return this.http.patch(`${this.baseUrl}/${projectId}/forecast/level`, { financeEntryId, level });
+  }
+
+  // ✅ NOUVELLE MÉTHODE : Mettre à jour le lien WBS Schedule
+  updateLinkedScheduleWbs(projectId: number, financeEntryId: number, linkedScheduleWbs: string | null): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/${projectId}/forecast/linked-wbs`, { 
+      financeEntryId, 
+      linkedScheduleWbs 
+    });
   }
 }

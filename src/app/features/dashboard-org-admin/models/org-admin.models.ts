@@ -213,9 +213,18 @@ export interface SupplierConfig {
   phone: string | null;
   address: string | null;
   notes: string | null;
+  resourceTypes: SupplierResourceType[];
   active: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
-export type SaveSupplierConfig = Omit<SupplierConfig, 'id' | 'createdAt' | 'updatedAt'>;
+export interface SupplierResourceType {
+  id: number;
+  code: string;
+  name: string | null;
+}
+
+export type SaveSupplierConfig = Omit<SupplierConfig, 'id' | 'createdAt' | 'updatedAt' | 'resourceTypes'> & {
+  resourceTypeIds: number[];
+};

@@ -7,6 +7,7 @@ export interface ProjectDashboardRow {
   shortName?: string;
 
   customer?: string;
+  customerId?: number;
   category?: string;
 
   country?: string;

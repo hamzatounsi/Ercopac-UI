@@ -367,7 +367,10 @@
 
             <div class="mf span-2">
               <label>Customer</label>
-              <input class="mi" [(ngModel)]="projectForm.customer" placeholder="Customer name" />
+              <select class="mi" [(ngModel)]="projectForm.customerId" name="customerId">
+                <option [ngValue]="null" [disabled]="formOptions.customers.length === 0">{{ formOptions.customers.length ? 'Select customer' : 'No customers configured' }}</option>
+                <option *ngFor="let customer of formOptions.customers" [ngValue]="customer.id">{{ customer.code ? customer.code + ' - ' : '' }}{{ customer.name }}</option>
+              </select>
             </div>
 
             <div class="mf span-2">

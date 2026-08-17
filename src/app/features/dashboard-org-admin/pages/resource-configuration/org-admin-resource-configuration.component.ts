@@ -52,6 +52,8 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
   dialogKind: DialogKind | null = null;
   editingId: number | null = null;
   deleteTarget: DeleteTarget | null = null;
+  supplierResourceTypeDropdownOpen = false;
+  supplierResourceTypeSearch = '';
 
   readonly categoryForm = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
@@ -104,6 +106,7 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
     phone: ['', Validators.maxLength(50)],
     address: ['', Validators.maxLength(500)],
     notes: ['', Validators.maxLength(2000)],
+    resourceTypeIds: [[] as number[]],
     active: [true]
   });
 
@@ -124,6 +127,7 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
 
   @HostListener('document:keydown.escape')
   closeOnEscape(): void {
+    this.supplierResourceTypeDropdownOpen = false;
     if (!this.saving && !this.deleting) {
       this.closeDialog();
       this.deleteTarget = null;
@@ -182,6 +186,87 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
     const query = this.normalizedSearch;
     return this.resourceTypes.filter(item => !query || `${item.code} ${item.label || ''}`.toLowerCase().includes(query));
   }
+
+  @HostListener('document:click', ['$event'])
+  closeSupplierResourceTypeDropdownOnOutsideClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement | null;
+    if (!target?.closest('.supplier-resource-type-multiselect')) {
+      this.supplierResourceTypeDropdownOpen = false;
+    }
+  }
+
+  get filteredSuppliers(): SupplierConfig[] {
+    const query = this.normalizedSearch;
+    return this.suppliers.filter(item => !query || [
+      item.code, item.name, item.contactPerson, item.email, item.phone,
+      item.resourceTypes?.map(resourceType => resourceType.code).join(' ')
+    ].filter(Boolean).join(' ').toLowerCase().includes(query));
+  }
+
+  openSupplier(item?: SupplierConfig): void {
+    this.dialogKind = 'supplier';
+    this.editingId = item?.id ?? null;
+    this.supplierForm.reset({
+      name: item?.name ?? '', code: item?.code ?? '', contactPerson: item?.contactPerson ?? '',
+      email: item?.email ?? '', phone: item?.phone ?? '', address: item?.address ?? '',
+      notes: item?.notes ?? '', resourceTypeIds: item?.resourceTypes?.map(resourceType => resourceType.id) ?? [],
+      active: item?.active ?? true
+    });
+    this.supplierResourceTypeDropdownOpen = false;
+    this.supplierResourceTypeSearch = '';
+  }
+
+  saveSupplier(): void {
+    if (this.supplierForm.invalid || this.saving) { this.supplierForm.markAllAsTouched(); return; }
+    const value = this.supplierForm.getRawValue();
+    const payload: SaveSupplierConfig = {
+      name: value.name.trim(), code: value.code.trim().toUpperCase(),
+      contactPerson: this.optional(value.contactPerson),
+      email: this.optional(value.email)?.toLowerCase() ?? null,
+      phone: this.optional(value.phone), address: this.optional(value.address),
+      notes: this.optional(value.notes), resourceTypeIds: value.resourceTypeIds, active: value.active
+    };
+    this.saveConfiguration(this.adminService.saveSupplier(this.editingId, payload), 'supplier');
+  }
+
+  supplierHasResourceType(resourceTypeId: number): boolean {
+    return this.supplierForm.controls.resourceTypeIds.value.includes(resourceTypeId);
+  }
+
+  get filteredSupplierResourceTypes(): OrganisationResourceType[] {
+    const query = this.supplierResourceTypeSearch.trim().toLowerCase();
+    return this.resourceTypes.filter(resourceType => !query ||
+      `${resourceType.code} ${resourceType.label || ''}`.toLowerCase().includes(query));
+  }
+
+  get selectedSupplierResourceTypes(): OrganisationResourceType[] {
+    const selectedIds = this.supplierForm.controls.resourceTypeIds.value;
+    return this.resourceTypes.filter(resourceType => selectedIds.includes(resourceType.id));
+  }
+
+  toggleSupplierResourceTypeDropdown(event: MouseEvent): void {
+    event.stopPropagation();
+    this.supplierResourceTypeDropdownOpen = !this.supplierResourceTypeDropdownOpen;
+    if (!this.supplierResourceTypeDropdownOpen) this.supplierResourceTypeSearch = '';
+  }
+
+  setSupplierResourceTypeSearch(value: string): void {
+    this.supplierResourceTypeSearch = value;
+  }
+
+  removeSupplierResourceType(resourceTypeId: number, event: MouseEvent): void {
+    event.stopPropagation();
+    this.toggleSupplierResourceType(resourceTypeId, false);
+  }
+
+  toggleSupplierResourceType(resourceTypeId: number, checked: boolean): void {
+    const current = this.supplierForm.controls.resourceTypeIds.value;
+    this.supplierForm.controls.resourceTypeIds.setValue(
+      checked ? [...new Set([...current, resourceTypeId])] : current.filter(id => id !== resourceTypeId)
+    );
+    this.supplierForm.controls.resourceTypeIds.markAsDirty();
+  }
+
   openResourceType(item?: OrganisationResourceType): void {
   this.dialogKind = 'resourceType';
   this.editingId = item?.id ?? null;

@@ -655,15 +655,15 @@
           <div class="sp-table-row resource-row" *ngFor="let res of taskResources; let i = index">
             <div><span class="sp-row-badge">{{ i + 1 }}</span></div>
             <div>
-              <select class="sp-inline-select" [(ngModel)]="res.resourceType" [ngModelOptions]="{ standalone: true }" (change)="saveResource(res)">
+              <select class="sp-inline-select" [(ngModel)]="res.resourceType" [ngModelOptions]="{ standalone: true }" (ngModelChange)="isSupplierResourceAssignment(res) ? onExistingSupplierResourceTypeChange(res, $event) : saveResource(res)">
                 <option value="">--</option>
-                <option value="SUPPLIER">SUPPLIER</option>
                 <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
               </select>
             </div>
             <div>
-              <ng-container *ngIf="res.supplierId; else resourceAssignmentName">
+              <ng-container *ngIf="isSupplierResourceAssignment(res); else resourceAssignmentName">
                 <select class="sp-inline-select" [ngModel]="res.supplierId" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onExistingSupplierChange(res, $event)">
+                  <option [ngValue]="null" disabled>-- Select supplier --</option>
                   <option *ngFor="let supplier of getSupplierOptionsFor(res)" [ngValue]="supplier.id">{{ supplierLabel(supplier) }}</option>
                 </select>
               </ng-container>
@@ -707,11 +707,16 @@
 
           <div class="sp-table-row resource-row new-resource-row supplier-row">
             <div><span class="sp-row-badge">S</span></div>
-            <div><span class="sp-inline-chip">SUPPLIER</span></div>
             <div>
-              <select class="sp-inline-select" [(ngModel)]="newSupplier.supplierId" [ngModelOptions]="{ standalone: true }">
-                <option [ngValue]="null">-- Select supplier --</option>
-                <option *ngFor="let supplier of supplierOptions" [ngValue]="supplier.id">{{ supplierLabel(supplier) }}</option>
+              <select class="sp-inline-select" [(ngModel)]="newSupplier.resourceType" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onNewSupplierResourceTypeChange($event)">
+                <option value="">-- Resource type --</option>
+                <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
+              </select>
+            </div>
+            <div>
+              <select class="sp-inline-select" [(ngModel)]="newSupplier.supplierId" [ngModelOptions]="{ standalone: true }" [disabled]="!newSupplier.resourceType">
+                <option [ngValue]="null">{{ newSupplier.resourceType ? '-- Select supplier --' : '-- Select Resource Type first --' }}</option>
+                <option *ngFor="let supplier of getNewSupplierOptions()" [ngValue]="supplier.id">{{ supplierLabel(supplier) }}</option>
               </select>
             </div>
             <div><input class="sp-inline-input small" type="number" [(ngModel)]="newSupplier.quantity" [ngModelOptions]="{ standalone: true }" /></div>

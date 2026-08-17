@@ -268,11 +268,12 @@
   text-align: center;
 }
 
+/* ✅ LAYOUT PRINCIPAL */
 #main-wrap {
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 820px 1fr; /* Élargi pour 8 colonnes */
+  grid-template-columns: 820px 1fr;
   gap: 0;
   padding: 0 16px;
   overflow: hidden;
@@ -296,21 +297,33 @@
   overflow: hidden;
 }
 
-/* ✅ 8 COLONNES : WBS, Icon, Description, Level, Budget, Actual, Remaining, Remaining Schedule */
-#wbs-panel-hdr,
-.wbs-row {
-  display: grid;
-  grid-template-columns: 140px 36px 1fr 70px 100px 100px 110px 140px;
-  align-items: center;
-  min-height: 43px;
-}
-
+/* ✅ HEADER WBS - 2 niveaux (spacer + hdr-row) pour égaler le calendrier */
 #wbs-panel-hdr {
   background: #eef2f6;
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 3;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+/* ✅ SPACER : égale la hauteur de year-strip (33px) */
+.wbs-year-spacer {
+  height: 33px;
+  background: #eef2f6;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* ✅ Ligne des headers de colonnes (alignée avec cal-hdr-top) */
+.wbs-hdr-row {
+  display: grid;
+  grid-template-columns: 140px 36px 1fr 70px 100px 100px 110px 140px;
+  align-items: center;
+  height: 43px;
+  flex-shrink: 0;
 }
 
 .hdr-cell {
@@ -321,18 +334,29 @@
   padding: 0 10px;
 }
 
-#wbs-list-body {
-  overflow: auto;
-  flex: 1;
-}
-
+/* ✅ LIGNES WBS - Hauteur fixe 43px */
 .wbs-row {
+  display: grid;
+  grid-template-columns: 140px 36px 1fr 70px 100px 100px 110px 140px;
+  align-items: center;
+  height: 43px;
   border-bottom: 1px solid #e7edf4;
   background: white;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .wbs-row > div {
   padding: 0 10px;
+  height: 43px;
+  display: flex;
+  align-items: center;
+}
+
+#wbs-list-body {
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
 }
 
 .col-wbs,
@@ -343,7 +367,7 @@
 .col-actual,
 .col-remaining,
 .col-remaining-schedule {
-  min-height: 43px;
+  height: 43px;
   display: flex;
   align-items: center;
 }
@@ -412,21 +436,25 @@
   color: #0f88b7;
 }
 
-/* Level Dropdown */
+/* Level Cell */
 .level-cell {
   justify-content: center;
 }
 
-.level-select {
-  padding: 4px 8px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
+/* ✅ Badge de niveau hiérarchique (Schedule) - MOVED OUTSIDE MEDIA QUERY */
+.level-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 26px;
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
   font-size: 12px;
-  font-weight: 600;
-  background: #fff;
-  cursor: pointer;
-  width: 60px;
-  &:hover { border-color: #3b82f6; }
+  font-weight: 700;
+  font-family: Consolas, monospace;
 }
 
 /* Remaining Classique */
@@ -434,7 +462,7 @@
   color: #16a34a;
 }
 
-/* ✅ Remaining Schedule */
+/* Remaining Schedule - Compact */
 .col-remaining-schedule {
   background: #f0f9ff;
   border-left: 1px solid #e0f2fe;
@@ -444,57 +472,65 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 2px;
+  gap: 0;
+  line-height: 1.1;
 }
 
 .remaining-schedule-cost {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: #0f88b7;
+  font-size: 12px;
 }
 
 .remaining-schedule-hint {
-  font-size: 10px;
+  font-size: 9px;
   color: #888;
   font-weight: 500;
 }
 
-/* Calendar Panel */
+/* ✅ HEADER CALENDRIER - 2 niveaux (year-strip + cal-hdr-top) */
 #cal-hdr {
   display: flex;
   flex-direction: column;
   position: sticky;
   top: 0;
   z-index: 2;
+  flex-shrink: 0;
 }
 
+/* ✅ year-strip : hauteur fixe 33px */
 .year-strip {
   display: flex;
   background: #eef2f6;
   border-bottom: 1px solid var(--border);
+  height: 33px;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .year-block {
-  padding: 8px 12px;
+  padding: 0 12px;
   font-size: 12px;
   font-weight: 800;
   color: #2459aa;
   border-right: 1px solid var(--border);
   min-width: 120px;
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
 
-#cal-hdr-top,
-.cal-row {
+/* ✅ cal-hdr-top : hauteur fixe 43px */
+#cal-hdr-top {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 114px;
-  min-height: 43px;
-  align-items: stretch;
-}
-
-#cal-hdr-top {
+  height: 43px;
+  align-items: center;
   background: #eef2f6;
   border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
 .period-cell,
@@ -508,20 +544,35 @@
   font-weight: 800;
   color: #5c6e86;
   white-space: nowrap;
+  height: 43px;
 }
 
 .period-total {
   min-width: 110px;
 }
 
+/* ✅ CORPS CALENDRIER */
 #cal-body-wrap {
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: auto;
   flex: 1;
   background: #fbfcfd;
 }
 
+#cal-canvas {
+  min-width: fit-content;
+}
+
+/* ✅ LIGNES CALENDRIER - Hauteur fixe 43px */
 .cal-row {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 114px;
+  height: 43px;
+  align-items: center;
   border-bottom: 1px solid #e7edf4;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .f-cell,
@@ -532,6 +583,7 @@
   border-right: 1px solid #e1e8f0;
   font-variant-numeric: tabular-nums;
   color: #6c7788;
+  height: 43px;
 }
 
 .f-cell-total {
@@ -634,7 +686,7 @@
     grid-template-columns: 780px 1fr;
   }
 
-  #wbs-panel-hdr,
+  .wbs-hdr-row,
   .wbs-row {
     grid-template-columns: 130px 32px 1fr 60px 90px 90px 100px 130px;
   }
@@ -650,4 +702,25 @@
     border-right: 1px solid var(--border);
     border-bottom: none;
   }
+ 
+}
+ /* ✅ Dropdown pour la liaison WBS Schedule */
+.linked-wbs-select {
+  padding: 2px 4px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  background: #fff;
+  cursor: pointer;
+  width: 100%;
+  max-width: 140px;
+  height: 26px;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  
+  &:hover { border-color: #3b82f6; }
+  &:focus { outline: none; border-color: #1664c0; }
 }

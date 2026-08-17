@@ -9,9 +9,9 @@
   <div id="toolbar">
     <span class="tb-lbl">View  :</span>
     <div class="tb-mode-group">
-  <button class="tb-btn" [class.on]="viewMode === 'week'" (click)="setViewMode('week')">Week</button>
-  <button class="tb-btn" [class.on]="viewMode === 'month'" (click)="setViewMode('month')">Month</button>
-</div>
+      <button class="tb-btn" [class.on]="viewMode === 'week'" (click)="setViewMode('week')">Week</button>
+      <button class="tb-btn" [class.on]="viewMode === 'month'" (click)="setViewMode('month')">Month</button>
+    </div>
     <div class="tb-sep"></div>
     <button class="tb-icon-btn" type="button" title="Jump to previous"><span class="material-symbols-outlined">first_page</span></button>
     <button class="tb-icon-btn" type="button" title="Previous period"><span class="material-symbols-outlined">chevron_left</span></button>
@@ -37,20 +37,26 @@
   <div class="loading-box" *ngIf="loading">Loading forecast...</div>
 
   <div id="main-wrap" *ngIf="!loading">
+    
+    <!-- ✅ PANNEAU WBS (gauche) -->
     <div id="wbs-panel">
       <div id="wbs-panel-hdr">
-        <div class="col-wbs hdr-cell">WBS</div>
-        <div class="col-icon hdr-cell">Type</div>
-        <div class="col-type hdr-cell">Description</div>
-        <div class="col-level hdr-cell">Level</div>
-        <div class="col-budget hdr-cell">Budget</div>
-        <div class="col-actual hdr-cell">Actual</div>
-        <div class="col-remaining hdr-cell">Remaining</div>
-        <div class="col-remaining-schedule hdr-cell">Remaining Schedule</div>
+        <!-- ✅ SPACER : égale la hauteur de year-strip du calendrier (33px) -->
+        <div class="wbs-year-spacer"></div>
+        <div class="wbs-hdr-row">
+          <div class="col-wbs hdr-cell">WBS</div>
+          <div class="col-icon hdr-cell">Type</div>
+          <div class="col-type hdr-cell">Description</div>
+          <div class="col-level hdr-cell">Level</div>
+          <div class="col-budget hdr-cell">Budget</div>
+          <div class="col-actual hdr-cell">Actual</div>
+          <div class="col-remaining hdr-cell">Remaining</div>
+          <div class="col-remaining-schedule hdr-cell">Remaining Schedule</div>
+        </div>
       </div>
 
-      <div id="wbs-list-body">
-        <div class="wbs-row" *ngFor="let row of filteredRows">
+      <div id="wbs-list-body" #wbsBody (scroll)="onWbsScroll($event)">
+        <div class="wbs-row" *ngFor="let row of filteredRows; trackBy: trackByRow">
           <div class="col-wbs mono indentable" [style.paddingLeft.px]="8 + ((row.level - 1) * 16)">{{ row.wbsCode }}</div>
           <div class="col-icon icon-cell">
             <span class="row-folder material-symbols-outlined" *ngIf="row.level === 1">folder</span>
@@ -59,26 +65,21 @@
             <div class="desc-main" [title]="row.description">{{ row.description }}</div>
             <span class="type-badge" [ngClass]="getTypeBadgeClass(row)">{{ getTypeLabel(row) }}</span>
           </div>
-          
-          <!-- Level Dropdown -->
-          <div class="col-level level-cell">
-            <select [(ngModel)]="row.level" (ngModelChange)="updateLevel(row)" class="level-select">
-              <option [ngValue]="1">L1</option>
-              <option [ngValue]="2">L2</option>
-              <option [ngValue]="3">L3</option>
-              <option [ngValue]="4">L4</option>
-            </select>
-          </div>
-
+          <!-- ✅ NIVEAU HIÉRARCHIQUE DU SCHEDULE (Lecture seule) -->
+        <!-- ✅ INPUT EDITABLE : Sélection d'une tâche Schedule pour calcul automatique -->
+<div class="col-level level-cell">
+  <select [(ngModel)]="row.linkedScheduleWbs" (change)="onLinkedWbsChange(row)" class="linked-wbs-select">
+    <option [ngValue]="null">-- Select Task --</option>
+    <option *ngFor="let task of row.availableScheduleTasks" [ngValue]="task.wbsCode">
+      {{ task.wbsCode }} - {{ task.name }} (L{{ task.outlineLevel }})
+    </option>
+  </select>
+</div>
           <div class="col-budget money">{{ formatBudgetOrHours(row) }}</div>
           <div class="col-actual money actual-cell">{{ formatActualOrHours(row) }}</div>
-          
-          <!-- Remaining Classique (Budget - Actual) -->
           <div class="col-remaining money remaining-cell">
             <span>{{ formatRemainingOrHours(row) }}</span>
           </div>
-
-          <!-- Remaining Schedule (Heures × Taux) -->
           <div class="col-remaining-schedule money remaining-schedule-cell">
             <div class="remaining-schedule-wrap">
               <strong class="remaining-schedule-cost">{{ formatRemainingSchedule(row) }}</strong>
@@ -90,6 +91,7 @@
       </div>
     </div>
 
+    <!-- ✅ PANNEAU CALENDRIER (droite) -->
     <div id="cal-panel">
       <div id="cal-hdr">
         <div class="year-strip">
@@ -102,9 +104,9 @@
         </div>
       </div>
 
-      <div id="cal-body-wrap">
+      <div id="cal-body-wrap" #calBody (scroll)="onCalScroll($event)">
         <div id="cal-canvas">
-          <div class="cal-row" *ngFor="let row of filteredRows">
+          <div class="cal-row" *ngFor="let row of filteredRows; trackBy: trackByRow">
             <div class="f-cell" *ngFor="let period of getPeriodKeys()">
               <input
                 type="number"
@@ -112,8 +114,8 @@
                 min="0"
                 [ngModel]="getCellAmount(row, period)"
                 (change)="onCellChange(row, period, $any($event.target).value)"
-                [disabled]="saving || !isEditableRow(row)"
-                [attr.title]="!isEditableRow(row) ? 'Summary row — computed from children' : (getRowType(row) === 'HOUR' ? 'Hours' : 'Amount')"
+                [disabled]="saving || !isEditableRow(row) || viewMode === 'month'"
+                [attr.title]="!isEditableRow(row) ? 'Summary row — computed from children' : (viewMode === 'month' ? 'Month view is read-only' : (getRowType(row) === 'HOUR' ? 'Hours' : 'Amount'))"
               />
             </div>
             <div class="f-cell-total">{{ formatTotalForecast(row) }}</div>

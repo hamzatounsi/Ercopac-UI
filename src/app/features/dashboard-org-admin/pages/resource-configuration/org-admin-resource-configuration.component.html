@@ -215,6 +215,7 @@
           <tr>
             <th>Code</th>
             <th>Supplier</th>
+            <th>Resource types</th>
             <th>Contact</th>
             <th>Email</th>
             <th>Status</th>
@@ -225,6 +226,12 @@
           <tr *ngFor="let item of filteredSuppliers">
             <td data-label="Code"><strong>{{ item.code }}</strong></td>
             <td data-label="Supplier">{{ item.name }}</td>
+            <td data-label="Resource types">
+              <span class="resource-type-badges" *ngIf="item.resourceTypes?.length; else noSupplierResourceTypes">
+                <span class="resource-type-badge" *ngFor="let resourceType of item.resourceTypes">{{ resourceType.code }}</span>
+              </span>
+              <ng-template #noSupplierResourceTypes>â€”</ng-template>
+            </td>
             <td data-label="Contact">{{ item.contactPerson || '—' }}<small>{{ item.phone || '' }}</small></td>
             <td data-label="Email">{{ item.email || '—' }}</td>
             <td data-label="Status">
@@ -261,7 +268,7 @@
       <div><p class="eyebrow">Resource configuration</p>
         <h2 [id]="dialogKind + '-dialog-title'">
           {{ editingId === null ? 'Create' : 'Edit' }}
-          {{ dialogKind === 'category' ? 'category' : dialogKind === 'type' ? 'project type' : dialogKind === 'resourceType' ? 'resource type' : 'customer' }}
+          {{ dialogKind === 'category' ? 'category' : dialogKind === 'type' ? 'project type' : dialogKind === 'resourceType' ? 'resource type' : dialogKind === 'supplier' ? 'supplier' : 'customer' }}
         </h2>
       </div>
       <button type="button" class="icon-button" [disabled]="saving" (click)="closeDialog()" aria-label="Close dialog"><span class="material-symbols-outlined" aria-hidden="true">close</span></button>
@@ -352,6 +359,51 @@
       </footer>
     </form>
 
+    <form *ngIf="dialogKind === 'supplier'" [formGroup]="supplierForm" (ngSubmit)="saveSupplier()">
+      <div class="form-grid">
+        <label>Supplier name <span>*</span><input type="text" formControlName="name" autofocus autocomplete="organization" /></label>
+        <label>Supplier code <span>*</span><input type="text" formControlName="code" autocomplete="off" /></label>
+        <div class="wide supplier-resource-type-field">
+          <label>Resource Types</label>
+          <div class="supplier-resource-type-multiselect">
+            <button type="button" class="supplier-resource-type-trigger" (click)="toggleSupplierResourceTypeDropdown($event)" [attr.aria-expanded]="supplierResourceTypeDropdownOpen">
+              <span *ngIf="!selectedSupplierResourceTypes.length" class="supplier-resource-type-placeholder">Select Resource Types</span>
+              <span class="supplier-resource-type-chips" *ngIf="selectedSupplierResourceTypes.length">
+                <span class="supplier-resource-type-chip" *ngFor="let resourceType of selectedSupplierResourceTypes">
+                  {{ resourceType.code }}
+                  <span class="material-symbols-outlined" (click)="removeSupplierResourceType(resourceType.id, $event)" [attr.aria-label]="'Remove ' + resourceType.code">close</span>
+                </span>
+              </span>
+              <span class="material-symbols-outlined supplier-resource-type-chevron">expand_more</span>
+            </button>
+            <div class="supplier-resource-type-menu" *ngIf="supplierResourceTypeDropdownOpen" (click)="$event.stopPropagation()">
+              <input type="search" [value]="supplierResourceTypeSearch" (input)="setSupplierResourceTypeSearch($any($event.target).value)" placeholder="Search resource types" aria-label="Search resource types" />
+              <div class="supplier-resource-type-options" *ngIf="filteredSupplierResourceTypes.length; else noSupplierResourceTypes">
+                <button type="button" class="supplier-resource-type-option" *ngFor="let resourceType of filteredSupplierResourceTypes" [class.selected]="supplierHasResourceType(resourceType.id)" (click)="toggleSupplierResourceType(resourceType.id, !supplierHasResourceType(resourceType.id))">
+                  <span><strong>{{ resourceType.code }}</strong><small *ngIf="resourceType.label">{{ resourceType.label }}</small></span>
+                  <span class="material-symbols-outlined" *ngIf="supplierHasResourceType(resourceType.id)">check</span>
+                </button>
+              </div>
+              <ng-template #noSupplierResourceTypes><p class="supplier-resource-type-empty">{{ resourceTypes.length ? 'No matching resource types' : 'No resource types are configured for this organisation.' }}</p></ng-template>
+            </div>
+          </div>
+        </div>
+        <label>Contact person<input type="text" formControlName="contactPerson" autocomplete="name" /></label>
+        <label>Email<input type="email" formControlName="email" autocomplete="email" /></label>
+        <label>Phone<input type="tel" formControlName="phone" autocomplete="tel" /></label>
+        <label class="wide">Address<input type="text" formControlName="address" autocomplete="street-address" /></label>
+        <label class="wide">Notes<textarea rows="3" formControlName="notes"></textarea></label>
+        <label class="toggle"><input type="checkbox" formControlName="active" /> Active supplier</label>
+      </div>
+      <p class="validation" *ngIf="supplierForm.touched && supplierForm.invalid" role="alert">Supplier name and code are required. Check the email and field lengths.</p>
+      <footer>
+        <button type="button" class="secondary-button" [disabled]="saving" (click)="closeDialog()">Cancel</button>
+        <button type="submit" class="primary-button" [disabled]="supplierForm.invalid || saving">{{ saving ? 'Saving…' : 'Save supplier' }}</button>
+      </footer>
+    </form>
+  </section>
+</div>
+
 <div
   class="dialog-backdrop"
   *ngIf="deleteTarget"
@@ -411,19 +463,6 @@
       >
         {{ deleting ? (deleteTarget.kind === 'supplier' ? 'Deactivating…' : 'Deleting…') : (deleteTarget.kind === 'supplier' ? 'Deactivate' : 'Delete') }}
       </button>
-  </section>
-</div>
-
-<!-- DELETE CONFIRMATION DIALOG -->
-<div class="dialog-backdrop" *ngIf="deleteTarget" (mousedown)="$event.target === $event.currentTarget && !deleting && (deleteTarget = null)">
-  <section class="confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="delete-configuration-title" (mousedown)="$event.stopPropagation()">
-    <span class="warning-icon material-symbols-outlined" aria-hidden="true">warning</span>
-    <h2 id="delete-configuration-title">Delete {{ deleteTarget.name }}?</h2>
-    <p *ngIf="deleteTarget.projectsUsing === 0">This record will be permanently removed from the organisation configuration.</p>
-    <p *ngIf="deleteTarget.projectsUsing > 0"><strong>{{ deleteTarget.projectsUsing }} project(s)</strong> currently use this record. Deletion will be rejected if those references must be preserved.</p>
-    <footer>
-      <button type="button" class="secondary-button" [disabled]="deleting" (click)="deleteTarget = null">Cancel</button>
-      <button type="button" class="danger-button" [disabled]="deleting" (click)="confirmDelete()">{{ deleting ? 'Deleting…' : 'Delete' }}</button>
     </footer>
   </section>
 </div>
