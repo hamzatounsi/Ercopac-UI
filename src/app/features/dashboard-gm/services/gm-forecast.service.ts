@@ -45,4 +45,11 @@ export class GmForecastService {
   updateWbsLevel(projectId: number, financeEntryId: number, level: number): Observable<any> {
     return this.http.patch(`${this.baseUrl}/${projectId}/forecast/level`, { financeEntryId, level });
   }
+    // ✅ AJOUTER CETTE MÉTHODE :
+  updateLinkedScheduleWbs(projectId: number, financeEntryId: number, linkedScheduleWbs: string | null): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/${projectId}/forecast/linked-wbs`, { 
+      financeEntryId, 
+      linkedScheduleWbs 
+    });
+  }
 }

@@ -1,7 +1,14 @@
 import { ForecastGridCell } from './forecast-grid-cell.model';
 
+export interface ScheduleTaskOption {
+  wbsCode: string;
+  name: string;
+  outlineLevel: number;
+  plannedHours: number;
+}
+
 export interface ForecastRow {
-  financeEntryId: number; // ✅ AJOUTÉ : Pour l'update du level
+  financeEntryId: number;
   wbsCode: string;
   description: string;
   level: number;
@@ -10,10 +17,13 @@ export interface ForecastRow {
   actualCost: number;
   totalForecast: number;
   
-  // ✅ AJOUTÉS : Pour le calcul automatique du Remaining Cost
   resourceTypeCode?: string;
   remainingHours?: number;
   remainingCost?: number;
+
+  // ✅ AJOUTER CES DEUX LIGNES :
+  linkedScheduleWbs?: string | null;
+  availableScheduleTasks?: ScheduleTaskOption[];
   
   periods: ForecastGridCell[];
 }
