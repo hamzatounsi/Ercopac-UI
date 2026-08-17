@@ -339,7 +339,7 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
         projectStatus: block.status,
 
         wbs: null,
-        name: block.projectName,
+        name: this.projectDisplayName(block),
         type: null,
         departmentCode: null,
         baselineStartDate: this.getProjectBaselineStart(block),
@@ -352,7 +352,7 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
 
         barStart: this.getProjectBarStart(block),
         barEnd: this.getProjectBarEnd(block),
-        barLabel: block.projectCode || block.projectName,
+        barLabel: this.projectDisplayName(block),
         barColor: '#cfd8e6'
       });
 
@@ -813,7 +813,7 @@ zoomPaGantt(delta: number): void {
   }
 
   taskBarLabel(item: DepartmentTimelineItem, mode: TaskBarLabelMode = this.taskBarLabelMode(item)): string {
-    const projectLabel = item.projectCode?.trim() || '';
+    const projectLabel = this.projectDisplayName(item);
     const activityLabel = item.taskName?.trim() || 'Activity';
 
     if (mode === 'full' && projectLabel) {
@@ -824,9 +824,13 @@ zoomPaGantt(delta: number): void {
   }
 
   taskBarTooltip(item: DepartmentTimelineItem): string {
-    const projectLabel = item.projectCode?.trim() || 'PRJ';
+    const projectLabel = this.projectDisplayName(item);
     const activityLabel = item.taskName?.trim() || 'Activity';
     return `${projectLabel} · ${activityLabel}`;
+  }
+
+  projectDisplayName(project: Pick<DepartmentTimelineItem, 'projectName' | 'projectCode'> | Pick<DepartmentProjectBlock, 'projectName' | 'projectCode'>): string {
+    return project.projectName?.trim() || project.projectCode?.trim() || 'Project';
   }
 
   getExternalBarLabelLayout(
@@ -1166,10 +1170,7 @@ private syncActivityPanelWidth(): void {
           ">
             <div style="display:flex;align-items:center;gap:10px;min-width:0;">
               <span style="width:10px;height:10px;border-radius:50%;background:#1f67c1;display:inline-block;flex-shrink:0;"></span>
-              <span style="font-weight:900;">${this.escapeHtml(row.projectName)}</span>
-              <span style="font-size:12px;color:#7f8ea3;font-weight:700;">
-                ${this.escapeHtml(row.projectCode || '')}
-              </span>
+              <span style="font-weight:900;">${this.escapeHtml(this.projectDisplayName(row))}</span>
             </div>
             ${statusBadge}
           </div>
@@ -2032,7 +2033,7 @@ onProjectChange(projectId: string): void {
     p => p.projectId === this.selectedProjectId
   );
 
-  this.selectedProjectName = selected?.projectName || '';
+  this.selectedProjectName = selected ? this.projectDisplayName(selected) : '';
 
   this.renderActivityView();
 }

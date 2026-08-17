@@ -32,7 +32,9 @@ import { TaskConsoleLog } from '../../../models/task-console-log.model';
 import { ProjectDashboardRow } from '../../../models/project-dashboard-row.model';
 import { GmDashboardService } from '../../../services/gm-dashboard.service';
 import { AuthService } from '../../../../../core/auth/auth.service';
+import { ResourceConfigService } from '../../../services/resource-config.service';
 import * as XLSX from 'xlsx';
+import { assertSpreadsheetFile, assertSpreadsheetRowLimit, assertValidWorkbook } from 'src/app/core/utils/spreadsheet-import.utils';
 
 export interface TimelineDay {
   label: string;
@@ -193,7 +195,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   };
 
   newSupplier: TaskResourceAssignment = {
-    resourceType: 'SUPPLIER',
+    resourceType: '',
     assignmentName: '',
     quantity: 1,
     unitsPercent: 100,
@@ -255,7 +257,8 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   } | null = null;
 
   taskResources: TaskResourceAssignment[] = [];
-  supplierOptions: { id: number; code: string | null; name: string }[] = [];
+  private supplierAssignmentIds = new Set<number>();
+  supplierOptions: { id: number; code: string | null; name: string; resourceTypeCodes: string[] }[] = [];
 
   newResource: TaskResourceAssignment = {
     resourceType: '',
@@ -294,6 +297,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
     private templateService: GmProjectTemplateService,
     private gmDashboardService: GmDashboardService,
     private authService: AuthService,
+    private resourceConfigService: ResourceConfigService,
     private readonly changeDetector: ChangeDetectorRef
   ) {}
 
@@ -311,6 +315,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
       this.restoreGanttDisplayPreferences();
       this.loadSchedule();
       this.loadResourceOptions();
+      this.loadConfiguredResourceTypes();
       this.loadProjectName();
     });
 
@@ -764,7 +769,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
       assignedUserId: null
     };
     this.newSupplier = {
-      resourceType: 'SUPPLIER', assignmentName: '', quantity: 1,
+      resourceType: '', assignmentName: '', quantity: 1,
       unitsPercent: 100, cost: 0, assignedUserId: null, supplierId: null
     };
    this.resourceSearchTerm = '';
@@ -804,7 +809,7 @@ getTaskWbsById(taskId?: number | null): string {
       assignedUserId: null
     };
     this.newSupplier = {
-      resourceType: 'SUPPLIER', assignmentName: '', quantity: 1,
+      resourceType: '', assignmentName: '', quantity: 1,
       unitsPercent: 100, cost: 0, assignedUserId: null, supplierId: null
     };
 
@@ -1575,6 +1580,7 @@ indentTask(): void {
 
   private async readImportRows(file: File): Promise<Record<string, unknown>[]> {
     const filename = file.name.toLowerCase();
+    assertSpreadsheetFile(file, ['.json', '.xlsx']);
     if (filename.endsWith('.json')) {
       const parsed = JSON.parse(await file.text());
       const rows = Array.isArray(parsed) ? parsed : parsed?.tasks;
@@ -1583,9 +1589,13 @@ indentTask(): void {
     }
     if (filename.endsWith('.xlsx')) {
       const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: true });
-      const firstSheet = workbook.SheetNames[0];
-      if (!firstSheet) throw new Error('Excel file does not contain a worksheet.');
-      return XLSX.utils.sheet_to_json<Record<string, unknown>>(workbook.Sheets[firstSheet], { defval: null, raw: true });
+      const firstSheet = assertValidWorkbook(workbook);
+      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(workbook.Sheets[firstSheet], { defval: null, raw: true });
+      assertSpreadsheetRowLimit(rows);
+      if (!rows.length) throw new Error('Excel file is empty.');
+      const headers = Object.keys(rows[0]).map(header => this.normalizeImportHeader(header));
+      if (!headers.some(header => ['task', 'taskname', 'name'].includes(header))) throw new Error('Schedule spreadsheet must include a Task or Name header.');
+      return rows;
     }
     throw new Error('Choose a JSON or .xlsx schedule file.');
   }
@@ -2289,7 +2299,15 @@ indentTask(): void {
   // ---------------- Resources ----------------
 
   loadTaskResources(taskId: number): void {
-    this.service.getTaskResources(this.projectId, taskId).subscribe({ next: (res) => { this.taskResources = res ?? []; }, error: (err) => { console.error('Failed to load task resources', err); this.taskResources = []; } });
+    this.service.getTaskResources(this.projectId, taskId).subscribe({
+      next: (res) => {
+        this.taskResources = res ?? [];
+        this.supplierAssignmentIds = new Set(this.taskResources
+          .filter(resource => !!resource.supplierId && !!resource.id)
+          .map(resource => resource.id!));
+      },
+      error: (err) => { console.error('Failed to load task resources', err); this.taskResources = []; this.supplierAssignmentIds.clear(); }
+    });
   }
 
   loadSupplierOptions(taskId: number): void {
@@ -2327,11 +2345,20 @@ indentTask(): void {
     this.service.updateTaskResource(this.projectId, this.selectedTask.id, resource.id, payload).subscribe({ next: () => { this.loadTaskResources(this.selectedTask!.id); this.loadSchedule(); }, error: (err) => console.error('Failed to update task resource', err) });
   }
 
-  getSupplierOptionsFor(resource: TaskResourceAssignment): { id: number; code: string | null; name: string }[] {
-    if (!resource.supplierId || this.supplierOptions.some(supplier => supplier.id === resource.supplierId)) {
-      return this.supplierOptions;
+  getSupplierOptionsFor(resource: TaskResourceAssignment): { id: number; code: string | null; name: string; resourceTypeCodes: string[] }[] {
+    const resourceType = (resource.resourceType ?? '').trim().toUpperCase();
+    const linked = resourceType
+      ? this.supplierOptions.filter(supplier => supplier.resourceTypeCodes.some(code => code.toUpperCase() === resourceType))
+      : [];
+    if (!resource.supplierId || linked.some(supplier => supplier.id === resource.supplierId)) {
+      return linked;
     }
-    return [{ id: resource.supplierId, code: resource.supplierCode ?? null, name: resource.supplierName || resource.assignmentName || 'Inactive supplier' }, ...this.supplierOptions];
+    return [{
+      id: resource.supplierId,
+      code: resource.supplierCode ?? null,
+      name: resource.supplierName || resource.assignmentName || 'Inactive supplier',
+      resourceTypeCodes: resourceType ? [resourceType] : []
+    }, ...linked];
   }
 
   supplierLabel(supplier: { code: string | null; name: string }): string {
@@ -2344,8 +2371,44 @@ indentTask(): void {
     resource.supplierCode = supplier?.code ?? null;
     resource.supplierName = supplier?.name ?? null;
     resource.assignmentName = supplier?.name ?? '';
-    resource.resourceType = 'SUPPLIER';
     this.saveResource(resource);
+  }
+
+  onExistingSupplierResourceTypeChange(resource: TaskResourceAssignment, resourceType: string): void {
+    resource.resourceType = resourceType;
+    if (!this.supplierIsLinkedToResourceType(resource.supplierId, resourceType)) {
+      resource.supplierId = null;
+      resource.supplierCode = null;
+      resource.supplierName = null;
+      resource.assignmentName = '';
+      return;
+    }
+    this.saveResource(resource);
+  }
+
+  isSupplierResourceAssignment(resource: TaskResourceAssignment): boolean {
+    return !!resource.supplierId || (!!resource.id && this.supplierAssignmentIds.has(resource.id));
+  }
+
+  onNewSupplierResourceTypeChange(resourceType: string): void {
+    this.newSupplier.resourceType = resourceType;
+    if (!this.getNewSupplierOptions().some(option => option.id === this.newSupplier.supplierId)) {
+      this.newSupplier.supplierId = null;
+    }
+  }
+
+  getNewSupplierOptions(): { id: number; code: string | null; name: string; resourceTypeCodes: string[] }[] {
+    const resourceType = (this.newSupplier.resourceType ?? '').trim().toUpperCase();
+    if (!resourceType) return [];
+    return this.supplierOptions.filter(supplier =>
+      supplier.resourceTypeCodes.some(code => code.toUpperCase() === resourceType));
+  }
+
+  private supplierIsLinkedToResourceType(supplierId: number | null | undefined, resourceType: string | null | undefined): boolean {
+    const normalizedType = (resourceType ?? '').trim().toUpperCase();
+    if (!supplierId || !normalizedType) return false;
+    return this.supplierOptions.some(supplier => supplier.id === supplierId
+      && supplier.resourceTypeCodes.some(code => code.toUpperCase() === normalizedType));
   }
 
   removeResource(assignmentId?: number): void {
@@ -2379,7 +2442,6 @@ indentTask(): void {
       next: (users) => {
         this.resourceOptions = users.map(u => ({ id: u.id, fullName: u.fullName, resourceType: u.resourceType || '', departmentCode: u.departmentCode || '' }));
         this.filteredResourceOptions = [...this.resourceOptions];
-        this.resourceTypes = [...new Set(this.resourceOptions.map(u => u.resourceType).filter(rt => !!rt))].sort();
         this.departmentCodes = [...new Set(this.resourceOptions.map(u => u.departmentCode).filter(d => !!d))].sort();
       },
       error: (err) => { console.error('Could not load resource users', err); this.resourceOptions = []; this.filteredResourceOptions = []; }
@@ -2424,14 +2486,18 @@ indentTask(): void {
   addSupplierAssignment(): void {
     if (!this.selectedTask || !this.isActivity(this.selectedTask)) return;
     const supplier = this.supplierOptions.find(item => item.id === Number(this.newSupplier.supplierId));
-    if (!supplier) { console.error('Please select a supplier.'); return; }
+    if (!this.newSupplier.resourceType) { console.error('Please select a resource type first.'); return; }
+    if (!supplier || !this.getNewSupplierOptions().some(option => option.id === supplier.id)) {
+      console.error('Please select a supplier linked to the resource type.');
+      return;
+    }
     const payload: TaskResourceAssignment = {
-      resourceType: 'SUPPLIER', assignmentName: supplier.name,
+      resourceType: this.newSupplier.resourceType, assignmentName: supplier.name,
       quantity: this.newSupplier.quantity ?? 1, unitsPercent: this.newSupplier.unitsPercent ?? 100,
       cost: this.newSupplier.cost ?? 0, assignedUserId: null, supplierId: supplier.id
     };
     this.service.createTaskResource(this.projectId, this.selectedTask.id, payload).subscribe({
-      next: () => { this.newSupplier = { resourceType: 'SUPPLIER', assignmentName: '', quantity: 1, unitsPercent: 100, cost: 0, assignedUserId: null, supplierId: null }; this.loadTaskResources(this.selectedTask!.id); this.loadSchedule(); },
+      next: () => { this.newSupplier = { resourceType: '', assignmentName: '', quantity: 1, unitsPercent: 100, cost: 0, assignedUserId: null, supplierId: null }; this.loadTaskResources(this.selectedTask!.id); this.loadSchedule(); },
       error: err => { console.error('Failed to create supplier assignment', err); }
     });
   }
@@ -2526,6 +2592,16 @@ if (this.columnVisibility.baselineEnd) total += 95;
   private getLeftFromDate(value?: string | null): number {
     const dayIndex = this.getTimelineDayIndex(value);
     return dayIndex < 0 ? 0 : dayIndex * this.dayWidth;
+  }
+
+  loadConfiguredResourceTypes(): void {
+    this.resourceConfigService.getResourceTypes().subscribe({
+      next: resourceTypes => this.resourceTypes = (resourceTypes ?? [])
+        .filter(resourceType => resourceType.active && resourceType.assignable)
+        .map(resourceType => resourceType.code)
+        .sort(),
+      error: err => console.error('Could not load configured resource types', err)
+    });
   }
 
   private getWidthFromDates(startValue?: string | null, endValue?: string | null, type?: string | null): number {

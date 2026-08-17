@@ -21,7 +21,7 @@ export interface ForecastRow {
   remainingHours?: number;
   remainingCost?: number;
 
-  // ✅ AJOUTER CES DEUX LIGNES :
+  // ✅ NOUVEAUX CHAMPS pour la liaison manuelle Schedule
   linkedScheduleWbs?: string | null;
   availableScheduleTasks?: ScheduleTaskOption[];
   

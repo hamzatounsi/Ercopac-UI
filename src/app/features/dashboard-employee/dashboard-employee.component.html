@@ -1,7 +1,7 @@
 <section class="employee-shell">
   <header class="employee-header">
     <div>
-      <div class="eyebrow">Employee workspace</div>
+      <div class="eyebrow">EMPLOYEE WORKSPACE</div>
       <h1>{{ userName }}</h1>
       <p>{{ role }}</p>
     </div>
@@ -17,13 +17,15 @@
   <div class="state" *ngIf="loading">Loading your workspace...</div>
 
   <main class="employee-grid" *ngIf="!loading">
+    
+    <!-- 1. MY TASKS -->
     <section class="panel">
       <div class="panel-head">
         <h2>My Tasks</h2>
-        <span>{{ tasks.length }}</span>
+        <span class="count-badge">{{ tasks.length }}</span>
       </div>
 
-      <div class="empty" *ngIf="!tasks.length && !error">
+      <div class="empty" *ngIf="!tasks.length">
         No assigned tasks yet.
       </div>
 
@@ -39,6 +41,37 @@
       </article>
     </section>
 
+    <!-- 2. MY ACTIONS -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>My Actions</h2>
+        <span class="count-badge">{{ actions.length }}</span>
+      </div>
+
+      <div class="empty" *ngIf="!actions.length">
+        No pending actions. Great job! 
+      </div>
+
+      <article class="action-row" *ngFor="let action of actions">
+        <div class="action-main">
+          <strong>{{ action.title }}</strong>
+          <small>
+            Project: <strong>{{ action.projectCode || '#' + action.projectId }}</strong>
+            <span *ngIf="action.dueDate"> · Due: {{ action.dueDate | date:'shortDate' }}</span>
+          </small>
+        </div>
+        <div class="action-meta">
+          <span class="priority-badge" [ngClass]="getPriorityClass(action.priority)">
+            {{ action.priority | uppercase }}
+          </span>
+          <span class="status-badge" [ngClass]="getStatusClass(action.status)">
+            {{ action.status | uppercase }}
+          </span>
+        </div>
+      </article>
+    </section>
+
+    <!-- 3. MY SCHEDULE -->
     <section class="panel">
       <div class="panel-head">
         <h2>My Schedule</h2>
@@ -51,16 +84,18 @@
       <article class="schedule-row" *ngFor="let task of upcomingTasks">
         <div>
           <strong>{{ task.name }}</strong>
-          <small>{{ task.plannedStart || 'No start' }} - {{ task.plannedEnd || 'No end' }}</small>
+          <small>{{ task.plannedStart | date:'shortDate' }} - {{ task.plannedEnd | date:'shortDate' }}</small>
         </div>
       </article>
     </section>
 
+    <!-- 4. NOTIFICATIONS -->
     <section class="panel notifications">
       <div class="panel-head">
         <h2>Notifications</h2>
       </div>
       <div class="empty">No notifications requiring your attention.</div>
     </section>
+
   </main>
 </section>

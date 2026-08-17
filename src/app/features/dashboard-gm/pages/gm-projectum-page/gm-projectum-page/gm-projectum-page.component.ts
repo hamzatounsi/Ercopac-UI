@@ -99,7 +99,7 @@ export class GmProjectumPageComponent implements OnInit {
   projectForm: UpsertProjectRequest = {
     name: '',
     code: '',
-    customer: '',
+    customerId: null,
     category: '',
     categoryId: null,
     country: '',
@@ -120,7 +120,7 @@ export class GmProjectumPageComponent implements OnInit {
   readonly statusOptions = ['PLANNED', 'ACTIVE', 'COMPLETED', 'STANDBY', 'ARCHIVED'];
   readonly typeOptions = ['Greenfield', 'Brownfield', 'Retrofit', 'Consulting', 'R&D', 'Service'];
   readonly riskOptions = ['LOW', 'MEDIUM', 'HIGH'];
-  formOptions: ProjectFormOptions = { categories: [], projectManagers: [], salesManagers: [] };
+  formOptions: ProjectFormOptions = { categories: [], customers: [], projectManagers: [], salesManagers: [] };
   aiOpen = false;
   aiNotification = '';
 
@@ -191,7 +191,7 @@ export class GmProjectumPageComponent implements OnInit {
   private loadFormOptions(): void {
     this.gmDashboardService.getProjectFormOptions().subscribe({
       next: options => this.formOptions = options,
-      error: () => this.error = 'Could not load project categories and ownership options.'
+      error: () => this.error = 'Could not load project form options.'
     });
   }
 
@@ -383,7 +383,7 @@ private notifyAiFinished(message: string): void {
     this.projectForm = {
       name: '',
       code: '',
-      customer: '',
+      customerId: null,
       category: '',
       categoryId: null,
       country: '',
@@ -416,7 +416,7 @@ private notifyAiFinished(message: string): void {
     this.projectForm = {
       name: project.name || '',
       code: project.code || '',
-      customer: project.customer || '',
+      customerId: project.customerId ?? this.optionId(this.formOptions.customers, project.customer),
       category: project.category || '',
       categoryId: this.optionId(this.formOptions.categories, project.category),
       country: project.country || '',
