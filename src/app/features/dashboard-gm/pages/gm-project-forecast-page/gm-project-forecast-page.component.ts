@@ -165,11 +165,13 @@ export class GmProjectForecastPageComponent implements OnInit {
     }))];
     return years[index] ?? null;
   }
-
-  getRemaining(row: ForecastRow): number {
-    return Math.max(0, (row.budget || 0) - (row.actualCost || 0));
-  }
-
+getRemaining(row: ForecastRow): number {
+  const budget = row.budget || 0;
+  const actual = row.actualCost || 0;
+  const forecast = row.totalForecast || 0;
+  
+  return Math.max(0, budget - actual - forecast);
+}
   applyFilters(): void {
     const term = this.searchTerm.trim().toLowerCase();
     if (!term) {
@@ -326,6 +328,7 @@ export class GmProjectForecastPageComponent implements OnInit {
         this.saving = false;
       }
     });
+
   }
   // ✅ NOUVELLE MÉTHODE : TrackBy pour optimiser le *ngFor
   trackByRow(index: number, row: any): number {
