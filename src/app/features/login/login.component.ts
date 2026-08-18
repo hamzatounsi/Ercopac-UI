@@ -75,13 +75,13 @@ export class LoginComponent {
       selectedApp: 'MY_CS'
     },
     {
-      name: 'Company Dashboard',
+      name: 'Command Center',
       description: 'Executive company overview and organisation performance.',
       group: 'Platform',
       icon: APPLICATION_ICONS.companyDashboard,
       badge: 'Coming soon',
       enabled: false,
-      selectedApp: 'Company Dashboard'
+      selectedApp: 'Command Center'
     },
     {
       name: 'My Expenses',

@@ -8,6 +8,8 @@ export type AppRole =
   | 'PLATFORM_OWNER'
   | 'ORG_ADMIN'
   | 'PROJECT_MANAGER'
+  | 'PROJECT_MANAGER_LEAD'
+  | 'MANAGER'
   | 'DEPARTMENT_MANAGER'
   | 'EMPLOYEE'
   | 'SALES_MANAGER'

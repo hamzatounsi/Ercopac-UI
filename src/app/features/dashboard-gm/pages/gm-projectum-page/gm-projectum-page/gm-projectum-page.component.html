@@ -431,9 +431,9 @@
           <div class="section-title">Ownership</div>
 
           <div class="form-grid">
-            <div class="mf span-2">
+            <div class="mf span-2" *ngIf="canAssignProjectManager">
               <label>Project Manager</label>
-              <select class="mi" [(ngModel)]="projectForm.projectManagerId" name="projectManagerId"><option [ngValue]="null">Select project manager</option><option *ngFor="let user of formOptions.projectManagers" [ngValue]="user.id">{{ user.fullName }}</option></select>
+              <select class="mi" [(ngModel)]="projectForm.projectManagerId" name="projectManagerId"><option [ngValue]="null">Unassigned</option><option *ngFor="let user of formOptions.projectManagers" [ngValue]="user.id">{{ user.fullName }}</option></select>
             </div>
 
             <div class="mf span-2">

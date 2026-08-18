@@ -13,6 +13,7 @@ import { HealthStatus } from '../../../models/health-status.model';
 import { ResourceListItem } from '../../../models/resource-list-item.model';
 import { GmProjectTemplateService } from '../../../services/gm-project-template.service';
 import { GmAiAssistantService } from '../../../services/gm-ai-assistant.service';
+import { AuthService } from 'src/app/core/auth/auth.service';
 
 type SortColumn =
   | 'code'
@@ -129,8 +130,13 @@ export class GmProjectumPageComponent implements OnInit {
     private gmResourceService: GmResourceService,
     private router: Router,
     private gmProjectTemplateService: GmProjectTemplateService,
-    private aiService: GmAiAssistantService
+    private aiService: GmAiAssistantService,
+    private authService: AuthService
   ) {}
+
+  get canAssignProjectManager(): boolean {
+    return this.authService.getRoles().includes('PROJECT_MANAGER_LEAD');
+  }
 
   ngOnInit(): void {
     this.loadInitialData();

@@ -20,7 +20,7 @@ const routes: Routes = [
     path: 'workspace',
     component: GmWorkspacesPageComponent,
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['PROJECT_MANAGER', 'DEPARTMENT_MANAGER', 'EMPLOYEE', 'SALES_MANAGER', 'CLIENT'] }
+    data: { roles: ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'MANAGER', 'DEPARTMENT_MANAGER', 'EMPLOYEE', 'SALES_MANAGER', 'CLIENT'] }
   },
 
   {
@@ -50,7 +50,7 @@ const routes: Routes = [
       import('./features/dashboard-gm/gm-dashboard.module').then(m => m.GmDashboardModule),
     canActivate: [AuthGuard, RoleGuard],
     data: {
-      roles: ['PROJECT_MANAGER', 'DEPARTMENT_MANAGER', 'PLATFORM_OWNER', 'ORG_ADMIN']
+      roles: ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'MANAGER', 'DEPARTMENT_MANAGER', 'PLATFORM_OWNER', 'ORG_ADMIN']
     }
   },
 
@@ -62,7 +62,7 @@ const routes: Routes = [
         .then(m => m.DashboardCrmModule),
     canActivate: [AuthGuard, RoleGuard],
     data: {
-      roles: ['PROJECT_MANAGER', 'PLATFORM_OWNER']
+      roles: ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'PLATFORM_OWNER']
     }
   },
 
@@ -72,7 +72,7 @@ const routes: Routes = [
   component: MyDepartmentPageComponent,
   canActivate: [AuthGuard, RoleGuard],
   data: {
-    roles: ['DEPARTMENT_MANAGER', 'PROJECT_MANAGER', 'PLATFORM_OWNER']
+    roles: ['DEPARTMENT_MANAGER', 'PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'PLATFORM_OWNER']
   }
 },
   // EMPLOYEE dashboard
@@ -101,7 +101,7 @@ const routes: Routes = [
     component: MyDepartmentPageComponent,
     canActivate: [AuthGuard, RoleGuard],
     data: {
-      roles: ['PROJECT_MANAGER', 'PLATFORM_OWNER']
+      roles: ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'PLATFORM_OWNER']
     }
   },
 
@@ -110,7 +110,7 @@ const routes: Routes = [
     path: 'department/resources',
     component: ResourceSettingsPageComponent,
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['PROJECT_MANAGER', 'DEPARTMENT_MANAGER'] }
+    data: { roles: ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'DEPARTMENT_MANAGER'] }
   },
 
   { path: 'forbidden', component: ForbiddenComponent },
