@@ -4,6 +4,7 @@ import { GmForecastService } from '../../services/gm-forecast.service';
 import { ForecastRow } from '../../models/forecast-row.model';
 import { ForecastSummary } from '../../models/forecast-summary.model';
 import { GmDashboardService } from '../../services/gm-dashboard.service';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-gm-project-forecast-page',
@@ -15,7 +16,6 @@ export class GmProjectForecastPageComponent implements OnInit {
   @ViewChild('calBody') calBody!: ElementRef<HTMLElement>;
 
   projectId!: number;
-
   loading = false;
   saving = false;
   error: string | null = null;
@@ -35,14 +35,14 @@ export class GmProjectForecastPageComponent implements OnInit {
 
   savingCellKey: string | null = null;
   savingFieldKey: string | null = null;
-
   private isScrolling = false;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private forecastService: GmForecastService,
-    private dashboardService: GmDashboardService
+    private dashboardService: GmDashboardService,
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
@@ -133,13 +133,59 @@ export class GmProjectForecastPageComponent implements OnInit {
     return this.getRowType(row) === 'HOUR' ? this.formatHours(row.actualCost) : this.formatMoney(row.actualCost);
   }
 
+  // ✅ CORRECTION FINALE : Remaining TOUJOURS en €
   formatRemainingOrHours(row: ForecastRow): string {
-    const remaining = this.getRemaining(row);
-    return this.getRowType(row) === 'HOUR' ? this.formatHours(remaining) : this.formatMoney(remaining);
+    const remainingAmount = this.getRemaining(row);
+    return this.formatMoney(remainingAmount);
+  }
+    // ✅ Affichage de la colonne "Remaining Schedule" (calculé par le backend en €)
+  formatRemainingSchedule(row: ForecastRow): string {
+    const cost = (row as any).remainingCost;
+    if (cost != null && cost > 0) {
+      return this.formatMoney(cost);
+    }
+    // Fallback visuel si le backend n'a pas encore calculé
+    const hours = row.remainingHours || 0;
+    const rate = this.getHourlyRate(row);
+    return this.formatMoney(hours * rate);
   }
 
-  formatRemainingSchedule(row: ForecastRow): string {
-    return this.formatMoney(row.remainingCost);
+   getRemaining(row: ForecastRow): number {
+    const type = this.getRowType(row);
+    const totalForecast = (row.periods || []).reduce((sum, p) => sum + (p.amount || 0), 0);
+    const rate = this.getHourlyRate(row);
+
+    // Pour les lignes SUMMARY ou Level 1 : SOMME des Remaining de tous les enfants
+    if (type === 'SUMMARY' || row.level === 1) {
+      if (row.level === 1) {
+        // Level 1 = Total Projet : sommer TOUTES les lignes sauf elle-même
+        return this.filteredRows
+          .filter(r => r.financeEntryId !== row.financeEntryId)
+          .reduce((sum, child) => sum + this.getRemaining(child), 0);
+      } else {
+        // Summary intermédiaire : sommer les enfants par préfixe WBS
+        const children = this.filteredRows.filter(r => 
+          r.level > row.level && 
+          (r.wbsCode.startsWith(row.wbsCode + '.') || 
+           r.wbsCode.startsWith(row.wbsCode + '-'))
+        );
+        return children.reduce((sum, child) => sum + this.getRemaining(child), 0);
+      }
+    }
+
+    if (type === 'HOUR') {
+      // HOUR : Somme forecast * Taux horaire
+      return totalForecast * rate;
+    }
+    
+    // COST : Somme forecast directement (déjà en €)
+    return totalForecast;
+  }
+
+  // Helper pour le taux (à ajuster si ton backend envoie le taux dans le DTO)
+  private getHourlyRate(row: ForecastRow): number {
+    // Si ton modèle ForecastRow a un champ hourRate, utilise-le : return row.hourRate || 65;
+    return 65; 
   }
 
   formatTotalForecast(row: ForecastRow): string {
@@ -165,13 +211,7 @@ export class GmProjectForecastPageComponent implements OnInit {
     }))];
     return years[index] ?? null;
   }
-getRemaining(row: ForecastRow): number {
-  const budget = row.budget || 0;
-  const actual = row.actualCost || 0;
-  const forecast = row.totalForecast || 0;
-  
-  return Math.max(0, budget - actual - forecast);
-}
+
   applyFilters(): void {
     const term = this.searchTerm.trim().toLowerCase();
     if (!term) {
@@ -286,41 +326,30 @@ getRemaining(row: ForecastRow): number {
     }).format(value);
   }
 
-  // ✅ NOUVELLE MÉTHODE : Synchronisation du scroll WBS → Calendar
   onWbsScroll(event: Event): void {
     if (this.isScrolling) return;
     this.isScrolling = true;
     const wbsBody = this.wbsBody.nativeElement;
     const calBody = this.calBody.nativeElement;
     calBody.scrollTop = wbsBody.scrollTop;
-    requestAnimationFrame(() => {
-      this.isScrolling = false;
-    });
+    requestAnimationFrame(() => { this.isScrolling = false; });
   }
 
-  // ✅ NOUVELLE MÉTHODE : Synchronisation du scroll Calendar → WBS
   onCalScroll(event: Event): void {
     if (this.isScrolling) return;
     this.isScrolling = true;
     const wbsBody = this.wbsBody.nativeElement;
     const calBody = this.calBody.nativeElement;
     wbsBody.scrollTop = calBody.scrollTop;
-    requestAnimationFrame(() => {
-      this.isScrolling = false;
-    });
+    requestAnimationFrame(() => { this.isScrolling = false; });
   }
-  // ✅ MÉTHODE POUR LIER UNE TÂCHE SCHEDULE AU FORECAST
+
   onLinkedWbsChange(row: ForecastRow): void {
     this.saving = true;
-    
-    this.forecastService.updateLinkedScheduleWbs(
-      this.projectId, 
-      row.financeEntryId, 
-      row.linkedScheduleWbs || null
-    ).subscribe({
+    this.forecastService.updateLinkedScheduleWbs(this.projectId, row.financeEntryId, row.linkedScheduleWbs || null).subscribe({
       next: () => {
         this.saving = false;
-        this.loadData(); // Recharger pour recalculer Remaining Schedule
+        this.loadData();
       },
       error: (err: any) => {
         console.error(err);
@@ -328,12 +357,13 @@ getRemaining(row: ForecastRow): number {
         this.saving = false;
       }
     });
-
   }
-  // ✅ NOUVELLE MÉTHODE : TrackBy pour optimiser le *ngFor
+
   trackByRow(index: number, row: any): number {
     return row.financeEntryId || index;
   }
+
+  
 
   goToProjectum(): void { this.router.navigate(['/gm/projectum']); }
   goToSchedule(): void { this.router.navigate(['/gm/projects', this.projectId, 'schedule']); }
