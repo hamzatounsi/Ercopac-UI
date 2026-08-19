@@ -20,9 +20,11 @@ export class GmWorkspacesPageComponent implements OnInit {
   organisationLabel = 'Workspace';
 
   readonly launcherApps: LauncherApp[] = [
-    { name: 'Projectum', route: '/gm/projectum', roles: ['PROJECT_MANAGER', 'DEPARTMENT_MANAGER'], icon: APPLICATION_ICONS.projectum },
-    { name: 'My Department', route: '/department', roles: ['PROJECT_MANAGER', 'DEPARTMENT_MANAGER'], icon: APPLICATION_ICONS.myDepartment },
-    { name: 'My CRM', route: '/crm/dashboard', roles: ['PROJECT_MANAGER'], icon: APPLICATION_ICONS.myCrm },
+    // Keep the established route for existing manager sessions/bookmarks; the application is presented as Command Center.
+    { name: 'Command Center', route: '/gm/company-dashboard', roles: ['MANAGER'], icon: APPLICATION_ICONS.projectum },
+    { name: 'Projectum', route: '/gm/projectum', roles: ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'DEPARTMENT_MANAGER'], icon: APPLICATION_ICONS.projectum },
+    { name: 'My Department', route: '/department', roles: ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'DEPARTMENT_MANAGER'], icon: APPLICATION_ICONS.myDepartment },
+    { name: 'My CRM', route: '/crm/dashboard', roles: ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD'], icon: APPLICATION_ICONS.myCrm },
     { name: 'Employee', route: '/employee', roles: ['EMPLOYEE'], icon: APPLICATION_ICONS.employee },
     { name: 'Ticketing', route: '/tickets', roles: ['SALES_MANAGER', 'CLIENT'], icon: APPLICATION_ICONS.ticketing }
   ];

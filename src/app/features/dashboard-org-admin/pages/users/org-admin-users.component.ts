@@ -157,7 +157,7 @@ export class OrgAdminUsersComponent implements OnInit, OnDestroy {
   trackUser(_index: number, user: OrganisationUser): number { return user.id; }
   roleLabel(role: OrganisationRole): string { return this.roles.find(item => item.role === role)?.label || role.replace(/_/g, ' '); }
   requiresResourceProfile(role: OrganisationRole): boolean {
-    return ['PROJECT_MANAGER', 'DEPARTMENT_MANAGER', 'EMPLOYEE', 'SALES_MANAGER'].includes(role);
+    return ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'DEPARTMENT_MANAGER', 'EMPLOYEE', 'SALES_MANAGER'].includes(role);
   }
   private updateResourceProfileValidators(): void {
     const required = this.requiresResourceProfile(this.userForm.controls.role.value);

@@ -100,6 +100,10 @@ private readonly projectsUrl = API_PROJECTS_URL;
     return this.http.put<ProjectDashboardRow>(`${this.projectsUrl}/${id}`, payload);
   }
 
+  assignProjectManager(id: number, projectManagerId: number): Observable<ProjectDashboardRow> {
+    return this.http.patch<ProjectDashboardRow>(`${this.projectsUrl}/${id}/project-manager`, { projectManagerId });
+  }
+
   archiveProject(id: number): Observable<void> {
     return this.http.patch<void>(`${this.projectsUrl}/${id}/archive`, {});
   }

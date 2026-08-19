@@ -17,14 +17,19 @@ import { GmProjectActionsPageComponent } from './pages/gm-project-actions-page/g
 import { GmAdminSettingsPageComponent } from './pages/gm-admin-settings-page/gm-admin-settings-page.component';
 import { MyDepartmentPageComponent } from '../dashboard-department/pages/my-department-page/my-department-page.component';
 import { MyCsProjectsPageComponent } from './pages/my-cs-projects-page/my-cs-projects-page.component';
+import { CompanyDashboardComponent } from './pages/company-dashboard/company-dashboard.component';
+import { ProjectPerformanceComponent } from './pages/project-performance/project-performance.component';
 
 const projectumAccessRoles = [
   'ROLE_PLATFORM_OWNER',
   'ROLE_PROJECT_MANAGER',
+  'PROJECT_MANAGER_LEAD',
+  'ROLE_PROJECT_MANAGER_LEAD',
   'ROLE_DEPARTMENT_MANAGER'
 ];
 
 const workspaceShellRoles = [...projectumAccessRoles, 'ROLE_ORG_ADMIN'];
+const companyDashboardRoles = ['MANAGER', 'ROLE_MANAGER'];
 
 const adminAccessRoles = [
   'ROLE_ORG_ADMIN',
@@ -37,9 +42,15 @@ const routes: Routes = [
     path: '',
     component: GmLayoutComponent,
     canActivate: [RoleGuard],
-    data: { roles: workspaceShellRoles },
+    data: { roles: [...workspaceShellRoles, ...companyDashboardRoles] },
     children: [
       { path: '', redirectTo: 'projectum', pathMatch: 'full' },
+      {
+        path: 'company-dashboard', component: CompanyDashboardComponent,
+        canActivate: [RoleGuard], data: { roles: companyDashboardRoles }
+      },
+      { path: 'command-center', component: CompanyDashboardComponent, canActivate: [RoleGuard], data: { roles: companyDashboardRoles } },
+      { path: 'command-center/project-performance', component: ProjectPerformanceComponent, canActivate: [RoleGuard], data: { roles: companyDashboardRoles } },
       {
         path: 'projectum',
         component: GmProjectumPageComponent,

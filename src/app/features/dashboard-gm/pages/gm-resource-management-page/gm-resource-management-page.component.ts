@@ -93,7 +93,7 @@ export class GmResourceManagementPageComponent implements OnInit {
     label: ''
   };
 
-  readonly roleOptions = ['PROJECT_MANAGER', 'DEPARTMENT_MANAGER', 'EMPLOYEE', 'SALES_MANAGER'];
+  readonly roleOptions = ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'DEPARTMENT_MANAGER', 'EMPLOYEE', 'SALES_MANAGER'];
 
   readonly internalOptions = [
     { value: '', label: 'All' },
