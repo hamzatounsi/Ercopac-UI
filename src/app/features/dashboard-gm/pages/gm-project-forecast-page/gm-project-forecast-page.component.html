@@ -55,7 +55,7 @@
         </div>
       </div>
 
-      <div id="wbs-list-body" #wbsBody (scroll)="onWbsScroll($event)">
+           <div id="wbs-list-body" #wbsBody (scroll)="onWbsScroll($event)">
         <div class="wbs-row" *ngFor="let row of filteredRows; trackBy: trackByRow">
           <div class="col-wbs mono indentable" [style.paddingLeft.px]="8 + ((row.level - 1) * 16)">{{ row.wbsCode }}</div>
           <div class="col-icon icon-cell">
@@ -65,28 +65,34 @@
             <div class="desc-main" [title]="row.description">{{ row.description }}</div>
             <span class="type-badge" [ngClass]="getTypeBadgeClass(row)">{{ getTypeLabel(row) }}</span>
           </div>
-          <!-- ✅ NIVEAU HIÉRARCHIQUE DU SCHEDULE (Lecture seule) -->
-        <!-- ✅ INPUT EDITABLE : Sélection d'une tâche Schedule pour calcul automatique -->
-<div class="col-level level-cell">
-  <select [(ngModel)]="row.linkedScheduleWbs" (change)="onLinkedWbsChange(row)" class="linked-wbs-select">
-    <option [ngValue]="null">-- Select Task --</option>
-    <option *ngFor="let task of row.availableScheduleTasks" [ngValue]="task.wbsCode">
-      {{ task.wbsCode }} - {{ task.name }} (L{{ task.outlineLevel }})
-    </option>
-  </select>
-</div>
+          
+          <!-- ✅ INPUT EDITABLE : Sélection d'une tâche Schedule -->
+          <div class="col-level level-cell">
+            <select [(ngModel)]="row.linkedScheduleWbs" (change)="onLinkedWbsChange(row)" class="linked-wbs-select">
+              <option [ngValue]="null">-- Select Task --</option>
+              <option *ngFor="let task of row.availableScheduleTasks" [ngValue]="task.wbsCode">
+                {{ task.wbsCode }} - {{ task.name }} (L{{ task.outlineLevel }})
+              </option>
+            </select>
+          </div>
+          
           <div class="col-budget money">{{ formatBudgetOrHours(row) }}</div>
           <div class="col-actual money actual-cell">{{ formatActualOrHours(row) }}</div>
+          
           <div class="col-remaining money remaining-cell">
             <span>{{ formatRemainingOrHours(row) }}</span>
           </div>
+          
+          <!-- ✅ COLONNE REMAINING SCHEDULE AVEC BOUTON DEBUG -->
           <div class="col-remaining-schedule money remaining-schedule-cell">
             <div class="remaining-schedule-wrap">
               <strong class="remaining-schedule-cost">{{ formatRemainingSchedule(row) }}</strong>
               <small class="remaining-schedule-hint">{{ row.remainingHours || 0 }}h × Rate</small>
+              
             </div>
           </div>
         </div>
+        
         <div *ngIf="filteredRows.length === 0" class="empty-box">No forecast rows found.</div>
       </div>
     </div>
