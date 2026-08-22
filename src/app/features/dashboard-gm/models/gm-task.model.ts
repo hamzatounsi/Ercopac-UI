@@ -11,6 +11,9 @@ export interface GmTask {
   scheduleMode?: string;
   active?: boolean;
   displayOrder?: number;
+    // ✅ NEW: Milestone Fields
+  milestoneTypeId?: number | null;
+  milestoneDate?: string | null; 
 }
 
 export interface CreateGmTaskRequest {
@@ -24,6 +27,8 @@ export interface CreateGmTaskRequest {
   scheduleMode?: string | null;
   active?: boolean | null;
   displayOrder?: number | null;
+  milestoneTypeId?: number | null;
+  milestoneDate?: string | null;
 }
 
 export interface UpdateGmTaskRequest {
@@ -37,4 +42,7 @@ export interface UpdateGmTaskRequest {
   scheduleMode?: string | null;
   active?: boolean | null;
   displayOrder?: number | null;
+   milestoneTypeId?: number | null;
+  milestoneDate?: string | null;
+
 }

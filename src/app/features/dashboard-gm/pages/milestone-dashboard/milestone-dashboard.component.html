@@ -1,0 +1,15 @@
+<div class="milestone-dashboard">
+  <h2>Project Milestones Dashboard</h2>
+  <p>Project ID: {{ projectId }}</p>
+  
+  <div class="milestone-list" *ngIf="milestones.length > 0; else emptyState">
+    <div *ngFor="let m of milestones" class="milestone-card" [style.border-left]="'4px solid ' + m.color">
+      <strong>{{ m.label }}</strong> ({{ m.code }})
+      <span class="date">{{ m.letterCode }}</span>
+    </div>
+  </div>
+  
+  <ng-template #emptyState>
+    <p style="color: #666; margin-top: 20px;">No milestones configured yet.</p>
+  </ng-template>
+</div>

@@ -12,7 +12,8 @@ import { forkJoin, of, Observable, Subject } from 'rxjs';
 import { catchError, distinctUntilChanged, finalize, map, switchMap, takeUntil } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-
+import { MilestoneService } from '../../../services/milestone.service';
+import { MilestoneType } from '../../../models/milestone-type.model';
 import { GmProjectTimelineService } from '../../../services/gm-project-timeline.service';
 import {
   GmProjectScheduleTask,
@@ -80,6 +81,7 @@ type GanttColumnVisibility = {
   progress: boolean;
   baselineStart: boolean;
   baselineEnd: boolean;
+  milestone: boolean;
 };
 
 interface GanttDisplayPreferences {
@@ -155,8 +157,10 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   resourceTypes: string[] = [];
 
   settingsOpen = false;
-  settingsTab: 'templates' | 'calendar' | 'baseline' = 'templates';
-
+  // APRÈS (Ajoute 'milestones') :
+settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
+   milestoneTypes: any[] = [];
+   newMilestoneType = { code: '', label: '', color: '#cccccc', letterCode: '' };
   history: GmProjectScheduleTask[][] = [];
   future: GmProjectScheduleTask[][] = [];
 
@@ -175,7 +179,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
     tasks: GmProjectScheduleTask[];
     createdAt: string;
   }[] = [];
-
+ 
   calendars: ProjectCalendar[] = [];
   activeWorkingDays: number[] = [1, 2, 3, 4, 5];
   calendarEditorOpen = false;
@@ -227,7 +231,8 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
     predecessors: true,
     progress: true,
     baselineStart: true,
-    baselineEnd: true
+    baselineEnd: true,
+     milestone: true
   };
 
   leftPaneWidth = 750;
@@ -298,6 +303,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
     private gmDashboardService: GmDashboardService,
     private authService: AuthService,
     private resourceConfigService: ResourceConfigService,
+    private milestoneService: MilestoneService,
     private readonly changeDetector: ChangeDetectorRef
   ) {}
 
@@ -317,6 +323,8 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
       this.loadResourceOptions();
       this.loadConfiguredResourceTypes();
       this.loadProjectName();
+          // ✅ AJOUTE CETTE LIGNE ICI pour charger les types de milestones au démarrage
+    this.loadMilestoneTypes(); 
     });
 
   }
@@ -2555,6 +2563,7 @@ indentTask(): void {
     if (this.columnVisibility.progress) cols.push('80px');
     if (this.columnVisibility.predecessors) cols.push('110px');
     if (this.columnVisibility.baselineStart) cols.push('95px');
+    if (this.columnVisibility.milestone) cols.push('120px');
 if (this.columnVisibility.baselineEnd) cols.push('95px');
     return cols.join(' ');
   }
@@ -2574,6 +2583,7 @@ if (this.columnVisibility.baselineEnd) cols.push('95px');
     if (this.columnVisibility.progress) total += 80;
     if (this.columnVisibility.predecessors) total += 110;
     if (this.columnVisibility.baselineStart) total += 95;
+    if (this.columnVisibility.milestone) total += 120;
 if (this.columnVisibility.baselineEnd) total += 95;
     return total;
   }
@@ -2641,7 +2651,38 @@ if (this.columnVisibility.baselineEnd) total += 95;
     if (normalized === 'MILESTONE') return 'MILESTONE';
     return 'ACTIVITY';
   }
+  loadMilestoneTypes(): void {
+  console.log('Loading milestones...'); // Debug log
+  this.milestoneService.getMilestoneTypes().subscribe({
+    next: (types) => {
+      console.log('Milestones loaded:', types); // Debug log
+      this.milestoneTypes = types ?? [];
+    },
+    error: (err) => {
+      console.error('Failed to load milestone types', err);
+      this.milestoneTypes = []; // Reset on error
+    }
+  });
+}
 
+  saveNewMilestoneType(): void {
+    if (!this.newMilestoneType.code || !this.newMilestoneType.label) return;
+    this.milestoneService.createMilestoneType(this.newMilestoneType).subscribe({
+      next: (created) => {
+        this.milestoneTypes.push(created);
+        this.newMilestoneType = { code: '', label: '', color: '#cccccc', letterCode: '' };
+      },
+      error: (err) => console.error('Failed to create milestone type', err)
+    });
+  }
+
+  deleteMilestoneType(id: number): void {
+    if (!confirm('Delete this milestone type?')) return;
+    this.milestoneService.deleteMilestoneType(id).subscribe({
+      next: () => { this.milestoneTypes = this.milestoneTypes.filter(m => m.id !== id); },
+      error: (err) => console.error('Failed to delete milestone type', err)
+    });
+  }
   formatDateForInput(value?: string | null): string { return value ?? ''; }
 
   formatDateForDisplay(value?: string | null): string {
