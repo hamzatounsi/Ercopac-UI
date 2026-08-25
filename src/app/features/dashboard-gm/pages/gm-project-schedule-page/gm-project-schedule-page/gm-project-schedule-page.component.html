@@ -1071,48 +1071,65 @@
         </ng-container>
 
         <!-- ================= MILESTONES TAB ================= -->
-        <ng-container *ngIf="settingsTab === 'milestones'">
-          <section class="drawer-section">
-            <div class="drawer-section-header">
-              <div class="drawer-section-title">
-                <span class="material-symbols-outlined sec-icon">flag</span>
-                <span>Milestone Types</span>
-              </div>
-            </div>
-            
-            <!-- Create New Milestone -->
-            <div class="baseline-create-card" style="margin-bottom: 16px;">
-              <div class="template-create-row">
-                <input type="text" class="template-name-input" [(ngModel)]="newMilestoneType.code" placeholder="Code (e.g. FAT)" style="width: 80px;" />
-                <input type="text" class="template-name-input" [(ngModel)]="newMilestoneType.label" placeholder="Label (e.g. SPEDIZIONE)" />
-                <input type="text" class="template-name-input" [(ngModel)]="newMilestoneType.letterCode" placeholder="Letter (e.g. F)" style="width: 60px;" />
-                <input type="color" [(ngModel)]="newMilestoneType.color" style="width: 40px; height: 32px; border: none;" />
-                <button type="button" class="primary-action-btn" (click)="saveNewMilestoneType()">Add</button>
-              </div>
-            </div>
+        <!-- ================= MILESTONES TAB ================= -->
+<ng-container *ngIf="settingsTab === 'milestones'">
+  <section class="drawer-section">
+    <div class="drawer-section-header">
+      <div class="drawer-section-title">
+        <span class="material-symbols-outlined sec-icon">flag</span>
+        <span>Milestone Types</span>
+      </div>
+      <!-- ✅ NEW: Load Default Milestones Button -->
+      <button type="button" class="mini-outline-btn" (click)="loadDefaultMilestones()"  > 0">
+        📥 Load Defaults
+      </button>
+    </div>
+    
+    <!-- Create New Milestone -->
+    <div class="baseline-create-card" style="margin-bottom: 16px;">
+      <div class="template-create-row">
+        <input type="text" class="template-name-input" [(ngModel)]="newMilestoneType.code" placeholder="Code (e.g. FAT)" style="width: 80px;" />
+        <input type="text" class="template-name-input" [(ngModel)]="newMilestoneType.label" placeholder="Label (e.g. SPEDIZIONE)" />
+        <input type="text" class="template-name-input" [(ngModel)]="newMilestoneType.letterCode" placeholder="Letter (e.g. F)" style="width: 60px;" />
+        
+        <!-- ✅ IMPROVED: More Visible Color Picker -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <label style="font-size: 12px; color: #6b7280;">Color:</label>
+          <input type="color" [(ngModel)]="newMilestoneType.color" 
+                 style="width: 50px; height: 36px; border: 2px solid #d1d5db; border-radius: 6px; cursor: pointer;" 
+                 title="Click to choose milestone color" />
+        </div>
+        
+        <button type="button" class="primary-action-btn" (click)="saveNewMilestoneType()">Add</button>
+      </div>
+      <div style="font-size: 11px; color: #6b7280; margin-top: 8px; padding-left: 4px;">
+        💡 Tip: Click "Load Defaults" to add all 13 standard milestones (RT, KOM, FAT, SPEDIZIONE, etc.) with their colors
+      </div>
+    </div>
 
-            <!-- List of Milestones -->
-            <div class="drawer-list-card" *ngFor="let mt of milestoneTypes">
-              <div class="calendar-avatar" [style.background]="mt.color" style="color: white; font-weight: bold; display: flex; align-items: center; justify-content: center;">
-                {{ mt.letterCode || mt.code }}
-              </div>
-              <div class="list-card-main">
-                <div class="list-card-title">{{ mt.code }} - {{ mt.label }}</div>
-              </div>
-              <div class="list-card-actions">
-                <button type="button" class="icon-square-btn danger" (click)="deleteMilestoneType(mt.id)">
-                  <span class="material-symbols-outlined">delete</span>
-                </button>
-              </div>
-            </div>
+    <!-- List of Milestones -->
+    <div class="drawer-list-card" *ngFor="let mt of milestoneTypes">
+      <div class="calendar-avatar" [style.background]="mt.color" style="color: white; font-weight: bold; display: flex; align-items: center; justify-content: center;">
+        {{ mt.letterCode || mt.code }}
+      </div>
+      <div class="list-card-main">
+        <div class="list-card-title">{{ mt.code }} - {{ mt.label }}</div>
+        <div class="list-card-sub">Letter: {{ mt.letterCode || '—' }}</div>
+      </div>
+      <div class="list-card-actions">
+        <button type="button" class="icon-square-btn danger" (click)="deleteMilestoneType(mt.id)">
+          <span class="material-symbols-outlined">delete</span>
+        </button>
+      </div>
+    </div>
 
-            <div class="drawer-empty-card" *ngIf="milestoneTypes.length === 0">
-              <span class="material-symbols-outlined empty-icon">flag</span>
-              <div class="empty-title">No milestone types defined yet.</div>
-              <div class="empty-subtitle">Create one above to use in the Gantt.</div>
-            </div>
-          </section>
-        </ng-container>
+    <div class="drawer-empty-card" *ngIf="milestoneTypes.length === 0">
+      <span class="material-symbols-outlined empty-icon">flag</span>
+      <div class="empty-title">No milestone types defined yet.</div>
+      <div class="empty-subtitle">Click "Load Defaults" to add 13 standard milestones, or create your own above.</div>
+    </div>
+  </section>
+</ng-container>
 
       </div>
 

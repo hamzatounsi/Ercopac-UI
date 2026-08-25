@@ -2675,6 +2675,49 @@ if (this.columnVisibility.baselineEnd) total += 95;
       error: (err) => console.error('Failed to create milestone type', err)
     });
   }
+ loadDefaultMilestones(): void {
+  // ✅ Shortened labels to fit VARCHAR(20) database limit
+  const defaultMilestones = [
+    { code: 'RT', label: 'RT', letterCode: '', color: '#7FFFD4' },
+    { code: 'KOM', label: 'KOM', letterCode: '', color: '#228B22' },
+    { code: 'DISTINTA UTM', label: 'DISTINTA UTM', letterCode: '', color: '#FF69B4' },
+    { code: 'DISTINTA UTE', label: 'DISTINTA UTE', letterCode: '', color: '#FFFF00' },
+    { code: 'APPROVVIG.', label: 'APPROVVIG.', letterCode: '', color: '#FFDAB9' },
+    { code: 'MONTAGGIO INT.', label: 'MONTAGGIO INT.', letterCode: '', color: '#FFA500' },
+    { code: 'COLLAUDO INT.', label: 'COLLAUDO INT.', letterCode: '', color: '#8B4513' },
+    { code: 'FAT', label: 'FAT', letterCode: 'F', color: '#800080' },
+    { code: 'SPEDIZIONE', label: 'SPEDIZIONE', letterCode: 'SP', color: '#FFFF00' },
+    { code: 'INSTALLAZIONE', label: 'INSTALLAZIONE', letterCode: '', color: '#0000FF' },
+    { code: 'AVV. E COLLAUDO', label: 'AVV. E COLLAUDO', letterCode: '', color: '#00008B' },
+    { code: 'TRAINING', label: 'TRAINING', letterCode: 'T', color: '#800080' },
+    { code: 'SAT', label: 'SAT', letterCode: 'S', color: '#800080' }
+  ];
+
+  if (this.milestoneTypes.length > 0) {
+    if (!confirm('This will attempt to add default milestones. Existing ones will be skipped. Continue?')) return;
+  }
+
+  let createdCount = 0;
+  let skippedCount = 0;
+
+  defaultMilestones.forEach((milestone) => {
+    this.milestoneService.createMilestoneType(milestone).subscribe({
+      next: (created) => {
+        this.milestoneTypes.push(created);
+        createdCount++;
+        if (createdCount + skippedCount === defaultMilestones.length) {
+          alert(`✅ Success: ${createdCount} added, ${skippedCount} skipped (already exist).`);
+        }
+      },
+      error: (err) => {
+        skippedCount++; // Gracefully skip duplicates or length errors
+        if (createdCount + skippedCount === defaultMilestones.length) {
+          alert(`✅ Finished: ${createdCount} added, ${skippedCount} skipped.`);
+        }
+      }
+    });
+  });
+}
 
   deleteMilestoneType(id: number): void {
     if (!confirm('Delete this milestone type?')) return;
@@ -2792,7 +2835,9 @@ if (this.columnVisibility.baselineEnd) total += 95;
       customerMilestone: task.customerMilestone ?? false,
       scheduleMode: task.scheduleMode ?? 'AUTO',
       status: task.status ?? '',
+      milestoneTypeId: task.milestoneTypeId ?? null,
       color: task.color ?? '',
+      
       assignedUserId: isActivity ? task.assignedUserId ?? undefined : undefined
     };
   }
