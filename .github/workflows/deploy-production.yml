@@ -1,6 +1,10 @@
 name: Deploy Frontend to Production
 
 on:
+  push:
+    branches:
+      - main
+
   workflow_dispatch:
 
 permissions:
@@ -27,10 +31,17 @@ jobs:
             echo "=== Move to frontend source ==="
             cd /opt/projectum/frontend
 
+            echo "=== Remember current frontend version ==="
+            PREVIOUS_COMMIT=$(git rev-parse HEAD)
+            echo "Previous commit: $PREVIOUS_COMMIT"
+
             echo "=== Update frontend source ==="
             git fetch origin main
             git checkout main
             git pull --ff-only origin main
+
+            NEW_COMMIT=$(git rev-parse HEAD)
+            echo "Deploying commit: $NEW_COMMIT"
 
             echo "=== Rebuild frontend ==="
             cd /opt/projectum
@@ -39,13 +50,79 @@ jobs:
             echo "=== Recreate frontend container ==="
             docker compose up -d --no-deps projectum-frontend
 
-            echo "=== Wait for startup ==="
-            sleep 5
+            echo "=== Frontend health check ==="
 
-            echo "=== Frontend status ==="
-            docker compose ps projectum-frontend
+            HEALTHY=false
 
-            echo "=== Frontend HTTP check ==="
-            curl --fail --silent --show-error http://localhost:8080/ > /dev/null
+            for i in {1..12}; do
+              if curl --fail --silent --show-error \
+                  http://localhost:8080/ > /dev/null; then
 
-            echo "=== Frontend deployment successful ==="
+                HEALTHY=true
+                echo "Frontend is healthy."
+                break
+              fi
+
+              echo "Waiting for frontend... attempt $i/12"
+              sleep 5
+            done
+
+            if [ "$HEALTHY" = true ]; then
+              echo "=== Frontend deployment successful ==="
+              docker compose ps projectum-frontend
+              exit 0
+            fi
+
+            echo "======================================"
+            echo "NEW FRONTEND DEPLOYMENT FAILED"
+            echo "Starting automatic rollback..."
+            echo "======================================"
+
+            echo "=== Failed frontend logs ==="
+            docker compose logs --tail=100 projectum-frontend || true
+
+            echo "=== Restore previous frontend version ==="
+            cd /opt/projectum/frontend
+            git checkout "$PREVIOUS_COMMIT"
+
+            echo "=== Rebuild previous frontend ==="
+            cd /opt/projectum
+            docker compose build projectum-frontend
+
+            echo "=== Restart previous frontend ==="
+            docker compose up -d --no-deps projectum-frontend
+
+            echo "=== Verify rollback ==="
+
+            ROLLBACK_HEALTHY=false
+
+            for i in {1..12}; do
+              if curl --fail --silent --show-error \
+                  http://localhost:8080/ > /dev/null; then
+
+                ROLLBACK_HEALTHY=true
+                echo "Rollback successful. Previous frontend is healthy."
+                break
+              fi
+
+              echo "Waiting for rollback... attempt $i/12"
+              sleep 5
+            done
+
+            if [ "$ROLLBACK_HEALTHY" = true ]; then
+              echo "======================================"
+              echo "DEPLOYMENT FAILED BUT ROLLBACK SUCCEEDED"
+              echo "Restored commit: $PREVIOUS_COMMIT"
+              echo "Failed commit:   $NEW_COMMIT"
+              echo "======================================"
+
+              docker compose ps projectum-frontend
+              exit 1
+            fi
+
+            echo "======================================"
+            echo "CRITICAL: FRONTEND ROLLBACK ALSO FAILED"
+            echo "======================================"
+
+            docker compose logs --tail=150 projectum-frontend || true
+            exit 1
