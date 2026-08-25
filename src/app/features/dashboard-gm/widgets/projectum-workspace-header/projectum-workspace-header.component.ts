@@ -25,10 +25,11 @@ export class ProjectumWorkspaceHeaderComponent {
   @Input() showBack = true;
   @Input() showProjectModules = true;
 
-  readonly modules: readonly ProjectumModuleLink[] = [
+   readonly modules: readonly ProjectumModuleLink[] = [
     { label: 'Schedule', icon: 'timeline', path: 'schedule', exact: true },
     { label: 'Finance', icon: 'payments', path: 'finance', exact: true },
     { label: 'Forecast', icon: 'trending_up', path: 'forecast', exact: true },
+    { label: 'Milestone', icon: 'flag', path: 'milestones', exact: true }, // ✅ ADDED HERE
     { label: 'Risks', icon: 'warning', path: 'risks', exact: true },
     { label: 'Change Requests', icon: 'contract_edit', path: 'change-requests', exact: true },
     { label: 'Actions', icon: 'assignment_turned_in', path: 'actions', exact: true }

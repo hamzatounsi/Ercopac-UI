@@ -1,8 +1,5 @@
-// Path: src/app/features/dashboard-gm/models/gm-update-project-task-request.model.ts
-// REPLACE your entire file with this
-
 export interface GmUpdateProjectTaskRequest {
-  parentId?: number | null;        // ← NEW
+  parentId?: number | null;
   name: string;
   description?: string;
   durationDays?: number;
@@ -21,10 +18,11 @@ export interface GmUpdateProjectTaskRequest {
   resourceType?: string;
   active?: boolean;
   displayOrder?: number;
-  outlineLevel?: number;           // ← NEW
+  outlineLevel?: number;
   customerMilestone?: boolean;
   scheduleMode?: string;
   status?: string;
   color?: string;
   assignedUserId?: number;
+  milestoneTypeId?: number | null; // ✅ ADD THIS LINE
 }
