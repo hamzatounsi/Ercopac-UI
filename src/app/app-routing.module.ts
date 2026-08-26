@@ -79,10 +79,33 @@ const routes: Routes = [
   {
     path: 'employee',
     component: DashboardEmployeeComponent,
+    pathMatch: 'full',
     canActivate: [AuthGuard, RoleGuard],
     data: {
+      employeePage: 'home',
       roles: ['EMPLOYEE']                    // ← fixed: only EMPLOYEE
     }
+  },
+
+  {
+    path: 'employee/tasks', component: DashboardEmployeeComponent,
+    canActivate: [AuthGuard, RoleGuard], data: { roles: ['EMPLOYEE'], employeePage: 'tasks' }
+  },
+  {
+    path: 'employee/actions', component: DashboardEmployeeComponent,
+    canActivate: [AuthGuard, RoleGuard], data: { roles: ['EMPLOYEE'], employeePage: 'actions' }
+  },
+  {
+    path: 'employee/schedule', component: DashboardEmployeeComponent,
+    canActivate: [AuthGuard, RoleGuard], data: { roles: ['EMPLOYEE'], employeePage: 'schedule' }
+  },
+  {
+    path: 'employee/projects', component: DashboardEmployeeComponent,
+    canActivate: [AuthGuard, RoleGuard], data: { roles: ['EMPLOYEE'], employeePage: 'projects' }
+  },
+  {
+    path: 'employee/notifications', component: DashboardEmployeeComponent,
+    canActivate: [AuthGuard, RoleGuard], data: { roles: ['EMPLOYEE'], employeePage: 'notifications' }
   },
 
   // OWNER module
