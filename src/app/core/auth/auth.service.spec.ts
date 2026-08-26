@@ -26,7 +26,7 @@ describe('AuthService', () => {
       ['PLATFORM_OWNER', '/owner'],
       ['PROJECT_MANAGER', '/workspace'],
       ['DEPARTMENT_MANAGER', '/workspace'],
-      ['EMPLOYEE', '/workspace'],
+      ['EMPLOYEE', '/employee'],
       ['SALES_MANAGER', '/workspace'],
       ['CLIENT', '/workspace']
     ];
