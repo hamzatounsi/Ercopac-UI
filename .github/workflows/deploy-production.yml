@@ -24,6 +24,8 @@ jobs:
           username: ${{ secrets.PROD_USER }}
           key: ${{ secrets.PROD_SSH_KEY }}
           port: 22
+          timeout: 30s
+          command_timeout: 30m
           script_stop: true
           script: |
             set -e
