@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 
 import { RoleGuard } from '../../core/auth/role.guard';
 
+ import { MilestoneDashboardComponent } from './pages/milestone-dashboard/milestone-dashboard.component';
 import { GmLayoutComponent } from './pages/gm-layout/gm-layout.component';
 import { GmProjectumPageComponent } from './pages/gm-projectum-page/gm-projectum-page/gm-projectum-page.component';
 import { GmProjectScheduleInitComponent } from './pages/gm-project-schedule-init/gm-project-schedule-init/gm-project-schedule-init.component';
@@ -49,6 +50,13 @@ const routes: Routes = [
         path: 'company-dashboard', component: CompanyDashboardComponent,
         canActivate: [RoleGuard], data: { roles: companyDashboardRoles }
       },
+    
+   {
+  path: 'projects/:id/milestones',
+  component:MilestoneDashboardComponent, // Or create a separate MilestoneComponent
+  canActivate: [RoleGuard],
+  data: { roles: projectumAccessRoles }
+},
       { path: 'command-center', component: CompanyDashboardComponent, canActivate: [RoleGuard], data: { roles: companyDashboardRoles } },
       { path: 'command-center/project-performance', component: ProjectPerformanceComponent, canActivate: [RoleGuard], data: { roles: companyDashboardRoles } },
       {

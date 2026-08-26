@@ -31,6 +31,8 @@ import { SecurityTabComponent } from './pages/gm-admin-settings-page/components/
 import { CompanyDashboardComponent } from './pages/company-dashboard/company-dashboard.component';
 import { ProjectPerformanceComponent } from './pages/project-performance/project-performance.component';
 
+import { MilestoneDashboardComponent } from './pages/milestone-dashboard/milestone-dashboard.component';
+
 
 
 @NgModule({
@@ -61,6 +63,8 @@ import { ProjectPerformanceComponent } from './pages/project-performance/project
     SecurityTabComponent,
     CompanyDashboardComponent,
     ProjectPerformanceComponent,
+    
+    MilestoneDashboardComponent,
   ],
   imports: [
     CommonModule,

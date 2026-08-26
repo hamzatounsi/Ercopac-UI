@@ -70,11 +70,11 @@
 
       <div class="toolbar-divider"></div>
 
-    <button type="button" class="toolbar-main-btn" (click)="outdentTaskPersisted()" [disabled]="!selectedTask || structureSaving">
+      <button type="button" class="toolbar-main-btn" (click)="outdentTaskPersisted()" [disabled]="!selectedTask || structureSaving">
         <span class="material-symbols-outlined">format_indent_decrease</span>
         <span>Outdent</span>
       </button>
-    <button type="button" class="toolbar-main-btn" (click)="indentTaskPersisted()" [disabled]="!selectedTask || structureSaving">
+      <button type="button" class="toolbar-main-btn" (click)="indentTaskPersisted()" [disabled]="!selectedTask || structureSaving">
         <span class="material-symbols-outlined">format_indent_increase</span>
         <span>Indent</span>
       </button>
@@ -149,6 +149,7 @@
           <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.predecessors" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Predecessors</span></label>
           <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.progress" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>% Done</span></label>
           <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.baselineStart" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Baseline Start</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.milestone" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Milestone</span></label>
           <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.baselineEnd" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Baseline End</span></label>
         </div>
       </div>
@@ -189,7 +190,8 @@
           <div class="gh col-progress" *ngIf="columnVisibility.progress">% Done</div>
           <div class="gh col-pred" *ngIf="columnVisibility.predecessors">Pred.</div>
           <div class="gh col-date" *ngIf="columnVisibility.baselineStart">Baseline Start</div>
-<div class="gh col-date" *ngIf="columnVisibility.baselineEnd">Baseline End</div>
+          <div class="gh col-milestone" *ngIf="columnVisibility.milestone">Milestone</div>
+          <div class="gh col-date" *ngIf="columnVisibility.baselineEnd">Baseline End</div>
         </div>
       </div>
 
@@ -219,22 +221,42 @@
           </div>
 
           <div class="cell editable-cell col-name" *ngIf="columnVisibility.name" (click)="$event.stopPropagation()">
-            <div class="task-name-wrap" [style.padding-left.px]="getIndent(task)">
-              <span *ngIf="isSummary(task)" class="summary-marker" (click)="toggleSummary(task, $event)">
-                {{ collapsedTaskIds.has(task.id) ? '▸' : '▾' }}
-              </span>
-              <span *ngIf="isMilestone(task)" class="milestone-dot" [class.customer]="isCustomerMilestone(task)">◆</span>
-              <input
-                class="grid-input text-input"
-                [value]="getInlineNameValue(task)"
-                (focus)="beginInlineNameEdit(task)"
-                (input)="updateInlineNameDraft(task, $any($event.target).value)"
-                (keydown.enter)="handleInlineNameEnter(task, $event)"
-                (keydown.escape)="cancelInlineNameEdit(task, $event)"
-                (blur)="commitInlineNameEdit(task)"
-              />
-            </div>
-          </div>
+  <div class="task-name-wrap" [style.padding-left.px]="getIndent(task)">
+    <span *ngIf="isSummary(task)" class="summary-marker" (click)="toggleSummary(task, $event)">
+      {{ collapsedTaskIds.has(task.id) ? '▸' : '▾' }}
+    </span>
+    
+    <!-- ✅ Si c'est un Milestone, afficher le dropdown -->
+    <ng-container *ngIf="isMilestone(task); else normalActivityInput">
+      <span class="milestone-dot" [class.customer]="isCustomerMilestone(task)">◆</span>
+      <select
+        class="milestone-type-select"
+        [ngModel]="task.milestoneTypeId"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="updateLocalTaskField(task, 'milestoneTypeId', $event); saveInlineTask(task)"
+        style="flex: 1; padding: 2px 4px; border: 1px solid #d1d5db; border-radius: 3px; font-size: 12px;"
+      >
+        <option [ngValue]="null">-- Select milestone --</option>
+        <option *ngFor="let mt of milestoneTypes" [ngValue]="mt.id" [style.background]="mt.color">
+          {{ mt.code }} - {{ mt.label }}
+        </option>
+      </select>
+    </ng-container>
+    
+    <!-- ✅ Sinon, afficher le champ texte normal -->
+    <ng-template #normalActivityInput>
+      <input
+        class="grid-input text-input"
+        [value]="getInlineNameValue(task)"
+        (focus)="beginInlineNameEdit(task)"
+        (input)="updateInlineNameDraft(task, $any($event.target).value)"
+        (keydown.enter)="handleInlineNameEnter(task, $event)"
+        (keydown.escape)="cancelInlineNameEdit(task, $event)"
+        (blur)="commitInlineNameEdit(task)"
+      />
+    </ng-template>
+  </div>
+</div>
 
           <div class="cell editable-cell col-type" *ngIf="columnVisibility.type" (click)="$event.stopPropagation()">
             <select
@@ -281,7 +303,6 @@
             <ng-template #departmentNotApplicable><span class="not-applicable-value">—</span></ng-template>
           </div>
 
-          <!-- KEY FIX: use [ngModel] instead of [value] for reactive display -->
           <div class="cell editable-cell col-date mono-date" *ngIf="columnVisibility.actualStart" [class.milestone-date-cell]="isMilestone(task) && columnVisibility.actualFinish" (click)="$event.stopPropagation()">
             <span *ngIf="isSummary(task); else actualStartPicker" class="readonly-date-value">{{ formatDateForDisplay(task.actualStart) }}</span>
             <ng-template #actualStartPicker><app-gantt-date-picker [value]="formatDateForInput(task.actualStart)" [workingDays]="activeWorkingDays" [ariaLabel]="isMilestone(task) ? 'Milestone Date' : 'Actual Start'" (valueChange)="onInlineDateChange(task, 'actualStart', $event)"></app-gantt-date-picker></ng-template>
@@ -292,7 +313,6 @@
             <ng-template #actualEndPicker><app-gantt-date-picker [value]="formatDateForInput(isMilestone(task) ? task.actualStart : task.actualEnd)" [workingDays]="activeWorkingDays" [ariaLabel]="isMilestone(task) ? 'Milestone Date' : 'Actual Finish'" (valueChange)="onInlineDateChange(task, isMilestone(task) ? 'actualStart' : 'actualEnd', $event)"></app-gantt-date-picker></ng-template>
           </div>
 
-          <!-- KEY FIX: [ngModel] so duration re-renders when selectedTask changes it -->
           <div class="cell editable-cell col-dur" *ngIf="columnVisibility.duration" (click)="$event.stopPropagation()">
             <span *ngIf="isSummary(task); else durationInput" class="readonly-duration-value">{{ task.durationDays ?? 0 }}</span>
             <ng-template #durationInput><input
@@ -307,7 +327,6 @@
             /></ng-template>
           </div>
 
-          <!-- KEY FIX: [ngModel] for progress too -->
           <div class="cell editable-cell col-progress" *ngIf="columnVisibility.progress" (click)="$event.stopPropagation()">
             <div class="pct-wrap">
               <div class="pct-track">
@@ -340,10 +359,27 @@
               </option>
             </select>
           </div>
+
           <div class="cell editable-cell col-date mono-date" *ngIf="columnVisibility.baselineStart" [class.milestone-date-cell]="isMilestone(task) && columnVisibility.baselineEnd" (click)="$event.stopPropagation()">
             <span *ngIf="isSummary(task); else baselineStartPicker" class="readonly-date-value">{{ formatDateForDisplay(getBaselineStart(task)) }}</span>
             <ng-template #baselineStartPicker><app-gantt-date-picker [value]="formatDateForInput(getBaselineStart(task))" [workingDays]="activeWorkingDays" [ariaLabel]="isMilestone(task) ? 'Milestone Baseline Date' : 'Baseline Start'" (valueChange)="onInlineDateChange(task, 'baselineStart', $event)"></app-gantt-date-picker></ng-template>
           </div>
+
+          <!-- ✅ MILESTONE DROPDOWN CELL -->
+          <div class="cell editable-cell col-milestone" *ngIf="columnVisibility.milestone" (click)="$event.stopPropagation()">
+            <select
+              class="milestone-select"
+              [ngModel]="task.milestoneTypeId"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="updateLocalTaskField(task, 'milestoneTypeId', $event); saveInlineTask(task)"
+            >
+              <option [ngValue]="null">--</option>
+              <option *ngFor="let mt of milestoneTypes" [ngValue]="mt.id" [style.background]="mt.color">
+                {{ mt.code }} ({{ mt.letterCode }})
+              </option>
+            </select>
+          </div>
+
           <div class="cell editable-cell col-date mono-date" *ngIf="columnVisibility.baselineEnd && (!isMilestone(task) || !columnVisibility.baselineStart)" (click)="$event.stopPropagation()">
             <span *ngIf="isSummary(task); else baselineEndPicker" class="readonly-date-value">{{ formatDateForDisplay(getBaselineEnd(task)) }}</span>
             <ng-template #baselineEndPicker><app-gantt-date-picker [value]="formatDateForInput(isMilestone(task) ? getBaselineStart(task) : getBaselineEnd(task))" [workingDays]="activeWorkingDays" [ariaLabel]="isMilestone(task) ? 'Milestone Baseline Date' : 'Baseline End'" (valueChange)="onInlineDateChange(task, isMilestone(task) ? 'baselineStart' : 'baselineEnd', $event)"></app-gantt-date-picker></ng-template>
@@ -648,89 +684,89 @@
 
       <ng-container *ngIf="activeDetailTab === 'resources'">
         <ng-container *ngIf="isActivity(selectedTask); else resourcesNotApplicable">
-        <div class="sp-table-card">
-          <div class="sp-table-head resource-head">
-            <div>#</div><div>Type</div><div>Assignment</div><div>Qty</div><div>Units (%)</div><div>Cost (€)</div><div></div>
-          </div>
-          <div class="sp-table-row resource-row" *ngFor="let res of taskResources; let i = index">
-            <div><span class="sp-row-badge">{{ i + 1 }}</span></div>
-            <div>
-              <select class="sp-inline-select" [(ngModel)]="res.resourceType" [ngModelOptions]="{ standalone: true }" (ngModelChange)="isSupplierResourceAssignment(res) ? onExistingSupplierResourceTypeChange(res, $event) : saveResource(res)">
-                <option value="">--</option>
-                <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
-              </select>
+          <div class="sp-table-card">
+            <div class="sp-table-head resource-head">
+              <div>#</div><div>Type</div><div>Assignment</div><div>Qty</div><div>Units (%)</div><div>Cost (€)</div><div></div>
             </div>
-            <div>
-              <ng-container *ngIf="isSupplierResourceAssignment(res); else resourceAssignmentName">
-                <select class="sp-inline-select" [ngModel]="res.supplierId" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onExistingSupplierChange(res, $event)">
-                  <option [ngValue]="null" disabled>-- Select supplier --</option>
-                  <option *ngFor="let supplier of getSupplierOptionsFor(res)" [ngValue]="supplier.id">{{ supplierLabel(supplier) }}</option>
+            <div class="sp-table-row resource-row" *ngFor="let res of taskResources; let i = index">
+              <div><span class="sp-row-badge">{{ i + 1 }}</span></div>
+              <div>
+                <select class="sp-inline-select" [(ngModel)]="res.resourceType" [ngModelOptions]="{ standalone: true }" (ngModelChange)="isSupplierResourceAssignment(res) ? onExistingSupplierResourceTypeChange(res, $event) : saveResource(res)">
+                  <option value="">--</option>
+                  <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
                 </select>
-              </ng-container>
-              <ng-template #resourceAssignmentName>
-                <input class="sp-inline-input" type="text" [(ngModel)]="res.assignmentName" [ngModelOptions]="{ standalone: true }" (blur)="saveResource(res)" />
-              </ng-template>
+              </div>
+              <div>
+                <ng-container *ngIf="isSupplierResourceAssignment(res); else resourceAssignmentName">
+                  <select class="sp-inline-select" [ngModel]="res.supplierId" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onExistingSupplierChange(res, $event)">
+                    <option [ngValue]="null" disabled>-- Select supplier --</option>
+                    <option *ngFor="let supplier of getSupplierOptionsFor(res)" [ngValue]="supplier.id">{{ supplierLabel(supplier) }}</option>
+                  </select>
+                </ng-container>
+                <ng-template #resourceAssignmentName>
+                  <input class="sp-inline-input" type="text" [(ngModel)]="res.assignmentName" [ngModelOptions]="{ standalone: true }" (blur)="saveResource(res)" />
+                </ng-template>
+              </div>
+              <div><input class="sp-inline-input small" type="number" [(ngModel)]="res.quantity" [ngModelOptions]="{ standalone: true }" (blur)="saveResource(res)" /></div>
+              <div><input class="sp-inline-input" type="number" [(ngModel)]="res.unitsPercent" [ngModelOptions]="{ standalone: true }" (blur)="saveResource(res)" /></div>
+              <div><input class="sp-inline-input" type="number" [(ngModel)]="res.cost" [ngModelOptions]="{ standalone: true }" (blur)="saveResource(res)" /></div>
+              <div class="sp-row-actions">
+                <button type="button" class="sp-icon-btn" (click)="removeResource(res.id)">
+                  <span class="material-symbols-outlined">close</span>
+                </button>
+              </div>
             </div>
-            <div><input class="sp-inline-input small" type="number" [(ngModel)]="res.quantity" [ngModelOptions]="{ standalone: true }" (blur)="saveResource(res)" /></div>
-            <div><input class="sp-inline-input" type="number" [(ngModel)]="res.unitsPercent" [ngModelOptions]="{ standalone: true }" (blur)="saveResource(res)" /></div>
-            <div><input class="sp-inline-input" type="number" [(ngModel)]="res.cost" [ngModelOptions]="{ standalone: true }" (blur)="saveResource(res)" /></div>
-            <div class="sp-row-actions">
-              <button type="button" class="sp-icon-btn" (click)="removeResource(res.id)">
-                <span class="material-symbols-outlined">close</span>
-              </button>
-            </div>
-          </div>
 
-          <div class="sp-table-row resource-row new-resource-row">
-            <div><span class="sp-row-badge">+</span></div>
-            <div>
-              <select class="sp-inline-select" [(ngModel)]="newResource.resourceType" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onNewResourceTypeChange($event)">
-                <option value="">--</option>
-                <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
-              </select>
+            <div class="sp-table-row resource-row new-resource-row">
+              <div><span class="sp-row-badge">+</span></div>
+              <div>
+                <select class="sp-inline-select" [(ngModel)]="newResource.resourceType" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onNewResourceTypeChange($event)">
+                  <option value="">--</option>
+                  <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
+                </select>
+              </div>
+              <div>
+                <select class="sp-inline-select" [(ngModel)]="newResource.assignedUserId" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onNewResourceUserChange($event)">
+                  <option [ngValue]="null">-- Select resource --</option>
+                  <option *ngFor="let user of filteredResourceOptions" [ngValue]="user.id">{{ user.fullName }} - {{ user.resourceType }} - {{ user.departmentCode }}</option>
+                </select>
+              </div>
+              <div><input class="sp-inline-input small" type="number" [(ngModel)]="newResource.quantity" [ngModelOptions]="{ standalone: true }" /></div>
+              <div><input class="sp-inline-input" type="number" [(ngModel)]="newResource.unitsPercent" [ngModelOptions]="{ standalone: true }" /></div>
+              <div><input class="sp-inline-input" type="number" [(ngModel)]="newResource.cost" [ngModelOptions]="{ standalone: true }" /></div>
+              <div class="sp-row-actions">
+                <button type="button" class="sp-icon-btn" (click)="addResource()">
+                  <span class="material-symbols-outlined">add</span>
+                </button>
+              </div>
             </div>
-            <div>
-              <select class="sp-inline-select" [(ngModel)]="newResource.assignedUserId" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onNewResourceUserChange($event)">
-                <option [ngValue]="null">-- Select resource --</option>
-                <option *ngFor="let user of filteredResourceOptions" [ngValue]="user.id">{{ user.fullName }} - {{ user.resourceType }} - {{ user.departmentCode }}</option>
-              </select>
-            </div>
-            <div><input class="sp-inline-input small" type="number" [(ngModel)]="newResource.quantity" [ngModelOptions]="{ standalone: true }" /></div>
-            <div><input class="sp-inline-input" type="number" [(ngModel)]="newResource.unitsPercent" [ngModelOptions]="{ standalone: true }" /></div>
-            <div><input class="sp-inline-input" type="number" [(ngModel)]="newResource.cost" [ngModelOptions]="{ standalone: true }" /></div>
-            <div class="sp-row-actions">
-              <button type="button" class="sp-icon-btn" (click)="addResource()">
-                <span class="material-symbols-outlined">add</span>
-              </button>
-            </div>
-          </div>
 
-          <div class="sp-table-row resource-row new-resource-row supplier-row">
-            <div><span class="sp-row-badge">S</span></div>
-            <div>
-              <select class="sp-inline-select" [(ngModel)]="newSupplier.resourceType" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onNewSupplierResourceTypeChange($event)">
-                <option value="">-- Resource type --</option>
-                <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
-              </select>
+            <div class="sp-table-row resource-row new-resource-row supplier-row">
+              <div><span class="sp-row-badge">S</span></div>
+              <div>
+                <select class="sp-inline-select" [(ngModel)]="newSupplier.resourceType" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onNewSupplierResourceTypeChange($event)">
+                  <option value="">-- Resource type --</option>
+                  <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
+                </select>
+              </div>
+              <div>
+                <select class="sp-inline-select" [(ngModel)]="newSupplier.supplierId" [ngModelOptions]="{ standalone: true }" [disabled]="!newSupplier.resourceType">
+                  <option [ngValue]="null">{{ newSupplier.resourceType ? '-- Select supplier --' : '-- Select Resource Type first --' }}</option>
+                  <option *ngFor="let supplier of getNewSupplierOptions()" [ngValue]="supplier.id">{{ supplierLabel(supplier) }}</option>
+                </select>
+              </div>
+              <div><input class="sp-inline-input small" type="number" [(ngModel)]="newSupplier.quantity" [ngModelOptions]="{ standalone: true }" /></div>
+              <div><input class="sp-inline-input" type="number" [(ngModel)]="newSupplier.unitsPercent" [ngModelOptions]="{ standalone: true }" /></div>
+              <div><input class="sp-inline-input" type="number" [(ngModel)]="newSupplier.cost" [ngModelOptions]="{ standalone: true }" /></div>
+              <div class="sp-row-actions">
+                <button type="button" class="sp-icon-btn" (click)="addSupplierAssignment()">
+                  <span class="material-symbols-outlined">add</span>
+                </button>
+              </div>
             </div>
-            <div>
-              <select class="sp-inline-select" [(ngModel)]="newSupplier.supplierId" [ngModelOptions]="{ standalone: true }" [disabled]="!newSupplier.resourceType">
-                <option [ngValue]="null">{{ newSupplier.resourceType ? '-- Select supplier --' : '-- Select Resource Type first --' }}</option>
-                <option *ngFor="let supplier of getNewSupplierOptions()" [ngValue]="supplier.id">{{ supplierLabel(supplier) }}</option>
-              </select>
-            </div>
-            <div><input class="sp-inline-input small" type="number" [(ngModel)]="newSupplier.quantity" [ngModelOptions]="{ standalone: true }" /></div>
-            <div><input class="sp-inline-input" type="number" [(ngModel)]="newSupplier.unitsPercent" [ngModelOptions]="{ standalone: true }" /></div>
-            <div><input class="sp-inline-input" type="number" [(ngModel)]="newSupplier.cost" [ngModelOptions]="{ standalone: true }" /></div>
-            <div class="sp-row-actions">
-              <button type="button" class="sp-icon-btn" (click)="addSupplierAssignment()">
-                <span class="material-symbols-outlined">add</span>
-              </button>
-            </div>
-          </div>
 
-          <div *ngIf="!taskResources?.length" class="empty-state-line">No resources or suppliers assigned to this task yet.</div>
-        </div>
+            <div *ngIf="!taskResources?.length" class="empty-state-line">No resources or suppliers assigned to this task yet.</div>
+          </div>
         </ng-container>
         <ng-template #resourcesNotApplicable>
           <div class="sp-not-applicable">Resources are not applicable to {{ normalizeTaskType(selectedTask?.taskType) | titlecase }} tasks.</div>
@@ -845,9 +881,14 @@
         <button type="button" class="settings-tab-btn" [class.active]="settingsTab === 'baseline'" (click)="openBaselineTab()">
           <span class="material-symbols-outlined tab-mini-icon">flag</span><span>Baselines</span>
         </button>
+        <!-- ✅ MILESTONES TAB BUTTON -->
+        <button type="button" class="settings-tab-btn" [class.active]="settingsTab === 'milestones'" (click)="settingsTab = 'milestones'; loadMilestoneTypes()">
+          <span class="material-symbols-outlined tab-mini-icon">flag</span><span>Milestones</span>
+        </button>
       </div>
 
       <div class="settings-drawer-body">
+        <!-- ================= TEMPLATES TAB ================= -->
         <ng-container *ngIf="settingsTab === 'templates'">
           <section class="drawer-section">
             <div class="drawer-section-header">
@@ -926,6 +967,7 @@
           </section>
         </ng-container>
 
+        <!-- ================= CALENDAR TAB ================= -->
         <ng-container *ngIf="settingsTab === 'calendar'">
           <section class="drawer-section">
             <div class="drawer-section-header">
@@ -968,6 +1010,7 @@
           </section>
         </ng-container>
 
+        <!-- ================= BASELINE TAB ================= -->
         <ng-container *ngIf="settingsTab === 'baseline'">
           <section class="drawer-section">
             <div class="drawer-section-header no-border">
@@ -1026,6 +1069,68 @@
             </ng-template>
           </section>
         </ng-container>
+
+        <!-- ================= MILESTONES TAB ================= -->
+        <!-- ================= MILESTONES TAB ================= -->
+<ng-container *ngIf="settingsTab === 'milestones'">
+  <section class="drawer-section">
+    <div class="drawer-section-header">
+      <div class="drawer-section-title">
+        <span class="material-symbols-outlined sec-icon">flag</span>
+        <span>Milestone Types</span>
+      </div>
+      <!-- ✅ NEW: Load Default Milestones Button -->
+      <button type="button" class="mini-outline-btn" (click)="loadDefaultMilestones()"  > 0">
+        📥 Load Defaults
+      </button>
+    </div>
+    
+    <!-- Create New Milestone -->
+    <div class="baseline-create-card" style="margin-bottom: 16px;">
+      <div class="template-create-row">
+        <input type="text" class="template-name-input" [(ngModel)]="newMilestoneType.code" placeholder="Code (e.g. FAT)" style="width: 80px;" />
+        <input type="text" class="template-name-input" [(ngModel)]="newMilestoneType.label" placeholder="Label (e.g. SPEDIZIONE)" />
+        <input type="text" class="template-name-input" [(ngModel)]="newMilestoneType.letterCode" placeholder="Letter (e.g. F)" style="width: 60px;" />
+        
+        <!-- ✅ IMPROVED: More Visible Color Picker -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <label style="font-size: 12px; color: #6b7280;">Color:</label>
+          <input type="color" [(ngModel)]="newMilestoneType.color" 
+                 style="width: 50px; height: 36px; border: 2px solid #d1d5db; border-radius: 6px; cursor: pointer;" 
+                 title="Click to choose milestone color" />
+        </div>
+        
+        <button type="button" class="primary-action-btn" (click)="saveNewMilestoneType()">Add</button>
+      </div>
+      <div style="font-size: 11px; color: #6b7280; margin-top: 8px; padding-left: 4px;">
+        💡 Tip: Click "Load Defaults" to add all 13 standard milestones (RT, KOM, FAT, SPEDIZIONE, etc.) with their colors
+      </div>
+    </div>
+
+    <!-- List of Milestones -->
+    <div class="drawer-list-card" *ngFor="let mt of milestoneTypes">
+      <div class="calendar-avatar" [style.background]="mt.color" style="color: white; font-weight: bold; display: flex; align-items: center; justify-content: center;">
+        {{ mt.letterCode || mt.code }}
+      </div>
+      <div class="list-card-main">
+        <div class="list-card-title">{{ mt.code }} - {{ mt.label }}</div>
+        <div class="list-card-sub">Letter: {{ mt.letterCode || '—' }}</div>
+      </div>
+      <div class="list-card-actions">
+        <button type="button" class="icon-square-btn danger" (click)="deleteMilestoneType(mt.id)">
+          <span class="material-symbols-outlined">delete</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="drawer-empty-card" *ngIf="milestoneTypes.length === 0">
+      <span class="material-symbols-outlined empty-icon">flag</span>
+      <div class="empty-title">No milestone types defined yet.</div>
+      <div class="empty-subtitle">Click "Load Defaults" to add 13 standard milestones, or create your own above.</div>
+    </div>
+  </section>
+</ng-container>
+
       </div>
 
       <div class="settings-drawer-footer">

@@ -33,7 +33,8 @@ export interface GmProjectScheduleTask {
   assignedUserId?: number | null;
   assignedUserName?: string;
   dependencies?: TaskDependencyDto[];
-  predecessorLabel?: string;
+  predecessorLabel?: string; 
+   milestoneTypeId?: number | null; 
 }
 
 export interface TaskDependencyDto {
