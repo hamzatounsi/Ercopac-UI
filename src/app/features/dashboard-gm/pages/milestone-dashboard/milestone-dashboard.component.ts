@@ -22,7 +22,7 @@ interface TimelineMonth {
   styleUrls: ['./milestone-dashboard.component.scss']
 })
 export class MilestoneDashboardComponent implements OnInit {
-  projects: any[] = [];
+  projects: any[] = []; // Utilisé comme 'any' pour éviter les erreurs TS si le modèle n'est pas encore mis à jour
   milestones: ProjectMilestone[] = [];
   timelineDays: TimelineDay[] = [];
   timelineMonths: TimelineMonth[] = [];
@@ -33,14 +33,17 @@ export class MilestoneDashboardComponent implements OnInit {
 
   // Editable dropdown properties
   statusOptions = ['A', 'C', 'CCR', 'CLOSED', 'COMPLETED', 'ON_HOLD'];
-  pmOptions = ['FM', 'AI', 'EB', 'IS', '—'];
+  
+  // ✅ MODIFIÉ : Options de département (ajuste les codes selon ton entreprise)
+  departmentOptions = ['ALL', 'PRC', 'ENG', 'QA', 'MGT', '—']; 
+  
   savingProjectId: number | null = null;
 
   // Filter properties
   statusFilter = 'ALL';
-  pmFilter = 'ALL';
+  departmentFilter = 'ALL'; // ✅ MODIFIÉ : était pmFilter
   statusMenuOpen = false;
-  pmMenuOpen = false;
+  departmentMenuOpen = false; // ✅ MODIFIÉ : était pmMenuOpen
 
   constructor(
     private milestoneService: MilestoneService,
@@ -126,20 +129,22 @@ export class MilestoneDashboardComponent implements OnInit {
     return undefined;
   }
 
-  loadData(): void {
-    this.loading = true;
-    
-    this.dashboardService.getProjects().subscribe({
-      next: (projects) => {
-        this.projects = projects ?? [];
-        this.loadAllMilestones();
-      },
-      error: (err) => {
-        console.error('Failed to load projects', err);
-        this.loading = false;
-      }
-    });
-  }
+loadData(): void {
+  this.loading = true;
+  
+  this.dashboardService.getProjects().subscribe({
+    next: (projects) => {
+      console.log('📊 PROJETS REÇUS DU BACKEND:', projects); // ✅ DEBUG
+      console.log('📊 Premier projet:', projects[0]); // ✅ DEBUG
+      this.projects = projects ?? [];
+      this.loadAllMilestones();
+    },
+    error: (err) => {
+      console.error('Failed to load projects', err);
+      this.loading = false;
+    }
+  });
+}
 
   loadAllMilestones(): void {
     if (this.projects.length === 0) {
@@ -192,32 +197,37 @@ export class MilestoneDashboardComponent implements OnInit {
     return 32;
   }
 
-  // Filter methods
-  get uniqueStatuses(): string[] {
-    const statuses = this.projects.map(p => p.status || 'A');
+  // ================= FILTER METHODS =================
+
+    get uniqueStatuses(): string[] {
+    // ✅ Utilise projectPhase au lieu de status
+    const statuses = this.projects.map(p => p.projectPhase || 'A');
     return ['ALL', ...Array.from(new Set(statuses))].sort();
   }
   
-  get uniquePMs(): string[] {
-    const pms = this.projects.map(p => p.pmCode || p.projectManagerCode || '—');
-    return ['ALL', ...Array.from(new Set(pms))].sort();
-  }
   
+   get uniqueDepartments(): string[] {
+    const deps = this.projects.map(p => p.pmDepartmentCode || '—');
+    return ['ALL', ...Array.from(new Set(deps))].sort();
+  }
   get filteredProjects(): any[] {
     return this.projects.filter(project => {
-      const statusMatch = this.statusFilter === 'ALL' || (project.status || 'A') === this.statusFilter;
-      const pmMatch = this.pmFilter === 'ALL' || (project.pmCode || project.projectManagerCode || '—') === this.pmFilter;
-      return statusMatch && pmMatch;
+      // ✅ Utilise projectPhase
+      const statusMatch = this.statusFilter === 'ALL' || (project.projectPhase || 'A') === this.statusFilter;
+      const projectDept = project.pmDepartmentCode || '—'; 
+      const deptMatch = this.departmentFilter === 'ALL' || projectDept === this.departmentFilter;
+      return statusMatch && deptMatch;
     });
   }
   
   toggleStatusMenu(): void { 
     this.statusMenuOpen = !this.statusMenuOpen; 
-    this.pmMenuOpen = false; 
+    this.departmentMenuOpen = false; 
   }
   
-  togglePMMenu(): void { 
-    this.pmMenuOpen = !this.pmMenuOpen; 
+  // ✅ MODIFIÉ : toggleDepartmentMenu au lieu de togglePMMenu
+  toggleDepartmentMenu(): void { 
+    this.departmentMenuOpen = !this.departmentMenuOpen; 
     this.statusMenuOpen = false; 
   }
   
@@ -226,15 +236,16 @@ export class MilestoneDashboardComponent implements OnInit {
     this.statusMenuOpen = false; 
   }
   
-  setPMFilter(pm: string): void { 
-    this.pmFilter = pm; 
-    this.pmMenuOpen = false; 
+  // ✅ MODIFIÉ : setDepartmentFilter au lieu de setPMFilter
+  setDepartmentFilter(dept: string): void { 
+    this.departmentFilter = dept; 
+    this.departmentMenuOpen = false; 
   }
 
-  // Editable dropdown methods
+  // ================= EDITABLE DROPDOWN METHODS =================
+
   onProjectStatusChange(project: any, newStatus: string): void {
     this.savingProjectId = project.id;
-    // 'as any' bypasses strict UpsertProjectRequest type checking for partial updates
     this.dashboardService.updateProject(project.id, { status: newStatus } as any).subscribe({
       next: () => {
         project.status = newStatus;
@@ -248,19 +259,22 @@ export class MilestoneDashboardComponent implements OnInit {
     });
   }
 
-  onProjectPmChange(project: any, newPm: string): void {
+  // ✅ MODIFIÉ : Met à jour le département au lieu du PM
+  onProjectDepartmentChange(project: any, newDept: string): void {
     this.savingProjectId = project.id;
-    // 'as any' bypasses strict UpsertProjectRequest type checking for partial updates
-    this.dashboardService.updateProject(project.id, { pmCode: newPm === '—' ? null : newPm } as any).subscribe({
+    this.dashboardService.updateProject(project.id, { 
+      departmentCode: newDept === '—' ? null : newDept 
+    } as any).subscribe({
       next: () => {
-        project.pmCode = newPm === '—' ? null : newPm;
+        project.departmentCode = newDept === '—' ? null : newDept;
         this.savingProjectId = null;
       },
       error: (err) => {
-        console.error('Failed to update project PM', err);
+        console.error('Failed to update project department', err);
         this.savingProjectId = null;
-        alert('Failed to update PM. Please try again.');
+        alert('Failed to update department. Please try again.');
       }
     });
   }
+  
 }

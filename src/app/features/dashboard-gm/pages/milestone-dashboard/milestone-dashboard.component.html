@@ -17,16 +17,16 @@
       </div>
     </div>
     <div class="filter-group">
-      <span class="filter-label">PM:</span>
-      <div class="filter-dropdown" (click)="togglePMMenu()">
-        <span>{{ pmFilter }}</span>
+      <span class="filter-label">DEPT:</span>
+      <div class="filter-dropdown" (click)="toggleDepartmentMenu()">
+        <span>{{ departmentFilter }}</span>
         <span class="material-symbols-outlined">expand_more</span>
       </div>
-      <div class="dropdown-menu" *ngIf="pmMenuOpen">
-        <div *ngFor="let pm of uniquePMs" class="dropdown-item" [class.active]="pm === pmFilter" (click)="setPMFilter(pm)">{{ pm }}</div>
+      <div class="dropdown-menu" *ngIf="departmentMenuOpen">
+        <div *ngFor="let dept of uniqueDepartments" class="dropdown-item" [class.active]="dept === departmentFilter" (click)="setDepartmentFilter(dept)">{{ dept }}</div>
       </div>
     </div>
-    <button class="clear-filters-btn" (click)="setStatusFilter('ALL'); setPMFilter('ALL')">Clear Filters</button>
+    <button class="clear-filters-btn" (click)="setStatusFilter('ALL'); setDepartmentFilter('ALL')">Clear Filters</button>
   </div>
 
   <div *ngIf="loading" class="loading-state">Loading milestones...</div>
@@ -64,28 +64,15 @@
             <span class="project-name" *ngIf="project.name"> - {{ project.name }}</span>
           </div>
           
-          <!-- STAT Dropdown -->
-          <div class="col-stat">
-            <select 
-              class="inline-select"
-              [value]="project.status || 'A'"
-              (change)="onProjectStatusChange(project, $any($event.target).value)"
-              [disabled]="savingProjectId === project.id"
-            >
-              <option *ngFor="let status of statusOptions" [value]="status">{{ status }}</option>
-            </select>
-          </div>
+          <!-- STAT (read-only) -->
+         <div class="col-stat">
+  <!-- ✅ Utilise projectPhase -->
+  <span class="readonly-value">{{ project.projectPhase || 'A' }}</span>
+</div>
           
-          <!-- PM Dropdown -->
+          <!-- DEPT (read-only) -->
           <div class="col-pm">
-            <select 
-              class="inline-select"
-              [value]="project.pmCode || '—'"
-              (change)="onProjectPmChange(project, $any($event.target).value)"
-              [disabled]="savingProjectId === project.id"
-            >
-              <option *ngFor="let pm of pmOptions" [value]="pm">{{ pm }}</option>
-            </select>
+            <span class="readonly-value">{{project.pmDepartmentCode || '—' }}</span>
           </div>
         </div>
 
@@ -100,7 +87,7 @@
                [style.left.px]="getMilestoneLeft(milestone)"
                [style.background-color]="milestone.milestoneTypeColor || '#999'"
                [title]="milestone.milestoneTypeLabel + ' - ' + milestone.milestoneDate">
-            <span class="milestone-letter">{{ milestone.milestoneTypeLetterCode || milestone.milestoneTypeCode }}</span>
+            <span class="milestone-letter">{{ milestone.taskWbsCode || milestone.milestoneTypeLetterCode || milestone.milestoneTypeCode }}</span>
           </div>
         </div>
       </div>
