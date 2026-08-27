@@ -1,164 +1,60 @@
-// Path: src/app/features/dashboard-crm/pages/crm-dashboard-page/crm-dashboard-page.component.ts
-
 import { Component, OnInit } from '@angular/core';
-import { CrmService } from '../../services/crm.service';
+import { Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
+import { ACTIVITY_ICONS, CrmActivityType } from '../../models/crm-activity.model';
+import { CrmAccount } from '../../models/crm-account.model';
 import { CrmDashboard } from '../../models/crm-dashboard.model';
 import { CrmOpportunity, emptyOpportunity } from '../../models/crm-opportunity.model';
 import { CrmPipelineStage } from '../../models/crm-pipeline-stage.model';
-import { ACTIVITY_ICONS, CrmActivityType } from '../../models/crm-activity.model';
+import { CrmPermissionsService } from '../../services/crm-permissions.service';
+import { CrmService } from '../../services/crm.service';
 
-@Component({
-  selector: 'app-crm-dashboard-page',
-  templateUrl: './crm-dashboard-page.component.html',
-  styleUrls: ['./crm-dashboard-page.component.scss']
-})
+@Component({ selector: 'app-crm-dashboard-page', templateUrl: './crm-dashboard-page.component.html', styleUrls: ['./crm-dashboard-page.component.scss'] })
 export class CrmDashboardPageComponent implements OnInit {
-
-  orgId: number = this.crmService.getOrgIdFromToken();
+  orgId = this.crmService.getOrgIdFromToken();
   dashboard: CrmDashboard | null = null;
   loading = false;
+  error = '';
   activityIcons = ACTIVITY_ICONS;
-
-  // All opportunities for pipeline kanban
   allOpportunities: CrmOpportunity[] = [];
-
-  // New opportunity modal
+  accounts: CrmAccount[] = [];
+  stages: CrmPipelineStage[] = [];
   showNewOppModal = false;
   savingOpp = false;
   oppForm: CrmOpportunity = emptyOpportunity();
-  stages: CrmPipelineStage[] = [];
   oppError = '';
 
-  constructor(private crmService: CrmService) {}
-
-  ngOnInit(): void {
-    this.load();
-    this.loadStages();
-    this.loadOpportunities();
-  }
+  constructor(private crmService: CrmService, private router: Router, public permissions: CrmPermissionsService) {}
+  ngOnInit(): void { this.load(); }
 
   load(): void {
     this.loading = true;
-    this.crmService.getDashboard(this.orgId).subscribe({
-      next: (data) => { this.dashboard = data; this.loading = false; },
-      error: (err) => { console.error(err); this.loading = false; }
+    forkJoin({ dashboard: this.crmService.getDashboard(this.orgId), opportunities: this.crmService.getOpportunities(this.orgId), stages: this.crmService.getStages(this.orgId), accounts: this.crmService.getAccounts(this.orgId) }).subscribe({
+      next: result => { this.dashboard = result.dashboard; this.allOpportunities = result.opportunities; this.stages = result.stages; this.accounts = result.accounts; this.loading = false; },
+      error: err => { this.error = err?.error?.message || 'Unable to load the CRM dashboard.'; this.loading = false; }
     });
   }
 
-  loadStages(): void {
-    this.crmService.getStages(this.orgId).subscribe({
-      next: s => this.stages = s,
-      error: err => console.error(err)
-    });
-  }
-
-  loadOpportunities(): void {
-    this.crmService.getOpportunities(this.orgId).subscribe({
-      next: o => this.allOpportunities = o,
-      error: err => console.error(err)
-    });
-  }
-
-  // Get opportunities for a specific stage
-  getOppsForStage(stage: CrmPipelineStage): CrmOpportunity[] {
-    return this.allOpportunities.filter(o =>
-      o.stageId === stage.id && !o.lost
-    );
-  }
-
-  // New opportunity modal
-  openNewOpp(): void {
-    this.oppForm = emptyOpportunity();
-    if (this.stages.length > 0) this.oppForm.stageId = this.stages[0].id;
-    this.oppError = '';
-    this.showNewOppModal = true;
-  }
-
+  getOppsForStage(stage: CrmPipelineStage): CrmOpportunity[] { return this.allOpportunities.filter(opportunity => opportunity.stageId === stage.id && !opportunity.lost); }
+  openNewOpp(): void { this.oppForm = emptyOpportunity(); this.oppForm.stageId = this.stages[0]?.id ?? null; this.oppForm.accountId = this.accounts[0]?.id ?? null; this.oppError = ''; this.showNewOppModal = true; }
   saveNewOpp(): void {
-    if (!this.oppForm.name?.trim()) { this.oppError = 'Name is required.'; return; }
+    if (!this.oppForm.name.trim()) { this.oppError = 'Opportunity name is required.'; return; }
+    if (!this.oppForm.accountId) { this.oppError = 'Select an account.'; return; }
     this.savingOpp = true;
     this.crmService.createOpportunity(this.orgId, this.oppForm).subscribe({
-      next: () => {
-        this.savingOpp = false;
-        this.showNewOppModal = false;
-        this.load();
-        this.loadOpportunities();
-      },
-      error: err => { this.oppError = err?.error?.message ?? 'Error.'; this.savingOpp = false; }
+      next: opportunity => { this.savingOpp = false; this.showNewOppModal = false; this.router.navigate(['/crm/opportunities', opportunity.id]); },
+      error: err => { this.oppError = err?.error?.message || 'Unable to create the opportunity.'; this.savingOpp = false; }
     });
   }
-
   cancelNewOpp(): void { this.showNewOppModal = false; this.oppError = ''; }
 
-  // Formatting helpers
-  formatValue(value: number | null): string {
-    if (!value) return '—';
-    if (value >= 1000000) return '€' + (value / 1000000).toFixed(1) + 'M';
-    if (value >= 1000) return '€' + (value / 1000).toFixed(0) + 'K';
-    return '€' + value.toLocaleString();
-  }
-
-  sourcePercent(source: string): number {
-    if (!this.dashboard) return 0;
-    const total = Object.values(this.dashboard.leadsBySource).reduce((a, b) => a + b, 0);
-    return total ? Math.round(((this.dashboard.leadsBySource[source] || 0) / total) * 100) : 0;
-  }
-
-  sourceEntries(): { key: string; value: number }[] {
-    if (!this.dashboard) return [];
-    return Object.entries(this.dashboard.leadsBySource)
-      .map(([key, value]) => ({ key, value }))
-      .sort((a, b) => b.value - a.value);
-  }
-
-  sourceColor(source: string): string {
-    const map: Record<string, string> = {
-      REFERRAL: '#3b82f6', TRADE_FAIR: '#22c55e',
-      AGENT: '#f59e0b', CUSTOMER: '#8b5cf6',
-      PARTNER: '#06b6d4', OTHER: '#94a3b8'
-    };
-    return map[source] || '#94a3b8';
-  }
-
-  sourceLabel(source: string): string {
-    const map: Record<string, string> = {
-      REFERRAL: 'Referral', TRADE_FAIR: 'Trade fair',
-      AGENT: 'Agent', CUSTOMER: 'Customer',
-      PARTNER: 'Partner', OTHER: 'Other'
-    };
-    return map[source] || source;
-  }
-
-  getActivityColor(type: CrmActivityType): string {
-    return this.activityIcons[type]?.color || '#94a3b8';
-  }
-
-  timeAgo(dateStr: string): string {
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const h = Math.floor(diff / 3600000);
-    const d = Math.floor(diff / 86400000);
-    if (h < 1) return 'Just now';
-    if (h < 24) return h + ' hour' + (h > 1 ? 's' : '') + ' ago';
-    if (d === 1) return 'Yesterday';
-    return d + ' days ago';
-  }
-
-  // Donut chart helpers
-  get totalLeads(): number {
-    if (!this.dashboard) return 0;
-    return Object.values(this.dashboard.leadsBySource).reduce((a, b) => a + b, 0);
-  }
-
-  getDonutSegments(): { color: string; offset: number; dash: number }[] {
-    if (!this.dashboard || this.totalLeads === 0) return [];
-    const circumference = 2 * Math.PI * 40;
-    let offset = 0;
-    return this.sourceEntries().map(s => {
-      const pct = s.value / this.totalLeads;
-      const dash = pct * circumference;
-      const seg = { color: this.sourceColor(s.key), offset: circumference - offset, dash };
-      offset += dash;
-      return seg;
-    });
-  }
+  formatValue(value: number | null): string { if (!value) return '—'; if (value >= 1_000_000) return '€' + (value / 1_000_000).toFixed(1) + 'M'; if (value >= 1_000) return '€' + (value / 1_000).toFixed(0) + 'K'; return '€' + value.toLocaleString(); }
+  sourcePercent(source: string): number { if (!this.dashboard) return 0; const total = Object.values(this.dashboard.leadsBySource).reduce((a, b) => a + b, 0); return total ? Math.round(((this.dashboard.leadsBySource[source] || 0) / total) * 100) : 0; }
+  sourceEntries(): { key: string; value: number }[] { return this.dashboard ? Object.entries(this.dashboard.leadsBySource).map(([key, value]) => ({ key, value })).sort((a, b) => b.value - a.value) : []; }
+  sourceColor(source: string): string { return ({ REFERRAL: '#3b82f6', TRADE_FAIR: '#22c55e', AGENT: '#f59e0b', CUSTOMER: '#8b5cf6', PARTNER: '#06b6d4', OTHER: '#94a3b8' } as Record<string, string>)[source] || '#94a3b8'; }
+  sourceLabel(source: string): string { return ({ REFERRAL: 'Referral', TRADE_FAIR: 'Trade fair', AGENT: 'Agent', CUSTOMER: 'Customer', PARTNER: 'Partner', OTHER: 'Other' } as Record<string, string>)[source] || source; }
+  getActivityColor(type: CrmActivityType): string { return this.activityIcons[type]?.color || '#94a3b8'; }
+  timeAgo(dateStr: string): string { const difference = Date.now() - new Date(dateStr).getTime(); const hours = Math.floor(difference / 3_600_000); const days = Math.floor(difference / 86_400_000); if (hours < 1) return 'Just now'; if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`; return days === 1 ? 'Yesterday' : `${days} days ago`; }
+  get totalLeads(): number { return this.dashboard ? Object.values(this.dashboard.leadsBySource).reduce((a, b) => a + b, 0) : 0; }
+  getDonutSegments(): { color: string; offset: number; dash: number }[] { if (!this.dashboard || !this.totalLeads) return []; const circumference = 2 * Math.PI * 40; let offset = 0; return this.sourceEntries().map(source => { const dash = (source.value / this.totalLeads) * circumference; const segment = { color: this.sourceColor(source.key), offset: circumference - offset, dash }; offset += dash; return segment; }); }
 }
