@@ -43,7 +43,9 @@ export class OrgAdminOverviewComponent implements OnInit {
       case 'PROJECT_MANAGER': return org.projectManagerLicenceLimit;
       case 'DEPARTMENT_MANAGER': return org.departmentManagerLicenceLimit;
       case 'EMPLOYEE': return org.employeeLicenceLimit;
-      case 'SALES_MANAGER': return org.salesManagerLicenceLimit;
+      case 'SALES_MANAGER_LEAD':
+      case 'SALES_MANAGER':
+      case 'SYSTEM_ENGINEER': return org.salesManagerLicenceLimit;
       case 'CLIENT': return org.clientLicenceLimit;
       default: return null;
     }

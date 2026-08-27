@@ -1,0 +1,70 @@
+<div class="crm-page opportunity-page" *ngIf="!loading && opportunity && form; else state">
+  <header class="detail-top">
+    <a routerLink="/crm/opportunities">&lsaquo; Opportunities</a><span>/</span><strong>{{ opportunity.name }}</strong>
+    <div class="page-actions"><span *ngIf="permissions.isCrmReadOnly" class="readonly">Read only</span><button *ngIf="permissions.canWriteCrm" class="btn danger" (click)="remove()">Delete</button></div>
+  </header>
+
+  <div class="workspace">
+    <aside class="detail-nav">
+      <div class="owner-card"><div class="avatar">{{ initials(opportunity.ownerName) }}</div><div><strong>{{ opportunity.ownerName || 'Unassigned' }}</strong><small>Owner</small></div></div>
+      <span class="stage-pill" [style.background]="(opportunity.stageColor || '#64748b') + '1f'" [style.color]="opportunity.stageColor || '#64748b'">{{ opportunity.stageName || 'Unassigned' }}</span>
+      <p>Pipeline: <strong>{{ opportunity.pipeline || '—' }}</strong></p><p>Closing: <strong>{{ opportunity.closingDate ? (opportunity.closingDate | date:'dd/MM/yyyy') : '—' }}</strong></p>
+      <label>Related list</label><button (click)="scroll('overview')">Overview</button><button (click)="scroll('value')">Value</button><button (click)="scroll('details')">Details</button><button (click)="scroll('notes')">Notes <i>{{ notes.length }}</i></button><button (click)="scroll('attachments')">Attachments <i>{{ attachments.length }}</i></button><button (click)="scroll('history')">History <i>{{ history.length }}</i></button>
+      <div class="sales-summary"><label>Sales summary</label><small>Probability</small><strong>{{ opportunity.probability }}%</strong><small>Cycle duration</small><strong>{{ cycleDuration() }}</strong></div>
+    </aside>
+
+    <main class="opportunity-main">
+      <div class="stage-bar"><button *ngFor="let stage of stages" [ngClass]="stageClass(stage)" [disabled]="!permissions.canWriteCrm" (click)="changeStage(stage)">{{ stage.name }}</button></div>
+      <div class="opportunity-content">
+        <section class="opportunity-name"><label>Opportunity name</label><input [(ngModel)]="form.name" [disabled]="!permissions.canWriteCrm"></section>
+        <div id="overview" class="overview-grid">
+          <section class="card">
+            <div class="summary-row"><label>Opportunity owner</label><select [(ngModel)]="form.ownerId" [disabled]="!permissions.canWriteCrm"><option [ngValue]="null">Unassigned</option><option *ngFor="let user of users" [ngValue]="user.id">{{ user.name }}</option></select></div>
+            <div class="summary-row"><label>Stage</label><strong>{{ opportunity.stageName }}</strong></div><div class="summary-row"><label>Expected revenue</label><strong class="currency">{{ money(totalValue * form.probability / 100, form.currency) }}</strong></div>
+            <div class="summary-row"><label>Quote requested date</label><input type="date" [(ngModel)]="form.quoteRequestedDate" [disabled]="!permissions.canWriteCrm"></div><div class="summary-row"><label>Closing date</label><input type="date" [(ngModel)]="form.closingDate" [disabled]="!permissions.canWriteCrm"></div><div class="summary-row"><label>Shipment date</label><input type="date" [(ngModel)]="form.shipmentDate" [disabled]="!permissions.canWriteCrm"></div>
+          </section>
+          <div class="side-cards">
+            <section class="card"><div class="card-header">Account</div><div class="account-card" *ngIf="account"><div class="account-logo">{{ initials(account.name) }}</div><div><a [routerLink]="['/crm/accounts', account.id]">{{ account.name }}</a><small>{{ account.industry || 'Account' }} · {{ account.country || '—' }}</small></div></div><select [(ngModel)]="form.accountId" (ngModelChange)="loadContacts(true)" [disabled]="!permissions.canWriteCrm"><option *ngFor="let item of accounts" [ngValue]="item.id">{{ item.name }}</option></select></section>
+            <section class="card"><div class="card-header">Contact person</div><div class="card-body"><select [(ngModel)]="form.leadId" [disabled]="!permissions.canWriteCrm"><option [ngValue]="null">Select contact</option><option *ngFor="let item of contacts" [ngValue]="item.id">{{ item.fullName }} — {{ item.jobTitle || 'Contact' }}</option></select><a *ngIf="contact" [routerLink]="['/crm/leads', contact.id]" style="display:block;margin-top:8px;padding:9px 10px;border-radius:6px;background:#f8f9fc;color:#1a56db;font-size:12px;font-weight:700;text-decoration:none">{{ contact.fullName }} · {{ contact.jobTitle || contact.email || 'Contact' }}</a></div></section>
+          </div>
+        </div>
+
+        <section id="value" class="card">
+          <div class="card-header">Value information</div>
+          <div class="value-row"><label>Cost breakdown</label><div class="money-field"><small>Material</small><input type="number" [(ngModel)]="form.materialValue" [disabled]="!permissions.canWriteCrm"></div><b>+</b><div class="money-field"><small>Services</small><input type="number" [(ngModel)]="form.servicesValue" [disabled]="!permissions.canWriteCrm"></div><b>=</b><div class="total"><small>Total value</small><strong>{{ money(totalValue, form.currency) }}</strong></div></div>
+          <div class="value-row alt"><label>Sales split</label><div class="money-field"><small>Ercopac</small><input type="number" [(ngModel)]="form.ercopacMaterialValue" [disabled]="!permissions.canWriteCrm"></div><b>+</b><div class="money-field"><small>Third party</small><input type="number" [(ngModel)]="form.thirdPartyMaterialValue" [disabled]="!permissions.canWriteCrm"></div></div>
+          <div class="value-row"><label>Resale split</label><div class="money-field"><small>Ercopac</small><input type="number" [(ngModel)]="form.ercopacResaleValue" [disabled]="!permissions.canWriteCrm"></div><b>+</b><div class="money-field"><small>Resale</small><input type="number" [(ngModel)]="form.resaleValue" [disabled]="!permissions.canWriteCrm"></div></div>
+        </section>
+
+        <section id="details" class="card"><div class="card-header">Opportunity details <small>{{ permissions.canWriteCrm ? 'Click any value to edit' : 'Read-only information' }}</small></div><div class="detail-fields">
+          <div><label>Opportunity type</label><select [(ngModel)]="form.opportunityType" [disabled]="!permissions.canWriteCrm"><option>BP</option><option>CS</option></select></div><div><label>Pipeline</label><select [(ngModel)]="form.pipeline" [disabled]="!permissions.canWriteCrm"><option>MTO</option><option>ETO</option></select></div>
+          <div><label>Supply category</label><select [(ngModel)]="form.supplyCategoryId" [disabled]="!permissions.canWriteCrm"><option [ngValue]="null">Select category</option><option *ngFor="let category of categories" [ngValue]="category.id">{{ category.name }}</option></select></div><div><label>Probability (%)</label><input type="number" min="0" max="100" [(ngModel)]="form.probability" [disabled]="!permissions.canWriteCrm"></div>
+          <div><label>Quote number</label><input [(ngModel)]="form.quoteNumber" [disabled]="!permissions.canWriteCrm"></div><div class="team-field"><label>Team</label><div class="team-value"><div class="team-tags" *ngIf="opportunity?.teamMembers?.length; else noTeam"><span class="team-tag" *ngFor="let member of opportunity?.teamMembers"><i>{{ initials(member.name) }}</i>{{ member.name }}</span></div><ng-template #noTeam><span class="team-empty">No team members assigned</span></ng-template><button *ngIf="permissions.canWriteCrm" type="button" class="team-add" (click)="openTeamPicker()">+ Add member…</button></div></div>
+          <div><label>Quote submitted</label><input type="date" [(ngModel)]="form.quoteSubmittedDate" [disabled]="!permissions.canWriteCrm"></div><div><label>Next step</label><input [(ngModel)]="form.nextStep" [disabled]="!permissions.canWriteCrm"></div>
+        </div></section>
+
+        <section class="card"><div class="card-header">Description</div><div class="card-body"><textarea class="description" [(ngModel)]="form.description" [disabled]="!permissions.canWriteCrm" placeholder="Add a description…"></textarea><button *ngIf="permissions.canWriteCrm" class="btn primary save" (click)="save()" [disabled]="saving">{{ saving ? 'Saving…' : 'Save opportunity' }}</button></div></section>
+
+        <section id="notes" class="card"><div class="card-header">Notes <span class="badge">{{ notes.length }}</span></div><div class="note" *ngFor="let note of notes"><div class="avatar">{{ initials(note.authorName) }}</div><div><header><strong>{{ note.authorName }}</strong><small>{{ note.createdAt | date:'medium' }}</small></header><p>{{ note.content }}</p></div><button *ngIf="permissions.canWriteCrm" class="icon-btn" (click)="deleteNote(note)">×</button></div><div class="empty" *ngIf="!notes.length">No notes have been posted.</div><div class="note-editor" *ngIf="permissions.canWriteCrm"><textarea [(ngModel)]="newNote" placeholder="Write a note…"></textarea><button class="btn primary" (click)="addNote()">Post note</button></div></section>
+
+        <section id="attachments" class="card"><div class="card-header">Attachments <span class="badge">{{ attachments.length }}</span><label *ngIf="permissions.canWriteCrm" class="btn upload">+ Attach file<input type="file" (change)="upload($event)"></label></div><div class="file" *ngFor="let attachment of attachments"><span>▧</span><div><strong>{{ attachment.originalFileName }}</strong><small>{{ fileSize(attachment.fileSize) }} · {{ attachment.uploadedByName }} · {{ attachment.uploadedAt | date:'mediumDate' }}</small></div><button class="btn" (click)="download(attachment)">Download</button><button *ngIf="permissions.canWriteCrm" class="icon-btn" (click)="deleteAttachment(attachment)">×</button></div><div class="empty" *ngIf="!attachments.length">No attachments.</div></section>
+
+        <section id="history" class="card"><div class="card-header">Modification history <span class="badge">{{ history.length }}</span></div><div class="history-item" *ngFor="let item of history"><div class="avatar">{{ initials(item.changedByName) }}</div><div><header><strong>{{ item.changedByName || 'System' }}</strong><small>{{ item.createdAt | date:'medium' }}</small></header><p><b>{{ item.fieldName }}</b> changed from <del>{{ item.oldValue || '—' }}</del> to <ins>{{ item.newValue || '—' }}</ins></p></div></div><div class="empty" *ngIf="!history.length">No modifications recorded.</div></section>
+
+        <section class="card stage-history"><div class="card-header">Stage history</div><div class="table-wrap"><table class="crm-table"><thead><tr><th>Stage</th><th>Probability</th><th>Closing date</th><th>Modified by</th><th>Entered</th></tr></thead><tbody><tr *ngFor="let item of stageHistory"><td><span class="badge">{{ item.stageName }}</span></td><td>{{ item.probability }}%</td><td>{{ item.closingDate ? (item.closingDate | date:'dd/MM/yyyy') : '—' }}</td><td>{{ item.modifiedByName || 'System' }}</td><td>{{ item.enteredAt | date:'medium' }}</td></tr></tbody></table></div></section>
+        <div class="form-error" *ngIf="error">{{ error }}</div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="toast" *ngIf="toast">{{ toast }}</div>
+<div class="team-modal-backdrop" *ngIf="showTeamPicker" (click)="showTeamPicker = false">
+  <section class="team-modal" role="dialog" aria-modal="true" aria-labelledby="team-picker-title" (click)="$event.stopPropagation()">
+    <h2 id="team-picker-title">Team — select resources</h2>
+    <p>Select licensed team members assigned to this opportunity.</p>
+    <div class="team-picker-list"><label *ngFor="let user of teamUsers" [class.selected]="teamDraftIds.includes(user.id)"><input type="checkbox" [checked]="teamDraftIds.includes(user.id)" (change)="toggleTeamMember(user.id)"><span class="picker-avatar">{{ initials(user.name) }}</span><span><strong>{{ user.name }} <em *ngIf="user.id === opportunity?.ownerId">Owner</em></strong><small>{{ user.role.replaceAll('_', ' ') }}</small></span></label><div class="empty" *ngIf="!teamUsers.length">No active CRM users are available.</div></div>
+    <footer><button type="button" class="btn" [disabled]="teamSaving" (click)="showTeamPicker = false">Cancel</button><button type="button" class="btn primary" [disabled]="teamSaving" (click)="saveTeam()">{{ teamSaving ? 'Saving…' : 'Save team' }}</button></footer>
+  </section>
+</div>
+<ng-template #state><div class="loading">{{ error || 'Loading opportunity workspace…' }}</div></ng-template>

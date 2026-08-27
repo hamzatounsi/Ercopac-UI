@@ -1,0 +1,39 @@
+<div class="crm-page" *ngIf="!loading && lead && form; else state">
+  <header class="lead-header">
+    <div class="breadcrumbs">
+      <a routerLink="/crm/leads">&lsaquo; Leads</a><span>/</span><span>{{ lead.fullName }}</span>
+      <div class="page-actions"><button *ngIf="permissions.canWriteCrm && !lead.converted" class="btn" (click)="convert()">Convert to opportunity</button><button *ngIf="permissions.canWriteCrm" class="btn danger" (click)="remove()">Delete</button></div>
+    </div>
+    <div class="identity"><div class="lead-avatar">{{ initials() }}</div><div><h1>{{ lead.fullName }}</h1><p>{{ lead.jobTitle || 'Contact' }} · {{ lead.accountName || lead.company }}</p></div><span class="badge">{{ statusLabels[lead.status].label }}</span></div>
+  </header>
+
+  <div class="status-bar">
+    <button [class.active]="lead.status === 'NOT_CONTACTED'" [disabled]="!permissions.canWriteCrm" (click)="setStatus('NOT_CONTACTED')">Not contacted</button>
+    <button [class.active]="lead.status === 'CONTACTED'" [disabled]="!permissions.canWriteCrm" (click)="setStatus('CONTACTED')">Contacted</button>
+    <button [class.active]="lead.status === 'CONTACT_IN_FUTURE'" [disabled]="!permissions.canWriteCrm" (click)="setStatus('CONTACT_IN_FUTURE')">Contact in future</button>
+    <button [class.active]="lead.status === 'CONVERTED'" [disabled]="!permissions.canWriteCrm" (click)="setStatus('CONVERTED')">Converted</button>
+  </div>
+
+  <div class="page-content detail-grid">
+    <div class="stack">
+      <section class="card">
+        <div class="card-header">Contact information<button *ngIf="permissions.canWriteCrm && !editing" class="btn" style="margin-left:auto;height:28px" (click)="editing = true">Edit</button></div>
+        <div *ngIf="!editing" class="info-grid"><div><label>Email</label><strong>{{ lead.email || '—' }}</strong></div><div><label>Phone</label><strong>{{ lead.phone || '—' }}</strong></div><div><label>Mobile</label><strong>{{ lead.mobile || '—' }}</strong></div><div><label>Job title</label><strong>{{ lead.jobTitle || '—' }}</strong></div><div><label>Source</label><strong>{{ lead.source.replace('_', ' ') }}</strong></div><div><label>Owner</label><strong>{{ lead.ownerName || 'Unassigned' }}</strong></div></div>
+        <form *ngIf="editing" class="card-body field-grid" (ngSubmit)="save()">
+          <div class="field full"><label>Full name</label><input name="name" [(ngModel)]="form.fullName" required></div><div class="field full"><label>Account</label><select name="account" [(ngModel)]="form.accountId"><option *ngFor="let account of accounts" [ngValue]="account.id">{{ account.name }}</option></select></div>
+          <div class="field"><label>Job title</label><input name="job" [(ngModel)]="form.jobTitle"></div><div class="field"><label>Email</label><input name="email" [(ngModel)]="form.email"></div><div class="field"><label>Phone</label><input name="phone" [(ngModel)]="form.phone"></div><div class="field"><label>Mobile</label><input name="mobile" [(ngModel)]="form.mobile"></div>
+          <div class="field"><label>Owner</label><select name="owner" [(ngModel)]="form.ownerId"><option [ngValue]="null">Unassigned</option><option *ngFor="let user of users" [ngValue]="user.id">{{ user.name }}</option></select></div><div class="field full actions"><button type="button" class="btn" (click)="cancel()">Cancel</button><button class="btn primary" [disabled]="saving">Save</button></div>
+        </form>
+      </section>
+      <section class="card"><div class="card-header">Company information</div><div class="summary-row"><label>Account</label><a class="link" [routerLink]="['/crm/accounts', lead.accountId]">{{ lead.accountName || lead.company }}</a></div></section>
+      <section class="card"><div class="card-header">Notes &amp; description</div><div class="card-body notes">{{ lead.notes || 'No notes recorded.' }}</div></section>
+    </div>
+    <aside class="stack">
+      <section class="card"><div class="card-header">Lead summary</div><div class="summary-row"><label>Status</label><strong>{{ statusLabels[lead.status].label }}</strong></div><div class="summary-row"><label>Source</label><strong>{{ lead.source.replace('_', ' ') }}</strong></div><div class="summary-row"><label>Owner</label><strong>{{ lead.ownerName || 'Unassigned' }}</strong></div><div class="summary-row"><label>Created</label><strong>{{ lead.createdAt | date:'mediumDate' }}</strong></div></section>
+      <section class="card"><div class="card-header">Related opportunities <span class="badge">{{ opportunities.length }}</span></div><a class="related" *ngFor="let opportunity of opportunities" [routerLink]="['/crm/opportunities', opportunity.id]"><strong>{{ opportunity.name }}</strong><small>{{ opportunity.stageName }}</small></a><div class="empty" *ngIf="!opportunities.length">No related opportunities.</div></section>
+      <div class="form-error" *ngIf="error">{{ error }}</div>
+    </aside>
+  </div>
+</div>
+
+<ng-template #state><div class="loading">{{ error || 'Loading lead…' }}</div></ng-template>

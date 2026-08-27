@@ -9,8 +9,8 @@
       <p class="page-sub">Welcome back — here's your pipeline overview</p>
     </div>
     <div class="header-actions">
-      <button class="btn-secondary" [routerLink]="'/crm/analytics'">View reports</button>
-      <button class="btn-primary" (click)="openNewOpp()">+ New opportunity</button>
+      <button class="btn-secondary" routerLink="/crm/reports">View reports</button>
+      <button *ngIf="permissions.canWriteCrm" class="btn-primary" (click)="openNewOpp()">+ New opportunity</button>
     </div>
   </div>
 
@@ -19,7 +19,7 @@
     <div class="kpi-card">
       <div class="kpi-label">Open opportunities</div>
       <div class="kpi-value">{{ dashboard.openOpportunities }}</div>
-      <div class="kpi-sub green">↑ Active pipeline</div>
+      <div class="kpi-sub gray">Currently open</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-label">Pipeline value</div>
@@ -40,7 +40,7 @@
     <div class="kpi-card">
       <div class="kpi-label">Won this month</div>
       <div class="kpi-value">{{ dashboard.wonThisMonth }}</div>
-      <div class="kpi-sub green">↑ Closed deals</div>
+      <div class="kpi-sub gray">Closed this month</div>
     </div>
   </div>
 
@@ -65,7 +65,7 @@
           </div>
 
           <!-- Deal cards -->
-          <div class="deal-card" *ngFor="let opp of getOppsForStage(stage)">
+          <div class="deal-card" *ngFor="let opp of getOppsForStage(stage)" [routerLink]="['/crm/opportunities', opp.id]">
             <div class="deal-name">{{ opp.name }}</div>
             <div class="deal-account" *ngIf="opp.accountName">{{ opp.accountName }}</div>
             <div class="deal-footer">
@@ -205,8 +205,11 @@
         <input [(ngModel)]="oppForm.name" placeholder="e.g. Steel Supply Q3" />
       </div>
       <div class="form-group">
-        <label>Account name</label>
-        <input [(ngModel)]="oppForm.accountName" placeholder="Company name" />
+        <label>Account *</label>
+        <select [(ngModel)]="oppForm.accountId">
+          <option [ngValue]="null">Select an account</option>
+          <option *ngFor="let account of accounts" [ngValue]="account.id">{{ account.name }}</option>
+        </select>
       </div>
       <div class="form-group">
         <label>Value</label>

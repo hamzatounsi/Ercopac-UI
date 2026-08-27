@@ -12,7 +12,9 @@ export type AppRole =
   | 'MANAGER'
   | 'DEPARTMENT_MANAGER'
   | 'EMPLOYEE'
+  | 'SALES_MANAGER_LEAD'
   | 'SALES_MANAGER'
+  | 'SYSTEM_ENGINEER'
   | 'CLIENT';
 
 interface JwtPayload {

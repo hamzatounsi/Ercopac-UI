@@ -2,8 +2,13 @@ export interface CrmLead {
   id: number | null;
   fullName: string;
   company: string | null;
+  accountId: number | null;
+  accountName: string | null;
+  jobTitle: string | null;
   email: string | null;
   phone: string | null;
+  mobile: string | null;
+  rating: string | null;
   source: CrmLeadSource;
   status: CrmLeadStatus;
   ownerId: number | null;
@@ -39,7 +44,8 @@ export const LEAD_STATUS_LABELS: Record<CrmLeadStatus, { label: string; color: s
  
 export function emptyLead(): CrmLead {
   return {
-    id: null, fullName: '', company: '', email: '', phone: '',
+    id: null, fullName: '', company: '', accountId: null, accountName: null,
+    jobTitle: '', email: '', phone: '', mobile: '', rating: '',
     source: 'OTHER', status: 'NOT_CONTACTED',
     ownerId: null, ownerName: null, converted: false, convertedAt: null,
     notes: '', active: true, createdAt: null
