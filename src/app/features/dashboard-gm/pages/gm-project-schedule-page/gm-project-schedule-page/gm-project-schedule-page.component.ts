@@ -134,8 +134,8 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   readonly activityBarHeight = 12;
   readonly summaryBarTop = 14;
   readonly summaryBarHeight = 4;
-  readonly milestoneTop = 6;
-  readonly milestoneSize = 28;
+  readonly milestoneTop = 10;
+  readonly milestoneSize = 12;
 
   activeMode: 'baseline' | 'actual' = 'baseline';
   activeZoom: '2W' | '1M' | '2M' | 'Day' = '1M';
@@ -2134,7 +2134,6 @@ indentTask(): void {
   getActualLeft(task: GmProjectScheduleTask): number { return this.getLeftFromDate(task.actualStart); }
   getActualWidth(task: GmProjectScheduleTask): number { return this.getWidthFromDates(task.actualStart, task.actualEnd, task.taskType); }
   getMilestoneLeft(task: GmProjectScheduleTask): number {
-      const dateToUse = task.actualStart ?? this.getBaselineStart(task);
     // Centre the diamond in the exact header day cell used for its date.
     return this.getBarLeft(task) + ((this.dayWidth - 12) / 2);
   }
@@ -2836,8 +2835,7 @@ if (this.columnVisibility.baselineEnd) total += 95;
       customerMilestone: task.customerMilestone ?? false,
       scheduleMode: task.scheduleMode ?? 'AUTO',
       status: task.status ?? '',
-      // ✅ ADD THIS LINE (currently missing!)
-    milestoneTypeId: task.milestoneTypeId ?? null,
+      milestoneTypeId: task.milestoneTypeId ?? null,
       color: task.color ?? '',
       
       assignedUserId: isActivity ? task.assignedUserId ?? undefined : undefined
@@ -3284,10 +3282,5 @@ if (this.columnVisibility.baselineEnd) total += 95;
       }
     });
   }
-// ✅ DEBUG : Affiche dans la console ce qui est dans le carré du milestone
-logMilestoneWbs(task: GmProjectScheduleTask): string {
-  const wbs = task.wbsCode || 'NO_WBS';
-  console.log(`🎯 MILESTONE CARRÉ → WBS: "${wbs}" | Nom: "${task.name}" | Type: "${task.taskType}" | ID: ${task.id}`);
-  return wbs;
-}
+
 }

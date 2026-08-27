@@ -14,7 +14,6 @@ export interface ProjectMilestone {
   milestoneTypeColor: string;
   milestoneTypeLetterCode: string;
   milestoneDate: string;
-  taskWbsCode: string;
 }
 
 @Injectable({
