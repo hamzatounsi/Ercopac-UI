@@ -1,101 +1,66 @@
 <section class="employee-shell">
-  <header class="employee-header">
-    <div>
-      <div class="eyebrow">EMPLOYEE WORKSPACE</div>
-      <h1>{{ userName }}</h1>
-      <p>{{ role }}</p>
-    </div>
-
-    <button type="button" class="signout" (click)="logout()">Sign out</button>
+  <header class="workspace-header">
+    <button class="brand" type="button" (click)="navigate('/employee')">
+      <span class="brand-mark">P</span><span>PROJECTUM</span>
+    </button>
+    <nav aria-label="Employee workspace">
+      <button *ngFor="let item of pages" type="button" [class.active]="page === item.key" (click)="navigate(item.route)">
+        <span class="material-symbols-outlined">{{ item.icon }}</span>{{ item.label }}
+        <b *ngIf="item.key === 'notifications' && unreadCount">{{ unreadCount }}</b>
+      </button>
+    </nav>
+    <div class="user-actions"><span>{{ userName }}</span><button type="button" (click)="logout()">Sign out</button></div>
   </header>
 
-  <div class="state error" *ngIf="error">
-    {{ error }}
-    <button type="button" (click)="loadTasks()">Retry</button>
-  </div>
+  <main class="workspace-content">
+    <div class="state error" *ngIf="error">{{ error }} <button type="button" (click)="loadPage()">Retry</button></div>
+    <div class="state" *ngIf="loading">Loading your workspace…</div>
 
-  <div class="state" *ngIf="loading">Loading your workspace...</div>
-
-  <main class="employee-grid" *ngIf="!loading">
-    
-    <!-- 1. MY TASKS -->
-    <section class="panel">
-      <div class="panel-head">
-        <h2>My Tasks</h2>
-        <span class="count-badge">{{ tasks.length }}</span>
-      </div>
-
-      <div class="empty" *ngIf="!tasks.length">
-        No assigned tasks yet.
-      </div>
-
-      <article class="task-row" *ngFor="let task of tasks">
-        <div>
-          <strong>{{ task.name }}</strong>
-          <small>Project #{{ task.projectId }}<span *ngIf="task.wbsCode"> · {{ task.wbsCode }}</span></small>
+    <ng-container *ngIf="!loading">
+      <section *ngIf="page === 'home'" class="home-page">
+        <div class="page-heading"><div><p class="eyebrow">EMPLOYEE WORKSPACE</p><h1>Welcome back, {{ userName }}</h1><p>Focus on the work assigned to you.</p></div></div>
+        <div class="metric-grid">
+          <button type="button" (click)="navigate('/employee/tasks')"><span>My open tasks</span><strong>{{ openTaskCount }}</strong><small>{{ dueSoonTasks }} due in the next 7 days</small></button>
+          <button type="button" (click)="navigate('/employee/actions')"><span>My open actions</span><strong>{{ openActionCount }}</strong><small>{{ dueSoonActions }} due in the next 7 days</small></button>
+          <button type="button" (click)="navigate('/employee/projects')"><span>My projects</span><strong>{{ projects.length }}</strong><small>Projects you participate in</small></button>
+          <button type="button" (click)="navigate('/employee/notifications')"><span>Unread notifications</span><strong>{{ unreadCount }}</strong><small>Assignment and work updates</small></button>
         </div>
-        <div class="task-meta">
-          <span>{{ task.status || 'NOT_STARTED' }}</span>
-          <span>{{ task.percentComplete || 0 }}%</span>
+        <div class="home-grid">
+          <section class="panel"><div class="panel-head"><h2>Today's work & upcoming deadlines</h2><button type="button" (click)="navigate('/employee/tasks')">View tasks</button></div>
+            <div class="empty" *ngIf="!upcomingTasks.length">No tasks assigned to you.</div>
+            <button class="list-row" type="button" *ngFor="let task of upcomingTasks" (click)="selectedTask = task"><span><strong>{{ task.name }}</strong><small>{{ task.projectName || task.projectCode || ('Project #' + task.projectId) }}</small></span><span class="date">{{ task.plannedEnd | date:'mediumDate' }}</span></button>
+          </section>
+          <section class="panel"><div class="panel-head"><h2>Recent notifications</h2><button type="button" (click)="navigate('/employee/notifications')">View all</button></div>
+            <div class="empty" *ngIf="!recentNotifications.length">No notifications.</div>
+            <button class="list-row notification-row" [class.unread]="!notification.readByUser" type="button" *ngFor="let notification of recentNotifications" (click)="markRead(notification)"><span><strong>{{ notification.subject }}</strong><small>{{ notification.message }}</small></span><span class="date">{{ notification.createdAt | date:'short' }}</span></button>
+          </section>
         </div>
-      </article>
-    </section>
+      </section>
 
-    <!-- 2. MY ACTIONS -->
-    <section class="panel">
-      <div class="panel-head">
-        <h2>My Actions</h2>
-        <span class="count-badge">{{ actions.length }}</span>
-      </div>
+      <section *ngIf="page === 'tasks'" class="page">
+        <div class="page-heading"><div><p class="eyebrow">MY WORK</p><h1>My Tasks</h1><p>Schedule activities assigned to your account.</p></div><span class="count">{{ filteredTasks.length }} tasks</span></div>
+        <div class="toolbar"><input [(ngModel)]="taskSearch" placeholder="Search task, WBS or project"><select [(ngModel)]="taskProject"><option value="">All projects</option><option *ngFor="let project of taskProjects" [value]="project.id">{{ project.name }}</option></select><select [(ngModel)]="taskStatus"><option value="">All statuses</option><option *ngFor="let task of tasks" [value]="task.status">{{ taskStatusLabel(task.status) }}</option></select></div>
+        <div class="panel table-panel"><div class="empty" *ngIf="!filteredTasks.length">No tasks assigned to you.</div><table *ngIf="filteredTasks.length"><thead><tr><th>Task</th><th>Project</th><th>Schedule</th><th>Progress</th><th>Status</th><th>Department</th></tr></thead><tbody><tr *ngFor="let task of filteredTasks" (click)="selectedTask = task"><td><strong>{{ task.name }}</strong><small>{{ task.wbsCode || '—' }} · {{ task.taskType || 'Activity' }}</small></td><td>{{ task.projectName || task.projectCode || ('#' + task.projectId) }}</td><td>{{ task.plannedStart | date:'mediumDate' }}<small>{{ task.plannedEnd | date:'mediumDate' }} · {{ task.durationDays || 0 }}d</small></td><td><div class="progress"><i [style.width.%]="task.percentComplete || 0"></i></div>{{ task.percentComplete || 0 }}%</td><td><span class="badge status">{{ taskStatusLabel(task.status) }}</span></td><td>{{ task.departmentCode || '—' }}</td></tr></tbody></table></div>
+      </section>
 
-      <div class="empty" *ngIf="!actions.length">
-        No pending actions. Great job! 
-      </div>
+      <section *ngIf="page === 'actions'" class="page">
+        <div class="page-heading"><div><p class="eyebrow">MY WORK</p><h1>My Actions</h1><p>Move your assigned actions through their delivery workflow.</p></div><span class="count">{{ filteredActions.length }} actions</span></div>
+        <div class="toolbar"><input [(ngModel)]="actionSearch" placeholder="Search actions"><select [(ngModel)]="actionProject"><option value="">All projects</option><option *ngFor="let project of actionProjects" [value]="project.id">{{ project.name }}</option></select><span class="save-message" *ngIf="statusMessage">{{ statusMessage }}</span></div>
+        <div class="kanban" *ngIf="filteredActions.length; else noActions"><section *ngFor="let column of actionColumns" class="kanban-column" [class.drag-over]="dragOverStatus === column.status" (dragover)="onDragOver($event, column.status)" (drop)="dropAction($event, column.status)"><header><span>{{ column.label }}</span><b>{{ getKanbanActions(column.status).length }}</b></header><button class="action-card" type="button" draggable="true" *ngFor="let action of getKanbanActions(column.status)" (dragstart)="onDragStart($event, action)" (dragend)="onDragEnd()" (click)="selectedAction = action"><span class="priority" [class.high]="action.priority === 'high'">{{ priorityLabel(action.priority) }}</span><strong>{{ action.title }}</strong><small>{{ action.projectName || action.projectCode || ('Project #' + action.projectId) }}</small><footer><span>{{ action.dueDate ? ('Due ' + (action.dueDate | date:'mediumDate')) : 'No due date' }}</span><span>{{ action.actionType }}</span></footer></button><p class="drop-hint">Drop actions here</p></section></div>
+        <ng-template #noActions><div class="panel empty">No actions assigned to you.</div></ng-template>
+      </section>
 
-      <article class="action-row" *ngFor="let action of actions">
-        <div class="action-main">
-          <strong>{{ action.title }}</strong>
-          <small>
-            Project: <strong>{{ action.projectCode || '#' + action.projectId }}</strong>
-            <span *ngIf="action.dueDate"> · Due: {{ action.dueDate | date:'shortDate' }}</span>
-          </small>
-        </div>
-        <div class="action-meta">
-          <span class="priority-badge" [ngClass]="getPriorityClass(action.priority)">
-            {{ action.priority | uppercase }}
-          </span>
-          <span class="status-badge" [ngClass]="getStatusClass(action.status)">
-            {{ action.status | uppercase }}
-          </span>
-        </div>
-      </article>
-    </section>
+      <section *ngIf="page === 'schedule'" class="page">
+        <div class="page-heading"><div><p class="eyebrow">MY WORK</p><h1>My Schedule</h1><p>Your assigned work for the current week.</p></div><div class="week-controls"><button type="button" (click)="previousWeek()">‹</button><button type="button" (click)="goToday()">Today</button><button type="button" (click)="nextWeek()">›</button></div></div>
+        <div class="week-title">{{ weekLabel }}</div><div class="schedule-grid"><section *ngFor="let day of weekDays" [class.today]="isToday(day)"><header><strong>{{ day | date:'EEE' }}</strong><span>{{ day | date:'d' }}</span></header><button type="button" class="schedule-task" *ngFor="let task of tasksForDay(day)" [style.border-left-color]="task.color || '#2563eb'" (click)="selectedTask = task"><strong>{{ task.name }}</strong><small>{{ task.projectCode || task.projectName || ('Project #' + task.projectId) }}</small></button><p class="day-empty" *ngIf="!tasksForDay(day).length">—</p></section></div><div class="panel empty" *ngIf="!tasks.length">No scheduled tasks to show.</div>
+      </section>
 
-    <!-- 3. MY SCHEDULE -->
-    <section class="panel">
-      <div class="panel-head">
-        <h2>My Schedule</h2>
-      </div>
+      <section *ngIf="page === 'projects'" class="page"><div class="page-heading"><div><p class="eyebrow">MY WORK</p><h1>My Projects</h1><p>Projects where you have a task or action assignment.</p></div><span class="count">{{ projects.length }} projects</span></div><div class="project-grid"><button class="project-card" type="button" *ngFor="let project of projects" (click)="selectedProject = project"><header><span>{{ project.code }}</span><span class="badge">{{ project.status || 'Active' }}</span></header><h2>{{ project.name }}</h2><p>Project manager: {{ project.projectManagerName || '—' }}</p><div class="progress"><i [style.width.%]="project.progress || 0"></i></div><small>{{ project.progress || 0 }}% project progress</small><footer><span><b>{{ project.assignedTaskCount }}</b> my tasks</span><span><b>{{ project.openActionCount }}</b> open actions</span></footer></button></div><div class="panel empty" *ngIf="!projects.length">You are not currently assigned to any projects.</div></section>
 
-      <div class="empty" *ngIf="!upcomingTasks.length">
-        No scheduled tasks to show.
-      </div>
-
-      <article class="schedule-row" *ngFor="let task of upcomingTasks">
-        <div>
-          <strong>{{ task.name }}</strong>
-          <small>{{ task.plannedStart | date:'shortDate' }} - {{ task.plannedEnd | date:'shortDate' }}</small>
-        </div>
-      </article>
-    </section>
-
-    <!-- 4. NOTIFICATIONS -->
-    <section class="panel notifications">
-      <div class="panel-head">
-        <h2>Notifications</h2>
-      </div>
-      <div class="empty">No notifications requiring your attention.</div>
-    </section>
-
+      <section *ngIf="page === 'notifications'" class="page"><div class="page-heading"><div><p class="eyebrow">MY WORK</p><h1>Notifications</h1><p>Updates relevant to your assigned work.</p></div><button class="secondary" type="button" [disabled]="!unreadCount" (click)="markAllRead()">Mark all as read</button></div><div class="panel notification-list"><div class="empty" *ngIf="!notifications.length">No notifications.</div><button type="button" *ngFor="let notification of notifications" [class.unread]="!notification.readByUser" (click)="markRead(notification)"><span class="material-symbols-outlined">{{ notification.readByUser ? 'done' : 'notifications' }}</span><span><strong>{{ notification.subject }}</strong><small>{{ notification.message }}</small></span><time>{{ notification.createdAt | date:'medium' }}</time></button></div></section>
+    </ng-container>
   </main>
+
+  <div class="details-backdrop" *ngIf="selectedTask || selectedAction || selectedProject" (click)="closeDetails()"></div>
+  <aside class="details" *ngIf="selectedTask || selectedAction || selectedProject"><button class="close" type="button" (click)="closeDetails()">×</button><ng-container *ngIf="selectedTask as task"><p class="eyebrow">TASK DETAILS</p><h2>{{ task.name }}</h2><p>{{ task.description || 'No task description.' }}</p><dl><dt>Project</dt><dd>{{ task.projectName || task.projectCode || ('Project #' + task.projectId) }}</dd><dt>Schedule</dt><dd>{{ task.plannedStart | date:'mediumDate' }} – {{ task.plannedEnd | date:'mediumDate' }}</dd><dt>Progress</dt><dd>{{ task.percentComplete || 0 }}%</dd><dt>Status</dt><dd>{{ taskStatusLabel(task.status) }}</dd></dl></ng-container><ng-container *ngIf="selectedAction as action"><p class="eyebrow">ACTION DETAILS</p><h2>{{ action.title }}</h2><p>{{ action.description || 'No action description.' }}</p><dl><dt>Project</dt><dd>{{ action.projectName || action.projectCode || ('Project #' + action.projectId) }}</dd><dt>Due date</dt><dd>{{ action.dueDate | date:'mediumDate' }}</dd><dt>Status</dt><dd>{{ actionStatusLabel(action.status) }}</dd><dt>Assignees</dt><dd>{{ action.assignees?.join(', ') || userName }}</dd></dl></ng-container><ng-container *ngIf="selectedProject as project"><p class="eyebrow">PROJECT SUMMARY</p><h2>{{ project.name }}</h2><dl><dt>Project manager</dt><dd>{{ project.projectManagerName || '—' }}</dd><dt>Schedule</dt><dd>{{ project.plannedStart | date:'mediumDate' }} – {{ project.plannedEnd | date:'mediumDate' }}</dd><dt>My tasks</dt><dd>{{ project.assignedTaskCount }}</dd><dt>My open actions</dt><dd>{{ project.openActionCount }}</dd></dl></ng-container></aside>
 </section>

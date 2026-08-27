@@ -154,6 +154,9 @@ export class AuthService {
     if (roles.includes('ORG_ADMIN')) {
       return '/org-admin';
     }
+    if (roles.includes('EMPLOYEE')) {
+      return '/employee';
+    }
     return '/workspace';
   }
 
