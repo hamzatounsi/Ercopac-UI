@@ -1,72 +1,32 @@
 <div class="crm-shell">
-  <aside class="crm-sidebar">
-    <div class="crm-brand">
-      <span class="material-symbols-outlined crm-brand-icon">analytics</span>
-      <span class="crm-brand-name">Projectum CRM</span>
-    </div>
-
-    <div class="crm-nav-section">
-      <div class="crm-nav-label">MAIN</div>
-      <a class="crm-nav-item"
-         *ngFor="let item of navItems.slice(0, 4)"
-         [routerLink]="item.route"
-         routerLinkActive="active">
-        <span class="material-symbols-outlined nav-icon">{{ item.icon }}</span>
-        <span class="nav-label">{{ item.label }}</span>
-        <span class="nav-badge" *ngIf="item.key === 'leads' && leadCount > 0">
-          {{ leadCount }}
-        </span>
-      </a>
-    </div>
-
-    <div class="crm-nav-section">
-      <div class="crm-nav-label">INSIGHTS</div>
-      <a class="crm-nav-item"
-         [routerLink]="navItems[4].route"
-         routerLinkActive="active">
-        <span class="material-symbols-outlined nav-icon">{{ navItems[4].icon }}</span>
-        <span class="nav-label">{{ navItems[4].label }}</span>
-      </a>
-    </div>
-
-    <div class="crm-nav-section">
-      <div class="crm-nav-label">CONFIGURATION</div>
-      <a class="crm-nav-item"
-         [routerLink]="navItems[5].route"
-         routerLinkActive="active">
-        <span class="material-symbols-outlined nav-icon">{{ navItems[5].icon }}</span>
-        <span class="nav-label">{{ navItems[5].label }}</span>
-      </a>
-    </div>
-
-    <div class="crm-sidebar-footer">
-      <div class="crm-org-block">
-        <div class="crm-org-avatar">P</div>
-        <div class="crm-org-info">
-          <div class="crm-org-name">Ercopac</div>
-          <div class="crm-org-plan">Professional plan</div>
-        </div>
+  <header class="crm-header">
+    <a class="crm-logo" routerLink="/crm/dashboard"><span class="logo-mark">⌁</span>Projectum CRM</a>
+    <div class="global-search">
+      <span class="material-symbols-outlined">search</span>
+      <input [(ngModel)]="query" (ngModelChange)="search($event)" (focus)="showResults = query.trim().length >= 2" (blur)="closeResults()" placeholder="Search records..." aria-label="Search CRM records">
+      <div class="search-results" *ngIf="showResults">
+        <div class="search-state" *ngIf="searching">Searching records...</div>
+        <ng-container *ngIf="!searching">
+          <a *ngFor="let account of results.accounts" (mousedown)="openResult(['/crm/accounts', account.id])"><span>Account</span>{{ account.name }}</a>
+          <a *ngFor="let lead of results.leads" (mousedown)="openResult(['/crm/leads', lead.id])"><span>Lead</span>{{ lead.fullName }}</a>
+          <a *ngFor="let opportunity of results.opportunities" (mousedown)="openResult(['/crm/opportunities', opportunity.id])"><span>Opportunity</span>{{ opportunity.name }}</a>
+          <div class="search-state" *ngIf="!hasResults">No matching CRM records.</div>
+        </ng-container>
       </div>
     </div>
-  </aside>
-
-  <div class="crm-main">
-    <header class="crm-topbar">
-      <div class="crm-search-wrap">
-        <span class="material-symbols-outlined search-icon">search</span>
-        <input class="crm-search" placeholder="Search records..." />
-      </div>
-      <div class="crm-topbar-right">
-        <button class="back-btn" (click)="goBack()">
-          <span class="material-symbols-outlined">arrow_back</span>
-          Back to Projectum
-        </button>
-        <div class="crm-user-avatar">AM</div>
-      </div>
-    </header>
-
-    <main class="crm-content">
-      <router-outlet></router-outlet>
-    </main>
+    <button class="workspace-link" (click)="goBack()"><span class="material-symbols-outlined">apps</span>Workspaces</button>
+    <div class="header-user"><div class="avatar">{{ initials }}</div><div><strong>{{ auth.getCurrentUsername() }}</strong><small>{{ organisation }}</small></div></div>
+  </header>
+  <div class="crm-body">
+    <aside class="crm-sidebar">
+      <section><label>Main</label>
+        <a *ngFor="let item of mainItems" [routerLink]="item.route" routerLinkActive="active"><span class="material-symbols-outlined">{{ item.icon }}</span>{{ item.label }}</a>
+        <a *ngIf="permissions.canAccessManagerView" routerLink="/crm/manager-view" routerLinkActive="active"><span class="material-symbols-outlined">groups</span>Manager View</a>
+      </section>
+      <section><label>Insights</label><a *ngFor="let item of insightItems" [routerLink]="item.route" routerLinkActive="active"><span class="material-symbols-outlined">{{ item.icon }}</span>{{ item.label }}</a></section>
+      <section><label>Configuration</label><a routerLink="/crm/settings" routerLinkActive="active"><span class="material-symbols-outlined">settings</span>Settings</a></section>
+      <div class="org-card"><div class="org-logo">{{ organisation.charAt(0) }}</div><div><strong>{{ organisation }}</strong><small>{{ auth.getCurrentRole().replace('_', ' ') }}</small></div></div>
+    </aside>
+    <main class="crm-main"><router-outlet></router-outlet></main>
   </div>
 </div>

@@ -20,7 +20,7 @@ const routes: Routes = [
     path: 'workspace',
     component: GmWorkspacesPageComponent,
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'MANAGER', 'DEPARTMENT_MANAGER', 'EMPLOYEE', 'SALES_MANAGER', 'CLIENT'] }
+    data: { roles: ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'MANAGER', 'DEPARTMENT_MANAGER', 'EMPLOYEE', 'SALES_MANAGER_LEAD', 'SALES_MANAGER', 'SYSTEM_ENGINEER', 'CLIENT'] }
   },
 
   {
@@ -62,7 +62,7 @@ const routes: Routes = [
         .then(m => m.DashboardCrmModule),
     canActivate: [AuthGuard, RoleGuard],
     data: {
-      roles: ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'PLATFORM_OWNER']
+      roles: ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'PLATFORM_OWNER', 'SALES_MANAGER_LEAD', 'SALES_MANAGER', 'SYSTEM_ENGINEER']
     }
   },
 

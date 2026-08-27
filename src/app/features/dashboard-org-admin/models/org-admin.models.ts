@@ -5,7 +5,9 @@ export type OrganisationRole =
   | 'MANAGER'
   | 'DEPARTMENT_MANAGER'
   | 'EMPLOYEE'
+  | 'SALES_MANAGER_LEAD'
   | 'SALES_MANAGER'
+  | 'SYSTEM_ENGINEER'
   | 'CLIENT';
 
 export interface OrganisationProfile {
