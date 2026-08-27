@@ -63,3 +63,27 @@
   background: #7a8799;
 }
 
+.gantt-milestone {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px !important;   /* Force la largeur à 28px */
+  height: 28px !important;  /* Force la hauteur à 28px */
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  cursor: pointer;
+  overflow: visible; /* Permet au texte de ne pas être coupé si besoin */
+  
+  .milestone-wbs-label {
+    color: white;
+    font-weight: 700;
+    font-size: 9px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    padding: 0 2px;
+    white-space: nowrap;
+    line-height: 1;
+  }
+}
