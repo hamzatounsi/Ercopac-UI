@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router'; // ✅ Ajouté pour la navigation
 import { MilestoneService, ProjectMilestone } from '../../services/milestone.service';
 import { GmDashboardService } from '../../services/gm-dashboard.service';
 
@@ -22,6 +23,9 @@ interface TimelineMonth {
   styleUrls: ['./milestone-dashboard.component.scss']
 })
 export class MilestoneDashboardComponent implements OnInit {
+  @ViewChild('timelineBodyScroll') timelineBodyScroll!: ElementRef<HTMLDivElement>;
+  @ViewChild('timelineHeaderScroll') timelineHeaderScroll!: ElementRef<HTMLDivElement>;
+
   projects: any[] = [];
   milestones: ProjectMilestone[] = [];
   timelineDays: TimelineDay[] = [];
@@ -31,10 +35,9 @@ export class MilestoneDashboardComponent implements OnInit {
   startDate!: Date;
   endDate!: Date;
 
-  // Editable dropdown properties
-  statusOptions = ['A', 'C', 'CCR', 'CLOSED', 'COMPLETED', 'ON_HOLD'];
-  pmOptions = ['FM', 'AI', 'EB', 'IS', '—'];
-  savingProjectId: number | null = null;
+  // ✅ Ajouté pour la navigation
+  projectId!: number;
+  currentRoute = '';
 
   // Filter properties
   statusFilter = 'ALL';
@@ -43,11 +46,17 @@ export class MilestoneDashboardComponent implements OnInit {
   pmMenuOpen = false;
 
   constructor(
+    private route: ActivatedRoute, // ✅ Ajouté
+    private router: Router,        // ✅ Ajouté
     private milestoneService: MilestoneService,
     private dashboardService: GmDashboardService
   ) {}
 
   ngOnInit(): void {
+    // ✅ Récupère l'ID du projet et la route actuelle pour surligner l'onglet actif
+    this.projectId = Number(this.route.snapshot.paramMap.get('id'));
+    this.currentRoute = this.router.url.split('/').pop() || '';
+    
     this.buildDateRange();
     this.loadData();
   }
@@ -128,7 +137,6 @@ export class MilestoneDashboardComponent implements OnInit {
 
   loadData(): void {
     this.loading = true;
-    
     this.dashboardService.getProjects().subscribe({
       next: (projects) => {
         this.projects = projects ?? [];
@@ -192,75 +200,81 @@ export class MilestoneDashboardComponent implements OnInit {
     return 32;
   }
 
-  // Filter methods
+  // ================= FILTER METHODS =================
+
   get uniqueStatuses(): string[] {
-    const statuses = this.projects.map(p => p.status || 'A');
+    const statuses = this.projects.map(p => p.projectPhase || 'A');
     return ['ALL', ...Array.from(new Set(statuses))].sort();
   }
-  
+
   get uniquePMs(): string[] {
-    const pms = this.projects.map(p => p.pmCode || p.projectManagerCode || '—');
+    const pms = this.projects.map(p => p.projectManagerName || '—');
     return ['ALL', ...Array.from(new Set(pms))].sort();
   }
-  
+
   get filteredProjects(): any[] {
     return this.projects.filter(project => {
-      const statusMatch = this.statusFilter === 'ALL' || (project.status || 'A') === this.statusFilter;
-      const pmMatch = this.pmFilter === 'ALL' || (project.pmCode || project.projectManagerCode || '—') === this.pmFilter;
+      const statusMatch = this.statusFilter === 'ALL' || (project.projectPhase || 'A') === this.statusFilter;
+      const pmMatch = this.pmFilter === 'ALL' || (project.projectManagerName || '—') === this.pmFilter;
       return statusMatch && pmMatch;
     });
   }
-  
+
   toggleStatusMenu(): void { 
     this.statusMenuOpen = !this.statusMenuOpen; 
     this.pmMenuOpen = false; 
   }
-  
+
   togglePMMenu(): void { 
     this.pmMenuOpen = !this.pmMenuOpen; 
     this.statusMenuOpen = false; 
   }
-  
+
   setStatusFilter(status: string): void { 
     this.statusFilter = status; 
     this.statusMenuOpen = false; 
   }
-  
+
   setPMFilter(pm: string): void { 
     this.pmFilter = pm; 
     this.pmMenuOpen = false; 
   }
 
-  // Editable dropdown methods
-  onProjectStatusChange(project: any, newStatus: string): void {
-    this.savingProjectId = project.id;
-    // 'as any' bypasses strict UpsertProjectRequest type checking for partial updates
-    this.dashboardService.updateProject(project.id, { status: newStatus } as any).subscribe({
-      next: () => {
-        project.status = newStatus;
-        this.savingProjectId = null;
-      },
-      error: (err) => {
-        console.error('Failed to update project status', err);
-        this.savingProjectId = null;
-        alert('Failed to update status. Please try again.');
-      }
-    });
+  // ================= HELPER METHODS =================
+
+  getPMInitials(project: any): string {
+    const name = project.projectManagerName;
+    if (!name || name.trim() === '') return '—';
+
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+    } else if (parts.length === 1) {
+      return parts[0].substring(0, 2).toUpperCase();
+    }
+    return '—';
   }
 
-  onProjectPmChange(project: any, newPm: string): void {
-    this.savingProjectId = project.id;
-    // 'as any' bypasses strict UpsertProjectRequest type checking for partial updates
-    this.dashboardService.updateProject(project.id, { pmCode: newPm === '—' ? null : newPm } as any).subscribe({
-      next: () => {
-        project.pmCode = newPm === '—' ? null : newPm;
-        this.savingProjectId = null;
-      },
-      error: (err) => {
-        console.error('Failed to update project PM', err);
-        this.savingProjectId = null;
-        alert('Failed to update PM. Please try again.');
-      }
-    });
+  onTimelineScroll(): void {
+    const timelineBodyEl = this.timelineBodyScroll?.nativeElement;
+    const timelineHeaderEl = this.timelineHeaderScroll?.nativeElement;
+    
+    if (timelineBodyEl && timelineHeaderEl) {
+      timelineHeaderEl.scrollLeft = timelineBodyEl.scrollLeft;
+    }
+  }
+
+  // ================= NAVIGATION METHODS =================
+  
+  goToSchedule(): void { this.router.navigate(['/gm/projects', this.projectId, 'schedule']); }
+  goToFinance(): void { this.router.navigate(['/gm/projects', this.projectId, 'finance']); }
+  goToForecast(): void { this.router.navigate(['/gm/projects', this.projectId, 'forecast']); }
+  goToMilestone(): void { this.router.navigate(['/gm/projects', this.projectId, 'milestone']); } // Ajuste si c'est 'milestones'
+  goToRisks(): void { this.router.navigate(['/gm/projects', this.projectId, 'risks']); }
+  goToChangeRequests(): void { this.router.navigate(['/gm/projects', this.projectId, 'change-requests']); }
+  goToActions(): void { this.router.navigate(['/gm/projects', this.projectId, 'actions']); }
+
+  isCurrentRoute(route: string): boolean {
+    return this.currentRoute === route;
   }
 }
