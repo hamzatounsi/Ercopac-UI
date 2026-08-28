@@ -12,7 +12,7 @@ export interface ProjectDashboardRow {
 
   country?: string;
   portfolio?: string;
-  departmentCode?: string | null; 
+
   projectType?: string;
   projectPhase?: string;
   riskLevel?: 'LOW' | 'MEDIUM' | 'HIGH' | string;

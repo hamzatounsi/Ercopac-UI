@@ -221,42 +221,42 @@
           </div>
 
           <div class="cell editable-cell col-name" *ngIf="columnVisibility.name" (click)="$event.stopPropagation()">
-            <div class="task-name-wrap" [style.padding-left.px]="getIndent(task)">
-              <span *ngIf="isSummary(task)" class="summary-marker" (click)="toggleSummary(task, $event)">
-                {{ collapsedTaskIds.has(task.id) ? '▸' : '▾' }}
-              </span>
-              
-              <!-- ✅ Si c'est un Milestone, afficher le dropdown -->
-              <ng-container *ngIf="isMilestone(task); else normalActivityInput">
-                <span class="milestone-dot" [class.customer]="isCustomerMilestone(task)">◆</span>
-                <select
-                  class="milestone-type-select"
-                  [ngModel]="task.milestoneTypeId"
-                  [ngModelOptions]="{ standalone: true }"
-                  (ngModelChange)="updateLocalTaskField(task, 'milestoneTypeId', $event); saveInlineTask(task)"
-                  style="flex: 1; padding: 2px 4px; border: 1px solid #d1d5db; border-radius: 3px; font-size: 12px;"
-                >
-                  <option [ngValue]="null">-- Select milestone --</option>
-                  <option *ngFor="let mt of milestoneTypes" [ngValue]="mt.id" [style.background]="mt.color">
-                    {{ mt.code }} - {{ mt.label }}
-                  </option>
-                </select>
-              </ng-container>
-              
-              <!-- ✅ Sinon, afficher le champ texte normal -->
-              <ng-template #normalActivityInput>
-                <input
-                  class="grid-input text-input"
-                  [value]="getInlineNameValue(task)"
-                  (focus)="beginInlineNameEdit(task)"
-                  (input)="updateInlineNameDraft(task, $any($event.target).value)"
-                  (keydown.enter)="handleInlineNameEnter(task, $event)"
-                  (keydown.escape)="cancelInlineNameEdit(task, $event)"
-                  (blur)="commitInlineNameEdit(task)"
-                />
-              </ng-template>
-            </div>
-          </div>
+  <div class="task-name-wrap" [style.padding-left.px]="getIndent(task)">
+    <span *ngIf="isSummary(task)" class="summary-marker" (click)="toggleSummary(task, $event)">
+      {{ collapsedTaskIds.has(task.id) ? '▸' : '▾' }}
+    </span>
+    
+    <!-- ✅ Si c'est un Milestone, afficher le dropdown -->
+    <ng-container *ngIf="isMilestone(task); else normalActivityInput">
+      <span class="milestone-dot" [class.customer]="isCustomerMilestone(task)">◆</span>
+      <select
+        class="milestone-type-select"
+        [ngModel]="task.milestoneTypeId"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="updateLocalTaskField(task, 'milestoneTypeId', $event); saveInlineTask(task)"
+        style="flex: 1; padding: 2px 4px; border: 1px solid #d1d5db; border-radius: 3px; font-size: 12px;"
+      >
+        <option [ngValue]="null">-- Select milestone --</option>
+        <option *ngFor="let mt of milestoneTypes" [ngValue]="mt.id" [style.background]="mt.color">
+          {{ mt.code }} - {{ mt.label }}
+        </option>
+      </select>
+    </ng-container>
+    
+    <!-- ✅ Sinon, afficher le champ texte normal -->
+    <ng-template #normalActivityInput>
+      <input
+        class="grid-input text-input"
+        [value]="getInlineNameValue(task)"
+        (focus)="beginInlineNameEdit(task)"
+        (input)="updateInlineNameDraft(task, $any($event.target).value)"
+        (keydown.enter)="handleInlineNameEnter(task, $event)"
+        (keydown.escape)="cancelInlineNameEdit(task, $event)"
+        (blur)="commitInlineNameEdit(task)"
+      />
+    </ng-template>
+  </div>
+</div>
 
           <div class="cell editable-cell col-type" *ngIf="columnVisibility.type" (click)="$event.stopPropagation()">
             <select
@@ -470,10 +470,8 @@
               <span class="gantt-label" *ngIf="!isSummary(task)">{{ getTaskLabel(task) }}</span>
             </div>
 
-            <div *ngIf="isMilestone(task)" class="gantt-milestone" [class.customer]="isCustomerMilestone(task)" [style.left.px]="getMilestoneLeft(task)" (contextmenu)="openContextMenu($event, task)">
-  <span class="milestone-wbs-label">{{ task.wbsCode }}</span>
-</div>
-<div *ngIf="isMilestone(task)" class="gantt-milestone-label" [style.left.px]="getMilestoneLeft(task) + 16">{{  task.name}}</div>
+            <div *ngIf="isMilestone(task)" class="gantt-milestone" [class.customer]="isCustomerMilestone(task)" [style.left.px]="getMilestoneLeft(task)" (contextmenu)="openContextMenu($event, task)"></div>
+            <div *ngIf="isMilestone(task)" class="gantt-milestone-label" [style.left.px]="getMilestoneLeft(task) + 16">{{ task.name }}</div>
           </div>
 
           <div *ngIf="tasks.length === 0" class="gantt-empty">No timeline to display.</div>
@@ -826,7 +824,7 @@
           </div>
 
           <div class="console-section">
-            <div class="console-title"> Notify</div>
+            <div class="console-title">👥 Notify</div>
             <div class="console-pill-row">
               <button type="button" class="console-pill" [class.active]="consoleConfig.notifyPm" (click)="toggleConsoleNotify('notifyPm')">PM</button>
               <button type="button" class="console-pill" [class.active]="consoleConfig.notifyOwner" (click)="toggleConsoleNotify('notifyOwner')">Owner</button>
@@ -1048,9 +1046,9 @@
                     <div class="baseline-card-meta">Saved {{ baseline.createdAt | date:'dd MMM yyyy' }} · {{ baseline.taskCount || 0 }} tasks · Avg {{ baseline.avgProgress || 0 }}%</div>
                   </div>
                   <span class="baseline-status-badge" [class.active]="baseline.active">{{ baseline.active ? 'Applied' : 'Saved' }}</span>
-                  <button type="button" class="baseline-mini-btn" (click)="toggleBaselineDetails(baseline)">{{ baseline.expanded ? '▴' : '' }}</button>
+                  <button type="button" class="baseline-mini-btn" (click)="toggleBaselineDetails(baseline)">{{ baseline.expanded ? '▴' : '▾' }}</button>
                   <button type="button" class="baseline-mini-btn edit" (click)="renameBaseline(baseline)">✏️</button>
-                  <button type="button" class="baseline-mini-btn danger" (click)="deleteBaseline(baseline.id)"></button>
+                  <button type="button" class="baseline-mini-btn danger" (click)="deleteBaseline(baseline.id)">🗑</button>
                 </div>
                 <div class="baseline-detail" [class.open]="baseline.expanded">
                   <div class="baseline-stats-grid">
@@ -1058,7 +1056,7 @@
                     <div class="baseline-stat"><strong>{{ baseline.avgProgress || 0 }}%</strong><span>Avg Done</span></div>
                     <div class="baseline-stat"><strong>{{ baseline.completedCount || 0 }}</strong><span>Complete</span></div>
                   </div>
-                  <button type="button" class="apply-baseline-btn" (click)="applyBaselineToSchedule(baseline)" [disabled]="saving"> Apply to Schedule</button>
+                  <button type="button" class="apply-baseline-btn" (click)="applyBaselineToSchedule(baseline)" [disabled]="saving">↩ Apply to Schedule</button>
                 </div>
               </div>
             </ng-container>
@@ -1073,64 +1071,65 @@
         </ng-container>
 
         <!-- ================= MILESTONES TAB ================= -->
-        <ng-container *ngIf="settingsTab === 'milestones'">
-          <section class="drawer-section">
-            <div class="drawer-section-header">
-              <div class="drawer-section-title">
-                <span class="material-symbols-outlined sec-icon">flag</span>
-                <span>Milestone Types</span>
-              </div>
-              <!-- ✅ CORRECTED: Removed stray "0" -->
-              <button type="button" class="mini-outline-btn" (click)="loadDefaultMilestones()">
-                📥 Load Defaults
-              </button>
-            </div>
-            
-            <!-- Create New Milestone -->
-            <div class="baseline-create-card" style="margin-bottom: 16px;">
-              <div class="template-create-row">
-                <input type="text" class="template-name-input" [(ngModel)]="newMilestoneType.code" placeholder="Code (e.g. FAT)" style="width: 80px;" />
-                <input type="text" class="template-name-input" [(ngModel)]="newMilestoneType.label" placeholder="Label (e.g. SPEDIZIONE)" />
-                <input type="text" class="template-name-input" [(ngModel)]="newMilestoneType.letterCode" placeholder="Letter (e.g. F)" style="width: 60px;" />
-                
-                <!-- ✅ IMPROVED: More Visible Color Picker -->
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <label style="font-size: 12px; color: #6b7280;">Color:</label>
-                  <input type="color" [(ngModel)]="newMilestoneType.color" 
-                         style="width: 50px; height: 36px; border: 2px solid #d1d5db; border-radius: 6px; cursor: pointer;" 
-                         title="Click to choose milestone color" />
-                </div>
-                
-                <button type="button" class="primary-action-btn" (click)="saveNewMilestoneType()">Add</button>
-              </div>
-              <div style="font-size: 11px; color: #6b7280; margin-top: 8px; padding-left: 4px;">
-                💡 Tip: Click "Load Defaults" to add all 13 standard milestones (RT, KOM, FAT, SPEDIZIONE, etc.) with their colors
-              </div>
-            </div>
+        <!-- ================= MILESTONES TAB ================= -->
+<ng-container *ngIf="settingsTab === 'milestones'">
+  <section class="drawer-section">
+    <div class="drawer-section-header">
+      <div class="drawer-section-title">
+        <span class="material-symbols-outlined sec-icon">flag</span>
+        <span>Milestone Types</span>
+      </div>
+      <!-- ✅ NEW: Load Default Milestones Button -->
+      <button type="button" class="mini-outline-btn" (click)="loadDefaultMilestones()"  > 0">
+        📥 Load Defaults
+      </button>
+    </div>
+    
+    <!-- Create New Milestone -->
+    <div class="baseline-create-card" style="margin-bottom: 16px;">
+      <div class="template-create-row">
+        <input type="text" class="template-name-input" [(ngModel)]="newMilestoneType.code" placeholder="Code (e.g. FAT)" style="width: 80px;" />
+        <input type="text" class="template-name-input" [(ngModel)]="newMilestoneType.label" placeholder="Label (e.g. SPEDIZIONE)" />
+        <input type="text" class="template-name-input" [(ngModel)]="newMilestoneType.letterCode" placeholder="Letter (e.g. F)" style="width: 60px;" />
+        
+        <!-- ✅ IMPROVED: More Visible Color Picker -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <label style="font-size: 12px; color: #6b7280;">Color:</label>
+          <input type="color" [(ngModel)]="newMilestoneType.color" 
+                 style="width: 50px; height: 36px; border: 2px solid #d1d5db; border-radius: 6px; cursor: pointer;" 
+                 title="Click to choose milestone color" />
+        </div>
+        
+        <button type="button" class="primary-action-btn" (click)="saveNewMilestoneType()">Add</button>
+      </div>
+      <div style="font-size: 11px; color: #6b7280; margin-top: 8px; padding-left: 4px;">
+        💡 Tip: Click "Load Defaults" to add all 13 standard milestones (RT, KOM, FAT, SPEDIZIONE, etc.) with their colors
+      </div>
+    </div>
 
-            <!-- List of Milestones -->
-            <div class="drawer-list-card" *ngFor="let mt of milestoneTypes">
-              <div class="calendar-avatar" [style.background]="mt.color" style="color: white; font-weight: bold; display: flex; align-items: center; justify-content: center;">
-                {{ mt.letterCode || mt.code }}
-              </div>
-              <div class="list-card-main">
-                <div class="list-card-title">{{ mt.code }} - {{ mt.label }}</div>
-                <div class="list-card-sub">Letter: {{ mt.letterCode || '—' }}</div>
-              </div>
-              <div class="list-card-actions">
-                <button type="button" class="icon-square-btn danger" (click)="deleteMilestoneType(mt.id)">
-                  <span class="material-symbols-outlined">delete</span>
-                </button>
-              </div>
-            </div>
+    <!-- List of Milestones -->
+    <div class="drawer-list-card" *ngFor="let mt of milestoneTypes">
+      <div class="calendar-avatar" [style.background]="mt.color" style="color: white; font-weight: bold; display: flex; align-items: center; justify-content: center;">
+        {{ mt.letterCode || mt.code }}
+      </div>
+      <div class="list-card-main">
+        <div class="list-card-title">{{ mt.code }} - {{ mt.label }}</div>
+        <div class="list-card-sub">Letter: {{ mt.letterCode || '—' }}</div>
+      </div>
+      <div class="list-card-actions">
+        <button type="button" class="icon-square-btn danger" (click)="deleteMilestoneType(mt.id)">
+          <span class="material-symbols-outlined">delete</span>
+        </button>
+      </div>
+    </div>
 
-            <div class="drawer-empty-card" *ngIf="milestoneTypes.length === 0">
-              <span class="material-symbols-outlined empty-icon">flag</span>
-              <div class="empty-title">No milestone types defined yet.</div>
-              <div class="empty-subtitle">Click "Load Defaults" to add 13 standard milestones, or create your own above.</div>
-            </div>
-          </section>
-        </ng-container>
+    <div class="drawer-empty-card" *ngIf="milestoneTypes.length === 0">
+      <span class="material-symbols-outlined empty-icon">flag</span>
+      <div class="empty-title">No milestone types defined yet.</div>
+      <div class="empty-subtitle">Click "Load Defaults" to add 13 standard milestones, or create your own above.</div>
+    </div>
+  </section>
+</ng-container>
 
       </div>
 
