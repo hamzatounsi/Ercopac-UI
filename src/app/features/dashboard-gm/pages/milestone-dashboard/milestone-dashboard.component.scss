@@ -53,9 +53,7 @@
       font-weight: 500;
       color: #374151;
       
-      &:hover {
-        border-color: #9ca3af;
-      }
+      &:hover { border-color: #9ca3af; }
       
       .material-symbols-outlined {
         font-size: 16px;
@@ -81,10 +79,7 @@
         font-size: 13px;
         color: #374151;
         
-        &:hover {
-          background: #f3f4f6;
-        }
-        
+        &:hover { background: #f3f4f6; }
         &.active {
           background: #e0e7ff;
           color: #4f46e5;
@@ -168,66 +163,90 @@
   }
 }
 
+/* ============================================================
+   ✅ CORRECTION SCROLL : En-tête (Mois et Jours)
+   ============================================================ */
 .timeline-scroll-header {
   flex: 1;
-  overflow: hidden;
+  overflow-x: hidden; /* Caché car synchronisé via TypeScript */
+  overflow-y: hidden;
+  
+  &::-webkit-scrollbar {
+    height: 0px;
+    background: transparent;
+  }
+}
+
+/* ✅ Ce conteneur force les enfants à prendre la largeur dynamique */
+.timeline-header-content {
+  display: flex;
+  flex-direction: column;
+  width: 100%; 
 }
 
 .month-row {
   display: flex;
+  width: 100%;
   border-bottom: 1px solid #e5e7eb;
-}
-
-.month-cell {
-  text-align: center;
-  padding: 8px 0;
-  font-weight: 600;
-  color: #374151;
-  background: #e5e7eb;
-  border-right: 1px solid #d1d5db;
-  font-size: 11px;
+  
+  .month-cell {
+    flex-shrink: 0; /* Empêche la cellule de rétrécir */
+    text-align: center;
+    padding: 8px 0;
+    font-weight: 600;
+    color: #374151;
+    background: #e5e7eb;
+    border-right: 1px solid #d1d5db;
+    font-size: 11px;
+  }
 }
 
 .day-row {
   display: flex;
+  width: 100%;
+  
+  .day-cell {
+    flex-shrink: 0; /* Empêche la cellule de rétrécir */
+    text-align: center;
+    padding: 4px 0;
+    font-size: 10px;
+    color: #6b7280;
+    border-right: 1px solid #f3f4f6;
+    
+    &.weekend {
+      background: #f3f4f6;
+      color: #9ca3af;
+    }
+    
+    &.holiday {
+      background: #fee2e2;
+      color: #dc2626;
+      font-weight: 600;
+    }
+    
+    &.month-start {
+      border-left: 2px solid #9ca3af;
+    }
+  }
 }
-
-.day-cell {
-  text-align: center;
-  padding: 4px 0;
-  font-size: 10px;
-  color: #6b7280;
-  border-right: 1px solid #f3f4f6;
-  
-  &.weekend {
-    background: #f3f4f6;
-    color: #9ca3af;
-  }
-  
-  &.holiday {
-    background: #fee2e2;
-    color: #dc2626;
-    font-weight: 600;
-  }
-  
-  &.month-start {
-    border-left: 2px solid #9ca3af;
-  }
-}
+/* ============================================================ */
 
 .timeline-body {
   max-height: 600px;
   overflow-y: auto;
   overflow-x: auto;
+  
+  /* Style de la scrollbar */
+  &::-webkit-scrollbar { height: 8px; width: 8px; }
+  &::-webkit-scrollbar-track { background: #f1f5f9; }
+  &::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; &:hover { background: #64748b; } }
 }
 
 .project-row {
   display: flex;
   border-bottom: 1px solid #e5e7eb;
   
-  &:hover {
-    background: #f9fafb;
-  }
+  &:hover { background: #f9fafb; }
 }
 
 .project-columns {
@@ -250,10 +269,7 @@
     display: flex;
     align-items: center;
     
-    .project-code {
-      font-weight: 700;
-      color: #111827;
-    }
+    .project-code { font-weight: 700; color: #111827; }
     .project-name {
       color: #6b7280;
       font-weight: 400;
@@ -266,35 +282,39 @@
   
   .col-stat, .col-pm {
     padding: 4px;
-    
-    .inline-select {
-      width: 100%;
-      padding: 4px 6px;
-      border: 1px solid #d1d5db;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 500;
-      color: #374151;
-      background: white;
-      cursor: pointer;
-      outline: none;
-      
-      &:hover {
-        border-color: #9ca3af;
-      }
-      
-      &:focus {
-        border-color: #4f46e5;
-        box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
-      }
-      
-      &:disabled {
-        background: #f3f4f6;
-        cursor: not-allowed;
-        opacity: 0.6;
-      }
-    }
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
+}
+
+/* ✅ Styles pour les nouvelles colonnes en lecture seule */
+.readonly-value {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #374151;
+  min-width: 50px;
+  text-align: center;
+}
+
+.initials-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: #e0e7ff;
+  color: #3730a3;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 1px;
+  border: 1px solid #c7d2fe;
 }
 
 .timeline-grid {
@@ -308,13 +328,8 @@
   height: 100%;
   border-right: 1px solid #f3f4f6;
   
-  &.weekend {
-    background: #f9fafb;
-  }
-  
-  &.holiday {
-    background: #fef2f2;
-  }
+  &.weekend { background: #f9fafb; }
+  &.holiday { background: #fef2f2; }
 }
 
 .milestone-marker {

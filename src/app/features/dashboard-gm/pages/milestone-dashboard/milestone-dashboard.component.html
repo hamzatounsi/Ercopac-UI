@@ -16,6 +16,8 @@
         <div *ngFor="let status of uniqueStatuses" class="dropdown-item" [class.active]="status === statusFilter" (click)="setStatusFilter(status)">{{ status }}</div>
       </div>
     </div>
+    
+    <!-- ✅ CORRECTION 1 : Utiliser la logique PM (qui existe dans ton TS) au lieu de DEPT -->
     <div class="filter-group">
       <span class="filter-label">PM:</span>
       <div class="filter-dropdown" (click)="togglePMMenu()">
@@ -26,6 +28,8 @@
         <div *ngFor="let pm of uniquePMs" class="dropdown-item" [class.active]="pm === pmFilter" (click)="setPMFilter(pm)">{{ pm }}</div>
       </div>
     </div>
+    
+    <!-- ✅ CORRECTION 2 : Utiliser setPMFilter au lieu de setDepartmentFilter -->
     <button class="clear-filters-btn" (click)="setStatusFilter('ALL'); setPMFilter('ALL')">Clear Filters</button>
   </div>
 
@@ -41,20 +45,25 @@
       <div class="project-columns-header">
         <div class="col-project">PROJECT</div>
         <div class="col-stat">STAT</div>
-        <div class="col-pm">PM</div>
+        <div class="col-pm">PM</div> <!-- ✅ Corrigé de "dep" à "PM" -->
       </div>
-      <div class="timeline-scroll-header">
-        <div class="month-row" [style.width.px]="getTimelineWidth()">
-          <div *ngFor="let month of timelineMonths" class="month-cell" [style.width.px]="month.width">{{ month.label }}</div>
-        </div>
-        <div class="day-row" [style.width.px]="getTimelineWidth()">
-          <div *ngFor="let day of timelineDays" class="day-cell" [class.weekend]="day.isWeekend" [class.holiday]="day.isHoliday" [class.month-start]="day.isMonthStart" [style.width.px]="dayWidth">{{ day.label }}</div>
+      
+      <!-- ✅ CORRECTION 3 : Ajout de #timelineHeaderScroll pour la synchronisation du scroll -->
+      <div class="timeline-scroll-header" #timelineHeaderScroll>
+        <div class="timeline-header-content" [style.width.px]="getTimelineWidth()">
+          <div class="month-row">
+            <div *ngFor="let month of timelineMonths" class="month-cell" [style.width.px]="month.width">{{ month.label }}</div>
+          </div>
+          <div class="day-row">
+            <div *ngFor="let day of timelineDays" class="day-cell" [class.weekend]="day.isWeekend" [class.holiday]="day.isHoliday" [class.month-start]="day.isMonthStart" [style.width.px]="dayWidth">{{ day.label }}</div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Timeline Body -->
-    <div class="timeline-body">
+    <!-- ✅ CORRECTION 4 : Ajout de (scroll)="onTimelineScroll()" pour synchroniser le défilement -->
+    <div class="timeline-body" #timelineBodyScroll (scroll)="onTimelineScroll()">
       <div *ngFor="let project of filteredProjects" class="project-row" [style.height.px]="getRowHeight()">
         
         <!-- Project Columns -->
@@ -64,28 +73,14 @@
             <span class="project-name" *ngIf="project.name"> - {{ project.name }}</span>
           </div>
           
-          <!-- STAT Dropdown -->
+          <!-- STAT (read-only) -->
           <div class="col-stat">
-            <select 
-              class="inline-select"
-              [value]="project.status || 'A'"
-              (change)="onProjectStatusChange(project, $any($event.target).value)"
-              [disabled]="savingProjectId === project.id"
-            >
-              <option *ngFor="let status of statusOptions" [value]="status">{{ status }}</option>
-            </select>
+            <span class="readonly-value">{{ project.projectPhase || 'A' }}</span>
           </div>
           
-          <!-- PM Dropdown -->
+          <!-- ✅ CORRECTION 5 : Afficher les initiales du PM au lieu du code département -->
           <div class="col-pm">
-            <select 
-              class="inline-select"
-              [value]="project.pmCode || '—'"
-              (change)="onProjectPmChange(project, $any($event.target).value)"
-              [disabled]="savingProjectId === project.id"
-            >
-              <option *ngFor="let pm of pmOptions" [value]="pm">{{ pm }}</option>
-            </select>
+            <span class="initials-badge">{{ getPMInitials(project) }}</span>
           </div>
         </div>
 
@@ -94,13 +89,13 @@
           <!-- Background Grid Lines -->
           <div *ngFor="let day of timelineDays" class="grid-line" [class.weekend]="day.isWeekend" [class.holiday]="day.isHoliday" [style.width.px]="dayWidth"></div>
           
-          <!-- Milestone Markers -->
+          <!-- ✅ CORRECTION 6 : Supprimer taskWbsCode et milestoneTypeLetterCode qui n'existent pas, garder uniquement milestoneTypeCode -->
           <div *ngFor="let milestone of getMilestonesForProject(project.id)" 
                class="milestone-marker"
                [style.left.px]="getMilestoneLeft(milestone)"
                [style.background-color]="milestone.milestoneTypeColor || '#999'"
                [title]="milestone.milestoneTypeLabel + ' - ' + milestone.milestoneDate">
-            <span class="milestone-letter">{{ milestone.milestoneTypeLetterCode || milestone.milestoneTypeCode }}</span>
+            <span class="milestone-letter">{{ milestone.milestoneTypeCode || '—' }}</span>
           </div>
         </div>
       </div>
