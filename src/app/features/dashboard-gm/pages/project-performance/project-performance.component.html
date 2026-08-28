@@ -1,3 +1,148 @@
-<section class="performance-page" *ngIf="!loading && dashboard as d"><div class="crumb"><button (click)="back()">← Back to Command Center</button><span>/ Project Performance</span></div><nav class="tabs"><button [class.on]="view === 'performance'" (click)="setView('performance')">📊 Performance</button><button [class.on]="view === 'revenue-forecast'" (click)="setView('revenue-forecast')">💰 Revenue Forecast</button></nav>
-<ng-container *ngIf="view === 'performance'"><div class="detail-card stats"><div><b class="blue">{{d.totalProjects}}</b><small>Total Projects</small></div><div><b class="green">{{d.onScheduleProjects}}</b><small>On Schedule</small></div><div><b class="amber">{{d.atRiskProjects}}</b><small>At Risk</small></div><div><b class="red">{{d.delayedProjects}}</b><small>Overdue</small></div><div><b>{{money(d.totalBudget)}}</b><small>Total Budget</small></div></div><div class="grid"><article class="detail-card"><header><b>Projects Overview</b><span>All active projects</span></header><table><thead><tr><th>Project</th><th>Status</th><th>Progress</th><th>Schedule</th><th>Budget</th><th>PM</th></tr></thead><tbody><tr *ngFor="let p of d.projects"><td><b>{{p.name}}</b><small>{{p.code}}</small></td><td>{{p.phase}}</td><td>{{p.progress}}%</td><td><mark [class.warn]="p.health !== 'On track'">{{p.health}}</mark></td><td>{{money(p.budget)}}</td><td>{{p.manager || 'Unassigned'}}</td></tr></tbody></table></article><aside><article class="detail-card"><header><b>Schedule Health</b><span>All projects</span></header><div class="health"><div><b class="green">{{pct(d.onScheduleProjects,d.activeProjects)}}%</b><small>On time</small></div><div><b class="amber">{{pct(d.atRiskProjects,d.activeProjects)}}%</b><small>At risk</small></div><div><b class="red">{{pct(d.delayedProjects,d.activeProjects)}}%</b><small>Overdue</small></div></div></article></aside></div></ng-container>
-<ng-container *ngIf="view === 'revenue-forecast' && revenue as r"><div class="revenue-toolbar"><div class="actual-control"><span>Actuals</span><button class="switch" [class.off]="!actuals" (click)="actuals=!actuals"><i></i></button></div><span class="sep"></span><label>Year:</label><select [(ngModel)]="year" (change)="changeYear()"><option *ngFor="let y of [year-1,year,year+1]" [value]="y">{{y}}</option></select><span class="muted">Jan 1</span><span class="sep"></span><button [class.on]="revenueWindow===6" (click)="revenueWindow=6">6</button><button [class.on]="revenueWindow===12" (click)="revenueWindow=12">12</button><span class="sep"></span><button [class.on]="revenueMode==='forecast'" (click)="revenueMode='forecast'">Forecast</button><button [class.on]="revenueMode==='budget'" (click)="revenueMode='budget'">Budget</button><button [class.on]="revenueMode==='variance'" (click)="revenueMode='variance'">Variance</button></div><div class="revenue-kpis"><article><small>Actuals YTD</small><b class="blue">{{actuals ? money(r.totalActual) : '—'}}</b></article><article><small>Forecast (Period)</small><b>{{money(r.totalForecast)}}</b></article><article><small>Total Budget</small><b>{{money(r.totalBudget)}}</b></article><article><small>Forecast vs Budget</small><b [class.red]="r.variance < 0" [class.green]="r.variance >= 0">{{money(r.variance)}}</b></article><article><small>Best Month</small><b class="green">{{bestMonth(r)}}</b></article></div><article class="detail-card revenue"><div class="scroll"><table><thead><tr><th class="project-cell">Project</th><th *ngIf="actuals" class="actual-cell">Actual</th><th *ngFor="let m of displayedMonths(r)">{{m.label}}</th><th class="total-cell">Total</th></tr></thead><tbody><tr class="portfolio-total"><td class="project-cell">Portfolio total</td><td *ngIf="actuals" class="actual-cell">{{money(r.totalActual)}}</td><td *ngFor="let m of displayedMonths(r);let i=index">{{money(monthValue(r,i))}}</td><td class="total-cell">{{money(revenueMode === 'forecast' ? r.totalForecast : revenueMode === 'budget' ? r.totalBudget : r.variance)}}</td></tr><tr *ngFor="let p of r.projects"><td class="project-cell"><b>{{p.name}}</b><small>{{p.code}} · {{p.status}}</small></td><td *ngIf="actuals" class="actual-cell">{{money(p.actual)}}</td><td *ngFor="let m of displayedMonths(r);let i=index" [class.negative]="revenueMode === 'variance' && displayedValue(p,i) < 0">{{money(displayedValue(p,i))}}</td><td class="total-cell">{{money(revenueMode === 'forecast' ? p.forecast : revenueMode === 'budget' ? p.budget : p.forecast-p.budget)}}</td></tr><tr *ngIf="!r.projects.length"><td colspan="15" class="empty">No forecast data is available for the selected period.</td></tr></tbody></table></div></article></ng-container></section><section class="performance-page state" *ngIf="loading">Loading Project Performance…</section><section class="performance-page state error" *ngIf="error">{{error}}</section>
+<section class="performance-page" *ngIf="!loading && dashboard as d">
+  <div class="crumb"><button (click)="back()">← Back to Command Center</button><span>/ Project Performance</span></div>
+
+  <nav class="tabs">
+    <button [class.on]="view === 'performance'" (click)="setView('performance')">📊 Performance</button>
+    <button [class.on]="view === 'revenue-forecast'" (click)="setView('revenue-forecast')">💰 Revenue Forecast</button>
+    <button [class.on]="view === 'milestone'" (click)="setView('milestone')">🚩 Milestone</button>
+  </nav>
+
+  <ng-container *ngIf="view === 'performance'">
+    <div class="detail-card stats"><div><b class="blue">{{d.totalProjects}}</b><small>Total Projects</small></div><div><b class="green">{{d.onScheduleProjects}}</b><small>On Schedule</small></div><div><b class="amber">{{d.atRiskProjects}}</b><small>At Risk</small></div><div><b class="red">{{d.delayedProjects}}</b><small>Overdue</small></div><div><b>{{money(d.totalBudget)}}</b><small>Total Budget</small></div></div>
+    <div class="grid">
+      <article class="detail-card">
+        <header><b>Projects Overview</b><span>All active projects</span></header>
+        <table><thead><tr><th>Project</th><th>Status</th><th>Progress</th><th>Schedule</th><th>Budget</th><th>PM</th></tr></thead><tbody><tr *ngFor="let p of d.projects"><td><b>{{p.name}}</b><small>{{p.code}}</small></td><td>{{p.phase}}</td><td>{{p.progress}}%</td><td><mark [class.warn]="p.health !== 'On track'">{{p.health}}</mark></td><td>{{money(p.budget)}}</td><td>{{p.manager || 'Unassigned'}}</td></tr></tbody></table>
+      </article>
+      <aside>
+        <article class="detail-card">
+          <header><b>Schedule Health</b><span>All projects</span></header>
+          <div class="health"><div><b class="green">{{pct(d.onScheduleProjects,d.activeProjects)}}%</b><small>On time</small></div><div><b class="amber">{{pct(d.atRiskProjects,d.activeProjects)}}%</b><small>At risk</small></div><div><b class="red">{{pct(d.delayedProjects,d.activeProjects)}}%</b><small>Overdue</small></div></div>
+        </article>
+      </aside>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="view === 'revenue-forecast' && revenue as r">
+    <div class="revenue-toolbar">
+      <div class="actual-control"><span>Actuals</span><button class="switch" [class.off]="!actuals" (click)="actuals=!actuals"><i></i></button></div>
+      <span class="sep"></span>
+      <label>Year:</label>
+      <select [(ngModel)]="year" (change)="changeYear()"><option *ngFor="let y of [year-1,year,year+1]" [value]="y">{{y}}</option></select>
+      <span class="muted">Jan 1</span>
+      <span class="sep"></span>
+      <button [class.on]="revenueWindow===6" (click)="revenueWindow=6">6</button>
+      <button [class.on]="revenueWindow===12" (click)="revenueWindow=12">12</button>
+      <span class="sep"></span>
+      <button [class.on]="revenueMode==='forecast'" (click)="revenueMode='forecast'">Forecast</button>
+      <button [class.on]="revenueMode==='budget'" (click)="revenueMode='budget'">Budget</button>
+      <button [class.on]="revenueMode==='variance'" (click)="revenueMode='variance'">Variance</button>
+    </div>
+    <div class="revenue-kpis">
+      <article><small>Actuals YTD</small><b class="blue">{{actuals ? money(r.totalActual) : '—'}}</b></article>
+      <article><small>Forecast (Period)</small><b>{{money(r.totalForecast)}}</b></article>
+      <article><small>Total Budget</small><b>{{money(r.totalBudget)}}</b></article>
+      <article><small>Forecast vs Budget</small><b [class.red]="r.variance < 0" [class.green]="r.variance >= 0">{{money(r.variance)}}</b></article>
+      <article><small>Best Month</small><b class="green">{{bestMonth(r)}}</b></article>
+    </div>
+    <article class="detail-card revenue">
+      <div class="scroll">
+        <table>
+          <thead><tr><th class="project-cell">Project</th><th *ngIf="actuals" class="actual-cell">Actual</th><th *ngFor="let m of displayedMonths(r)">{{m.label}}</th><th class="total-cell">Total</th></tr></thead>
+          <tbody>
+            <tr class="portfolio-total"><td class="project-cell">Portfolio total</td><td *ngIf="actuals" class="actual-cell">{{money(r.totalActual)}}</td><td *ngFor="let m of displayedMonths(r);let i=index">{{money(monthValue(r,i))}}</td><td class="total-cell">{{money(revenueMode === 'forecast' ? r.totalForecast : revenueMode === 'budget' ? r.totalBudget : r.variance)}}</td></tr>
+            <tr *ngFor="let p of r.projects"><td class="project-cell"><b>{{p.name}}</b><small>{{p.code}} · {{p.status}}</small></td><td *ngIf="actuals" class="actual-cell">{{money(p.actual)}}</td><td *ngFor="let m of displayedMonths(r);let i=index" [class.negative]="revenueMode === 'variance' && displayedValue(p,i) < 0">{{money(displayedValue(p,i))}}</td><td class="total-cell">{{money(revenueMode === 'forecast' ? p.forecast : revenueMode === 'budget' ? p.budget : p.forecast-p.budget)}}</td></tr>
+            <tr *ngIf="!r.projects.length"><td colspan="15" class="empty">No forecast data is available for the selected period.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </ng-container>
+
+  <!-- ===================== MILESTONE TAB (company-wide, same design as project-level milestone dashboard) ===================== -->
+  <ng-container *ngIf="view === 'milestone'">
+
+    <div class="filter-toolbar" *ngIf="d.projects.length > 0">
+      <div class="filter-group">
+        <span class="filter-label">STAT:</span>
+        <div class="filter-dropdown" (click)="toggleStatusMenu()">
+          <span>{{ statusFilter }}</span>
+          <span class="material-symbols-outlined">expand_more</span>
+        </div>
+        <div class="dropdown-menu" *ngIf="statusMenuOpen">
+          <div *ngFor="let status of uniqueStatuses" class="dropdown-item" [class.active]="status === statusFilter" (click)="setStatusFilter(status)">{{ status }}</div>
+        </div>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label">PM:</span>
+        <div class="filter-dropdown" (click)="togglePMMenu()">
+          <span>{{ pmFilter }}</span>
+          <span class="material-symbols-outlined">expand_more</span>
+        </div>
+        <div class="dropdown-menu" *ngIf="pmMenuOpen">
+          <div *ngFor="let pm of uniquePMs" class="dropdown-item" [class.active]="pm === pmFilter" (click)="setPMFilter(pm)">{{ pm }}</div>
+        </div>
+      </div>
+      <button class="clear-filters-btn" (click)="setStatusFilter('ALL'); setPMFilter('ALL')">Clear Filters</button>
+    </div>
+
+    <div *ngIf="milestonesLoading" class="loading-state">Loading milestones...</div>
+
+    <div *ngIf="!milestonesLoading && filteredMilestoneProjects.length === 0" class="empty-state">
+      <p>No projects found matching the selected filters.</p>
+    </div>
+
+    <div *ngIf="!milestonesLoading && filteredMilestoneProjects.length > 0" class="dashboard-content">
+      <div class="timeline-header">
+        <div class="project-columns-header">
+          <div class="col-project">PROJECT</div>
+          <div class="col-stat">STAT</div>
+          <div class="col-pm">PM</div>
+        </div>
+        <div class="timeline-scroll-header" #timelineHeaderScroll>
+          <div class="timeline-header-content" [style.width.px]="getTimelineWidth()">
+            <div class="month-row">
+              <div *ngFor="let month of timelineMonths" class="month-cell" [style.width.px]="month.width">{{ month.label }}</div>
+            </div>
+            <div class="day-row">
+              <div *ngFor="let day of timelineDays" class="day-cell" [class.weekend]="day.isWeekend" [class.holiday]="day.isHoliday" [class.month-start]="day.isMonthStart" [style.width.px]="dayWidth">{{ day.label }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-body" #timelineBodyScroll>
+        
+        <div *ngFor="let project of filteredMilestoneProjects" class="project-row" [style.height.px]="getRowHeight()">
+          <div class="project-columns">
+            <div class="col-project">
+              <span class="project-code">{{ project.code }}</span>
+              <span class="project-name" *ngIf="project.name"> - {{ project.name }}</span>
+            </div>
+            <div class="col-stat">
+              <span class="readonly-value">{{ project.health || project.phase || 'A' }}</span>
+            </div>
+            <div class="col-pm">
+              <span class="initials-badge">{{ getPMInitials(project) }}</span>
+            </div>
+          </div>
+
+          <div class="timeline-grid" [style.width.px]="getTimelineWidth()">
+            <div *ngFor="let day of timelineDays" class="grid-line" [class.weekend]="day.isWeekend" [class.holiday]="day.isHoliday" [style.width.px]="dayWidth"></div>
+
+            <div *ngFor="let milestone of getMilestonesForProject(project.id)"
+                 class="milestone-marker"
+                 [style.left.px]="getMilestoneLeft(milestone)"
+                 [style.background-color]="milestone.milestoneTypeColor || '#999'"
+                 [title]="milestone.milestoneTypeLabel + ' - ' + milestone.milestoneDate">
+              <span class="milestone-letter">{{ milestone.milestoneTypeCode || '—' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+</section>
+<section class="performance-page state" *ngIf="loading">Loading Project Performance…</section>
+<section class="performance-page state error" *ngIf="error">{{error}}</section>

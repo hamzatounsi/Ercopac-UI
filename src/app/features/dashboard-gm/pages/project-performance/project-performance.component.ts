@@ -1,22 +1,106 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { CompanyDashboard, CompanyDashboardService, RevenueForecast } from '../../services/company-dashboard.service';
-@Component({ selector: 'app-project-performance', templateUrl: './project-performance.component.html', styleUrls: ['./project-performance.component.scss'] })
+import { MilestoneService, ProjectMilestone } from '../../services/milestone.service';
+
+interface TimelineDay {
+  date: Date;
+  label: string;
+  isMonthStart: boolean;
+  isWeekend: boolean;
+  isHoliday: boolean;
+  holidayName?: string;
+}
+
+interface TimelineMonth {
+  label: string;
+  width: number;
+}
+
+@Component({ 
+  selector: 'app-project-performance', 
+  templateUrl: './project-performance.component.html', 
+  styleUrls: ['./project-performance.component.scss'] 
+})
 export class ProjectPerformanceComponent implements OnInit, OnDestroy {
-  dashboard: CompanyDashboard | null = null; revenue: RevenueForecast | null = null; loading = true; error = '';
-  view: 'performance' | 'revenue-forecast' = 'performance'; year = new Date().getFullYear(); actuals = true; private sub?: Subscription;
+  // ✅ Ajout des ViewChild pour la synchronisation du scroll
+  @ViewChild('timelineBodyScroll') timelineBodyScroll!: ElementRef<HTMLDivElement>;
+  @ViewChild('timelineHeaderScroll') timelineHeaderScroll!: ElementRef<HTMLDivElement>;
+
+  dashboard: CompanyDashboard | null = null;
+  revenue: RevenueForecast | null = null;
+  loading = true;
+  error = '';
+  view: 'performance' | 'revenue-forecast' | 'milestone' = 'performance';
+  year = new Date().getFullYear();
+  actuals = true;
+  private sub?: Subscription;
   revenueWindow: 6 | 12 = 12;
   revenueMode: 'forecast' | 'budget' | 'variance' = 'forecast';
-  constructor(private service: CompanyDashboardService, private route: ActivatedRoute, private router: Router) {}
-  ngOnInit(): void { this.sub = this.route.queryParamMap.subscribe(q => { this.view = q.get('view') === 'revenue-forecast' ? 'revenue-forecast' : 'performance'; this.load(); }); }
+
+  // ===================== MILESTONE (company-wide) =====================
+  milestones: ProjectMilestone[] = [];
+  milestonesLoading = false;
+  milestonesLoaded = false;
+  timelineDays: TimelineDay[] = [];
+  timelineMonths: TimelineMonth[] = [];
+  dayWidth = 30;
+  msStartDate!: Date;
+  msEndDate!: Date;
+
+  statusFilter = 'ALL';
+  pmFilter = 'ALL';
+  statusMenuOpen = false;
+  pmMenuOpen = false;
+
+  constructor(
+    private service: CompanyDashboardService,
+    private milestoneService: MilestoneService,
+    private route: ActivatedRoute,
+    private router: Router
+  ) {}
+
+  ngOnInit(): void {
+    this.buildMilestoneDateRange();
+    this.sub = this.route.queryParamMap.subscribe(q => {
+      const v = q.get('view');
+      this.view = v === 'revenue-forecast' ? 'revenue-forecast' : v === 'milestone' ? 'milestone' : 'performance';
+      this.load();
+    });
+  }
+
   ngOnDestroy(): void { this.sub?.unsubscribe(); }
-  load(): void { this.loading = true; this.error = ''; this.service.getDashboard().subscribe({ next: d => { this.dashboard=d; this.service.getRevenueForecast(this.year).subscribe({ next: r => { this.revenue=r; this.loading=false; }, error: () => { this.error='Revenue forecast could not be loaded.'; this.loading=false; } }); }, error: () => { this.error='Project performance data could not be loaded.'; this.loading=false; } }); }
-  setView(view: 'performance' | 'revenue-forecast'): void { this.router.navigate([], { relativeTo: this.route, queryParams: { view }, queryParamsHandling: 'merge' }); }
+
+  load(): void {
+    this.loading = true;
+    this.error = '';
+    this.service.getDashboard().subscribe({
+      next: d => {
+        this.dashboard = d;
+        this.service.getRevenueForecast(this.year).subscribe({
+          next: r => {
+            this.revenue = r;
+            this.loading = false;
+            if (this.view === 'milestone') this.loadMilestones();
+          },
+          error: () => { this.error = 'Revenue forecast could not be loaded.'; this.loading = false; }
+        });
+      },
+      error: () => { this.error = 'Project performance data could not be loaded.'; this.loading = false; }
+    });
+  }
+
+  setView(view: 'performance' | 'revenue-forecast' | 'milestone'): void {
+    this.router.navigate([], { relativeTo: this.route, queryParams: { view }, queryParamsHandling: 'merge' });
+    if (view === 'milestone' && !this.milestonesLoaded) this.loadMilestones();
+  }
+
   changeYear(): void { this.load(); }
   back(): void { this.router.navigate(['/gm/command-center']); }
+
   pct(value: number, total: number): number { return total ? Math.round(value / total * 100) : 0; }
-  money(value: number | null | undefined): string { return new Intl.NumberFormat('en-IE', { style:'currency', currency:'EUR', notation:'compact', maximumFractionDigits:1 }).format(value || 0); }
+  money(value: number | null | undefined): string { return new Intl.NumberFormat('en-IE', { style: 'currency', currency: 'EUR', notation: 'compact', maximumFractionDigits: 1 }).format(value || 0); }
   cell(month: number, row: number[]): number { return row[month] || 0; }
   displayedMonths(r: RevenueForecast) { return r.months.slice(0, this.revenueWindow); }
   displayedValue(project: any, index: number): number {
@@ -33,4 +117,163 @@ export class ProjectPerformanceComponent implements OnInit, OnDestroy {
   }
   isCurrentMonth(key: string): boolean { return key === `${this.year}-${String(new Date().getMonth() + 1).padStart(2, '0')}`; }
   bestMonth(r: RevenueForecast): string { return r.months.reduce((best, month) => month.forecast > best.forecast ? month : best, r.months[0])?.label || '—'; }
+
+  // ===================== MILESTONE LOGIC =====================
+
+  private buildMilestoneDateRange(): void {
+    const today = new Date();
+    this.msStartDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    this.msEndDate = new Date(today.getFullYear(), today.getMonth() + 4, 0);
+    this.buildTimeline();
+  }
+
+  private buildTimeline(): void {
+    const days: TimelineDay[] = [];
+    const cursor = new Date(this.msStartDate);
+    while (cursor <= this.msEndDate) {
+      const dayOfWeek = cursor.getDay();
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+      days.push({
+        date: new Date(cursor),
+        label: cursor.getDate().toString().padStart(2, '0'),
+        isMonthStart: cursor.getDate() === 1,
+        isWeekend,
+        isHoliday: this.isHoliday(cursor),
+        holidayName: this.getHolidayName(cursor)
+      });
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    this.timelineDays = days;
+    this.buildMonths();
+  }
+
+  private buildMonths(): void {
+    const months: TimelineMonth[] = [];
+    let currentMonth = '';
+    let currentLabel = '';
+    let currentCount = 0;
+    this.timelineDays.forEach((day, index) => {
+      const monthKey = `${day.date.getFullYear()}-${day.date.getMonth()}`;
+      const label = day.date.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }).toUpperCase();
+      if (monthKey !== currentMonth) {
+        if (currentCount > 0) months.push({ label: currentLabel, width: currentCount * this.dayWidth });
+        currentMonth = monthKey;
+        currentLabel = label;
+        currentCount = 1;
+      } else {
+        currentCount++;
+      }
+      if (index === this.timelineDays.length - 1) months.push({ label: currentLabel, width: currentCount * this.dayWidth });
+    });
+    this.timelineMonths = months;
+  }
+
+  private isHoliday(date: Date): boolean {
+    const month = date.getMonth();
+    const day = date.getDate();
+    return (month === 4 && day === 1) || (month === 11 && day === 25);
+  }
+
+  private getHolidayName(date: Date): string | undefined {
+    const month = date.getMonth();
+    const day = date.getDate();
+    if (month === 4 && day === 1) return 'Labour Day';
+    if (month === 11 && day === 25) return 'Christmas';
+    return undefined;
+  }
+
+  loadMilestones(): void {
+    if (!this.dashboard?.projects?.length) { this.milestonesLoaded = true; return; }
+    this.milestonesLoading = true;
+    const projectIds = this.dashboard.projects.map((p: any) => p.id);
+    const startDateStr = this.formatDate(this.msStartDate);
+    const endDateStr = this.formatDate(this.msEndDate);
+    
+    // ✅ DEBUG : Vérifiez la console du navigateur (F12)
+    console.log('🔍 Loading milestones for projects:', projectIds, 'between', startDateStr, 'and', endDateStr);
+    
+    this.milestoneService.getMilestonesByDateRange(projectIds, startDateStr, endDateStr).subscribe({
+      next: (milestones) => { 
+        console.log('✅ Milestones received from API:', milestones);
+        this.milestones = milestones; 
+        this.milestonesLoading = false; 
+        this.milestonesLoaded = true; 
+      },
+      error: (err) => { 
+        console.error('❌ Failed to load milestones', err);
+        this.milestonesLoading = false; 
+        this.milestonesLoaded = true; 
+      }
+    });
+  }
+
+  formatDate(date: Date): string {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  }
+
+  getTimelineWidth(): number { return this.timelineDays.length * this.dayWidth; }
+
+  getMilestoneLeft(milestone: ProjectMilestone): number {
+    if (!milestone.milestoneDate) return -100;
+    const date = new Date(milestone.milestoneDate);
+    const dayIndex = this.timelineDays.findIndex(d => d.date.toDateString() === date.toDateString());
+    if (dayIndex === -1) return -100;
+    return dayIndex * this.dayWidth + (this.dayWidth / 2);
+  }
+
+  // ✅ CORRECTION CRITIQUE : Utiliser Number() pour éviter les échecs de comparaison string vs number
+  getMilestonesForProject(projectId: number | string): ProjectMilestone[] {
+    const numProjectId = Number(projectId);
+    const filtered = this.milestones.filter(m => Number(m.projectId) === numProjectId);
+    if (filtered.length > 0) {
+      console.log(`📊 Found ${filtered.length} milestones for project ${projectId}`);
+    }
+    return filtered;
+  }
+
+  getRowHeight(): number { return 32; }
+
+  // ============ FILTERS ============
+
+  get uniqueStatuses(): string[] {
+    const statuses = (this.dashboard?.projects ?? []).map((p: any) => p.health || p.phase || 'A');
+    return ['ALL', ...Array.from(new Set(statuses))].sort();
+  }
+
+  get uniquePMs(): string[] {
+    const pms = (this.dashboard?.projects ?? []).map((p: any) => p.manager || '—');
+    return ['ALL', ...Array.from(new Set(pms))].sort();
+  }
+
+  get filteredMilestoneProjects(): any[] {
+    return (this.dashboard?.projects ?? []).filter((project: any) => {
+      const statusMatch = this.statusFilter === 'ALL' || (project.health || project.phase || 'A') === this.statusFilter;
+      const pmMatch = this.pmFilter === 'ALL' || (project.manager || '—') === this.pmFilter;
+      return statusMatch && pmMatch;
+    });
+  }
+
+  toggleStatusMenu(): void { this.statusMenuOpen = !this.statusMenuOpen; this.pmMenuOpen = false; }
+  togglePMMenu(): void { this.pmMenuOpen = !this.pmMenuOpen; this.statusMenuOpen = false; }
+  setStatusFilter(status: string): void { this.statusFilter = status; this.statusMenuOpen = false; }
+  setPMFilter(pm: string): void { this.pmFilter = pm; this.pmMenuOpen = false; }
+
+  getPMInitials(project: any): string {
+    const name = project.manager;
+    if (!name || String(name).trim() === '') return '—';
+    const parts = String(name).trim().split(/\s+/);
+    if (parts.length >= 2) return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return '—';
+  }
+
+  // ✅ Synchronisation du scroll horizontal
+  onTimelineScroll(): void {
+    const timelineBodyEl = this.timelineBodyScroll?.nativeElement;
+    const timelineHeaderEl = this.timelineHeaderScroll?.nativeElement;
+    if (timelineBodyEl && timelineHeaderEl) {
+      timelineHeaderEl.scrollLeft = timelineBodyEl.scrollLeft;
+    }
+  }
+  
 }

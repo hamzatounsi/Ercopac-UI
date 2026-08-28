@@ -10,7 +10,7 @@ export interface CompanyDashboard {
   openActions: number; overdueActions: number;
   projects: CompanyProject[]; topRisks: CompanyRisk[]; alerts: CompanyAlert[];
 }
-export interface CompanyProject { name: string; code: string; manager: string | null; phase: string; progress: number; health: string; budget: number | null; }
+export interface CompanyProject { id: number; name: string; code: string; manager: string | null; phase: string; progress: number; health: string; budget: number | null; }
 export interface CompanyRisk { description: string; project: string; impact: string; probability: number | null; state: string; }
 export interface CompanyAlert { severity: 'critical' | 'warning'; title: string; detail: string; }
 export interface RevenueForecast { year: number; totalActual: number; totalForecast: number; totalBudget: number; variance: number; months: RevenueMonth[]; projects: RevenueProject[]; }
