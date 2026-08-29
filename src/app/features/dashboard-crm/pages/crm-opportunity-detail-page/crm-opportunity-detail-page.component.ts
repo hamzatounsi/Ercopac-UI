@@ -22,7 +22,7 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
   ngOnInit(): void { this.load(); }
   load(): void {
     this.loading = true;
-    forkJoin({ opportunity: this.crm.getOpportunity(this.orgId, this.id), stages: this.crm.getStages(this.orgId), accounts: this.crm.getAccounts(this.orgId), users: this.crm.getCrmUsers(this.orgId), teamUsers: this.crm.getOpportunityTeamUsers(this.orgId), categories: this.crm.getSupplyCategories(this.orgId), notes: this.crm.getNotes(this.orgId, this.id), attachments: this.crm.getAttachments(this.orgId, this.id), history: this.crm.getHistory(this.orgId, this.id), stageHistory: this.crm.getStageHistory(this.orgId, this.id) }).subscribe({
+    forkJoin({ opportunity: this.crm.getOpportunity(this.orgId, this.id), stages: this.crm.getStages(this.orgId), accounts: this.crm.getAccounts(this.orgId), users: this.crm.getCrmUsers(this.orgId), teamUsers: this.crm.getOpportunityTeamUsers(this.orgId), categories: this.crm.getOrganisationCategories(this.orgId), notes: this.crm.getNotes(this.orgId, this.id), attachments: this.crm.getAttachments(this.orgId, this.id), history: this.crm.getHistory(this.orgId, this.id), stageHistory: this.crm.getStageHistory(this.orgId, this.id) }).subscribe({
       next: r => { this.opportunity = r.opportunity; this.form = { ...r.opportunity, teamMembers: [...(r.opportunity.teamMembers || [])] }; this.stages = r.stages; this.accounts = r.accounts; this.users = r.users; this.teamUsers = r.teamUsers; this.categories = r.categories; this.notes = r.notes; this.attachments = r.attachments; this.history = r.history; this.stageHistory = r.stageHistory; this.loadContacts(); this.loading = false; },
       error: e => { this.error = e?.error?.message || 'Opportunity not found.'; this.loading = false; }
     });
@@ -42,7 +42,11 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
   remove(): void { if (!confirm('Delete this opportunity?')) return; this.crm.deleteOpportunity(this.orgId, this.id).subscribe({ next: () => this.router.navigate(['/crm/opportunities']), error: e => this.error = e?.error?.message || 'Unable to delete.' }); }
   scroll(id: string): void { this.host.nativeElement.querySelector('#' + id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
   money(value: number | null | undefined, currency = 'EUR'): string { return value ? new Intl.NumberFormat('en', { style: 'currency', currency, maximumFractionDigits: 0 }).format(value) : '—'; }
-  get totalValue(): number { return (this.form?.materialValue || 0) + (this.form?.servicesValue || 0); }
+  private cents(value: number | null | undefined): number { return Math.round((Number(value) || 0) * 100); }
+  private fromCents(value: number): number { return value / 100; }
+  get totalValue(): number { return this.fromCents(this.cents(this.form?.materialValue) + this.cents(this.form?.servicesValue)); }
+  get totalSalesSplit(): number { return this.fromCents(this.cents(this.form?.ercopacMaterialValue) + this.cents(this.form?.thirdPartyMaterialValue)); }
+  get totalResaleSplit(): number { return this.fromCents(this.cents(this.form?.ercopacResaleValue) + this.cents(this.form?.resaleValue)); }
   get account(): CrmAccount | undefined { return this.accounts.find(v => v.id === this.form?.accountId); }
   cycleDuration(): string { if (!this.opportunity?.createdAt) return '—'; const start = new Date(this.opportunity.createdAt); if (Number.isNaN(start.getTime())) return '—'; const days = Math.max(0, Math.floor((Date.now() - start.getTime()) / 86400000)); return days === 1 ? '1 day' : days + ' days'; }
   stageClass(stage: CrmPipelineStage): string { const current = this.stages.findIndex(v => v.id === this.opportunity?.stageId), index = this.stages.indexOf(stage); return index < current ? 'done' : index === current ? (stage.lost ? 'lost' : 'current') : ''; }

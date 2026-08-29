@@ -94,7 +94,7 @@
           <div class="activity-body">
             <div class="activity-desc">{{ act.description }}</div>
             <div class="activity-meta">
-              {{ timeAgo(act.createdAt) }}
+              {{ act.createdAt | crmDate }}
               <span *ngIf="act.userName"> · {{ act.userName }}</span>
             </div>
           </div>
@@ -135,7 +135,7 @@
               </span>
             </td>
             <td class="value-cell">{{ formatValue(opp.value) }}</td>
-            <td class="date-cell">{{ opp.closingDate | date:'dd/MM/yyyy' }}</td>
+            <td class="date-cell">{{ opp.closingDate | crmDate }}</td>
             <td>{{ opp.ownerName ? (opp.ownerName | slice:0:7) + '.' : '—' }}</td>
           </tr>
           <tr *ngIf="dashboard.closingThisMonth.length === 0">
