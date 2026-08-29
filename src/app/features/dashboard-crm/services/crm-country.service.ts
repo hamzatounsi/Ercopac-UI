@@ -2,6 +2,26 @@ import { Injectable } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
 export class CrmCountryService {
+  private readonly aliases: Readonly<Record<string, string>> = {
+    'usa': 'united states',
+    'us': 'united states',
+    'united states of america': 'united states',
+    'uk': 'united kingdom',
+    'gb': 'united kingdom',
+    'uae': 'united arab emirates',
+    'czech republic': 'czechia',
+    'russian federation': 'russia',
+    'republic of korea': 'south korea',
+    "democratic people's republic of korea": 'north korea',
+    "côte d’ivoire": 'ivory coast',
+    "côte d'ivoire": 'ivory coast',
+    'cote d ivoire': 'ivory coast',
+    'eswatini': 'swaziland',
+    'macedonia': 'north macedonia',
+    'bosnia and herzegovina': 'bosnia and herzegovina',
+    'bosnia and herz': 'bosnia and herzegovina',
+    'south sudan': 'south sudan'
+  };
   readonly countries = [
     'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina', 'Armenia', 'Australia', 'Austria', 'Azerbaijan',
     'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi',
@@ -30,5 +50,21 @@ export class CrmCountryService {
 
   options(current?: string | null): string[] {
     return current && !this.countries.includes(current) ? [current, ...this.countries] : this.countries;
+  }
+
+  /** Returns one stable country key for account input and Natural Earth feature names. */
+  canonical(value: string | null | undefined): string {
+    const normalised = (value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9]+/g, ' ')
+      .trim()
+      .toLowerCase();
+    return this.aliases[normalised] || normalised;
+  }
+
+  displayName(value: string | null | undefined): string {
+    const canonical = this.canonical(value);
+    return this.countries.find(country => this.canonical(country) === canonical) || value?.trim() || 'Unspecified';
   }
 }
