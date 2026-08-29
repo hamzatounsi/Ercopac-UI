@@ -10,7 +10,7 @@ import { CrmOpportunity } from '../models/crm-opportunity.model';
 import { CrmAccount } from '../models/crm-account.model';
 import { CrmAnalytics } from '../models/crm-analytics.model';
 import { CrmManagerTeamMember, CrmManagerView, CrmOpportunityAttachment, CrmOpportunityHistory,
-  CrmOpportunityNote, CrmOpportunityStageHistory, CrmReports, CrmSupplyCategory, CrmUser } from '../models/crm-detail.model';
+  CrmOpportunityNote, CrmOpportunityStageHistory, CrmReports, CrmSupplyCategory, CrmUser, CrmNotificationPreference } from '../models/crm-detail.model';
 
 @Injectable({ providedIn: 'root' })
 export class CrmService {
@@ -28,6 +28,8 @@ export class CrmService {
     return this.http.get<CrmAnalytics>(`${this.url(orgId)}/analytics`, { params });
   }
   getCrmUsers(orgId: number): Observable<CrmUser[]> { return this.http.get<CrmUser[]>(`${this.url(orgId)}/users`); }
+  getNotificationPreferences(orgId: number): Observable<CrmNotificationPreference> { return this.http.get<CrmNotificationPreference>(`${this.url(orgId)}/notification-preferences`); }
+  saveNotificationPreferences(orgId: number, dto: CrmNotificationPreference): Observable<CrmNotificationPreference> { return this.http.put<CrmNotificationPreference>(`${this.url(orgId)}/notification-preferences`, dto); }
   getOpportunityTeamUsers(orgId: number): Observable<CrmUser[]> { return this.http.get<CrmUser[]>(`${this.url(orgId)}/opportunities/team-users`); }
 
   getAccounts(orgId: number, search?: string): Observable<CrmAccount[]> {
@@ -44,10 +46,7 @@ export class CrmService {
   updateStage(orgId: number, id: number, dto: CrmPipelineStage): Observable<CrmPipelineStage> { return this.http.put<CrmPipelineStage>(`${this.url(orgId)}/stages/${id}`, dto); }
   deleteStage(orgId: number, id: number): Observable<void> { return this.http.delete<void>(`${this.url(orgId)}/stages/${id}`); }
 
-  getSupplyCategories(orgId: number): Observable<CrmSupplyCategory[]> { return this.http.get<CrmSupplyCategory[]>(`${this.url(orgId)}/supply-categories`); }
-  createSupplyCategory(orgId: number, dto: CrmSupplyCategory): Observable<CrmSupplyCategory> { return this.http.post<CrmSupplyCategory>(`${this.url(orgId)}/supply-categories`, dto); }
-  updateSupplyCategory(orgId: number, id: number, dto: CrmSupplyCategory): Observable<CrmSupplyCategory> { return this.http.put<CrmSupplyCategory>(`${this.url(orgId)}/supply-categories/${id}`, dto); }
-  deleteSupplyCategory(orgId: number, id: number): Observable<void> { return this.http.delete<void>(`${this.url(orgId)}/supply-categories/${id}`); }
+  getOrganisationCategories(orgId: number): Observable<CrmSupplyCategory[]> { return this.http.get<CrmSupplyCategory[]>(`${this.url(orgId)}/categories`); }
 
   getLeads(orgId: number, search?: string, status?: string, accountId?: number): Observable<CrmLead[]> {
     let params = new HttpParams();

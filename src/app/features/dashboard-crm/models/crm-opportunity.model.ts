@@ -5,6 +5,7 @@ export interface CrmOpportunity {
   id: number | null;
   name: string;
   accountName: string | null;
+  accountCountry: string | null;
   accountId: number | null;
   stageId: number | null;
   stageName: string | null;
@@ -42,7 +43,7 @@ export interface CrmOpportunity {
  
 export function emptyOpportunity(): CrmOpportunity {
   return {
-    id: null, name: '', accountName: '', accountId: null, stageId: null, stageName: null,
+    id: null, name: '', accountName: '', accountCountry: null, accountId: null, stageId: null, stageName: null,
     stageColor: null, value: null, currency: 'EUR', probability: 0,
     closingDate: null, ownerId: null, ownerName: null, leadId: null, contactName: null,
     supplyCategoryId: null, supplyCategoryName: null, opportunityType: 'BP', pipeline: 'MTO',

@@ -4,12 +4,13 @@ import { CrmAccount, emptyAccount } from '../../models/crm-account.model';
 import { CrmUser } from '../../models/crm-detail.model';
 import { CrmPermissionsService } from '../../services/crm-permissions.service';
 import { CrmService } from '../../services/crm.service';
+import { CrmCountryService } from '../../services/crm-country.service';
 
 @Component({ selector:'app-crm-accounts-page', templateUrl:'./crm-accounts-page.component.html', styleUrls:['./crm-accounts-page.component.scss'] })
 export class CrmAccountsPageComponent implements OnInit {
   orgId=this.crm.getOrgIdFromToken(); accounts:CrmAccount[]=[]; users:CrmUser[]=[]; search=''; view:'grid'|'list'='grid'; loading=true;
   showForm=false; saving=false; form=emptyAccount(); error='';
-  constructor(private crm:CrmService, private router:Router, public permissions:CrmPermissionsService){}
+  constructor(private crm:CrmService, private router:Router, public permissions:CrmPermissionsService, public countries:CrmCountryService){}
   ngOnInit():void{this.load();this.crm.getCrmUsers(this.orgId).subscribe(v=>this.users=v);}
   load():void{this.loading=true;this.crm.getAccounts(this.orgId,this.search).subscribe({next:v=>{this.accounts=v;this.loading=false;},error:e=>{this.error=this.message(e);this.loading=false;}});}
   openNew():void{this.form=emptyAccount();this.error='';this.showForm=true;}
