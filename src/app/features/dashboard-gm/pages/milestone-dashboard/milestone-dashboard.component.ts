@@ -169,21 +169,39 @@ export class MilestoneDashboardComponent implements OnInit {
     return this.timelineDays.length * this.dayWidth;
   }
 
+  // ✅ CORRECTION : Comparaison de date robuste (sans bug de fuseau horaire)
   getMilestoneLeft(milestone: ProjectMilestone): number {
     if (!milestone.milestoneDate) return -100;
     
-    const date = new Date(milestone.milestoneDate);
+    // Force l'interprétation en heure locale pour éviter le décalage d'un jour
+    const dateStr = milestone.milestoneDate.length === 10 ? milestone.milestoneDate + 'T00:00:00' : milestone.milestoneDate;
+    const date = new Date(dateStr);
+    
     const dayIndex = this.timelineDays.findIndex(d => 
-      d.date.toDateString() === date.toDateString()
+      d.date.getFullYear() === date.getFullYear() &&
+      d.date.getMonth() === date.getMonth() &&
+      d.date.getDate() === date.getDate()
     );
     
-    if (dayIndex === -1) return -100;
+    if (dayIndex === -1) {
+      console.warn('⚠️ [DEBUG] Date du milestone non trouvée dans la timeline:', milestone.milestoneDate, 'pour le projet', milestone.projectId);
+      return -100;
+    }
     
     return dayIndex * this.dayWidth + (this.dayWidth / 2);
   }
 
-  getMilestonesForProject(projectId: number): ProjectMilestone[] {
-    return this.milestones.filter(m => m.projectId === projectId);
+ 
+  // ✅ CORRECTION : Filtrage robuste avec logs pour vérifier
+  getMilestonesForProject(projectId: number | string): ProjectMilestone[] {
+    const numProjectId = Number(projectId);
+    const filtered = this.milestones.filter(m => Number(m.projectId) === numProjectId);
+    
+    if (filtered.length > 0) {
+      console.log(`🎯 [DEBUG] Projet ${projectId} a ${filtered.length} milestone(s) à afficher:`, filtered);
+    }
+    
+    return filtered;
   }
 
   getRowHeight(): number {
