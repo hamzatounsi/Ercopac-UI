@@ -22,12 +22,15 @@ interface TimelineMonth {
   styleUrls: ['./milestone-dashboard.component.scss']
 })
 export class MilestoneDashboardComponent implements OnInit {
-  // ✅ ViewChildren pour la synchronisation du scroll
   @ViewChild('timelineBodyScroll') timelineBodyScroll!: ElementRef<HTMLDivElement>;
   @ViewChild('timelineHeaderScroll') timelineHeaderScroll!: ElementRef<HTMLDivElement>;
 
   projects: any[] = [];
   milestones: ProjectMilestone[] = [];
+  
+  // ✅ NOUVEAU : Map pour stocker les milestones groupés par projet (évite la boucle infinie)
+  milestonesByProject = new Map<number | string, ProjectMilestone[]>();
+  
   timelineDays: TimelineDay[] = [];
   timelineMonths: TimelineMonth[] = [];
   dayWidth = 30;
@@ -35,7 +38,6 @@ export class MilestoneDashboardComponent implements OnInit {
   startDate!: Date;
   endDate!: Date;
 
-  // Filter properties
   statusFilter = 'ALL';
   pmFilter = 'ALL';
   statusMenuOpen = false;
@@ -125,18 +127,15 @@ export class MilestoneDashboardComponent implements OnInit {
     return undefined;
   }
 
-   loadData(): void {
-    console.log('🚀 [DEBUG] loadData() appelé. Chargement des projets...');
+  loadData(): void {
     this.loading = true;
     this.dashboardService.getProjects().subscribe({
       next: (projects) => {
-        console.log('✅ [DEBUG] Projets reçus du backend:', projects);
         this.projects = projects ?? [];
-        console.log('📊 [DEBUG] Nombre de projets chargés:', this.projects.length);
         this.loadAllMilestones();
       },
       error: (err) => {
-        console.error('❌ [DEBUG] Échec du chargement des projets:', err);
+        console.error('❌ Échec du chargement des projets:', err);
         this.loading = false;
       }
     });
@@ -144,7 +143,6 @@ export class MilestoneDashboardComponent implements OnInit {
 
   loadAllMilestones(): void {
     if (this.projects.length === 0) {
-      console.warn('⚠️ [DEBUG] Aucun projet trouvé, annulation du chargement des milestones.');
       this.loading = false;
       return;
     }
@@ -153,34 +151,32 @@ export class MilestoneDashboardComponent implements OnInit {
     const startDateStr = this.formatDate(this.startDate);
     const endDateStr = this.formatDate(this.endDate);
     
-    console.log('🔍 [DEBUG] Appel API pour les milestones avec les paramètres:');
-    console.log('   - projectIds:', projectIds);
-    console.log('   - startDate:', startDateStr);
-    console.log('   - endDate:', endDateStr);
-    
     this.milestoneService.getMilestonesByDateRange(projectIds, startDateStr, endDateStr).subscribe({
       next: (milestones) => {
-        console.log('✅ [DEBUG] Réponse brute de l\'API /milestones/range:', milestones);
-        console.log('📊 [DEBUG] Nombre total de milestones reçus:', milestones.length);
-        
-        // Afficher le détail du premier milestone pour vérifier la structure
-        if (milestones.length > 0) {
-          console.log('🔎 [DEBUG] Exemple du 1er milestone reçu:', milestones[0]);
-        } else {
-          console.warn('⚠️ [DEBUG] L\'API a renvoyé un tableau vide [] !');
-        }
-        
         this.milestones = milestones;
+        this.groupMilestonesByProject(); // ✅ APPEL DE LA NOUVELLE MÉTHODE
         this.loading = false;
       },
       error: (err) => {
-        console.error('❌ [DEBUG] Échec du chargement des milestones:', err);
-        console.error('   - Status:', err.status);
-        console.error('   - Message:', err.message);
+        console.error('❌ Échec du chargement des milestones:', err);
         this.loading = false;
       }
     });
   }
+
+  // ✅ NOUVELLE MÉTHODE : Pré-calcule les milestones par projet (exécuté 1 seule fois)
+  private groupMilestonesByProject(): void {
+    this.milestonesByProject.clear();
+    this.milestones.forEach(m => {
+      const pid = m.projectId;
+      if (!this.milestonesByProject.has(pid)) {
+        this.milestonesByProject.set(pid, []);
+      }
+      this.milestonesByProject.get(pid)!.push(m);
+    });
+    console.log('✅ Milestones groupés par projet avec succès.');
+  }
+
   formatDate(date: Date): string {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   }
@@ -192,9 +188,13 @@ export class MilestoneDashboardComponent implements OnInit {
   getMilestoneLeft(milestone: ProjectMilestone): number {
     if (!milestone.milestoneDate) return -100;
     
-    const date = new Date(milestone.milestoneDate);
+    const dateStr = milestone.milestoneDate.length === 10 ? milestone.milestoneDate + 'T00:00:00' : milestone.milestoneDate;
+    const date = new Date(dateStr);
+    
     const dayIndex = this.timelineDays.findIndex(d => 
-      d.date.toDateString() === date.toDateString()
+      d.date.getFullYear() === date.getFullYear() &&
+      d.date.getMonth() === date.getMonth() &&
+      d.date.getDate() === date.getDate()
     );
     
     if (dayIndex === -1) return -100;
@@ -202,22 +202,9 @@ export class MilestoneDashboardComponent implements OnInit {
     return dayIndex * this.dayWidth + (this.dayWidth / 2);
   }
 
-  getMilestonesForProject(projectId: number | string): ProjectMilestone[] {
-    const numProjectId = Number(projectId);
-    const filtered = this.milestones.filter(m => Number(m.projectId) === numProjectId);
-    
-    // Log uniquement si on trouve quelque chose, pour ne pas spammer la console
-    if (filtered.length > 0) {
-      console.log(`🎯 [DEBUG] getMilestonesForProject(${projectId}) a trouvé ${filtered.length} milestone(s):`, filtered);
-    }
-    
-    return filtered;
-  }
   getRowHeight(): number {
     return 32;
   }
-
-  // ================= FILTER METHODS =================
 
   get uniqueStatuses(): string[] {
     const statuses = this.projects.map(p => p.projectPhase || 'A');
@@ -257,8 +244,6 @@ export class MilestoneDashboardComponent implements OnInit {
     this.pmMenuOpen = false; 
   }
 
-  // ================= HELPER METHODS =================
-
   getPMInitials(project: any): string {
     const name = project.projectManagerName;
     if (!name || name.trim() === '') return '—';
@@ -272,7 +257,6 @@ export class MilestoneDashboardComponent implements OnInit {
     return '—';
   }
 
-  // ✅ Synchronisation du scroll horizontal
   onTimelineScroll(): void {
     const timelineBodyEl = this.timelineBodyScroll?.nativeElement;
     const timelineHeaderEl = this.timelineHeaderScroll?.nativeElement;
