@@ -127,19 +127,26 @@ export class MilestoneDashboardComponent implements OnInit {
     return undefined;
   }
 
-  loadData(): void {
-    this.loading = true;
-    this.dashboardService.getProjects().subscribe({
-      next: (projects) => {
-        this.projects = projects ?? [];
-        this.loadAllMilestones();
-      },
-      error: (err) => {
-        console.error('❌ Échec du chargement des projets:', err);
-        this.loading = false;
-      }
-    });
-  }
+loadData(): void {
+  console.log('🚀 [DEBUG] loadData() appelé. Chargement des projets...');
+  this.loading = true;
+  this.dashboardService.getProjects().subscribe({
+    next: (projects) => {
+      console.log('✅ [DEBUG] Projets reçus du backend:', projects);
+      this.projects = projects ?? [];
+      console.log('📊 [DEBUG] Nombre de projets chargés:', this.projects.length);
+      
+      // ✅ AJOUTEZ CETTE LIGNE POUR DEBUG:
+      console.log('🔍 [DEBUG] Premier projet:', this.projects[0]);
+      
+      this.loadAllMilestones();
+    },
+    error: (err) => {
+      console.error(' [DEBUG] Échec du chargement des projets:', err);
+      this.loading = false;
+    }
+  });
+}
 
   loadAllMilestones(): void {
     if (this.projects.length === 0) {
@@ -215,14 +222,19 @@ export class MilestoneDashboardComponent implements OnInit {
     const pms = this.projects.map(p => p.projectManagerName || '—');
     return ['ALL', ...Array.from(new Set(pms))].sort();
   }
-
-  get filteredProjects(): any[] {
-    return this.projects.filter(project => {
-      const statusMatch = this.statusFilter === 'ALL' || (project.projectPhase || 'A') === this.statusFilter;
-      const pmMatch = this.pmFilter === 'ALL' || (project.projectManagerName || '—') === this.pmFilter;
-      return statusMatch && pmMatch;
-    });
-  }
+get filteredProjects(): any[] {
+  const filtered = this.projects.filter(project => {
+    const statusMatch = this.statusFilter === 'ALL' || (project.projectPhase || 'A') === this.statusFilter;
+    const pmMatch = this.pmFilter === 'ALL' || (project.projectManagerName || '—') === this.pmFilter;
+    return statusMatch && pmMatch;
+  });
+  
+  // ✅ AJOUTEZ CETTE LIGNE POUR DEBUG:
+  console.log('📋 [DEBUG] filteredProjects:', filtered.length, 'projets affichés');
+  console.log(' [DEBUG] Premier projet filtré:', filtered[0]);
+  
+  return filtered;
+}
 
   toggleStatusMenu(): void { 
     this.statusMenuOpen = !this.statusMenuOpen; 
