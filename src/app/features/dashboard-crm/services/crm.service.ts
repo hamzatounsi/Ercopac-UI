@@ -10,7 +10,7 @@ import { CrmOpportunity } from '../models/crm-opportunity.model';
 import { CrmAccount } from '../models/crm-account.model';
 import { CrmAnalytics } from '../models/crm-analytics.model';
 import { CrmManagerTeamMember, CrmManagerView, CrmOpportunityAttachment, CrmOpportunityHistory,
-  CrmOpportunityNote, CrmOpportunityStageHistory, CrmReports, CrmSupplyCategory, CrmUser, CrmNotificationPreference } from '../models/crm-detail.model';
+  CrmOpportunityNote, CrmOpportunityStageHistory, CrmReports, CrmSupplyCategory, CrmUser, CrmNotificationPreference, CrmIndustry } from '../models/crm-detail.model';
 
 @Injectable({ providedIn: 'root' })
 export class CrmService {
@@ -40,6 +40,13 @@ export class CrmService {
   createAccount(orgId: number, dto: CrmAccount): Observable<CrmAccount> { return this.http.post<CrmAccount>(`${this.url(orgId)}/accounts`, dto); }
   updateAccount(orgId: number, id: number, dto: CrmAccount): Observable<CrmAccount> { return this.http.put<CrmAccount>(`${this.url(orgId)}/accounts/${id}`, dto); }
   deleteAccount(orgId: number, id: number): Observable<void> { return this.http.delete<void>(`${this.url(orgId)}/accounts/${id}`); }
+  getIndustries(orgId: number, includeInactive = false): Observable<CrmIndustry[]> {
+    const params = includeInactive ? new HttpParams().set('includeInactive', 'true') : undefined;
+    return this.http.get<CrmIndustry[]>(`${this.url(orgId)}/industries`, { params });
+  }
+  createIndustry(orgId: number, dto: CrmIndustry): Observable<CrmIndustry> { return this.http.post<CrmIndustry>(`${this.url(orgId)}/industries`, dto); }
+  updateIndustry(orgId: number, id: number, dto: CrmIndustry): Observable<CrmIndustry> { return this.http.put<CrmIndustry>(`${this.url(orgId)}/industries/${id}`, dto); }
+  deleteIndustry(orgId: number, id: number): Observable<void> { return this.http.delete<void>(`${this.url(orgId)}/industries/${id}`); }
 
   getStages(orgId: number): Observable<CrmPipelineStage[]> { return this.http.get<CrmPipelineStage[]>(`${this.url(orgId)}/stages`); }
   createStage(orgId: number, dto: CrmPipelineStage): Observable<CrmPipelineStage> { return this.http.post<CrmPipelineStage>(`${this.url(orgId)}/stages`, dto); }
