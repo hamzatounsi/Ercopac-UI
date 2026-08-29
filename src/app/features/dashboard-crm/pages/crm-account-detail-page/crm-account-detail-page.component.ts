@@ -7,10 +7,11 @@ import { CrmOpportunity } from '../../models/crm-opportunity.model';
 import { CrmUser } from '../../models/crm-detail.model';
 import { CrmPermissionsService } from '../../services/crm-permissions.service';
 import { CrmService } from '../../services/crm.service';
+import { CrmCountryService } from '../../services/crm-country.service';
 @Component({selector:'app-crm-account-detail-page',templateUrl:'./crm-account-detail-page.component.html',styleUrls:['./crm-account-detail-page.component.scss']})
 export class CrmAccountDetailPageComponent implements OnInit{
  orgId=this.crm.getOrgIdFromToken();id=Number(this.route.snapshot.paramMap.get('id'));account?:CrmAccount;form?:CrmAccount;leads:CrmLead[]=[];opportunities:CrmOpportunity[]=[];users:CrmUser[]=[];loading=true;editing=false;saving=false;error='';
- constructor(private crm:CrmService,private route:ActivatedRoute,private router:Router,public permissions:CrmPermissionsService){}
+ constructor(private crm:CrmService,private route:ActivatedRoute,private router:Router,public permissions:CrmPermissionsService,public countries:CrmCountryService){}
  ngOnInit():void{this.load();this.crm.getCrmUsers(this.orgId).subscribe(v=>this.users=v);}
  load():void{this.loading=true;forkJoin({account:this.crm.getAccount(this.orgId,this.id),leads:this.crm.getLeads(this.orgId,undefined,undefined,this.id),opps:this.crm.getOpportunities(this.orgId,{accountId:this.id})}).subscribe({next:r=>{this.account=r.account;this.form={...r.account};this.leads=r.leads;this.opportunities=r.opps;this.loading=false;},error:e=>{this.error=e?.error?.message||'Account not found.';this.loading=false;}});}
  save():void{if(!this.form)return;this.saving=true;this.crm.updateAccount(this.orgId,this.id,this.form).subscribe({next:v=>{this.account=v;this.form={...v};this.editing=false;this.saving=false;},error:e=>{this.error=e?.error?.message||'Unable to save.';this.saving=false;}});}

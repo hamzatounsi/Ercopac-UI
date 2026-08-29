@@ -125,15 +125,18 @@ export class MilestoneDashboardComponent implements OnInit {
     return undefined;
   }
 
-  loadData(): void {
+   loadData(): void {
+    console.log('🚀 [DEBUG] loadData() appelé. Chargement des projets...');
     this.loading = true;
     this.dashboardService.getProjects().subscribe({
       next: (projects) => {
+        console.log('✅ [DEBUG] Projets reçus du backend:', projects);
         this.projects = projects ?? [];
+        console.log('📊 [DEBUG] Nombre de projets chargés:', this.projects.length);
         this.loadAllMilestones();
       },
       error: (err) => {
-        console.error('Failed to load projects', err);
+        console.error('❌ [DEBUG] Échec du chargement des projets:', err);
         this.loading = false;
       }
     });
@@ -141,6 +144,7 @@ export class MilestoneDashboardComponent implements OnInit {
 
   loadAllMilestones(): void {
     if (this.projects.length === 0) {
+      console.warn('⚠️ [DEBUG] Aucun projet trouvé, annulation du chargement des milestones.');
       this.loading = false;
       return;
     }
@@ -149,18 +153,34 @@ export class MilestoneDashboardComponent implements OnInit {
     const startDateStr = this.formatDate(this.startDate);
     const endDateStr = this.formatDate(this.endDate);
     
+    console.log('🔍 [DEBUG] Appel API pour les milestones avec les paramètres:');
+    console.log('   - projectIds:', projectIds);
+    console.log('   - startDate:', startDateStr);
+    console.log('   - endDate:', endDateStr);
+    
     this.milestoneService.getMilestonesByDateRange(projectIds, startDateStr, endDateStr).subscribe({
       next: (milestones) => {
+        console.log('✅ [DEBUG] Réponse brute de l\'API /milestones/range:', milestones);
+        console.log('📊 [DEBUG] Nombre total de milestones reçus:', milestones.length);
+        
+        // Afficher le détail du premier milestone pour vérifier la structure
+        if (milestones.length > 0) {
+          console.log('🔎 [DEBUG] Exemple du 1er milestone reçu:', milestones[0]);
+        } else {
+          console.warn('⚠️ [DEBUG] L\'API a renvoyé un tableau vide [] !');
+        }
+        
         this.milestones = milestones;
         this.loading = false;
       },
       error: (err) => {
-        console.error('Failed to load milestones', err);
+        console.error('❌ [DEBUG] Échec du chargement des milestones:', err);
+        console.error('   - Status:', err.status);
+        console.error('   - Message:', err.message);
         this.loading = false;
       }
     });
   }
-
   formatDate(date: Date): string {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   }
@@ -191,19 +211,17 @@ export class MilestoneDashboardComponent implements OnInit {
     return dayIndex * this.dayWidth + (this.dayWidth / 2);
   }
 
- 
-  // ✅ CORRECTION : Filtrage robuste avec logs pour vérifier
   getMilestonesForProject(projectId: number | string): ProjectMilestone[] {
     const numProjectId = Number(projectId);
     const filtered = this.milestones.filter(m => Number(m.projectId) === numProjectId);
     
+    // Log uniquement si on trouve quelque chose, pour ne pas spammer la console
     if (filtered.length > 0) {
-      console.log(`🎯 [DEBUG] Projet ${projectId} a ${filtered.length} milestone(s) à afficher:`, filtered);
+      console.log(`🎯 [DEBUG] getMilestonesForProject(${projectId}) a trouvé ${filtered.length} milestone(s):`, filtered);
     }
     
     return filtered;
   }
-
   getRowHeight(): number {
     return 32;
   }

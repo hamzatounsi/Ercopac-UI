@@ -29,7 +29,7 @@
       <section class="card"><div class="card-header">Notes &amp; description</div><div class="card-body notes">{{ lead.notes || 'No notes recorded.' }}</div></section>
     </div>
     <aside class="stack">
-      <section class="card"><div class="card-header">Lead summary</div><div class="summary-row"><label>Status</label><strong>{{ statusLabels[lead.status].label }}</strong></div><div class="summary-row"><label>Source</label><strong>{{ lead.source.replace('_', ' ') }}</strong></div><div class="summary-row"><label>Owner</label><strong>{{ lead.ownerName || 'Unassigned' }}</strong></div><div class="summary-row"><label>Created</label><strong>{{ lead.createdAt | date:'mediumDate' }}</strong></div></section>
+      <section class="card"><div class="card-header">Lead summary</div><div class="summary-row"><label>Status</label><strong>{{ statusLabels[lead.status].label }}</strong></div><div class="summary-row"><label>Source</label><strong>{{ lead.source.replace('_', ' ') }}</strong></div><div class="summary-row"><label>Owner</label><strong>{{ lead.ownerName || 'Unassigned' }}</strong></div><div class="summary-row"><label>Created</label><strong>{{ lead.createdAt | crmDate }}</strong></div></section>
       <section class="card"><div class="card-header">Related opportunities <span class="badge">{{ opportunities.length }}</span></div><a class="related" *ngFor="let opportunity of opportunities" [routerLink]="['/crm/opportunities', opportunity.id]"><strong>{{ opportunity.name }}</strong><small>{{ opportunity.stageName }}</small></a><div class="empty" *ngIf="!opportunities.length">No related opportunities.</div></section>
       <div class="form-error" *ngIf="error">{{ error }}</div>
     </aside>

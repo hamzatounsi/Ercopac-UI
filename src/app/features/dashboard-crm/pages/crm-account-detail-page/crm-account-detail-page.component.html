@@ -32,7 +32,7 @@
         <form *ngIf="editing" class="card-body field-grid" (ngSubmit)="save()">
           <div class="field full"><label>Company name</label><input name="name" [(ngModel)]="form.name" required></div>
           <div class="field"><label>Industry</label><input name="industry" [(ngModel)]="form.industry"></div>
-          <div class="field"><label>Country</label><input name="country" [(ngModel)]="form.country"></div>
+          <div class="field"><label>Country</label><select name="country" [(ngModel)]="form.country"><option value="">Select country</option><option *ngFor="let country of countries.options(form.country)" [value]="country">{{ country }}</option></select></div>
           <div class="field"><label>City</label><input name="city" [(ngModel)]="form.city"></div>
           <div class="field"><label>Phone</label><input name="phone" [(ngModel)]="form.phone"></div>
           <div class="field"><label>Website</label><input name="website" [(ngModel)]="form.website"></div>
