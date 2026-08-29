@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { MilestoneService, ProjectMilestone } from '../../services/milestone.service';
 import { GmDashboardService } from '../../services/gm-dashboard.service';
 
@@ -22,6 +22,10 @@ interface TimelineMonth {
   styleUrls: ['./milestone-dashboard.component.scss']
 })
 export class MilestoneDashboardComponent implements OnInit {
+  // ✅ ViewChildren pour la synchronisation du scroll
+  @ViewChild('timelineBodyScroll') timelineBodyScroll!: ElementRef<HTMLDivElement>;
+  @ViewChild('timelineHeaderScroll') timelineHeaderScroll!: ElementRef<HTMLDivElement>;
+
   projects: any[] = [];
   milestones: ProjectMilestone[] = [];
   timelineDays: TimelineDay[] = [];
@@ -30,11 +34,6 @@ export class MilestoneDashboardComponent implements OnInit {
   loading = false;
   startDate!: Date;
   endDate!: Date;
-
-  // Editable dropdown properties
-  statusOptions = ['A', 'C', 'CCR', 'CLOSED', 'COMPLETED', 'ON_HOLD'];
-  pmOptions = ['FM', 'AI', 'EB', 'IS', '—'];
-  savingProjectId: number | null = null;
 
   // Filter properties
   statusFilter = 'ALL';
@@ -126,16 +125,18 @@ export class MilestoneDashboardComponent implements OnInit {
     return undefined;
   }
 
-  loadData(): void {
+   loadData(): void {
+    console.log('🚀 [DEBUG] loadData() appelé. Chargement des projets...');
     this.loading = true;
-    
     this.dashboardService.getProjects().subscribe({
       next: (projects) => {
+        console.log('✅ [DEBUG] Projets reçus du backend:', projects);
         this.projects = projects ?? [];
+        console.log('📊 [DEBUG] Nombre de projets chargés:', this.projects.length);
         this.loadAllMilestones();
       },
       error: (err) => {
-        console.error('Failed to load projects', err);
+        console.error('❌ [DEBUG] Échec du chargement des projets:', err);
         this.loading = false;
       }
     });
@@ -143,6 +144,7 @@ export class MilestoneDashboardComponent implements OnInit {
 
   loadAllMilestones(): void {
     if (this.projects.length === 0) {
+      console.warn('⚠️ [DEBUG] Aucun projet trouvé, annulation du chargement des milestones.');
       this.loading = false;
       return;
     }
@@ -151,18 +153,34 @@ export class MilestoneDashboardComponent implements OnInit {
     const startDateStr = this.formatDate(this.startDate);
     const endDateStr = this.formatDate(this.endDate);
     
+    console.log('🔍 [DEBUG] Appel API pour les milestones avec les paramètres:');
+    console.log('   - projectIds:', projectIds);
+    console.log('   - startDate:', startDateStr);
+    console.log('   - endDate:', endDateStr);
+    
     this.milestoneService.getMilestonesByDateRange(projectIds, startDateStr, endDateStr).subscribe({
       next: (milestones) => {
+        console.log('✅ [DEBUG] Réponse brute de l\'API /milestones/range:', milestones);
+        console.log('📊 [DEBUG] Nombre total de milestones reçus:', milestones.length);
+        
+        // Afficher le détail du premier milestone pour vérifier la structure
+        if (milestones.length > 0) {
+          console.log('🔎 [DEBUG] Exemple du 1er milestone reçu:', milestones[0]);
+        } else {
+          console.warn('⚠️ [DEBUG] L\'API a renvoyé un tableau vide [] !');
+        }
+        
         this.milestones = milestones;
         this.loading = false;
       },
       error: (err) => {
-        console.error('Failed to load milestones', err);
+        console.error('❌ [DEBUG] Échec du chargement des milestones:', err);
+        console.error('   - Status:', err.status);
+        console.error('   - Message:', err.message);
         this.loading = false;
       }
     });
   }
-
   formatDate(date: Date): string {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   }
@@ -184,83 +202,83 @@ export class MilestoneDashboardComponent implements OnInit {
     return dayIndex * this.dayWidth + (this.dayWidth / 2);
   }
 
-  getMilestonesForProject(projectId: number): ProjectMilestone[] {
-    return this.milestones.filter(m => m.projectId === projectId);
+  getMilestonesForProject(projectId: number | string): ProjectMilestone[] {
+    const numProjectId = Number(projectId);
+    const filtered = this.milestones.filter(m => Number(m.projectId) === numProjectId);
+    
+    // Log uniquement si on trouve quelque chose, pour ne pas spammer la console
+    if (filtered.length > 0) {
+      console.log(`🎯 [DEBUG] getMilestonesForProject(${projectId}) a trouvé ${filtered.length} milestone(s):`, filtered);
+    }
+    
+    return filtered;
   }
-
   getRowHeight(): number {
     return 32;
   }
 
-  // Filter methods
+  // ================= FILTER METHODS =================
+
   get uniqueStatuses(): string[] {
-    const statuses = this.projects.map(p => p.status || 'A');
+    const statuses = this.projects.map(p => p.projectPhase || 'A');
     return ['ALL', ...Array.from(new Set(statuses))].sort();
   }
-  
+
   get uniquePMs(): string[] {
-    const pms = this.projects.map(p => p.pmCode || p.projectManagerCode || '—');
+    const pms = this.projects.map(p => p.projectManagerName || '—');
     return ['ALL', ...Array.from(new Set(pms))].sort();
   }
-  
+
   get filteredProjects(): any[] {
     return this.projects.filter(project => {
-      const statusMatch = this.statusFilter === 'ALL' || (project.status || 'A') === this.statusFilter;
-      const pmMatch = this.pmFilter === 'ALL' || (project.pmCode || project.projectManagerCode || '—') === this.pmFilter;
+      const statusMatch = this.statusFilter === 'ALL' || (project.projectPhase || 'A') === this.statusFilter;
+      const pmMatch = this.pmFilter === 'ALL' || (project.projectManagerName || '—') === this.pmFilter;
       return statusMatch && pmMatch;
     });
   }
-  
+
   toggleStatusMenu(): void { 
     this.statusMenuOpen = !this.statusMenuOpen; 
     this.pmMenuOpen = false; 
   }
-  
+
   togglePMMenu(): void { 
     this.pmMenuOpen = !this.pmMenuOpen; 
     this.statusMenuOpen = false; 
   }
-  
+
   setStatusFilter(status: string): void { 
     this.statusFilter = status; 
     this.statusMenuOpen = false; 
   }
-  
+
   setPMFilter(pm: string): void { 
     this.pmFilter = pm; 
     this.pmMenuOpen = false; 
   }
 
-  // Editable dropdown methods
-  onProjectStatusChange(project: any, newStatus: string): void {
-    this.savingProjectId = project.id;
-    // 'as any' bypasses strict UpsertProjectRequest type checking for partial updates
-    this.dashboardService.updateProject(project.id, { status: newStatus } as any).subscribe({
-      next: () => {
-        project.status = newStatus;
-        this.savingProjectId = null;
-      },
-      error: (err) => {
-        console.error('Failed to update project status', err);
-        this.savingProjectId = null;
-        alert('Failed to update status. Please try again.');
-      }
-    });
+  // ================= HELPER METHODS =================
+
+  getPMInitials(project: any): string {
+    const name = project.projectManagerName;
+    if (!name || name.trim() === '') return '—';
+
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+    } else if (parts.length === 1) {
+      return parts[0].substring(0, 2).toUpperCase();
+    }
+    return '—';
   }
 
-  onProjectPmChange(project: any, newPm: string): void {
-    this.savingProjectId = project.id;
-    // 'as any' bypasses strict UpsertProjectRequest type checking for partial updates
-    this.dashboardService.updateProject(project.id, { pmCode: newPm === '—' ? null : newPm } as any).subscribe({
-      next: () => {
-        project.pmCode = newPm === '—' ? null : newPm;
-        this.savingProjectId = null;
-      },
-      error: (err) => {
-        console.error('Failed to update project PM', err);
-        this.savingProjectId = null;
-        alert('Failed to update PM. Please try again.');
-      }
-    });
+  // ✅ Synchronisation du scroll horizontal
+  onTimelineScroll(): void {
+    const timelineBodyEl = this.timelineBodyScroll?.nativeElement;
+    const timelineHeaderEl = this.timelineHeaderScroll?.nativeElement;
+    
+    if (timelineBodyEl && timelineHeaderEl) {
+      timelineHeaderEl.scrollLeft = timelineBodyEl.scrollLeft;
+    }
   }
 }
