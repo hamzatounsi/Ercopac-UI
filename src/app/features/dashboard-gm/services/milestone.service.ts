@@ -24,16 +24,20 @@ export class MilestoneService {
 
   constructor(private http: HttpClient) {}
 
-  getMilestoneTypes(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/types`);
+  getMilestoneTypes(projectId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/types`, { params: { projectId } });
   }
 
-  createMilestoneType(payload: any): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/types`, payload);
+  createMilestoneType(projectId: number, payload: any): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/projects/${projectId}/types`, payload);
   }
 
-  deleteMilestoneType(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/types/${id}`);
+  updateMilestoneType(projectId: number, id: number, payload: any): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/projects/${projectId}/types/${id}`, payload);
+  }
+
+  deleteMilestoneType(projectId: number, id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/projects/${projectId}/types/${id}`);
   }
 
   getMilestonesByDateRange(projectIds: number[], startDate: string, endDate: string): Observable<ProjectMilestone[]> {

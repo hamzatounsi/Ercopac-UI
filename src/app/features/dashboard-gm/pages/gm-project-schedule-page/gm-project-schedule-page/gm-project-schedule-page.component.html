@@ -231,9 +231,9 @@
       <span class="milestone-dot" [class.customer]="isCustomerMilestone(task)">◆</span>
       <select
         class="milestone-type-select"
-        [ngModel]="task.milestoneTypeId"
+        [ngModel]="selectedMilestoneTypeId(task)"
         [ngModelOptions]="{ standalone: true }"
-        (ngModelChange)="updateLocalTaskField(task, 'milestoneTypeId', $event); saveInlineTask(task)"
+        (ngModelChange)="selectMilestoneType(task, $event)"
         style="flex: 1; padding: 2px 4px; border: 1px solid #d1d5db; border-radius: 3px; font-size: 12px;"
       >
         <option [ngValue]="null">-- Select milestone --</option>
@@ -369,9 +369,9 @@
           <div class="cell editable-cell col-milestone" *ngIf="columnVisibility.milestone" (click)="$event.stopPropagation()">
             <select
               class="milestone-select"
-              [ngModel]="task.milestoneTypeId"
+              [ngModel]="selectedMilestoneTypeId(task)"
               [ngModelOptions]="{ standalone: true }"
-              (ngModelChange)="updateLocalTaskField(task, 'milestoneTypeId', $event); saveInlineTask(task)"
+        (ngModelChange)="selectMilestoneType(task, $event)"
             >
               <option [ngValue]="null">--</option>
               <option *ngFor="let mt of milestoneTypes" [ngValue]="mt.id" [style.background]="mt.color">
@@ -470,7 +470,7 @@
               <span class="gantt-label" *ngIf="!isSummary(task)">{{ getTaskLabel(task) }}</span>
             </div>
 
-            <div *ngIf="isMilestone(task)" class="gantt-milestone" [class.customer]="isCustomerMilestone(task)" [style.left.px]="getMilestoneLeft(task)" (contextmenu)="openContextMenu($event, task)"></div>
+            <div *ngIf="isMilestone(task)" class="gantt-milestone" [class.customer]="isCustomerMilestone(task)" [style.left.px]="getMilestoneLeft(task)" [style.background-color]="milestoneColor(task)" (contextmenu)="openContextMenu($event, task)"></div>
             <div *ngIf="isMilestone(task)" class="gantt-milestone-label" [style.left.px]="getMilestoneLeft(task) + 16">{{ task.name }}</div>
           </div>
 
@@ -1077,10 +1077,10 @@
     <div class="drawer-section-header">
       <div class="drawer-section-title">
         <span class="material-symbols-outlined sec-icon">flag</span>
-        <span>Milestone Types</span>
+        <span>Milestones</span>
       </div>
       <!-- ✅ NEW: Load Default Milestones Button -->
-      <button type="button" class="mini-outline-btn" (click)="loadDefaultMilestones()"  > 0">
+      <button type="button" class="mini-outline-btn" (click)="loadDefaultMilestones()">
         📥 Load Defaults
       </button>
     </div>
@@ -1088,9 +1088,8 @@
     <!-- Create New Milestone -->
     <div class="baseline-create-card" style="margin-bottom: 16px;">
       <div class="template-create-row">
-        <input type="text" class="template-name-input" [(ngModel)]="newMilestoneType.code" placeholder="Code (e.g. FAT)" style="width: 80px;" />
-        <input type="text" class="template-name-input" [(ngModel)]="newMilestoneType.label" placeholder="Label (e.g. SPEDIZIONE)" />
-        <input type="text" class="template-name-input" [(ngModel)]="newMilestoneType.letterCode" placeholder="Letter (e.g. F)" style="width: 60px;" />
+        <input type="text" class="template-name-input" [(ngModel)]="newMilestoneType.label" placeholder="Milestone name (e.g. FAT)" />
+        <input type="text" class="template-name-input" [(ngModel)]="newMilestoneType.code" placeholder="Code (optional)" style="width: 110px;" />
         
         <!-- ✅ IMPROVED: More Visible Color Picker -->
         <div style="display: flex; align-items: center; gap: 8px;">
@@ -1100,7 +1099,7 @@
                  title="Click to choose milestone color" />
         </div>
         
-        <button type="button" class="primary-action-btn" (click)="saveNewMilestoneType()">Add</button>
+        <button type="button" class="primary-action-btn" (click)="saveNewMilestoneType()">Add milestone</button>
       </div>
       <div style="font-size: 11px; color: #6b7280; margin-top: 8px; padding-left: 4px;">
         💡 Tip: Click "Load Defaults" to add all 13 standard milestones (RT, KOM, FAT, SPEDIZIONE, etc.) with their colors
@@ -1112,14 +1111,28 @@
       <div class="calendar-avatar" [style.background]="mt.color" style="color: white; font-weight: bold; display: flex; align-items: center; justify-content: center;">
         {{ mt.letterCode || mt.code }}
       </div>
-      <div class="list-card-main">
+      <div class="list-card-main" *ngIf="editingMilestoneType?.id !== mt.id; else editMilestoneType">
         <div class="list-card-title">{{ mt.code }} - {{ mt.label }}</div>
         <div class="list-card-sub">Letter: {{ mt.letterCode || '—' }}</div>
       </div>
+      <ng-template #editMilestoneType>
+        <div class="list-card-main template-create-row">
+          <input class="template-name-input" [(ngModel)]="editingMilestoneType.label" placeholder="Milestone name" />
+          <input class="template-name-input" [(ngModel)]="editingMilestoneType.code" placeholder="Code" style="width: 90px;" />
+          <input type="color" [(ngModel)]="editingMilestoneType.color" title="Milestone colour" />
+        </div>
+      </ng-template>
       <div class="list-card-actions">
+        <ng-container *ngIf="editingMilestoneType?.id === mt.id; else viewActions">
+          <button type="button" class="icon-square-btn" (click)="saveMilestoneTypeEdit()" title="Save milestone"><span class="material-symbols-outlined">check</span></button>
+          <button type="button" class="icon-square-btn" (click)="cancelMilestoneTypeEdit()" title="Cancel edit"><span class="material-symbols-outlined">close</span></button>
+        </ng-container>
+        <ng-template #viewActions>
+          <button type="button" class="icon-square-btn" (click)="beginEditMilestoneType(mt)" title="Edit milestone"><span class="material-symbols-outlined">edit</span></button>
         <button type="button" class="icon-square-btn danger" (click)="deleteMilestoneType(mt.id)">
           <span class="material-symbols-outlined">delete</span>
         </button>
+        </ng-template>
       </div>
     </div>
 
