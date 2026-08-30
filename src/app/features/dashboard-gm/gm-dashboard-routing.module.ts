@@ -51,12 +51,18 @@ const routes: Routes = [
         canActivate: [RoleGuard], data: { roles: companyDashboardRoles }
       },
     
-   {
-  path: 'projects/:id/milestones',
-  component:MilestoneDashboardComponent, // Or create a separate MilestoneComponent
-  canActivate: [RoleGuard],
-  data: { roles: projectumAccessRoles }
-},
+      {
+        path: 'milestones',
+        component: MilestoneDashboardComponent,
+        canActivate: [RoleGuard],
+        data: { roles: projectumAccessRoles }
+      },
+      {
+        path: 'projects/:id/milestones',
+        component: MilestoneDashboardComponent,
+        canActivate: [RoleGuard],
+        data: { roles: projectumAccessRoles }
+      },
       { path: 'command-center', component: CompanyDashboardComponent, canActivate: [RoleGuard], data: { roles: companyDashboardRoles } },
       { path: 'command-center/project-performance', component: ProjectPerformanceComponent, canActivate: [RoleGuard], data: { roles: companyDashboardRoles } },
       {

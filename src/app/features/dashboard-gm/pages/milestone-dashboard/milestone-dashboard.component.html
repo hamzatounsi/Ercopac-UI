@@ -1,104 +1,13 @@
-<div class="milestone-dashboard-page">
-  <div class="dashboard-header">
-    <h1>Project Milestones Dashboard</h1>
-    <p>Overview of all project milestones for the selected period</p>
-  </div>
-
-  <!-- Filter Toolbar -->
-  <div class="filter-toolbar" *ngIf="projects.length > 0">
-    <div class="filter-group">
-      <span class="filter-label">STAT:</span>
-      <div class="filter-dropdown" (click)="toggleStatusMenu()">
-        <span>{{ statusFilter }}</span>
-        <span class="material-symbols-outlined">expand_more</span>
-      </div>
-      <div class="dropdown-menu" *ngIf="statusMenuOpen">
-        <div *ngFor="let status of uniqueStatuses" class="dropdown-item" [class.active]="status === statusFilter" (click)="setStatusFilter(status)">{{ status }}</div>
-      </div>
-    </div>
-    
-    <!-- ✅ CORRECTION 1 : Utiliser la logique PM (qui existe dans ton TS) au lieu de DEPT -->
-    <div class="filter-group">
-      <span class="filter-label">PM:</span>
-      <div class="filter-dropdown" (click)="togglePMMenu()">
-        <span>{{ pmFilter }}</span>
-        <span class="material-symbols-outlined">expand_more</span>
-      </div>
-      <div class="dropdown-menu" *ngIf="pmMenuOpen">
-        <div *ngFor="let pm of uniquePMs" class="dropdown-item" [class.active]="pm === pmFilter" (click)="setPMFilter(pm)">{{ pm }}</div>
-      </div>
-    </div>
-    
-    <!-- ✅ CORRECTION 2 : Utiliser setPMFilter au lieu de setDepartmentFilter -->
-    <button class="clear-filters-btn" (click)="setStatusFilter('ALL'); setPMFilter('ALL')">Clear Filters</button>
-  </div>
-
-  <div *ngIf="loading" class="loading-state">Loading milestones...</div>
-
-  <div *ngIf="!loading && filteredProjects.length === 0" class="empty-state">
-    <p>No projects found matching the selected filters.</p>
-  </div>
-
-  <div *ngIf="!loading && filteredProjects.length > 0" class="dashboard-content">
-    <!-- Timeline Header -->
-    <div class="timeline-header">
-      <div class="project-columns-header">
-        <div class="col-project">PROJECT</div>
-        <div class="col-stat">STAT</div>
-        <div class="col-pm">PM</div> <!-- ✅ Corrigé de "dep" à "PM" -->
-      </div>
-      
-      <!-- ✅ CORRECTION 3 : Ajout de #timelineHeaderScroll pour la synchronisation du scroll -->
-      <div class="timeline-scroll-header" #timelineHeaderScroll>
-        <div class="timeline-header-content" [style.width.px]="getTimelineWidth()">
-          <div class="month-row">
-            <div *ngFor="let month of timelineMonths" class="month-cell" [style.width.px]="month.width">{{ month.label }}</div>
-          </div>
-          <div class="day-row">
-            <div *ngFor="let day of timelineDays" class="day-cell" [class.weekend]="day.isWeekend" [class.holiday]="day.isHoliday" [class.month-start]="day.isMonthStart" [style.width.px]="dayWidth">{{ day.label }}</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Timeline Body -->
-    <!-- ✅ CORRECTION 4 : Ajout de (scroll)="onTimelineScroll()" pour synchroniser le défilement -->
-    <div class="timeline-body" #timelineBodyScroll (scroll)="onTimelineScroll()">
-      <div *ngFor="let project of filteredProjects" class="project-row" [style.height.px]="getRowHeight()">
-        
-        <!-- Project Columns -->
-        <div class="project-columns">
-          <div class="col-project">
-            <span class="project-code">{{ project.code }}</span>
-            <span class="project-name" *ngIf="project.name"> - {{ project.name }}</span>
-          </div>
-          
-          <!-- STAT (read-only) -->
-          <div class="col-stat">
-            <span class="readonly-value">{{ project.projectPhase || 'A' }}</span>
-          </div>
-          
-          <!-- ✅ CORRECTION 5 : Afficher les initiales du PM au lieu du code département -->
-          <div class="col-pm">
-            <span class="initials-badge">{{ getPMInitials(project) }}</span>
-          </div>
-        </div>
-
-        <!-- Timeline Grid -->
-        <div class="timeline-grid" [style.width.px]="getTimelineWidth()">
-          <!-- Background Grid Lines -->
-          <div *ngFor="let day of timelineDays" class="grid-line" [class.weekend]="day.isWeekend" [class.holiday]="day.isHoliday" [style.width.px]="dayWidth"></div>
-          
-          <!-- ✅ CORRECTION 6 : Supprimer taskWbsCode et milestoneTypeLetterCode qui n'existent pas, garder uniquement milestoneTypeCode -->
-          <div *ngFor="let milestone of getMilestonesForProject(project.id)" 
-               class="milestone-marker"
-               [style.left.px]="getMilestoneLeft(milestone)"
-               [style.background-color]="milestone.milestoneTypeColor || '#999'"
-               [title]="milestone.milestoneTypeLabel + ' - ' + milestone.milestoneDate">
-            <span class="milestone-letter">{{ milestone.milestoneTypeCode || '—' }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+<main class="milestone-page">
+  <app-projectum-workspace-header title="Project milestones" subtitle="Scheduled milestones by project." [showProjectModules]="false">
+    <div projectumHeaderActions class="date-filter"><label>From <input type="date" [(ngModel)]="startDate"></label><label>To <input type="date" [(ngModel)]="endDate"></label><button type="button" (click)="loadMilestones()">Apply</button></div>
+  </app-projectum-workspace-header>
+  <p *ngIf="errorMessage" class="message error">{{ errorMessage }}</p><p *ngIf="loading" class="message">Loading milestones…</p>
+  <section *ngIf="!loading && !projects.length" class="empty-state">No accessible projects.</section>
+  <section *ngIf="!loading && projects.length" class="timeline-card">
+    <div class="timeline-scroll"><div class="timeline-table" [style.min-width.px]="timelineWidth">
+      <div class="timeline-header"><div class="project-column sticky">Project</div><div class="months"><div *ngFor="let month of months" [style.width.%]="month.width">{{ month.label }}</div></div></div>
+      <div *ngFor="let project of projects; trackBy: trackProject" class="timeline-row"><div class="project-column sticky"><strong>{{ projectTitle(project) }}</strong><span *ngIf="project.code">{{ project.code }}</span></div><div class="track"><span *ngFor="let milestone of milestonesFor(project.id); trackBy: trackMilestone" class="marker" [style.left.%]="milestoneOffset(milestone)" [style.background-color]="milestone.milestoneTypeColor" [title]="(milestone.milestoneTypeLabel || milestone.milestoneTypeCode) + ' — ' + formatDate(milestone.milestoneDate)">{{ milestone.milestoneTypeCode }}</span></div></div>
+    </div></div>
+  </section>
+</main>
