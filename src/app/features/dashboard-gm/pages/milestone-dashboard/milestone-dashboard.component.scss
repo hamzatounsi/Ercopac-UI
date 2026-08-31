@@ -1,1 +1,106 @@
-.milestone-page{padding:24px;color:#172033}.page-header{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:20px}.eyebrow{margin:0;color:#697386;font-size:11px;font-weight:700;letter-spacing:.1em}.page-header h1{margin:4px 0;font-size:28px}.page-header p{margin:0;color:#697386}.date-filter{display:flex;gap:8px;align-items:flex-end}.date-filter label{display:grid;gap:4px;font-size:12px;color:#697386}.date-filter input,.date-filter button{padding:8px;border:1px solid #d9e0eb;border-radius:7px;background:#fff}.date-filter button{background:#214bb7;color:#fff}.timeline-card{border:1px solid #e4e9f1;border-radius:14px;background:#fff;overflow:hidden}.timeline-scroll{overflow:auto}.timeline-table{min-width:900px}.timeline-header,.timeline-row{display:flex;min-height:68px}.timeline-header{min-height:44px;background:#f7f9fc;border-bottom:1px solid #e4e9f1}.project-column{width:250px;min-width:250px;padding:13px 16px;border-right:1px solid #e4e9f1;background:#fff;display:grid;align-content:center;gap:3px}.sticky{position:sticky;left:0;z-index:2}.timeline-header .project-column{background:#f7f9fc;font-size:12px;text-transform:uppercase;color:#697386}.project-column span{font-size:12px;color:#697386}.months{display:flex;flex:1}.months div{padding:14px 10px;border-right:1px solid #e4e9f1;font-size:11px;font-weight:700;color:#697386}.timeline-row{border-bottom:1px solid #edf0f5}.track{position:relative;flex:1;background:repeating-linear-gradient(90deg,transparent 0,transparent calc(25% - 1px),#edf0f5 25%)}.marker{position:absolute;top:21px;transform:translateX(-50%);min-width:25px;padding:4px 5px;border-radius:5px;color:#fff;font-size:11px;font-weight:800;text-align:center;box-shadow:0 2px 5px #0002}.message,.empty-state{padding:14px;border-radius:10px;background:#eef3ff}.error{color:#b42318;background:#fff0f0}@media(max-width:720px){.milestone-page{padding:16px}.page-header{align-items:stretch;flex-direction:column}}
+$border: #e4e9f1;
+$border-light: #edf0f5;
+$text-muted: #697386;
+$text: #172033;
+$accent: #214bb7;
+$weekend-bg: #f7f9fc;
+$fixed-width: 320px;
+$col-stat: 70px;
+$col-pm: 60px;
+
+.milestone-page { padding: 24px; color: $text; }
+
+.date-filter {
+  display: flex; gap: 8px; align-items: flex-end;
+  label { display: grid; gap: 4px; font-size: 12px; color: $text-muted; }
+  input, button { padding: 8px 10px; border: 1px solid #d9e0eb; border-radius: 7px; background: #fff; font-size: 13px; }
+  button { background: $accent; color: #fff; border-color: $accent; cursor: pointer; }
+}
+
+.message, .empty-state { padding: 14px; border-radius: 10px; background: #eef3ff; }
+.error { color: #b42318; background: #fff0f0; }
+
+.timeline-card {
+  border: 1px solid $border;
+  border-radius: 14px;
+  background: #fff;
+  overflow: hidden;
+}
+
+/* ⚠️ UN SEUL conteneur de scroll (x + y) pour header + body */
+.timeline-scroll {
+  overflow: auto;
+  max-height: 644px;
+}
+
+.timeline-content {
+  display: flex;
+  flex-direction: column;
+  min-width: max-content;
+}
+
+/* ---- Header : sticky top ---- */
+.header-block {
+  display: flex;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.fixed-cols {
+  display: flex;
+  width: $fixed-width;
+  min-width: $fixed-width;
+  flex-shrink: 0;
+  border-right: 2px solid $border;
+  position: sticky;   // ← colonnes fixes sticky left, dans le MÊME conteneur de scroll
+  left: 0;
+  background: #fff;
+}
+
+.fixed-cols--header {
+  background: $weekend-bg;
+  z-index: 6;          // au-dessus de tout (coin haut-gauche)
+  border-bottom: 2px solid $border;
+}
+.fixed-cols--body { z-index: 4; }
+
+.col {
+  display: flex; align-items: center; padding: 0 12px;
+  border-right: 1px solid $border;
+  &:last-child { border-right: none; }
+}
+.col--project { flex: 1; flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; padding: 8px 14px; }
+.col--stat { width: $col-stat; justify-content: center; }
+.col--pm { width: $col-pm; justify-content: center; }
+
+.fixed-cols--header .col {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: $text-muted;
+}
+
+.project-name { font-size: 13px; color: $text; }
+.project-code { font-size: 11px; color: $text-muted; }
+
+.stat-badge { padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; background: #eef1f6; color: #374151; white-space: nowrap; }
+
+.pm-avatar { width: 28px; height: 28px; border-radius: 50%; background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 10px; }
+
+.header-timeline { display: flex; flex-direction: column; background: $weekend-bg; border-bottom: 2px solid $border; }
+.months-row { display: flex; border-bottom: 1px solid $border; height: 32px; }
+.month-cell { display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; color: $text-muted; border-right: 1px solid #d1d5db; flex-shrink: 0; }
+.days-row { display: flex; height: 22px; }
+.day-cell { display: flex; align-items: center; justify-content: center; font-size: 9px; color: $text-muted; border-right: 1px solid $border-light; flex-shrink: 0; &.is-weekend { background: $weekend-bg; color: #b7bfcc; } }
+
+/* ---- Body ---- */
+.timeline-row { display: flex; min-height: 48px; border-bottom: 1px solid $border-light; background: #fff; &:hover { background: #fafbfd; } &:hover .fixed-cols--body { background: #fafbfd; } }
+
+.timeline-track { position: relative; flex-shrink: 0; }
+.track-grid { position: absolute; inset: 0; display: flex; }
+.grid-day { flex-shrink: 0; border-right: 1px solid $border-light; &.is-weekend { background: #fbfcfe; } }
+
+.marker { position: absolute; top: 50%; transform: translate(-50%, -50%); padding: 3px 7px; border-radius: 5px; color: #fff; font-size: 10px; font-weight: 700; white-space: nowrap; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,.15); z-index: 1; }
+
+@media (max-width: 720px) {
+  .milestone-page { padding: 16px; }
+  .fixed-cols { width: 220px; min-width: 220px; }
+}
