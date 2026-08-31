@@ -161,6 +161,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
 settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
    milestoneTypes: any[] = [];
    newMilestoneType = { code: '', label: '', color: '#cccccc', letterCode: '' };
+   editingMilestoneType: any | null = null;
   history: GmProjectScheduleTask[][] = [];
   future: GmProjectScheduleTask[][] = [];
 
@@ -446,7 +447,10 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
     ).subscribe({
       next: (res) => {
         try {
-          this.tasks = (res ?? []).sort(
+          this.tasks = (res ?? []).map(task => ({
+            ...task,
+            milestoneTypeId: task.milestoneTypeId == null ? null : Number(task.milestoneTypeId)
+          })).sort(
             (a, b) => ((a.displayOrder ?? 0) - (b.displayOrder ?? 0)) || (a.id - b.id)
           );
 
@@ -2653,10 +2657,10 @@ if (this.columnVisibility.baselineEnd) total += 95;
   }
   loadMilestoneTypes(): void {
   console.log('Loading milestones...'); // Debug log
-  this.milestoneService.getMilestoneTypes().subscribe({
+  this.milestoneService.getMilestoneTypes(this.projectId).subscribe({
     next: (types) => {
       console.log('Milestones loaded:', types); // Debug log
-      this.milestoneTypes = types ?? [];
+      this.milestoneTypes = (types ?? []).map(type => ({ ...type, id: Number(type.id) }));
     },
     error: (err) => {
       console.error('Failed to load milestone types', err);
@@ -2666,8 +2670,14 @@ if (this.columnVisibility.baselineEnd) total += 95;
 }
 
   saveNewMilestoneType(): void {
-    if (!this.newMilestoneType.code || !this.newMilestoneType.label) return;
-    this.milestoneService.createMilestoneType(this.newMilestoneType).subscribe({
+    const name = this.newMilestoneType.label.trim();
+    if (!name) return;
+    const payload = {
+      ...this.newMilestoneType,
+      label: name,
+      code: this.newMilestoneType.code.trim() || name.slice(0, 20).toUpperCase()
+    };
+    this.milestoneService.createMilestoneType(this.projectId, payload).subscribe({
       next: (created) => {
         this.milestoneTypes.push(created);
         this.newMilestoneType = { code: '', label: '', color: '#cccccc', letterCode: '' };
@@ -2676,6 +2686,8 @@ if (this.columnVisibility.baselineEnd) total += 95;
     });
   }
  loadDefaultMilestones(): void {
+  this.loadMilestoneTypes();
+  return;
   // ✅ Shortened labels to fit VARCHAR(20) database limit
   const defaultMilestones = [
     { code: 'RT', label: 'RT', letterCode: '', color: '#7FFFD4' },
@@ -2701,7 +2713,7 @@ if (this.columnVisibility.baselineEnd) total += 95;
   let skippedCount = 0;
 
   defaultMilestones.forEach((milestone) => {
-    this.milestoneService.createMilestoneType(milestone).subscribe({
+    this.milestoneService.createMilestoneType(this.projectId, milestone).subscribe({
       next: (created) => {
         this.milestoneTypes.push(created);
         createdCount++;
@@ -2721,10 +2733,48 @@ if (this.columnVisibility.baselineEnd) total += 95;
 
   deleteMilestoneType(id: number): void {
     if (!confirm('Delete this milestone type?')) return;
-    this.milestoneService.deleteMilestoneType(id).subscribe({
+    this.milestoneService.deleteMilestoneType(this.projectId, id).subscribe({
       next: () => { this.milestoneTypes = this.milestoneTypes.filter(m => m.id !== id); },
       error: (err) => console.error('Failed to delete milestone type', err)
     });
+  }
+  beginEditMilestoneType(milestoneType: any): void {
+    this.editingMilestoneType = { ...milestoneType };
+  }
+  cancelMilestoneTypeEdit(): void {
+    this.editingMilestoneType = null;
+  }
+  saveMilestoneTypeEdit(): void {
+    const edited = this.editingMilestoneType;
+    if (!edited || !edited.label?.trim()) return;
+    const payload = {
+      ...edited,
+      label: edited.label.trim(),
+      code: edited.code?.trim() || edited.label.trim().slice(0, 20).toUpperCase()
+    };
+    this.milestoneService.updateMilestoneType(this.projectId, edited.id, payload).subscribe({
+      next: (saved) => {
+        this.milestoneTypes = this.milestoneTypes.map(item => item.id === saved.id ? saved : item);
+        this.editingMilestoneType = null;
+      },
+      error: (err) => console.error('Failed to update milestone type', err)
+    });
+  }
+  selectedMilestoneTypeId(task: GmProjectScheduleTask): number | null {
+    return task.milestoneTypeId == null ? null : Number(task.milestoneTypeId);
+  }
+  selectMilestoneType(task: GmProjectScheduleTask, milestoneTypeId: number | string | null): void {
+    const selectedId = milestoneTypeId == null ? null : Number(milestoneTypeId);
+    this.updateLocalTaskField(task, 'milestoneTypeId', selectedId);
+    const type = this.milestoneTypes.find(item => Number(item.id) === selectedId);
+    if (type) {
+      task.name = type.label;
+      task.color = type.color;
+    }
+    this.saveInlineTask(task);
+  }
+  milestoneColor(task: GmProjectScheduleTask): string {
+    return this.milestoneTypes.find(item => item.id === task.milestoneTypeId)?.color || task.color || '#64748b';
   }
   formatDateForInput(value?: string | null): string { return value ?? ''; }
 
