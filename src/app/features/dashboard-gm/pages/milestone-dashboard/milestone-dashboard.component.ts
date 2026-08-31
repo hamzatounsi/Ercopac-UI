@@ -1,26 +1,38 @@
-import { Component, OnInit } from '@angular/core';
 import { GmDashboardService } from '../../services/gm-dashboard.service';
 import { MilestoneService, ProjectMilestone } from '../../services/milestone.service';
-
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 @Component({
   selector: 'app-milestone-dashboard',
   templateUrl: './milestone-dashboard.component.html',
   styleUrls: ['./milestone-dashboard.component.scss']
 })
 export class MilestoneDashboardComponent implements OnInit {
+  // ✅ Contexte projet (repris de la route, même logique que Finance) — utilisé
+  // uniquement pour l'affichage du header (badge projet + barre d'onglets).
+  // Ne filtre PAS le tableau : celui-ci reste global (tous les projets).
+  projectId: number | null = null;
+  projectName = '';
+
   projects: any[] = [];
   milestones: ProjectMilestone[] = [];
   loading = false;
   errorMessage = '';
   startDate = this.toDateInput(new Date(new Date().getFullYear() - 1, 0, 1));
   endDate = this.toDateInput(new Date(new Date().getFullYear() + 5, 11, 31));
+  
+  // ✅ Largeur fixe par jour en pixels (comme ta version originale qui marchait)
+  dayWidth = 30;
 
   constructor(
+    private readonly route: ActivatedRoute,
     private readonly milestoneService: MilestoneService,
     private readonly dashboardService: GmDashboardService
   ) {}
 
   ngOnInit(): void {
+    const idParam = this.route.snapshot.paramMap.get('id');
+    this.projectId = idParam ? Number(idParam) : null;
     this.loadData();
   }
 
@@ -30,6 +42,7 @@ export class MilestoneDashboardComponent implements OnInit {
     this.dashboardService.getProjects().subscribe({
       next: projects => {
         this.projects = projects ?? [];
+        this.resolveProjectName();
         this.loadMilestones();
       },
       error: () => {
@@ -38,6 +51,14 @@ export class MilestoneDashboardComponent implements OnInit {
         this.errorMessage = 'Projects could not be loaded. Please try again.';
       }
     });
+  }
+
+  // ✅ Résout le nom du projet courant pour le badge du header (même logique que Finance).
+  // N'affecte pas la liste `projects` ni le tableau des milestones.
+  private resolveProjectName(): void {
+    if (!this.projectId) { this.projectName = ''; return; }
+    const project = this.projects.find((p: any) => Number(p.id) === this.projectId);
+    this.projectName = project?.name || project?.projectName || `Project #${this.projectId}`;
   }
 
   loadMilestones(): void {
@@ -68,10 +89,16 @@ export class MilestoneDashboardComponent implements OnInit {
       .sort((left, right) => left.milestoneDate.localeCompare(right.milestoneDate));
   }
 
-  get timelineWidth(): number { return Math.max(900, this.daysInRange * 12); }
+  // ✅ Largeur totale de la timeline en pixels
+  get timelineWidth(): number {
+    return this.daysInRange * this.dayWidth;
+  }
+
   get daysInRange(): number {
     return Math.max(1, Math.round((this.asDate(this.endDate).getTime() - this.asDate(this.startDate).getTime()) / 86400000) + 1);
   }
+
+  // ✅ Liste des mois avec largeur en pixels
   get months(): { label: string; width: number }[] {
     const months: { label: string; width: number }[] = [];
     let cursor = new Date(this.asDate(this.startDate).getFullYear(), this.asDate(this.startDate).getMonth(), 1);
@@ -81,18 +108,53 @@ export class MilestoneDashboardComponent implements OnInit {
       const visibleStart = cursor < this.asDate(this.startDate) ? this.asDate(this.startDate) : cursor;
       const visibleEnd = monthEnd > end ? end : monthEnd;
       const days = Math.round((visibleEnd.getTime() - visibleStart.getTime()) / 86400000) + 1;
-      months.push({ label: cursor.toLocaleDateString('en-GB', { month: 'long', year: '2-digit' }).toUpperCase(), width: days / this.daysInRange * 100 });
+      months.push({ 
+        label: cursor.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' }).toUpperCase(), 
+        width: days * this.dayWidth 
+      });
       cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
     }
     return months;
   }
-  milestoneOffset(milestone: ProjectMilestone): number {
-    const offset = Math.round((this.asDate(milestone.milestoneDate).getTime() - this.asDate(this.startDate).getTime()) / 86400000);
-    return Math.max(0, Math.min(100, offset / this.daysInRange * 100));
+
+  // ✅ Liste des jours
+  get days(): { label: string; isWeekend: boolean }[] {
+    const daysList = [];
+    let cursor = this.asDate(this.startDate);
+    const end = this.asDate(this.endDate);
+    while (cursor <= end) {
+      const dayOfWeek = cursor.getDay();
+      daysList.push({
+        label: cursor.getDate().toString().padStart(2, '0'),
+        isWeekend: dayOfWeek === 0 || dayOfWeek === 6
+      });
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    return daysList;
+  }
+
+  // ✅ Position du milestone en PIXELS (pas en pourcentage)
+  milestoneOffsetPx(milestone: ProjectMilestone): number {
+    const offsetDays = Math.round((this.asDate(milestone.milestoneDate).getTime() - this.asDate(this.startDate).getTime()) / 86400000);
+    return Math.max(0, offsetDays * this.dayWidth + (this.dayWidth / 2));
   }
 
   projectTitle(project: any): string {
     return project.name || project.projectName || project.code || `Project #${project.id}`;
+  }
+
+  getProjectStat(project: any): string {
+    return project.projectPhase || project.status || 'A';
+  }
+
+  getPMInitials(project: any): string {
+    const name = project.projectManagerName;
+    if (!name || name.trim() === '') return '—';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+    }
+    return parts[0].substring(0, 2).toUpperCase();
   }
 
   formatDate(value: string): string {

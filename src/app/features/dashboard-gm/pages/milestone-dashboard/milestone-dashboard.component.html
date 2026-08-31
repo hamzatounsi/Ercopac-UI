@@ -1,13 +1,74 @@
 <main class="milestone-page">
-  <app-projectum-workspace-header title="Project milestones" subtitle="Scheduled milestones by project." [showProjectModules]="false">
-    <div projectumHeaderActions class="date-filter"><label>From <input type="date" [(ngModel)]="startDate"></label><label>To <input type="date" [(ngModel)]="endDate"></label><button type="button" (click)="loadMilestones()">Apply</button></div>
+  <app-projectum-workspace-header [projectId]="projectId" [projectName]="projectName" title="Project milestones" subtitle="Scheduled milestones by project.">
+    <div projectumHeaderActions class="date-filter">
+      <label>From <input type="date" [(ngModel)]="startDate"></label>
+      <label>To <input type="date" [(ngModel)]="endDate"></label>
+      <button type="button" (click)="loadMilestones()">Apply</button>
+    </div>
   </app-projectum-workspace-header>
-  <p *ngIf="errorMessage" class="message error">{{ errorMessage }}</p><p *ngIf="loading" class="message">Loading milestones…</p>
+
+  <p *ngIf="errorMessage" class="message error">{{ errorMessage }}</p>
+  <p *ngIf="loading" class="message">Loading milestones…</p>
   <section *ngIf="!loading && !projects.length" class="empty-state">No accessible projects.</section>
+
   <section *ngIf="!loading && projects.length" class="timeline-card">
-    <div class="timeline-scroll"><div class="timeline-table" [style.min-width.px]="timelineWidth">
-      <div class="timeline-header"><div class="project-column sticky">Project</div><div class="months"><div *ngFor="let month of months" [style.width.%]="month.width">{{ month.label }}</div></div></div>
-      <div *ngFor="let project of projects; trackBy: trackProject" class="timeline-row"><div class="project-column sticky"><strong>{{ projectTitle(project) }}</strong><span *ngIf="project.code">{{ project.code }}</span></div><div class="track"><span *ngFor="let milestone of milestonesFor(project.id); trackBy: trackMilestone" class="marker" [style.left.%]="milestoneOffset(milestone)" [style.background-color]="milestone.milestoneTypeColor" [title]="(milestone.milestoneTypeLabel || milestone.milestoneTypeCode) + ' — ' + formatDate(milestone.milestoneDate)">{{ milestone.milestoneTypeCode }}</span></div></div>
-    </div></div>
+    <div class="timeline-scroll">
+      <div class="timeline-content">
+
+        <!-- HEADER : sticky top, contient aussi les colonnes fixes sticky left -->
+        <div class="header-block">
+          <div class="fixed-cols fixed-cols--header">
+            <div class="col col--project">Project</div>
+            <div class="col col--stat">Stat</div>
+            <div class="col col--pm">PM</div>
+          </div>
+
+          <div class="header-timeline" [style.width.px]="timelineWidth">
+            <div class="months-row">
+              <div *ngFor="let month of months" class="month-cell" [style.width.px]="month.width">
+                {{ month.label }}
+              </div>
+            </div>
+            <div class="days-row">
+              <div *ngFor="let day of days" class="day-cell" [style.width.px]="dayWidth" [class.is-weekend]="day.isWeekend">
+                {{ day.label }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BODY -->
+        <div *ngFor="let project of projects; trackBy: trackProject" class="timeline-row">
+          <div class="fixed-cols fixed-cols--body">
+            <div class="col col--project">
+              <strong class="project-name">{{ projectTitle(project) }}</strong>
+              <span *ngIf="project.code" class="project-code">{{ project.code }}</span>
+            </div>
+            <div class="col col--stat">
+              <span class="stat-badge" [attr.data-status]="getProjectStat(project)">
+                {{ getProjectStat(project) }}
+              </span>
+            </div>
+            <div class="col col--pm">
+              <span class="pm-avatar">{{ getPMInitials(project) }}</span>
+            </div>
+          </div>
+
+          <div class="timeline-track" [style.width.px]="timelineWidth">
+            <div class="track-grid">
+              <div *ngFor="let day of days" class="grid-day" [style.width.px]="dayWidth" [class.is-weekend]="day.isWeekend"></div>
+            </div>
+            <span *ngFor="let milestone of milestonesFor(project.id); trackBy: trackMilestone"
+                  class="marker"
+                  [style.left.px]="milestoneOffsetPx(milestone)"
+                  [style.background-color]="milestone.milestoneTypeColor || '#6b7280'"
+                  [title]="(milestone.milestoneTypeLabel || milestone.milestoneTypeCode) + ' — ' + formatDate(milestone.milestoneDate)">
+              {{ milestone.milestoneTypeCode || 'M' }}
+            </span>
+          </div>
+        </div>
+
+      </div>
+    </div>
   </section>
 </main>
