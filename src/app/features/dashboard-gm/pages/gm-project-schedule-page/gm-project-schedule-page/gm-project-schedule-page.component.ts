@@ -116,19 +116,14 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
 
   tasks: GmProjectScheduleTask[] = [];
   selectedTask: GmProjectScheduleTask | null = null;
-
   drawerOpen = false;
   activeDetailTab: 'general' | 'predecessors' | 'resources' | 'history' | 'console' = 'general';
   taskForm!: FormGroup;
-
   timelineDays: TimelineDay[] = [];
   dayWidth = 40;
-
   project: ProjectDashboardRow | null = null;
-
   resourceSearchTerm = '';
   filteredResourceOptions: { id: number; fullName: string; departmentCode: string; resourceType: string }[] = [];
-
   readonly rowHeight = 28;
   readonly activityBarTop = 9;
   readonly activityBarHeight = 12;
@@ -136,10 +131,8 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   readonly summaryBarHeight = 4;
   readonly milestoneTop = 10;
   readonly milestoneSize = 12;
-
   activeMode: 'baseline' | 'actual' = 'baseline';
   activeZoom: '2W' | '1M' | '2M' | 'Day' = '1M';
-
   private syncingVertical = false;
   private syncingHorizontal = false;
 
@@ -155,23 +148,20 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   readonly taskTypes = ['ACTIVITY', 'SUMMARY', 'MILESTONE'];
   departmentCodes: string[] = [];
   resourceTypes: string[] = [];
-
   settingsOpen = false;
-  // APRÈS (Ajoute 'milestones') :
-settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
-   milestoneTypes: any[] = [];
-   newMilestoneType = { code: '', label: '', color: '#cccccc', letterCode: '' };
-   editingMilestoneType: any | null = null;
+  settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
+  milestoneTypes: any[] = [];
+  newMilestoneType = { code: '', label: '', color: '#cccccc', letterCode: '' };
+  editingMilestoneType: any | null = null;
+
   history: GmProjectScheduleTask[][] = [];
   future: GmProjectScheduleTask[][] = [];
-
   templateName = '';
   selectedTemplateScope: 'all' | 'selected' = 'all';
   selectedTemplateTaskIds = new Set<number>();
   templateDescription = '';
   applyingTemplate = false;
   actionsCount = 0;
-
   templates: {
     id: number;
     name: string;
@@ -180,25 +170,21 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
     tasks: GmProjectScheduleTask[];
     createdAt: string;
   }[] = [];
- 
+
   calendars: ProjectCalendar[] = [];
   activeWorkingDays: number[] = [1, 2, 3, 4, 5];
   calendarEditorOpen = false;
   editingCalendarId: number | null = null;
   calendarName = '';
   calendarWorkingDays: number[] = [1, 2, 3, 4, 5];
-
   baselineName = '';
   baselines: ProjectBaseline[] = [];
-
   dependencyTypes = ['FS', 'SS', 'FF', 'SF'];
-
   newDependency = {
     predecessorTaskId: null as number | null,
     dependencyType: 'FS',
     lagDays: 0
   };
-
   newSupplier: TaskResourceAssignment = {
     resourceType: '',
     assignmentName: '',
@@ -208,16 +194,12 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
     assignedUserId: null,
     supplierId: null
   };
-
   resourceOptions: { id: number; fullName: string; departmentCode: string; resourceType: string }[] = [];
-
   levelMenuOpen = false;
   deptMenuOpen = false;
   columnsMenuOpen = false;
-
   selectedLevelFilter: number | 'ALL' = 'ALL';
   selectedDepartmentFilter = 'ALL';
-
   columnVisibility: GanttColumnVisibility = {
     id: true,
     wbs: true,
@@ -233,26 +215,21 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
     progress: true,
     baselineStart: true,
     baselineEnd: true,
-     milestone: true
+    milestone: true
   };
-
   leftPaneWidth = 750;
   private isResizing = false;
   structureSaving = false;
   readonly minLeftPaneWidth = 120;
   readonly minTimelineWidth = 120;
   readonly plannerResizerWidth = 4;
-
   editedRows: Record<number, Partial<GmProjectScheduleTask>> = {};
   private readonly inlineNameEdits = new Map<number, { original: string; value: string; committed: boolean }>();
   collapsedTaskIds = new Set<number>();
-
   exportModalOpen = false;
   exportScope: 'ALL' | 'CUSTOMER_NO' = 'ALL';
-
   taskHistory: ProjectTaskHistory[] = [];
   historyLoading = false;
-
   dragState: {
     taskId: number;
     startClientX: number;
@@ -261,11 +238,9 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
     mode: 'baseline' | 'actual';
     deltaDays: number;
   } | null = null;
-
   taskResources: TaskResourceAssignment[] = [];
   private supplierAssignmentIds = new Set<number>();
   supplierOptions: { id: number; code: string | null; name: string; resourceTypeCodes: string[] }[] = [];
-
   newResource: TaskResourceAssignment = {
     resourceType: '',
     assignmentName: '',
@@ -274,22 +249,18 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
     cost: 0,
     assignedUserId: null
   };
-
   consoleConfig: TaskConsoleConfig | null = null;
   consoleLogs: TaskConsoleLog[] = [];
   consoleLoading = false;
-
   contextMenuOpen = false;
   contextMenuX = 0;
   contextMenuY = 0;
   contextMenuTask: GmProjectScheduleTask | null = null;
   projectName = '';
-
   activeBaselineId: number | null = null;
   private activeBaselineTasks = new Map<number, ProjectBaselineTaskSnapshot>();
   private scheduleLoadInFlight = false;
   private readonly destroy$ = new Subject<void>();
-
   isMyCsSchedule = false;
 
   constructor(
@@ -324,10 +295,8 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
       this.loadResourceOptions();
       this.loadConfiguredResourceTypes();
       this.loadProjectName();
-          // ✅ AJOUTE CETTE LIGNE ICI pour charger les types de milestones au démarrage
-    this.loadMilestoneTypes(); 
+      this.loadMilestoneTypes();
     });
-
   }
 
   ngAfterViewInit(): void { this.clampLeftPaneWidth(); }
@@ -340,7 +309,6 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
   }
 
   // ---------------- Navigation ----------------
-
   backToProjectum(): void { this.router.navigate(['/gm/projectum']); }
   goToActions(): void { this.router.navigate(['/gm/projects', this.projectId, 'actions']); }
   goToFinance(): void { this.router.navigate(['/gm/projects', this.projectId, 'finance']); }
@@ -349,7 +317,6 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
   goToChangeRequests(): void { this.router.navigate(['/gm/projects', this.projectId, 'change-requests']); }
 
   // ---------------- Project name ----------------
-
   loadProjectName(): void {
     this.gmDashboardService.getProjects().pipe(takeUntil(this.destroy$)).subscribe({
       next: (projects) => {
@@ -370,7 +337,6 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
   }
 
   // ---------------- Display preferences ----------------
-
   private getGanttDisplayPreferencesKey(): string | null {
     const userId = this.authService.getCurrentUserId();
     if (userId === null || !Number.isSafeInteger(userId) || userId <= 0 || !Number.isSafeInteger(this.projectId) || this.projectId <= 0) {
@@ -382,11 +348,9 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
   private restoreGanttDisplayPreferences(): void {
     const key = this.getGanttDisplayPreferencesKey();
     if (!key) return;
-
     try {
       const saved = JSON.parse(localStorage.getItem(key) || 'null') as GanttDisplayPreferences | null;
       if (!saved || typeof saved !== 'object' || saved.version !== 1) return;
-
       if (saved.columnVisibility && typeof saved.columnVisibility === 'object') {
         (Object.keys(this.columnVisibility) as Array<keyof GanttColumnVisibility>).forEach(column => {
           const visible = saved.columnVisibility?.[column];
@@ -407,7 +371,6 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
   private persistGanttDisplayPreferences(): void {
     const key = this.getGanttDisplayPreferencesKey();
     if (!key) return;
-
     const preferences: GanttDisplayPreferences = {
       version: 1,
       columnVisibility: { ...this.columnVisibility },
@@ -415,7 +378,6 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
       activeMode: this.activeMode,
       leftPaneWidth: this.leftPaneWidth
     };
-
     try {
       localStorage.setItem(key, JSON.stringify(preferences));
     } catch {
@@ -433,14 +395,10 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
   }
 
   // ---------------- Schedule loading ----------------
-
   loadSchedule(): void {
-    // Navigation and secondary initialization can overlap briefly. Only one
-    // schedule request may initialize this component instance at a time.
     if (this.scheduleLoadInFlight || !Number.isSafeInteger(this.projectId) || this.projectId <= 0) return;
     this.scheduleLoadInFlight = true;
     this.loading = true;
-
     this.service.getProjectSchedule(this.projectId).pipe(
       takeUntil(this.destroy$),
       finalize(() => this.scheduleLoadInFlight = false)
@@ -453,21 +411,17 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
           })).sort(
             (a, b) => ((a.displayOrder ?? 0) - (b.displayOrder ?? 0)) || (a.id - b.id)
           );
-
           this.tasks.forEach(task => this.normalizeTaskDates(task));
           this.recalculateWbsCodes();
           this.recalculateSummaryDates();
           this.computeStats();
           this.buildTimeline();
-
           this.loadBaselines();
           this.loadCalendars();
           this.loadTemplates();
-
           if (this.selectedTask) {
             const refreshed = this.tasks.find(t => t.id === this.selectedTask?.id) ?? null;
             this.selectedTask = refreshed;
-
             if (refreshed) {
               this.patchTaskForm(refreshed);
               this.loadTaskResources(refreshed.id);
@@ -475,13 +429,12 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
               this.taskResources = [];
             }
           }
-
+          console.log('Tasks with milestoneTypeId:', this.tasks.filter(t => this.isMilestone(t)).map(t => ({ id: t.id, name: t.name, milestoneTypeId: t.milestoneTypeId })));
           setTimeout(() => {
             this.clampLeftPaneWidth();
             this.resetScroll();
           }, 0);
         } catch (err) {
-          // A malformed task must not strand the route on the loading screen.
           console.error('Failed to initialize project schedule', err);
         } finally {
           this.loading = false;
@@ -495,7 +448,6 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
   }
 
   // ---------------- Form ----------------
-
   initForm(): void {
     this.taskForm = this.fb.group({
       name: ['', Validators.required],
@@ -527,7 +479,6 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
   private toFormValue(task: GmProjectScheduleTask) {
     const baselineStart = task.baselineStart ?? task.plannedStart ?? '';
     const baselineEnd = task.baselineEnd ?? task.plannedEnd ?? '';
-
     return {
       name: task.name ?? '',
       description: task.description ?? '',
@@ -536,9 +487,8 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
       baselineEnd,
       plannedStart: baselineStart,
       plannedEnd: baselineEnd,
-          actualStart: task.actualStart ?? '',   // ← already correct
-    actualEnd: task.actualEnd ?? '',   
-      
+      actualStart: task.actualStart ?? '',
+      actualEnd: task.actualEnd ?? '',
       percentComplete: task.percentComplete ?? 0,
       allocationPercent: task.allocationPercent ?? 100,
       priority: task.priority ?? 500,
@@ -572,26 +522,19 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
     return this.calculateScheduledDurationDays(start, end);
   }
 
-  // KEY FIX: normalizeTaskDates does NOT overwrite durationDays from dates
-  // The caller is responsible for setting durationDays correctly
   private normalizeTaskDates(task: GmProjectScheduleTask): void {
     task.baselineStart = task.baselineStart ?? task.plannedStart ?? undefined;
     task.baselineEnd = task.baselineEnd ?? task.plannedEnd ?? task.baselineStart ?? undefined;
-
     task.plannedStart = task.plannedStart ?? task.baselineStart ?? undefined;
     task.plannedEnd = task.plannedEnd ?? task.baselineEnd ?? task.plannedStart ?? undefined;
-
     if (this.isMilestone(task)) {
       task.durationDays = 0;
       if (task.baselineStart) task.baselineEnd = task.baselineStart;
       if (task.plannedStart) task.plannedEnd = task.plannedStart;
       if (task.actualStart) task.actualEnd = task.actualStart;
     }
-    // NOTE: Do NOT recalculate durationDays for non-milestones here.
-    // durationDays is set explicitly by the user or calculated when dates change.
   }
 
-  // Recalculate durationDays from dates (called only when dates change, not when duration changes)
   private recalculateDurationFromDates(task: GmProjectScheduleTask): void {
     if (!this.isMilestone(task)) {
       task.durationDays = this.calculateDurationDays(
@@ -612,7 +555,6 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
     this.destroy$.complete();
   }
 
-  /** Synchronizes the edited date pair using the project working-day calendar. */
   private synchronizeTaskDates(
     task: GmProjectScheduleTask,
     changed: 'baselineStart' | 'baselineEnd' | 'actualStart' | 'actualEnd' | 'duration'
@@ -626,7 +568,6 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
       return true;
     }
     if (this.isSummary(task)) return true;
-
     if (changed === 'baselineStart') {
       const duration = this.normalizeDuration(task.durationDays);
       task.durationDays = duration;
@@ -637,7 +578,6 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
       task.plannedEnd = task.baselineEnd ?? undefined;
       return true;
     }
-
     if (changed === 'baselineEnd') {
       if (this.hasInvalidDateRange(task.baselineStart, task.baselineEnd)) return false;
       if (task.baselineStart && task.baselineEnd) {
@@ -647,7 +587,6 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
       task.plannedEnd = task.baselineEnd ?? undefined;
       return true;
     }
-
     if (changed === 'actualStart') {
       const duration = this.normalizeDuration(task.durationDays);
       task.durationDays = duration;
@@ -656,7 +595,6 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
       }
       return true;
     }
-
     if (changed === 'actualEnd') {
       if (this.hasInvalidDateRange(task.actualStart, task.actualEnd)) return false;
       if (task.actualStart && task.actualEnd) {
@@ -664,7 +602,6 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
       }
       return true;
     }
-
     const duration = this.normalizeDuration(task.durationDays);
     task.durationDays = duration;
     if (task.baselineStart) {
@@ -681,7 +618,6 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
     return Number.isFinite(duration) && duration > 0 ? Math.floor(duration) : 1;
   }
 
-  /** Uses the persisted active project calendar, or the standard Mon-Fri fallback. */
   private getWorkingDays(): Set<number> {
     return new Set(this.activeWorkingDays);
   }
@@ -732,12 +668,10 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
       const { dateRange, ...otherErrors } = formErrors;
       this.taskForm.setErrors(Object.keys(otherErrors).length ? otherErrors : null);
     }
-
     Object.assign(this.selectedTask, updated);
     const index = this.tasks.findIndex(t => t.id === updated.id);
     if (index !== -1) Object.assign(this.tasks[index], updated);
     this.trackCascadeUpdates(this.cascadeDependentTaskDates(updated, this.getCascadeModes(changed)));
-
     this.suppressFormAutoSave = true;
     this.taskForm.patchValue({
       durationDays: updated.durationDays,
@@ -751,7 +685,6 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
   }
 
   // ---------------- Drawer ----------------
-
   selectTask(task: GmProjectScheduleTask): void {
     this.closeContextMenu();
     this.selectedTask = task;
@@ -784,28 +717,28 @@ settingsTab: 'templates' | 'calendar' | 'baseline' | 'milestones' = 'templates';
       resourceType: '', assignmentName: '', quantity: 1,
       unitsPercent: 100, cost: 0, assignedUserId: null, supplierId: null
     };
-   this.resourceSearchTerm = '';
-if (task.resourceType) {
-  this.newResource.resourceType = task.resourceType;
-  this.filteredResourceOptions = this.resourceOptions.filter(
-    u => (u.resourceType ?? '').toUpperCase() === (task.resourceType ?? '').toUpperCase()
-  );
-} else {
-  this.filteredResourceOptions = [...this.resourceOptions];
-}
-
+    this.resourceSearchTerm = '';
+    if (task.resourceType) {
+      this.newResource.resourceType = task.resourceType;
+      this.filteredResourceOptions = this.resourceOptions.filter(
+        u => (u.resourceType ?? '').toUpperCase() === (task.resourceType ?? '').toUpperCase()
+      );
+    } else {
+      this.filteredResourceOptions = [...this.resourceOptions];
+    }
     if (this.selectedTemplateScope === 'selected' && !task) {
       this.selectedTemplateScope = 'all';
     }
-
     this.loadTaskResources(task.id);
     this.loadSupplierOptions(task.id);
   }
-getTaskWbsById(taskId?: number | null): string {
-  if (!taskId) return '—';
-  const task = this.tasks.find(t => t.id === taskId);
-  return task?.wbsCode ?? String(taskId);
-}
+
+  getTaskWbsById(taskId?: number | null): string {
+    if (!taskId) return '—';
+    const task = this.tasks.find(t => t.id === taskId);
+    return task?.wbsCode ?? String(taskId);
+  }
+
   closeDrawer(): void {
     this.drawerOpen = false;
     this.selectedTask = null;
@@ -824,31 +757,24 @@ getTaskWbsById(taskId?: number | null): string {
       resourceType: '', assignmentName: '', quantity: 1,
       unitsPercent: 100, cost: 0, assignedUserId: null, supplierId: null
     };
-
     if (this.selectedTemplateScope === 'selected') {
       this.selectedTemplateScope = 'all';
     }
   }
 
   // ---------------- Context menu ----------------
-
   openContextMenu(event: MouseEvent, task: GmProjectScheduleTask): void {
     event.preventDefault();
     event.stopPropagation();
-
     this.selectedTask = task;
     this.contextMenuTask = task;
-
     const menuWidth = 250;
     const menuHeight = 330;
     const padding = 12;
-
     let x = event.clientX;
     let y = event.clientY;
-
     if (x + menuWidth > window.innerWidth - padding) x = window.innerWidth - menuWidth - padding;
     if (y + menuHeight > window.innerHeight - padding) y = window.innerHeight - menuHeight - padding;
-
     this.contextMenuX = Math.max(padding, x);
     this.contextMenuY = Math.max(padding, y);
     this.contextMenuOpen = true;
@@ -904,146 +830,107 @@ getTaskWbsById(taskId?: number | null): string {
     this.openTaskDrawer(this.contextMenuTask);
     this.closeContextMenu();
   }
-indentTask(): void {
-  if (!this.selectedTask) return;
-  const index = this.tasks.findIndex(t => t.id === this.selectedTask!.id);
-  if (index <= 0) return;
 
-  const current = this.tasks[index];
-  const previous = this.tasks[index - 1];
-
-  // Find the potential parent: the previous task OR its parent if previous is not summary
-  // A task can indent if the task above it is at the same or deeper level
-  // and there exists a summary parent to attach to
-  const currentLevel = this.getWbsLevel(current);
-  const previousLevel = this.getWbsLevel(previous);
-
-  // Can't indent more than one level at a time
-  if (currentLevel > previousLevel) {
-    return;
+  indentTask(): void {
+    if (!this.selectedTask) return;
+    const index = this.tasks.findIndex(t => t.id === this.selectedTask!.id);
+    if (index <= 0) return;
+    const current = this.tasks[index];
+    const previous = this.tasks[index - 1];
+    const currentLevel = this.getWbsLevel(current);
+    const previousLevel = this.getWbsLevel(previous);
+    if (currentLevel > previousLevel) return;
+    let potentialParent: GmProjectScheduleTask | null = null;
+    if (this.isSummary(previous)) {
+      potentialParent = previous;
+    } else {
+      potentialParent = previous.parentId
+        ? this.tasks.find(t => t.id === previous.parentId) ?? null
+        : null;
+    }
+    if (!potentialParent || !this.isSummary(potentialParent)) {
+      alert('A task can only be indented under a Summary task.');
+      return;
+    }
+    this.pushHistory();
+    current.parentId = potentialParent.id;
+    current.outlineLevel = (potentialParent.outlineLevel ?? 1) + 1;
+    const subtreeIds = new Set<number>();
+    const collectSubtree = (taskId: number) => {
+      subtreeIds.add(taskId);
+      this.tasks.filter(t => t.parentId === taskId).forEach(child => collectSubtree(child.id));
+    };
+    collectSubtree(current.id);
+    const subtree = this.tasks.filter(t => subtreeIds.has(t.id) && t.id !== current.id);
+    subtree.forEach(t => { t.outlineLevel = (t.outlineLevel ?? 1) + 1; });
+    this.recalculateWbsCodes();
+    this.recalculateDisplayOrders();
+    this.recalculateSummaryDates();
+    this.persistScheduleStructure();
+    this.syncSelectedTaskReference();
   }
-
-  // Find the parent that current will be indented under
-  // It's the task at previousLevel that is a SUMMARY
-  let potentialParent: GmProjectScheduleTask | null = null;
-
-  if (this.isSummary(previous)) {
-    // Previous task is summary → indent directly under it
-    potentialParent = previous;
-  } else {
-    // Previous task is not summary → find its parent (which should be summary)
-    potentialParent = previous.parentId
-      ? this.tasks.find(t => t.id === previous.parentId) ?? null
-      : null;
-  }
-
-  if (!potentialParent || !this.isSummary(potentialParent)) {
-    alert('A task can only be indented under a Summary task.');
-    return;
-  }
-
-  this.pushHistory();
-
-  current.parentId = potentialParent.id;
-  current.outlineLevel = (potentialParent.outlineLevel ?? 1) + 1;
-
-  const subtreeIds = new Set<number>();
-  const collectSubtree = (taskId: number) => {
-    subtreeIds.add(taskId);
-    this.tasks.filter(t => t.parentId === taskId).forEach(child => collectSubtree(child.id));
-  };
-  collectSubtree(current.id);
-  const subtree = this.tasks.filter(t => subtreeIds.has(t.id) && t.id !== current.id);
-  subtree.forEach(t => { t.outlineLevel = (t.outlineLevel ?? 1) + 1; });
-
-  this.recalculateWbsCodes();
-  this.recalculateDisplayOrders();
-  this.recalculateSummaryDates();
-  this.persistScheduleStructure();
-  this.syncSelectedTaskReference();
-}
 
   outdentTask(): void {
-  if (!this.selectedTask) return;
-  const current = this.tasks.find(t => t.id === this.selectedTask!.id);
-  if (!current || this.getWbsLevel(current) <= 1) return;
-
-  this.pushHistory();
-
-  const currentParent = current.parentId
-    ? this.tasks.find(t => t.id === current.parentId)
-    : null;
-
-  // Get current's subtree BEFORE changing parentId
-  const subtreeIds = new Set<number>();
-  const collectSubtreeByParentId = (taskId: number) => {
-    subtreeIds.add(taskId);
-    this.tasks
-      .filter(t => t.parentId === taskId)
-      .forEach(child => collectSubtreeByParentId(child.id));
-  };
-  collectSubtreeByParentId(current.id);
-  const subtree = this.tasks.filter(t => subtreeIds.has(t.id) && t.id !== current.id);
-
-  // Update parentId and outlineLevel
-  current.parentId = currentParent?.parentId ?? null;
-  current.outlineLevel = Math.max(1, (current.outlineLevel ?? 1) - 1);
-  subtree.forEach(t => {
-    t.outlineLevel = Math.max(1, (t.outlineLevel ?? 1) - 1);
-  });
-
-  // Reorder: move current + subtree immediately after parent's last descendant
-  if (currentParent) {
-    // Collect all IDs in current's subtree (including current)
-    const allSubtreeIds = new Set([current.id, ...subtree.map(t => t.id)]);
-
-    // Collect all IDs in parent's full subtree (by parentId, before our change)
-    const parentSubtreeIds = new Set<number>();
-    const collectParentSubtree = (taskId: number) => {
-      parentSubtreeIds.add(taskId);
+    if (!this.selectedTask) return;
+    const current = this.tasks.find(t => t.id === this.selectedTask!.id);
+    if (!current || this.getWbsLevel(current) <= 1) return;
+    this.pushHistory();
+    const currentParent = current.parentId
+      ? this.tasks.find(t => t.id === current.parentId)
+      : null;
+    const subtreeIds = new Set<number>();
+    const collectSubtreeByParentId = (taskId: number) => {
+      subtreeIds.add(taskId);
       this.tasks
-        .filter(t => t.parentId === taskId && !allSubtreeIds.has(t.id))
-        .forEach(child => collectParentSubtree(child.id));
+        .filter(t => t.parentId === taskId)
+        .forEach(child => collectSubtreeByParentId(child.id));
     };
-    collectParentSubtree(currentParent.id);
-
-    // Remove current + subtree from array
-    const withoutCurrent = this.tasks.filter(t => !allSubtreeIds.has(t.id));
-
-    // Find last task of parent's subtree in withoutCurrent
-    let insertAfterIndex = -1;
-    for (let i = withoutCurrent.length - 1; i >= 0; i--) {
-      if (parentSubtreeIds.has(withoutCurrent[i].id)) {
-        insertAfterIndex = i;
-        break;
+    collectSubtreeByParentId(current.id);
+    const subtree = this.tasks.filter(t => subtreeIds.has(t.id) && t.id !== current.id);
+    current.parentId = currentParent?.parentId ?? null;
+    current.outlineLevel = Math.max(1, (current.outlineLevel ?? 1) - 1);
+    subtree.forEach(t => {
+      t.outlineLevel = Math.max(1, (t.outlineLevel ?? 1) - 1);
+    });
+    if (currentParent) {
+      const allSubtreeIds = new Set([current.id, ...subtree.map(t => t.id)]);
+      const parentSubtreeIds = new Set<number>();
+      const collectParentSubtree = (taskId: number) => {
+        parentSubtreeIds.add(taskId);
+        this.tasks
+          .filter(t => t.parentId === taskId && !allSubtreeIds.has(t.id))
+          .forEach(child => collectParentSubtree(child.id));
+      };
+      collectParentSubtree(currentParent.id);
+      const withoutCurrent = this.tasks.filter(t => !allSubtreeIds.has(t.id));
+      let insertAfterIndex = -1;
+      for (let i = withoutCurrent.length - 1; i >= 0; i--) {
+        if (parentSubtreeIds.has(withoutCurrent[i].id)) {
+          insertAfterIndex = i;
+          break;
+        }
       }
+      const currentSubtree = [current, ...subtree];
+      this.tasks = [
+        ...withoutCurrent.slice(0, insertAfterIndex + 1),
+        ...currentSubtree,
+        ...withoutCurrent.slice(insertAfterIndex + 1)
+      ];
     }
-
-    // Insert current + subtree after parent subtree
-    const currentSubtree = [current, ...subtree];
-    this.tasks = [
-      ...withoutCurrent.slice(0, insertAfterIndex + 1),
-      ...currentSubtree,
-      ...withoutCurrent.slice(insertAfterIndex + 1)
-    ];
+    this.recalculateWbsCodes();
+    this.recalculateDisplayOrders();
+    this.recalculateSummaryDates();
+    this.persistScheduleStructure();
+    this.syncSelectedTaskReference();
   }
-
-  this.recalculateWbsCodes();
-  this.recalculateDisplayOrders();
-  this.recalculateSummaryDates();
-  this.persistScheduleStructure();
-  this.syncSelectedTaskReference();
-}
 
   indentTaskPersisted(): void {
     if (!this.selectedTask || this.structureSaving) return;
     const index = this.tasks.findIndex(task => task.id === this.selectedTask!.id);
     if (index <= 0) return;
-
     const current = this.tasks[index];
     const previous = this.tasks[index - 1];
     if (this.getWbsLevel(current) > this.getWbsLevel(previous)) return;
-
     const parent = this.isSummary(previous)
       ? previous
       : this.tasks.find(task => task.id === previous.parentId) ?? null;
@@ -1052,7 +939,6 @@ indentTask(): void {
       return;
     }
     if (parent.id === current.id || this.getSubtreeTaskIds(current.id).has(parent.id)) return;
-
     this.pushHistory();
     current.parentId = parent.id;
     this.rebuildLocalTaskStructure();
@@ -1063,7 +949,6 @@ indentTask(): void {
     const current = this.tasks.find(task => task.id === this.selectedTask!.id);
     const parent = current ? this.tasks.find(task => task.id === current.parentId) ?? null : null;
     if (!current || !parent) return;
-
     this.pushHistory();
     const subtreeIds = this.getSubtreeTaskIds(current.id);
     const currentSubtree = this.tasks.filter(task => subtreeIds.has(task.id));
@@ -1073,7 +958,6 @@ indentTask(): void {
       (lastIndex, task, index) => parentSubtreeIds.has(task.id) ? index : lastIndex,
       -1
     );
-
     current.parentId = parent.parentId ?? null;
     this.tasks = [
       ...withoutCurrent.slice(0, insertAfterIndex + 1),
@@ -1178,7 +1062,6 @@ indentTask(): void {
   }
 
   // ---------------- Menu / filters ----------------
-
   toggleLevelMenu(): void { this.levelMenuOpen = !this.levelMenuOpen; this.deptMenuOpen = false; this.columnsMenuOpen = false; }
   toggleDeptMenu(): void { this.deptMenuOpen = !this.deptMenuOpen; this.levelMenuOpen = false; this.columnsMenuOpen = false; }
   toggleColumnsMenu(): void { this.columnsMenuOpen = !this.columnsMenuOpen; this.levelMenuOpen = false; this.deptMenuOpen = false; }
@@ -1188,80 +1071,66 @@ indentTask(): void {
     this.columnVisibility[columnKey] = !this.columnVisibility[columnKey];
     this.persistGanttDisplayPreferences();
   }
-
   onColumnVisibilityChange(): void { this.persistGanttDisplayPreferences(); }
-
   getWbsLevel(task: GmProjectScheduleTask): number {
     if (!task.wbsCode) return 1;
     return task.wbsCode.split('.').length;
   }
-
   matchesLevelFilter(task: GmProjectScheduleTask): boolean {
     if (this.selectedLevelFilter === 'ALL') return true;
     return this.getWbsLevel(task) <= this.selectedLevelFilter;
   }
-
   matchesDepartmentFilter(task: GmProjectScheduleTask): boolean {
     if (this.selectedDepartmentFilter === 'ALL') return true;
     return (task.departmentCode || '').toUpperCase() === this.selectedDepartmentFilter.toUpperCase();
   }
-
   getLevelButtonLabel(): string {
     if (this.selectedLevelFilter === 'ALL') return 'L';
     return `L${this.selectedLevelFilter}`;
   }
-
   zoomOut(): void {
     const order: Array<'2W' | '2M' | '1M' | 'Day'> = ['2W', '2M', '1M', 'Day'];
     const index = order.indexOf(this.activeZoom as any);
     if (index > 0) this.setZoom(order[index - 1]);
   }
-
   zoomIn(): void {
     const order: Array<'2W' | '2M' | '1M' | 'Day'> = ['2W', '2M', '1M', 'Day'];
     const index = order.indexOf(this.activeZoom as any);
     if (index < order.length - 1) this.setZoom(order[index + 1]);
   }
-
   setMode(mode: 'baseline' | 'actual'): void {
     this.activeMode = mode;
     if (this.selectedTask) this.patchTaskForm(this.selectedTask);
     this.buildTimeline();
     this.persistGanttDisplayPreferences();
   }
-
   setZoom(zoom: '2W' | '1M' | '2M' | 'Day'): void {
     this.activeZoom = zoom;
     this.dayWidth = this.getDayWidth(zoom);
     this.buildTimeline();
     this.persistGanttDisplayPreferences();
   }
-
   getTaskTypeShort(type?: string): string {
     const value = (type || '').toUpperCase();
     if (value === 'SUMMARY') return 'Sum';
     if (value === 'MILESTONE') return 'Mile';
     return 'Acti';
   }
-
   toNumber(value: string): number {
     const n = Number(value);
     return Number.isFinite(n) ? n : 0;
   }
 
   // ---------------- Inline edit ----------------
-
   getInlineNameValue(task: GmProjectScheduleTask): string {
     return this.inlineNameEdits.get(task.id)?.value ?? task.name ?? '';
   }
-
   beginInlineNameEdit(task: GmProjectScheduleTask): void {
     if (!this.inlineNameEdits.has(task.id)) {
       const name = task.name ?? '';
       this.inlineNameEdits.set(task.id, { original: name, value: name, committed: false });
     }
   }
-
   updateInlineNameDraft(task: GmProjectScheduleTask, value: string): void {
     const edit = this.inlineNameEdits.get(task.id);
     if (edit) {
@@ -1271,36 +1140,26 @@ indentTask(): void {
     }
     this.inlineNameEdits.set(task.id, { original: task.name ?? '', value, committed: false });
   }
-
   commitInlineNameEdit(task: GmProjectScheduleTask): void {
     const edit = this.inlineNameEdits.get(task.id);
     if (!edit || edit.committed) return;
-
     const name = edit.value.trim();
     if (!name) {
-      // The task form already requires a name. Restore the last valid value
-      // instead of sending an invalid empty update from the inline field.
       edit.value = edit.original;
       return;
     }
-
     edit.committed = true;
     if (name !== edit.original) {
       this.updateLocalTaskField(task, 'name', name, false);
       this.saveInlineTask(task);
     }
-
-    // A keydown Enter commit is immediately followed by blur. Keep the
-    // committed marker through that blur, then release this edit state.
     setTimeout(() => this.inlineNameEdits.delete(task.id));
   }
-
   handleInlineNameEnter(task: GmProjectScheduleTask, event: Event): void {
     event.preventDefault();
     this.commitInlineNameEdit(task);
     (event.target as HTMLInputElement).blur();
   }
-
   cancelInlineNameEdit(task: GmProjectScheduleTask, event: Event): void {
     event.preventDefault();
     const edit = this.inlineNameEdits.get(task.id);
@@ -1311,7 +1170,6 @@ indentTask(): void {
     (event.target as HTMLInputElement).value = task.name ?? '';
     (event.target as HTMLInputElement).blur();
   }
-
   onInlineDateChange(
     task: GmProjectScheduleTask,
     field: 'actualStart' | 'actualEnd' | 'baselineStart' | 'baselineEnd',
@@ -1320,20 +1178,16 @@ indentTask(): void {
     this.applyPickerDateChange(task, field, value);
   }
 
-  /** Both date-picker surfaces use this one synchronized, single-save path. */
   private applyPickerDateChange(
     task: GmProjectScheduleTask,
     field: 'actualStart' | 'actualEnd' | 'baselineStart' | 'baselineEnd',
     value: string
   ): void {
     if (value === this.formatDateForInput(task[field])) return;
-    // Picker selections are complete edits. Save this synchronized task once
-    // immediately instead of leaving it behind a shared form debounce.
     this.updateLocalTaskField(task, field, value, false);
     this.saveInlineTask(task);
   }
 
-  // KEY FIX: updateLocalTaskField properly handles duration vs date changes
   updateLocalTaskField(
     task: GmProjectScheduleTask,
     field: keyof GmProjectScheduleTask,
@@ -1343,44 +1197,34 @@ indentTask(): void {
     if ((field === 'departmentCode' || field === 'resourceType') && !this.isActivity(task)) return;
     const previousTaskState = { ...task };
     (task as any)[field] = value;
-
     if (field === 'taskType') this.clearNonActivityAssignments(task);
-
     if (field === 'taskType' && String(value).toUpperCase() === 'MILESTONE') {
       task.durationDays = 0;
       if (task.baselineStart) task.baselineEnd = task.baselineStart;
       if (task.plannedStart) task.plannedEnd = task.plannedStart;
       if (task.actualStart) task.actualEnd = task.actualStart;
     }
-
-    // When duration changes → recalculate end date from start + duration
     const changed = field === 'durationDays' ? 'duration'
       : field === 'actualStart' ? 'actualStart'
       : field === 'actualEnd' ? 'actualEnd'
       : field === 'baselineStart' ? 'baselineStart'
       : field === 'baselineEnd' ? 'baselineEnd'
       : null;
-
-    // When dates change → recalculate duration from dates
     if (changed && !this.synchronizeTaskDates(task, changed)) {
       Object.assign(task, previousTaskState);
       this.refreshGanttView();
       return;
     }
-
     if (changed) {
       this.trackCascadeUpdates(this.cascadeDependentTaskDates(task, this.getCascadeModes(changed)));
     }
     this.refreshGanttView();
-
-    // Sync the detail panel form immediately
     const selectedTask = this.selectedTask;
     if (selectedTask?.id === task.id) {
       this.suppressFormAutoSave = true;
       this.patchTaskForm(selectedTask);
       this.suppressFormAutoSave = false;
     }
-
     if (queueAutoSave) this.queueTaskAutoSave(task);
   }
 
@@ -1389,17 +1233,17 @@ indentTask(): void {
     this.formAutoSaveTimer = setTimeout(() => this.saveInlineTask(task), 600);
   }
 
- getPredecessorText(task: GmProjectScheduleTask): string {
-  if (!task.dependencies?.length) return '—';
-  return task.dependencies.map(dep => {
-    const predTask = this.tasks.find(t => t.id === dep.predecessorTaskId);
-    const ref = predTask?.wbsCode ?? dep.predecessorTaskId;
-    const type = dep.dependencyType || 'FS';
-    const lag = dep.lagDays ?? 0;
-    const lagText = lag === 0 ? '' : lag > 0 ? `+${lag}d` : `${lag}d`;
-    return `${ref}${type}${lagText}`;
-  }).join(', ');
-}
+  getPredecessorText(task: GmProjectScheduleTask): string {
+    if (!task.dependencies?.length) return '—';
+    return task.dependencies.map(dep => {
+      const predTask = this.tasks.find(t => t.id === dep.predecessorTaskId);
+      const ref = predTask?.wbsCode ?? dep.predecessorTaskId;
+      const type = dep.dependencyType || 'FS';
+      const lag = dep.lagDays ?? 0;
+      const lagText = lag === 0 ? '' : lag > 0 ? `+${lag}d` : `${lag}d`;
+      return `${ref}${type}${lagText}`;
+    }).join(', ');
+  }
 
   getEditableValue(task: GmProjectScheduleTask, field: keyof GmProjectScheduleTask): any {
     const edited = this.editedRows[task.id];
@@ -1414,35 +1258,26 @@ indentTask(): void {
     (task as any)[field] = value;
   }
 
-  // KEY FIX: saveTask now properly syncs table row after saving
   saveTask(): void {
     if (!this.selectedTask || this.taskForm.invalid) {
       this.taskForm.markAllAsTouched();
       return;
     }
-
     const value = this.taskForm.value;
     if (value.baselineStart && value.baselineEnd && value.baselineEnd < value.baselineStart) return;
     if (value.actualStart && value.actualEnd && value.actualEnd < value.actualStart) return;
-
-    // Apply form values to selectedTask
     Object.assign(this.selectedTask, value);
     this.refreshGanttView();
-
     this.pushHistory();
     this.saving = true;
-
     const payload = this.buildTaskUpdatePayload(this.selectedTask);
-
     this.service.updateTask(this.projectId, this.selectedTask.id, payload).subscribe({
       next: (updated) => {
         const index = this.tasks.findIndex(t => t.id === this.selectedTask!.id);
         if (index !== -1) {
           this.tasks[index] = { ...this.tasks[index], ...updated };
-          // Preserve durationDays from the form, don't let server override
           this.selectedTask = this.tasks[index];
         }
-
         this.saving = false;
         this.refreshGanttView();
       },
@@ -1453,7 +1288,6 @@ indentTask(): void {
     });
   }
 
-  // KEY FIX: saveInlineTask syncs form after save without overwriting duration
   saveInlineTask(task: GmProjectScheduleTask): void {
     clearTimeout(this.formAutoSaveTimer);
     const tasksToSave = [task, ...[...this.pendingCascadeSaveIds]
@@ -1467,16 +1301,12 @@ indentTask(): void {
     if (this.hasInvalidDateRange(task.baselineStart, task.baselineEnd)
       || this.hasInvalidDateRange(task.actualStart, task.actualEnd)) return;
     const payload = this.buildTaskUpdatePayload(task);
-
     this.service.updateTask(this.projectId, task.id, payload).subscribe({
       next: (updated) => {
         const index = this.tasks.findIndex(t => t.id === task.id);
         if (index !== -1) {
-          // Preserve local durationDays — don't let server overwrite it
           this.tasks[index] = { ...this.tasks[index], ...updated };
         }
-
-        // Sync drawer form if this is the selected task
         if (this.selectedTask?.id === task.id) {
           this.selectedTask = this.tasks.find(t => t.id === task.id) ?? null;
           if (this.selectedTask) {
@@ -1485,7 +1315,6 @@ indentTask(): void {
             this.suppressFormAutoSave = false;
           }
         }
-
         this.refreshGanttView();
         this.editedRows[task.id] = {};
       },
@@ -1501,7 +1330,6 @@ indentTask(): void {
     } else if (this.isMilestone(task) && task.actualStart) {
       task.actualEnd = task.actualStart;
     }
-
     const payload = this.buildTaskUpdatePayload(task);
     this.service.updateTask(this.projectId, task.id, payload).subscribe({
       next: () => this.refreshGanttView(),
@@ -1510,7 +1338,6 @@ indentTask(): void {
   }
 
   // ---------------- History ----------------
-
   private pushHistory(): void {
     this.history.push(this.cloneTasks(this.tasks));
     if (this.history.length > 50) this.history.shift();
@@ -1539,7 +1366,6 @@ indentTask(): void {
   }
 
   // ---------------- Import / export ----------------
-
   exportScheduleJson(): void {
     const payload = { projectId: this.projectId, exportedAt: new Date().toISOString(), tasks: this.tasks };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -1564,7 +1390,6 @@ indentTask(): void {
       const rows = await this.readImportRows(file);
       const payload = rows.map((row, index) => this.toImportedTaskPayload(row, index));
       if (!payload.length) throw new Error('The file does not contain any task rows.');
-
       this.saving = true;
       this.importStatus = 'Importing schedule...';
       this.service.importSchedule(this.projectId, payload).subscribe({
@@ -1626,14 +1451,12 @@ indentTask(): void {
     };
     const date = (...headers: string[]): string | undefined => this.importDate(value(...headers), rowNumber);
     const integer = (label: string, ...headers: string[]): number | undefined => this.importInteger(value(...headers), rowNumber, label);
-
     const name = text('Task', 'Task Name', 'Name');
     if (!name) throw new Error(`Import row ${rowNumber}: task name is required.`);
     const taskType = (text('Type', 'Task Type') || 'ACTIVITY').toUpperCase();
     if (!['ACTIVITY', 'SUMMARY', 'MILESTONE'].includes(taskType)) {
       throw new Error(`Import row ${rowNumber}: task type must be ACTIVITY, SUMMARY, or MILESTONE.`);
     }
-
     const baselineStart = date('Baseline Start', 'Baseline Start Date');
     const baselineEnd = date('Baseline End', 'Baseline End Date');
     const plannedStart = date('Planned Start', 'Start', 'Start Date');
@@ -1663,7 +1486,6 @@ indentTask(): void {
       scheduleMode: 'AUTO',
       status: text('Status') ?? 'NOT_STARTED'
     };
-
     if ((task.percentComplete ?? 0) < 0 || (task.percentComplete ?? 0) > 100) {
       throw new Error(`Import row ${rowNumber}: progress must be between 0 and 100.`);
     }
@@ -1681,7 +1503,6 @@ indentTask(): void {
     return this.buildTaskUpdatePayload(task);
   }
 
-  /** Import is the one place legacy/non-working endpoints are normalized before persistence. */
   private normalizeImportedTaskDates(task: GmProjectScheduleTask): void {
     const moveToWorkingDay = (value: string | null | undefined, direction: 1 | -1): string | undefined => {
       if (!value) return undefined;
@@ -1689,7 +1510,6 @@ indentTask(): void {
       while (!this.isWorkingDate(date)) date.setDate(date.getDate() + direction);
       return this.dateToString(date);
     };
-
     if (this.isMilestone(task)) {
       const baselineDate = moveToWorkingDay(task.baselineStart ?? task.plannedStart ?? task.baselineEnd ?? task.plannedEnd, 1);
       const actualDate = moveToWorkingDay(task.actualStart ?? task.actualEnd, 1);
@@ -1701,14 +1521,12 @@ indentTask(): void {
       task.actualEnd = actualDate;
       return;
     }
-
     task.baselineStart = moveToWorkingDay(task.baselineStart, 1);
     task.plannedStart = moveToWorkingDay(task.plannedStart, 1);
     task.actualStart = moveToWorkingDay(task.actualStart, 1);
     task.baselineEnd = moveToWorkingDay(task.baselineEnd, -1);
     task.plannedEnd = moveToWorkingDay(task.plannedEnd, -1);
     task.actualEnd = moveToWorkingDay(task.actualEnd, -1);
-
     if (this.hasInvalidDateRange(task.baselineStart, task.baselineEnd)) task.baselineEnd = task.baselineStart;
     if (this.hasInvalidDateRange(task.plannedStart, task.plannedEnd)) task.plannedEnd = task.plannedStart;
     if (this.hasInvalidDateRange(task.actualStart, task.actualEnd)) task.actualEnd = task.actualStart;
@@ -1748,10 +1566,6 @@ indentTask(): void {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   }
 
-  /**
-   * One local render path for every Gantt mutation. It never fetches the
-   * schedule: rows, bars, arrows and rollups all read this.tasks directly.
-   */
   private refreshGanttView(): void {
     this.recalculateSummaryDates();
     this.tasks = this.tasks.map(task => ({
@@ -1765,7 +1579,6 @@ indentTask(): void {
   }
 
   // ---------------- WBS / indent ----------------
-
   private getTaskLevel(task: GmProjectScheduleTask): number {
     return Math.max(1, (task.wbsCode || '1').split('.').length);
   }
@@ -1807,21 +1620,17 @@ indentTask(): void {
     const summaries = [...this.tasks]
       .filter(t => this.isSummary(t))
       .sort((a, b) => this.getTaskLevel(b) - this.getTaskLevel(a));
-
     summaries.forEach(summary => {
       const children = this.tasks.filter(t => this.isDescendantOf(t, summary) && !this.isSummary(t));
       if (!children.length) return;
-
       const baselineStarts = children.map(t => t.baselineStart ?? t.plannedStart).filter((d): d is string => !!d);
       const baselineEnds = children.map(t => t.baselineEnd ?? t.plannedEnd).filter((d): d is string => !!d);
       const actualStarts = children.map(t => t.actualStart).filter((d): d is string => !!d);
       const actualEnds = children.map(t => t.actualEnd).filter((d): d is string => !!d);
-
       if (baselineStarts.length) summary.baselineStart = baselineStarts.sort()[0];
       if (baselineEnds.length) summary.baselineEnd = baselineEnds.sort()[baselineEnds.length - 1];
       if (actualStarts.length) summary.actualStart = actualStarts.sort()[0];
       if (actualEnds.length) summary.actualEnd = actualEnds.sort()[actualEnds.length - 1];
-
       this.normalizeTaskDates(summary);
       this.recalculateDurationFromDates(summary);
     });
@@ -1851,14 +1660,12 @@ indentTask(): void {
   }
 
   // ---------------- Settings ----------------
-
   toggleSettings(): void { this.settingsOpen = !this.settingsOpen; }
   closeSettingsOnBackdrop(event: MouseEvent): void {
     if ((event.target as HTMLElement).classList.contains('settings-overlay')) this.settingsOpen = false;
   }
 
   // ---------------- Resize ----------------
-
   private getLeftPaneWidthLimits(): { min: number; max: number } {
     const containerWidth = this.plannerMain?.nativeElement.clientWidth ?? window.innerWidth;
     const min = Math.min(this.minLeftPaneWidth, Math.max(0, containerWidth - this.plannerResizerWidth));
@@ -1892,7 +1699,6 @@ indentTask(): void {
   }
 
   // ---------------- Templates ----------------
-
   saveTemplateWithName(scope?: 'all' | 'selected'): void {
     const finalScope = scope ?? this.selectedTemplateScope;
     const name = this.templateName?.trim() || (finalScope === 'all' ? 'Full Schedule' : 'Selected Tasks');
@@ -1907,7 +1713,6 @@ indentTask(): void {
   applyTemplate(templateId: number): void {
     const template = this.templates.find(t => t.id === templateId);
     if (!template || this.applyingTemplate) return;
-
     this.applyingTemplate = true;
     this.templateService.applyTemplate(this.projectId, templateId).pipe(
       finalize(() => this.applyingTemplate = false)
@@ -1938,7 +1743,6 @@ indentTask(): void {
   }
 
   // ---------------- Calendars ----------------
-
   createDefaultCalendar(): void {
     this.editingCalendarId = null;
     this.calendarName = '';
@@ -2006,7 +1810,6 @@ indentTask(): void {
   }
 
   // ---------------- Baselines ----------------
-
   deleteBaseline(baselineId: number): void {
     this.baselineService.deleteBaseline(this.projectId, baselineId).subscribe({ next: () => this.loadBaselines(), error: (err) => { console.error('Failed to delete baseline', err); } });
   }
@@ -2014,7 +1817,6 @@ indentTask(): void {
   openBaselineTab(): void { this.settingsTab = 'baseline'; this.loadBaselines(); }
 
   // ---------------- Task type helpers ----------------
-
   isMilestone(task?: GmProjectScheduleTask | null): boolean { return ((task?.taskType) || '').toUpperCase() === 'MILESTONE'; }
   isSummary(task?: GmProjectScheduleTask | null): boolean { return ((task?.taskType) || '').toUpperCase() === 'SUMMARY'; }
   isActivity(task?: GmProjectScheduleTask | null): boolean { return ((task?.taskType) || 'ACTIVITY').toUpperCase() === 'ACTIVITY'; }
@@ -2069,7 +1871,6 @@ indentTask(): void {
   }
 
   // ---------------- Timeline ----------------
-
   private buildTimeline(): void {
     const dates: Date[] = [];
     this.tasks.forEach(task => {
@@ -2137,15 +1938,15 @@ indentTask(): void {
   getBaselineWidth(task: GmProjectScheduleTask): number { return this.getWidthFromDates(this.getBaselineStart(task), this.getBaselineEnd(task), task.taskType); }
   getActualLeft(task: GmProjectScheduleTask): number { return this.getLeftFromDate(task.actualStart); }
   getActualWidth(task: GmProjectScheduleTask): number { return this.getWidthFromDates(task.actualStart, task.actualEnd, task.taskType); }
+
   getMilestoneLeft(task: GmProjectScheduleTask): number {
-    // Centre the diamond in the exact header day cell used for its date.
     return this.getBarLeft(task) + ((this.dayWidth - 12) / 2);
   }
+
   hasBaseline(task: GmProjectScheduleTask): boolean { return !!this.getBaselineStart(task) && !!this.getBaselineEnd(task); }
   hasActualDates(task: GmProjectScheduleTask): boolean { return !!task.actualStart && !!task.actualEnd; }
 
   // ---------------- Drag ----------------
-
   canDragTask(task: GmProjectScheduleTask): boolean { return !this.isSummary(task) && !this.isMilestone(task) && (this.activeMode === 'actual' || !this.activeBaselineId) && !!task.plannedStart && !!task.plannedEnd; }
 
   startBarDrag(event: MouseEvent, task: GmProjectScheduleTask): void {
@@ -2205,7 +2006,6 @@ indentTask(): void {
   }
 
   // ---------------- Dependencies ----------------
-
   saveDependency(dep: TaskDependencyDto): void {
     if (!dep.id || !this.selectedTask) return;
     const payload: TaskDependencyDto = { id: dep.id, predecessorTaskId: dep.predecessorTaskId, successorTaskId: this.selectedTask.id, dependencyType: dep.dependencyType || 'FS', lagDays: Number(dep.lagDays ?? 0) };
@@ -2309,7 +2109,6 @@ indentTask(): void {
   }
 
   // ---------------- Resources ----------------
-
   loadTaskResources(taskId: number): void {
     this.service.getTaskResources(this.projectId, taskId).subscribe({
       next: (res) => {
@@ -2515,7 +2314,6 @@ indentTask(): void {
   }
 
   // ---------------- Scroll sync ----------------
-
   private syncScroll(source: HTMLElement, target: HTMLElement, axis: 'vertical' | 'horizontal'): void {
     if (axis === 'vertical') target.scrollTop = source.scrollTop;
     else target.scrollLeft = source.scrollLeft;
@@ -2551,7 +2349,6 @@ indentTask(): void {
   }
 
   // ---------------- Column sizing ----------------
-
   get visibleColumnTemplate(): string {
     const cols: string[] = [];
     if (this.columnVisibility.id) cols.push('52px');
@@ -2568,7 +2365,7 @@ indentTask(): void {
     if (this.columnVisibility.predecessors) cols.push('110px');
     if (this.columnVisibility.baselineStart) cols.push('95px');
     if (this.columnVisibility.milestone) cols.push('120px');
-if (this.columnVisibility.baselineEnd) cols.push('95px');
+    if (this.columnVisibility.baselineEnd) cols.push('95px');
     return cols.join(' ');
   }
 
@@ -2588,12 +2385,11 @@ if (this.columnVisibility.baselineEnd) cols.push('95px');
     if (this.columnVisibility.predecessors) total += 110;
     if (this.columnVisibility.baselineStart) total += 95;
     if (this.columnVisibility.milestone) total += 120;
-if (this.columnVisibility.baselineEnd) total += 95;
+    if (this.columnVisibility.baselineEnd) total += 95;
     return total;
   }
 
   // ---------------- Stats / date helpers ----------------
-
   private computeStats(): void {
     this.stats.total = this.tasks.length;
     this.stats.milestones = this.tasks.filter(t => this.isMilestone(t)).length;
@@ -2624,9 +2420,6 @@ if (this.columnVisibility.baselineEnd) total += 95;
     const startIndex = this.getTimelineDayIndex(startValue);
     const endIndex = this.getTimelineDayIndex(endValue);
     if (startIndex < 0 || endIndex < startIndex) return this.dayWidth;
-
-    // The timeline contains every calendar day, while task duration contains
-    // working days only. Geometry must span the displayed start/end cells.
     return (endIndex - startIndex + 1) * this.dayWidth;
   }
 
@@ -2639,10 +2432,8 @@ if (this.columnVisibility.baselineEnd) total += 95;
   private toDateOnly(value: string): Date {
     const isoDate = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
     if (isoDate) return new Date(Number(isoDate[1]), Number(isoDate[2]) - 1, Number(isoDate[3]));
-
     const displayDate = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(value);
     if (displayDate) return new Date(Number(displayDate[3]), Number(displayDate[2]) - 1, Number(displayDate[1]));
-
     const d = new Date(value);
     return new Date(d.getFullYear(), d.getMonth(), d.getDate());
   }
@@ -2655,19 +2446,21 @@ if (this.columnVisibility.baselineEnd) total += 95;
     if (normalized === 'MILESTONE') return 'MILESTONE';
     return 'ACTIVITY';
   }
+
+  // ================= MILESTONES (CORRIGÉ) =================
   loadMilestoneTypes(): void {
-  console.log('Loading milestones...'); // Debug log
-  this.milestoneService.getMilestoneTypes(this.projectId).subscribe({
-    next: (types) => {
-      console.log('Milestones loaded:', types); // Debug log
-      this.milestoneTypes = (types ?? []).map(type => ({ ...type, id: Number(type.id) }));
-    },
-    error: (err) => {
-      console.error('Failed to load milestone types', err);
-      this.milestoneTypes = []; // Reset on error
-    }
-  });
-}
+    console.log('Loading milestones...');
+    this.milestoneService.getMilestoneTypes(this.projectId).subscribe({
+      next: (types) => {
+        console.log('Milestones loaded:', types);
+        this.milestoneTypes = (types ?? []).map(type => ({ ...type, id: Number(type.id) }));
+      },
+      error: (err) => {
+        console.error('Failed to load milestone types', err);
+        this.milestoneTypes = [];
+      }
+    });
+  }
 
   saveNewMilestoneType(): void {
     const name = this.newMilestoneType.label.trim();
@@ -2685,51 +2478,48 @@ if (this.columnVisibility.baselineEnd) total += 95;
       error: (err) => console.error('Failed to create milestone type', err)
     });
   }
- loadDefaultMilestones(): void {
-  this.loadMilestoneTypes();
-  return;
-  // ✅ Shortened labels to fit VARCHAR(20) database limit
-  const defaultMilestones = [
-    { code: 'RT', label: 'RT', letterCode: '', color: '#7FFFD4' },
-    { code: 'KOM', label: 'KOM', letterCode: '', color: '#228B22' },
-    { code: 'DISTINTA UTM', label: 'DISTINTA UTM', letterCode: '', color: '#FF69B4' },
-    { code: 'DISTINTA UTE', label: 'DISTINTA UTE', letterCode: '', color: '#FFFF00' },
-    { code: 'APPROVVIG.', label: 'APPROVVIG.', letterCode: '', color: '#FFDAB9' },
-    { code: 'MONTAGGIO INT.', label: 'MONTAGGIO INT.', letterCode: '', color: '#FFA500' },
-    { code: 'COLLAUDO INT.', label: 'COLLAUDO INT.', letterCode: '', color: '#8B4513' },
-    { code: 'FAT', label: 'FAT', letterCode: 'F', color: '#800080' },
-    { code: 'SPEDIZIONE', label: 'SPEDIZIONE', letterCode: 'SP', color: '#FFFF00' },
-    { code: 'INSTALLAZIONE', label: 'INSTALLAZIONE', letterCode: '', color: '#0000FF' },
-    { code: 'AVV. E COLLAUDO', label: 'AVV. E COLLAUDO', letterCode: '', color: '#00008B' },
-    { code: 'TRAINING', label: 'TRAINING', letterCode: 'T', color: '#800080' },
-    { code: 'SAT', label: 'SAT', letterCode: 'S', color: '#800080' }
-  ];
 
-  if (this.milestoneTypes.length > 0) {
-    if (!confirm('This will attempt to add default milestones. Existing ones will be skipped. Continue?')) return;
-  }
-
-  let createdCount = 0;
-  let skippedCount = 0;
-
-  defaultMilestones.forEach((milestone) => {
-    this.milestoneService.createMilestoneType(this.projectId, milestone).subscribe({
-      next: (created) => {
-        this.milestoneTypes.push(created);
-        createdCount++;
-        if (createdCount + skippedCount === defaultMilestones.length) {
-          alert(`✅ Success: ${createdCount} added, ${skippedCount} skipped (already exist).`);
+  loadDefaultMilestones(): void {
+    this.loadMilestoneTypes();
+    return;
+    const defaultMilestones = [
+      { code: 'RT', label: 'RT', letterCode: '', color: '#7FFFD4' },
+      { code: 'KOM', label: 'KOM', letterCode: '', color: '#228B22' },
+      { code: 'DISTINTA UTM', label: 'DISTINTA UTM', letterCode: '', color: '#FF69B4' },
+      { code: 'DISTINTA UTE', label: 'DISTINTA UTE', letterCode: '', color: '#FFFF00' },
+      { code: 'APPROVVIG.', label: 'APPROVVIG.', letterCode: '', color: '#FFDAB9' },
+      { code: 'MONTAGGIO INT.', label: 'MONTAGGIO INT.', letterCode: '', color: '#FFA500' },
+      { code: 'COLLAUDO INT.', label: 'COLLAUDO INT.', letterCode: '', color: '#8B4513' },
+      { code: 'FAT', label: 'FAT', letterCode: 'F', color: '#800080' },
+      { code: 'SPEDIZIONE', label: 'SPEDIZIONE', letterCode: 'SP', color: '#FFFF00' },
+      { code: 'INSTALLAZIONE', label: 'INSTALLAZIONE', letterCode: '', color: '#0000FF' },
+      { code: 'AVV. E COLLAUDO', label: 'AVV. E COLLAUDO', letterCode: '', color: '#00008B' },
+      { code: 'TRAINING', label: 'TRAINING', letterCode: 'T', color: '#800080' },
+      { code: 'SAT', label: 'SAT', letterCode: 'S', color: '#800080' }
+    ];
+    if (this.milestoneTypes.length > 0) {
+      if (!confirm('This will attempt to add default milestones. Existing ones will be skipped. Continue?')) return;
+    }
+    let createdCount = 0;
+    let skippedCount = 0;
+    defaultMilestones.forEach((milestone) => {
+      this.milestoneService.createMilestoneType(this.projectId, milestone).subscribe({
+        next: (created) => {
+          this.milestoneTypes.push(created);
+          createdCount++;
+          if (createdCount + skippedCount === defaultMilestones.length) {
+            alert(`✅ Success: ${createdCount} added, ${skippedCount} skipped (already exist).`);
+          }
+        },
+        error: (err) => {
+          skippedCount++;
+          if (createdCount + skippedCount === defaultMilestones.length) {
+            alert(`✅ Finished: ${createdCount} added, ${skippedCount} skipped.`);
+          }
         }
-      },
-      error: (err) => {
-        skippedCount++; // Gracefully skip duplicates or length errors
-        if (createdCount + skippedCount === defaultMilestones.length) {
-          alert(`✅ Finished: ${createdCount} added, ${skippedCount} skipped.`);
-        }
-      }
+      });
     });
-  });
-}
+  }
 
   deleteMilestoneType(id: number): void {
     if (!confirm('Delete this milestone type?')) return;
@@ -2738,12 +2528,15 @@ if (this.columnVisibility.baselineEnd) total += 95;
       error: (err) => console.error('Failed to delete milestone type', err)
     });
   }
+
   beginEditMilestoneType(milestoneType: any): void {
     this.editingMilestoneType = { ...milestoneType };
   }
+
   cancelMilestoneTypeEdit(): void {
     this.editingMilestoneType = null;
   }
+
   saveMilestoneTypeEdit(): void {
     const edited = this.editingMilestoneType;
     if (!edited || !edited.label?.trim()) return;
@@ -2760,9 +2553,28 @@ if (this.columnVisibility.baselineEnd) total += 95;
       error: (err) => console.error('Failed to update milestone type', err)
     });
   }
+
   selectedMilestoneTypeId(task: GmProjectScheduleTask): number | null {
     return task.milestoneTypeId == null ? null : Number(task.milestoneTypeId);
   }
+
+  // ✅ NOUVELLE MÉTHODE CORRIGÉE pour gérer la sélection des milestones
+onMilestoneTypeSelect(task: GmProjectScheduleTask, code: string | null): void {
+  if (!code) {
+    this.updateLocalTaskField(task, 'milestoneTypeId', null);
+    return;
+  }
+  
+  const type = this.milestoneTypes.find(item => item.code === code);
+  if (type) {
+    this.updateLocalTaskField(task, 'milestoneTypeId', type.id);
+    task.name = type.label;
+    task.color = type.color;
+  }
+  this.saveInlineTask(task);
+}
+
+  // Ancienne méthode (gardée pour compatibilité avec d'autres parties du code)
   selectMilestoneType(task: GmProjectScheduleTask, milestoneTypeId: number | string | null): void {
     const selectedId = milestoneTypeId == null ? null : Number(milestoneTypeId);
     this.updateLocalTaskField(task, 'milestoneTypeId', selectedId);
@@ -2773,9 +2585,11 @@ if (this.columnVisibility.baselineEnd) total += 95;
     }
     this.saveInlineTask(task);
   }
+
   milestoneColor(task: GmProjectScheduleTask): string {
-    return this.milestoneTypes.find(item => item.id === task.milestoneTypeId)?.color || task.color || '#64748b';
+    return this.milestoneTypes.find(item => Number(item.id) === Number(task.milestoneTypeId))?.color || task.color || '#64748b';
   }
+
   formatDateForInput(value?: string | null): string { return value ?? ''; }
 
   formatDateForDisplay(value?: string | null): string {
@@ -2791,7 +2605,6 @@ if (this.columnVisibility.baselineEnd) total += 95;
   }
 
   // ---------------- Settings data ----------------
-
   loadTemplates(): void {
     this.templateService.getTemplates(this.projectId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: ProjectTemplate[]) => {
@@ -2807,7 +2620,6 @@ if (this.columnVisibility.baselineEnd) total += 95;
 
   getNormalizedResourceType(task: any): string { return (task?.resourceType || '').toUpperCase(); }
   getNormalizedDepartment(task: any): string { return (task?.departmentCode || '').toUpperCase(); }
-
   getNormalizedTaskType(task: any): string {
     const value = String(task?.taskType || '').toUpperCase();
     if (value === 'ACTIVITY' || value === 'SUMMARY' || value === 'MILESTONE') return value;
@@ -2829,13 +2641,11 @@ if (this.columnVisibility.baselineEnd) total += 95;
   clearTemplateSelection(): void { this.selectedTemplateTaskIds.clear(); }
 
   // ---------------- Customer flag ----------------
-
   getCustomerFlag(task: GmProjectScheduleTask): 'Y' | 'N' { return task.customerMilestone ? 'Y' : 'N'; }
   isCustomerChecked(task: GmProjectScheduleTask): boolean { return !!task.customerMilestone; }
   onCustomerFlagChange(task: GmProjectScheduleTask, checked: boolean): void { this.updateLocalTaskField(task, 'customerMilestone', checked); this.saveInlineTask(task); }
 
   // ---------------- Dependency cascade ----------------
-
   private normalizeDateString(value?: string | null): string | null {
     if (!value) return null;
     const d = this.toDateOnly(value);
@@ -2887,7 +2697,6 @@ if (this.columnVisibility.baselineEnd) total += 95;
       status: task.status ?? '',
       milestoneTypeId: task.milestoneTypeId ?? null,
       color: task.color ?? '',
-      
       assignedUserId: isActivity ? task.assignedUserId ?? undefined : undefined
     };
   }
@@ -2927,7 +2736,6 @@ if (this.columnVisibility.baselineEnd) total += 95;
         case 'FF': if (predEnd) requiredEnd = this.maxDateString(requiredEnd, this.addScheduledDaysToDateString(predEnd, lag)); break;
         case 'SF': if (predStart) requiredEnd = this.maxDateString(requiredEnd, this.addScheduledDaysToDateString(predStart, lag)); break;
         default:
-          // Finish-to-start begins on the next working day for zero lag.
           if (predEnd) requiredStart = this.maxDateString(requiredStart, this.addScheduledDaysToDateString(predEnd, lag + 1));
           break;
       }
@@ -2976,7 +2784,6 @@ if (this.columnVisibility.baselineEnd) total += 95;
     const successorsOf = (taskId: number) => this.tasks.filter(task =>
       (task.dependencies ?? []).some(dependency => dependency.predecessorTaskId === taskId)
     );
-
     for (const mode of modes) {
       const queue = recalculateSource ? [source] : successorsOf(source.id);
       const visited = new Set<number>();
@@ -3004,7 +2811,6 @@ if (this.columnVisibility.baselineEnd) total += 95;
     return requests.length ? forkJoin(requests) : of([]);
   }
 
-  // KEY FIX: setupTaskFormAutoCalculations — form duration change updates selectedTask and table row
   private setupTaskFormAutoCalculations(): void {
     const baselineStartCtrl = this.taskForm.get('baselineStart');
     const baselineEndCtrl = this.taskForm.get('baselineEnd');
@@ -3015,24 +2821,15 @@ if (this.columnVisibility.baselineEnd) total += 95;
     const actualStartCtrl = this.taskForm.get('actualStart');
     const actualEndCtrl = this.taskForm.get('actualEnd');
     if (!baselineStartCtrl || !baselineEndCtrl || !taskTypeCtrl || !durationCtrl) return;
-
-    // When dates change → update duration display in form
-    // Keep the edited endpoint authoritative. Combining controls loses that
-    // information and makes an end-date edit behave like a start-date edit.
     baselineStartCtrl.valueChanges.subscribe(() => this.syncSelectedTaskFromForm('baselineStart'));
     baselineEndCtrl.valueChanges.subscribe(() => this.syncSelectedTaskFromForm('baselineEnd'));
     actualStartCtrl?.valueChanges.subscribe(() => this.syncSelectedTaskFromForm('actualStart'));
     actualEndCtrl?.valueChanges.subscribe(() => this.syncSelectedTaskFromForm('actualEnd'));
     taskTypeCtrl.valueChanges.subscribe(() => this.syncSelectedTaskFromForm('duration'));
-
-    // When duration changes in panel → update end date AND table row
     durationCtrl.valueChanges.subscribe(() => {
       if (!this.selectedTask || this.suppressFormAutoSave) return;
       this.syncSelectedTaskFromForm('duration');
-
     });
-
-    // Auto-save on any form change
     this.taskForm.valueChanges.subscribe(() => {
       if (!this.selectedTask || this.suppressFormAutoSave) return;
       clearTimeout(this.formAutoSaveTimer);
@@ -3040,7 +2837,6 @@ if (this.columnVisibility.baselineEnd) total += 95;
         if (!this.selectedTask || this.taskForm.invalid) return;
         const formValue = this.taskForm.value;
         Object.assign(this.selectedTask, formValue);
-        // Update table row immediately
         const index = this.tasks.findIndex(t => t.id === this.selectedTask!.id);
         if (index !== -1) {
           Object.assign(this.tasks[index], formValue);
@@ -3093,19 +2889,23 @@ if (this.columnVisibility.baselineEnd) total += 95;
   exportAsMsProjectXml(): void {
     const exportTasks = this.getExportTasks();
     const xmlTasks = exportTasks.map((task, index) => `
-    <Task>
-      <UID>${task.id}</UID>
-      <ID>${index + 1}</ID>
-      <Name>${this.escapeXml(task.name)}</Name>
-      <OutlineNumber>${this.escapeXml(task.wbsCode || '')}</OutlineNumber>
-      <Start>${this.escapeXml(this.formatDateForExport(task.baselineStart ?? task.plannedStart))}</Start>
-      <Finish>${this.escapeXml(this.formatDateForExport(task.baselineEnd ?? task.plannedEnd))}</Finish>
-      <Duration>${this.escapeXml(task.durationDays ?? 0)}</Duration>
-      <PercentComplete>${this.escapeXml(task.percentComplete ?? 0)}</PercentComplete>
-      <Priority>${this.escapeXml(task.priority ?? 500)}</Priority>
-      <Notes>${this.escapeXml(task.description || '')}</Notes>
-    </Task>`).join('');
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<Project>\n  <Name>Project ${this.projectId} Schedule</Name>\n  <Tasks>${xmlTasks}  </Tasks>\n</Project>`;
+<Task>
+<UID>${task.id}</UID>
+<ID>${index + 1}</ID>
+<Name>${this.escapeXml(task.name)}</Name>
+<OutlineNumber>${this.escapeXml(task.wbsCode || '')}</OutlineNumber>
+<Start>${this.escapeXml(this.formatDateForExport(task.baselineStart ?? task.plannedStart))}</Start>
+<Finish>${this.escapeXml(this.formatDateForExport(task.baselineEnd ?? task.plannedEnd))}</Finish>
+<Duration>${this.escapeXml(task.durationDays ?? 0)}</Duration>
+<PercentComplete>${this.escapeXml(task.percentComplete ?? 0)}</PercentComplete>
+<Priority>${this.escapeXml(task.priority ?? 500)}</Priority>
+<Notes>${this.escapeXml(task.description || '')}</Notes>
+</Task>`).join('');
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<Project>
+<Name>Project ${this.projectId} Schedule</Name>
+<Tasks>${xmlTasks}  </Tasks>
+</Project>`;
     this.downloadBlob(new Blob([xml], { type: 'application/xml;charset=utf-8' }), `project-${this.projectId}-schedule.xml`);
     this.closeExportModal();
   }
@@ -3159,6 +2959,7 @@ if (this.columnVisibility.baselineEnd) total += 95;
   }
 
   formatHistoryDate(value?: string | null): string { return value ? new Date(value).toLocaleString() : '—'; }
+
   toggleConsoleCheckpoint(field: 'checkpoint25' | 'checkpoint50' | 'checkpoint75'): void { if (!this.consoleConfig) return; this.consoleConfig[field] = !this.consoleConfig[field]; }
   setConsoleChannel(channel: 'APP_ALERT' | 'EMAIL' | 'BOTH'): void { if (!this.consoleConfig) return; this.consoleConfig.channel = channel; }
   toggleConsoleNotify(field: 'notifyPm' | 'notifyOwner' | 'notifyDeptManager' | 'notifyEveryone'): void { if (!this.consoleConfig) return; this.consoleConfig[field] = !this.consoleConfig[field]; }
@@ -3174,13 +2975,11 @@ if (this.columnVisibility.baselineEnd) total += 95;
   }
 
   // ---------------- Baselines ----------------
-
   private parseBaselineTasks(snapshotJson: string): ProjectBaselineTaskSnapshot[] {
     try {
       const parsed = JSON.parse(snapshotJson || '[]');
       const tasks = Array.isArray(parsed) ? parsed : parsed?.tasks;
       if (!Array.isArray(tasks)) return [];
-      // Accept historical client-created snapshots while reading the server snapshot format.
       return tasks.map((task: any) => ({
         taskId: Number(task.taskId ?? task.id),
         taskType: task.taskType ?? 'ACTIVITY',
@@ -3270,7 +3069,6 @@ if (this.columnVisibility.baselineEnd) total += 95;
         successors.set(dependency.predecessorTaskId, next);
       });
     });
-
     const visited = new Set<number>();
     const pending = [...(successors.get(fromTaskId) ?? [])];
     while (pending.length) {
@@ -3289,7 +3087,6 @@ if (this.columnVisibility.baselineEnd) total += 95;
     if (nextPredecessorId === (existing?.predecessorTaskId ?? null)) return;
     if (nextPredecessorId !== null && !this.getAvailablePredecessors(task).some(candidate => candidate.id === nextPredecessorId)) return;
     if (!existing && nextPredecessorId === null) return;
-
     const previousDependencies = (task.dependencies ?? []).map(dependency => ({ ...dependency }));
     if (nextPredecessorId === null) {
       task.dependencies = (task.dependencies ?? []).filter(dependency => dependency.id !== existing!.id);
@@ -3300,22 +3097,20 @@ if (this.columnVisibility.baselineEnd) total += 95;
     }
     this.trackCascadeUpdates(this.cascadeDependentTaskDates(task, ['actual', 'baseline'], true));
     this.refreshGanttView();
-
     const save = nextPredecessorId === null
       ? this.service.deleteDependency(this.projectId, existing!.id!)
       : existing?.id
-        ? this.service.updateDependency(this.projectId, existing.id, {
-            ...existing,
-            predecessorTaskId: nextPredecessorId,
-            successorTaskId: task.id
-          })
-        : this.service.createDependency(this.projectId, {
-            predecessorTaskId: nextPredecessorId,
-            successorTaskId: task.id,
-            dependencyType: 'FS',
-            lagDays: 0
-          });
-
+      ? this.service.updateDependency(this.projectId, existing.id, {
+        ...existing,
+        predecessorTaskId: nextPredecessorId,
+        successorTaskId: task.id
+      })
+      : this.service.createDependency(this.projectId, {
+        predecessorTaskId: nextPredecessorId,
+        successorTaskId: task.id,
+        dependencyType: 'FS',
+        lagDays: 0
+      });
     save.subscribe({
       next: saved => {
         if (nextPredecessorId !== null && !existing && saved) {
@@ -3332,5 +3127,12 @@ if (this.columnVisibility.baselineEnd) total += 95;
       }
     });
   }
-
+  // ✅ NEW: Get milestone code instead of ID for better display
+getSelectedMilestoneCode(task: GmProjectScheduleTask): string | null {
+  if (!task.milestoneTypeId || !this.milestoneTypes.length) {
+    return null;
+  }
+  const type = this.milestoneTypes.find(item => Number(item.id) === Number(task.milestoneTypeId));
+  return type ? type.code : null;
+}
 }
