@@ -18,13 +18,11 @@ interface TimelineMonth {
   width: number;
 }
 
-@Component({ 
-  selector: 'app-project-performance', 
-  templateUrl: './project-performance.component.html', 
-  styleUrls: ['./project-performance.component.scss'] 
-})
+@Component({ selector: 'app-project-performance', templateUrl: './project-performance.component.html', styleUrls: ['./project-performance.component.scss'] })
 export class ProjectPerformanceComponent implements OnInit, OnDestroy {
-  // ✅ Ajout des ViewChild pour la synchronisation du scroll
+  // ✅ FIX: synchronisation du scroll horizontal entre le header (mois/jours)
+  // et le corps de la timeline Milestone — sans ça le header reste figé
+  // (ex. bloqué sur "AUG 2026") pendant que le corps défile.
   @ViewChild('timelineBodyScroll') timelineBodyScroll!: ElementRef<HTMLDivElement>;
   @ViewChild('timelineHeaderScroll') timelineHeaderScroll!: ElementRef<HTMLDivElement>;
 
@@ -39,7 +37,7 @@ export class ProjectPerformanceComponent implements OnInit, OnDestroy {
   revenueWindow: 6 | 12 = 12;
   revenueMode: 'forecast' | 'budget' | 'variance' = 'forecast';
 
-  // ===================== MILESTONE (company-wide) =====================
+  // ===================== MILESTONE (company-wide, tous PM confondus) =====================
   milestones: ProjectMilestone[] = [];
   milestonesLoading = false;
   milestonesLoaded = false;
@@ -118,7 +116,7 @@ export class ProjectPerformanceComponent implements OnInit, OnDestroy {
   isCurrentMonth(key: string): boolean { return key === `${this.year}-${String(new Date().getMonth() + 1).padStart(2, '0')}`; }
   bestMonth(r: RevenueForecast): string { return r.months.reduce((best, month) => month.forecast > best.forecast ? month : best, r.months[0])?.label || '—'; }
 
-  // ===================== MILESTONE LOGIC =====================
+  // ===================== MILESTONE LOGIC (même pattern que milestone-dashboard.component) =====================
 
   private buildMilestoneDateRange(): void {
     const today = new Date();
@@ -185,24 +183,37 @@ export class ProjectPerformanceComponent implements OnInit, OnDestroy {
   loadMilestones(): void {
     if (!this.dashboard?.projects?.length) { this.milestonesLoaded = true; return; }
     this.milestonesLoading = true;
-    const projectIds = this.dashboard.projects.map((p: any) => p.id);
+
+    const projectIds = this.dashboard.projects
+      .map(p => p.id)
+      .filter((id): id is number => typeof id === 'number' && id > 0);
+
+    // ✅ DEBUG temporaire — vérifie dans la console ce qui est vraiment envoyé.
+    // Supprime ces 2 lignes une fois le problème confirmé résolu.
+    console.log('[Milestone/Command Center] projectIds envoyés:', projectIds);
+    console.log('[Milestone/Command Center] plage de dates:', this.formatDate(this.msStartDate), '->', this.formatDate(this.msEndDate));
+
+    if (!projectIds.length) {
+      console.warn('[Milestone/Command Center] Aucun projectId valide — dashboard.projects:', this.dashboard.projects);
+      this.milestones = [];
+      this.milestonesLoading = false;
+      this.milestonesLoaded = true;
+      return;
+    }
+
     const startDateStr = this.formatDate(this.msStartDate);
     const endDateStr = this.formatDate(this.msEndDate);
-    
-    // ✅ DEBUG : Vérifiez la console du navigateur (F12)
-    console.log('🔍 Loading milestones for projects:', projectIds, 'between', startDateStr, 'and', endDateStr);
-    
     this.milestoneService.getMilestonesByDateRange(projectIds, startDateStr, endDateStr).subscribe({
-      next: (milestones) => { 
-        console.log('✅ Milestones received from API:', milestones);
-        this.milestones = milestones; 
-        this.milestonesLoading = false; 
-        this.milestonesLoaded = true; 
+      next: (milestones) => {
+        console.log('[Milestone/Command Center] réponse reçue:', milestones);
+        this.milestones = milestones;
+        this.milestonesLoading = false;
+        this.milestonesLoaded = true;
       },
-      error: (err) => { 
-        console.error('❌ Failed to load milestones', err);
-        this.milestonesLoading = false; 
-        this.milestonesLoaded = true; 
+      error: (err) => {
+        console.error('[Milestone/Command Center] erreur API:', err);
+        this.milestonesLoading = false;
+        this.milestonesLoaded = true;
       }
     });
   }
@@ -221,32 +232,35 @@ export class ProjectPerformanceComponent implements OnInit, OnDestroy {
     return dayIndex * this.dayWidth + (this.dayWidth / 2);
   }
 
-  // ✅ CORRECTION CRITIQUE : Utiliser Number() pour éviter les échecs de comparaison string vs number
-  getMilestonesForProject(projectId: number | string): ProjectMilestone[] {
-    const numProjectId = Number(projectId);
-    const filtered = this.milestones.filter(m => Number(m.projectId) === numProjectId);
-    if (filtered.length > 0) {
-      console.log(`📊 Found ${filtered.length} milestones for project ${projectId}`);
-    }
-    return filtered;
+  getMilestonesForProject(projectId: number): ProjectMilestone[] {
+    return this.milestones.filter(m => m.projectId === projectId);
   }
 
   getRowHeight(): number { return 32; }
 
-  // ============ FILTERS ============
+  // ✅ FIX: synchronise le scroll horizontal du header avec le corps de la timeline
+  onTimelineScroll(): void {
+    const bodyEl = this.timelineBodyScroll?.nativeElement;
+    const headerEl = this.timelineHeaderScroll?.nativeElement;
+    if (bodyEl && headerEl) {
+      headerEl.scrollLeft = bodyEl.scrollLeft;
+    }
+  }
+
+  // ============ FILTERS (company-wide: filtre par health, et par PM) ============
 
   get uniqueStatuses(): string[] {
-    const statuses = (this.dashboard?.projects ?? []).map((p: any) => p.health || p.phase || 'A');
+    const statuses = (this.dashboard?.projects ?? []).map(p => p.health || p.phase || 'A');
     return ['ALL', ...Array.from(new Set(statuses))].sort();
   }
 
   get uniquePMs(): string[] {
-    const pms = (this.dashboard?.projects ?? []).map((p: any) => p.manager || '—');
+    const pms = (this.dashboard?.projects ?? []).map(p => p.manager || '—');
     return ['ALL', ...Array.from(new Set(pms))].sort();
   }
 
-  get filteredMilestoneProjects(): any[] {
-    return (this.dashboard?.projects ?? []).filter((project: any) => {
+  get filteredMilestoneProjects() {
+    return (this.dashboard?.projects ?? []).filter(project => {
       const statusMatch = this.statusFilter === 'ALL' || (project.health || project.phase || 'A') === this.statusFilter;
       const pmMatch = this.pmFilter === 'ALL' || (project.manager || '—') === this.pmFilter;
       return statusMatch && pmMatch;
@@ -258,7 +272,7 @@ export class ProjectPerformanceComponent implements OnInit, OnDestroy {
   setStatusFilter(status: string): void { this.statusFilter = status; this.statusMenuOpen = false; }
   setPMFilter(pm: string): void { this.pmFilter = pm; this.pmMenuOpen = false; }
 
-  getPMInitials(project: any): string {
+  getPMInitials(project: { manager: string | null }): string {
     const name = project.manager;
     if (!name || String(name).trim() === '') return '—';
     const parts = String(name).trim().split(/\s+/);
@@ -266,14 +280,4 @@ export class ProjectPerformanceComponent implements OnInit, OnDestroy {
     if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
     return '—';
   }
-
-  // ✅ Synchronisation du scroll horizontal
-  onTimelineScroll(): void {
-    const timelineBodyEl = this.timelineBodyScroll?.nativeElement;
-    const timelineHeaderEl = this.timelineHeaderScroll?.nativeElement;
-    if (timelineBodyEl && timelineHeaderEl) {
-      timelineHeaderEl.scrollLeft = timelineBodyEl.scrollLeft;
-    }
-  }
-  
 }
