@@ -111,8 +111,8 @@
         </div>
       </div>
 
-      <div class="timeline-body" #timelineBodyScroll>
-        
+      <!-- ✅ FIX: (scroll)="onTimelineScroll()" ajouté pour synchroniser le header -->
+      <div class="timeline-body" #timelineBodyScroll (scroll)="onTimelineScroll()">
         <div *ngFor="let project of filteredMilestoneProjects" class="project-row" [style.height.px]="getRowHeight()">
           <div class="project-columns">
             <div class="col-project">
