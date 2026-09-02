@@ -1428,7 +1428,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
  
       // Réutilise la structure de tâche déjà attendue par le composant
       // (le même format que celui produit par "Save Template").
-      const idBySnapshotWbs = new Map<string, number>();
+    const idBySnapshotWbs = new Map<string, number>();
       payload.forEach((p, index) => {
         if (p.wbsCode) idBySnapshotWbs.set(p.wbsCode, -(index + 1));
       });
