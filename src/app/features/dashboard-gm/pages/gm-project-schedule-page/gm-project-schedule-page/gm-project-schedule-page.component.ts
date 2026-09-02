@@ -1800,6 +1800,8 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
     this.leftPaneWidth = Math.min(max, Math.max(min, width));
   }
 
+
+  
   startResize(event: MouseEvent): void {
     event.preventDefault();
     this.isResizing = true;
