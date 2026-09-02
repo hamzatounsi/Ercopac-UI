@@ -892,13 +892,24 @@
         <!-- ================= TEMPLATES TAB ================= -->
         <ng-container *ngIf="settingsTab === 'templates'">
           <section class="drawer-section">
-            <div class="drawer-section-header">
+           <div class="drawer-section-header">
               <div class="drawer-section-title">
                 <span class="material-symbols-outlined sec-icon">dashboard_customize</span>
                 <span>Saved Templates</span>
               </div>
-              <button type="button" class="mini-outline-btn">↑ Import .xml</button>
+                   <label class="mini-outline-btn" style="cursor:pointer;">
+                ↑ Import .xlsx / .xls / .json
+                <input
+                  #templateImportInput
+                  type="file"
+                  hidden
+                  accept=".json,application/json,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.xls,application/vnd.ms-excel"
+                  (change)="importTemplateFile($event)"
+                />
+              </label>
             </div>
+            <span class="import-status" *ngIf="templateImportStatus">{{ templateImportStatus }}</span>
+ 
             <div class="drawer-empty-card" *ngIf="templates.length === 0">
               <span class="material-symbols-outlined empty-icon">inventory_2</span>
               <div class="empty-title">No templates saved yet.</div>

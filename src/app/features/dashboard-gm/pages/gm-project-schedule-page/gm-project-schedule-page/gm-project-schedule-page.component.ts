@@ -1415,17 +1415,101 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
     }
   }
 
+  templateImportStatus = '';
+ 
+  async importTemplateFile(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    try {
+      const rows = await this.readImportRows(file);
+      const payload = rows.map((row, index) => this.toImportedTaskPayload(row, index));
+      if (!payload.length) throw new Error('The file does not contain any task rows.');
+ 
+      // Réutilise la structure de tâche déjà attendue par le composant
+      // (le même format que celui produit par "Save Template").
+      const idBySnapshotWbs = new Map<string, number>();
+      payload.forEach((p, index) => {
+        if (p.wbsCode) idBySnapshotWbs.set(p.wbsCode, -(index + 1));
+      });
+      const parentWbsOf = (wbs: string | undefined): string | null => {
+        if (!wbs || !wbs.includes('.')) return null;
+        return wbs.substring(0, wbs.lastIndexOf('.'));
+      };
+ 
+      const tasksForSnapshot = payload.map((p, index) => ({
+        id: -(index + 1),
+        parentId: idBySnapshotWbs.get(parentWbsOf(p.wbsCode) || '') ?? null,
+        name: p.name,
+        taskType: p.taskType,
+        wbsCode: p.wbsCode,
+        durationDays: p.durationDays,
+        baselineStart: p.baselineStart,
+        baselineEnd: p.baselineEnd,
+        plannedStart: p.plannedStart,
+        plannedEnd: p.plannedEnd,
+        percentComplete: p.percentComplete,
+        departmentCode: p.departmentCode,
+        resourceType: p.resourceType,
+        priority: 500,
+        active: true,
+        outlineLevel: 1,
+        displayOrder: index + 1
+      }));
+ 
+      const fileName = file.name.replace(/\.(json|xlsx)$/i, '');
+      this.templateImportStatus = 'Importing template...';
+      this.templateService.createTemplate(this.projectId, {
+        name: fileName || 'Imported Template',
+        scope: 'all',
+        description: `Imported from ${file.name}`,
+        snapshotJson: JSON.stringify(tasksForSnapshot)
+      }).subscribe({
+        next: () => {
+          this.templateImportStatus = `Template imported: ${payload.length} task(s).`;
+          this.loadTemplates();
+        },
+        error: (err) => {
+          this.templateImportStatus = '';
+          console.error('Failed to import template', err);
+          alert(err?.error?.message || 'Failed to import template.');
+        }
+      });
+    } catch (error) {
+      this.templateImportStatus = '';
+      alert(error instanceof Error ? error.message : 'Invalid import file.');
+    } finally {
+      input.value = '';
+    }
+  }
+  
   private async readImportRows(file: File): Promise<Record<string, unknown>[]> {
     const filename = file.name.toLowerCase();
-    assertSpreadsheetFile(file, ['.json', '.xlsx']);
+    assertSpreadsheetFile(file, ['.json', '.xlsx', '.xls']);
     if (filename.endsWith('.json')) {
       const parsed = JSON.parse(await file.text());
       const rows = Array.isArray(parsed) ? parsed : parsed?.tasks;
       if (!Array.isArray(rows)) throw new Error('JSON must contain a task array or a { tasks: [] } object.');
       return rows as Record<string, unknown>[];
     }
-    if (filename.endsWith('.xlsx')) {
-      const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: true });
+    if (filename.endsWith('.xlsx') || filename.endsWith('.xls')) {
+      const buffer = await file.arrayBuffer();
+ 
+      // Some "legacy .xls" exports (like report-generator downloads) are
+      // actually HTML tables saved with an .xls extension. SheetJS's binary
+      // parser cannot read these and throws an unhelpful internal error.
+      // Sniff the first bytes and parse as HTML when detected.
+      const sniff = new TextDecoder('utf-8').decode(buffer.slice(0, 512)).trim().toLowerCase();
+      if (sniff.startsWith('<html') || sniff.startsWith('<!doctype') || sniff.startsWith('<table') || sniff.startsWith('<?xml')) {
+        return this.parseHtmlTableRows(new TextDecoder('utf-8').decode(buffer));
+      }
+ 
+      let workbook;
+      try {
+        workbook = XLSX.read(buffer, { type: 'array', cellDates: true });
+      } catch {
+        throw new Error('This file could not be read as a spreadsheet. If it was exported from a web page, try re-saving it as a real .xlsx file first.');
+      }
       const firstSheet = assertValidWorkbook(workbook);
       const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(workbook.Sheets[firstSheet], { defval: null, raw: true });
       assertSpreadsheetRowLimit(rows);
@@ -1434,7 +1518,45 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
       if (!headers.some(header => ['task', 'taskname', 'name'].includes(header))) throw new Error('Schedule spreadsheet must include a Task or Name header.');
       return rows;
     }
-    throw new Error('Choose a JSON or .xlsx schedule file.');
+    throw new Error('Choose a JSON, .xlsx, or .xls schedule file.');
+  }
+ 
+  /**
+   * Parses an HTML <table> export (title/meta rows above the real header
+   * are common — e.g. "Molisana — Schedule Export", "Exported: ...", a
+   * blank row — so this scans for the first row containing a
+   * Task/Name-like header instead of assuming row 0 is the header.
+   */
+  private parseHtmlTableRows(html: string): Record<string, unknown>[] {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const table = doc.querySelector('table');
+    if (!table) throw new Error('Could not find a table in this file.');
+    const trs = Array.from(table.querySelectorAll('tr'));
+    if (!trs.length) throw new Error('The table in this file has no rows.');
+ 
+    let headerIndex = -1;
+    let headers: string[] = [];
+    for (let i = 0; i < trs.length; i++) {
+      const cells = Array.from(trs[i].querySelectorAll('th,td')).map(c => (c.textContent || '').trim());
+      const normalized = cells.map(c => this.normalizeImportHeader(c));
+      if (normalized.some(h => ['task', 'taskname', 'name'].includes(h))) {
+        headerIndex = i;
+        headers = cells;
+        break;
+      }
+    }
+    if (headerIndex === -1) throw new Error('Could not find a Task/Name header row in this file.');
+ 
+    const rows: Record<string, unknown>[] = [];
+    for (let i = headerIndex + 1; i < trs.length; i++) {
+      const cells = Array.from(trs[i].querySelectorAll('th,td')).map(c => (c.textContent || '').trim());
+      if (!cells.some(c => c !== '')) continue;
+      const row: Record<string, unknown> = {};
+      headers.forEach((h, idx) => { if (h) row[h] = cells[idx] ?? ''; });
+      rows.push(row);
+    }
+    assertSpreadsheetRowLimit(rows);
+    return rows;
   }
 
   private toImportedTaskPayload(row: Record<string, unknown>, index: number): GmUpdateProjectTaskRequest {
@@ -1457,10 +1579,10 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
     if (!['ACTIVITY', 'SUMMARY', 'MILESTONE'].includes(taskType)) {
       throw new Error(`Import row ${rowNumber}: task type must be ACTIVITY, SUMMARY, or MILESTONE.`);
     }
-    const baselineStart = date('Baseline Start', 'Baseline Start Date');
-    const baselineEnd = date('Baseline End', 'Baseline End Date');
-    const plannedStart = date('Planned Start', 'Start', 'Start Date');
-    const plannedEnd = date('Planned End', 'End', 'End Date');
+   const baselineStart = date('Baseline Start', 'Baseline Start Date', 'B.Start', 'BStart');
+    const baselineEnd = date('Baseline End', 'Baseline End Date', 'B.End', 'BEnd');
+    const plannedStart = date('Planned Start', 'Start', 'Start Date', 'P.Start', 'PStart');
+    const plannedEnd = date('Planned End', 'End', 'End Date', 'P.End', 'PEnd');
     const actualStart = date('Actual Start', 'Actual Start Date');
     const actualEnd = date('Actual End', 'Actual End Date');
     const wbsCode = text('WBS', 'WBS Code');
@@ -1479,8 +1601,8 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
       actualStart,
       actualEnd,
       durationDays: integer('duration', 'Duration', 'Duration Days', 'Baseline Duration'),
-      percentComplete: integer('progress', 'Progress', 'Percent Complete') ?? 0,
-      departmentCode: text('Department', 'Department Code'),
+      percentComplete: integer('progress', 'Progress', 'Percent Complete', '%Done', 'PercentDone') ??  0,
+     departmentCode: text('Department', 'Department Code', 'Dept'), 
       resourceType: text('Resource Type', 'Resource'),
       active: true,
       scheduleMode: 'AUTO',
