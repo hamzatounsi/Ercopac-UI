@@ -121,6 +121,29 @@ export class GmProjectumPageComponent implements OnInit {
   readonly statusOptions = ['PLANNED', 'ACTIVE', 'COMPLETED', 'STANDBY', 'ARCHIVED'];
   readonly typeOptions = ['Greenfield', 'Brownfield', 'Retrofit', 'Consulting', 'R&D', 'Service'];
   readonly riskOptions = ['LOW', 'MEDIUM', 'HIGH'];
+  readonly countryOptions = [
+  'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Argentina', 'Armenia', 'Australia',
+  'Austria', 'Azerbaijan', 'Bahrain', 'Bangladesh', 'Belarus', 'Belgium', 'Belize', 'Benin',
+  'Bhutan', 'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei', 'Bulgaria',
+  'Burkina Faso', 'Burundi', 'Cambodia', 'Cameroon', 'Canada', 'Chad', 'Chile', 'China',
+  'Colombia', 'Congo', 'Costa Rica', 'Croatia', 'Cuba', 'Cyprus', 'Czech Republic', 'Denmark',
+  'Djibouti', 'Dominican Republic', 'Ecuador', 'Egypt', 'El Salvador', 'Estonia', 'Ethiopia',
+  'Fiji', 'Finland', 'France', 'Gabon', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Guatemala',
+  'Guinea', 'Haiti', 'Honduras', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq',
+  'Ireland', 'Israel', 'Italy', 'Ivory Coast', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan',
+  'Kenya', 'Kuwait', 'Kyrgyzstan', 'Laos', 'Latvia', 'Lebanon', 'Liberia', 'Libya',
+  'Liechtenstein', 'Lithuania', 'Luxembourg', 'Madagascar', 'Malawi', 'Malaysia', 'Maldives',
+  'Mali', 'Malta', 'Mauritania', 'Mauritius', 'Mexico', 'Moldova', 'Monaco', 'Mongolia',
+  'Montenegro', 'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 'Nepal', 'Netherlands',
+  'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'North Macedonia', 'Norway', 'Oman',
+  'Pakistan', 'Panama', 'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines', 'Poland',
+  'Portugal', 'Qatar', 'Romania', 'Russia', 'Rwanda', 'Saudi Arabia', 'Senegal', 'Serbia',
+  'Singapore', 'Slovakia', 'Slovenia', 'Somalia', 'South Africa', 'South Korea', 'South Sudan',
+  'Spain', 'Sri Lanka', 'Sudan', 'Sweden', 'Switzerland', 'Syria', 'Taiwan', 'Tajikistan',
+  'Tanzania', 'Thailand', 'Togo', 'Tunisia', 'Turkey', 'Turkmenistan', 'Uganda', 'Ukraine',
+  'United Arab Emirates', 'United Kingdom', 'United States', 'Uruguay', 'Uzbekistan',
+  'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe'
+];
   formOptions: ProjectFormOptions = { categories: [], customers: [], projectManagers: [], salesManagers: [] };
   aiOpen = false;
   aiNotification = '';
@@ -134,8 +157,12 @@ export class GmProjectumPageComponent implements OnInit {
     private authService: AuthService
   ) {}
 
+  // ✅ FIX: PROJECT_MANAGER (pas seulement PROJECT_MANAGER_LEAD) peut
+  // désormais voir et choisir le champ "Project Manager" à la création
+  // d'un projet.
   get canAssignProjectManager(): boolean {
-    return this.authService.getRoles().includes('PROJECT_MANAGER_LEAD');
+    const roles = this.authService.getRoles();
+    return roles.includes('PROJECT_MANAGER_LEAD') || roles.includes('PROJECT_MANAGER');
   }
 
   ngOnInit(): void {

@@ -18,6 +18,7 @@ interface LauncherApp {
 export class GmWorkspacesPageComponent implements OnInit {
   currentOrganisationName = 'Projectum workspace';
   organisationLabel = 'Workspace';
+  currentUserName = '';
 
   readonly launcherApps: LauncherApp[] = [
     // Keep the established route for existing manager sessions/bookmarks; the application is presented as Command Center.
@@ -41,6 +42,10 @@ export class GmWorkspacesPageComponent implements OnInit {
       this.currentOrganisationName = orgName;
       this.organisationLabel = 'Organisation';
     }
+
+    // ✅ FIX: affiche le nom réel de l'utilisateur connecté au lieu du
+    // texte statique "Logged in".
+    this.currentUserName = this.authService.getCurrentUsername() || 'Logged in';
   }
 
   get visibleLauncherApps(): LauncherApp[] {
