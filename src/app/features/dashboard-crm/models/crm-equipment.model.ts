@@ -1,0 +1,4 @@
+export interface CrmEquipmentType { id:number|null; code:string; name:string; active:boolean; }
+export interface CrmOpportunityEquipment { equipmentTypeId:number; equipmentCode?:string; equipmentName?:string; quantity:number; }
+export interface CrmEquipmentReport { totals:Array<{equipmentName:string;equipmentCode:string;quantity:number;opportunities:number}>; shipments:Array<{opportunity:string;account:string;stage:string;owner:string;closingDate:string;shipmentDate:string;status:string}>; details:Array<{opportunityId:number;opportunity:string;account:string;stage:string;opportunityType:string;owner:string;equipmentName:string;equipmentCode:string;quantity:number;shipmentDate:string}>; }
+export interface CrmReportSchedule { id:number|null; reportType:string; typeFilter:string; recipients:string; frequency:string; active:boolean; lastSentAt:string|null; nextRunAt:string|null; }

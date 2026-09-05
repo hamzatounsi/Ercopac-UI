@@ -6,6 +6,7 @@ import { CrmLead } from '../../models/crm-lead.model';
 import { CrmOpportunity } from '../../models/crm-opportunity.model';
 import { CrmPipelineStage } from '../../models/crm-pipeline-stage.model';
 import { CrmOpportunityAttachment, CrmOpportunityHistory, CrmOpportunityNote, CrmOpportunityStageHistory, CrmSupplyCategory, CrmUser } from '../../models/crm-detail.model';
+import { CrmEquipmentType, CrmOpportunityEquipment } from '../../models/crm-equipment.model';
 import { CrmPermissionsService } from '../../services/crm-permissions.service';
 import { CrmService } from '../../services/crm.service';
 
@@ -17,19 +18,26 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
   notes: CrmOpportunityNote[] = []; attachments: CrmOpportunityAttachment[] = []; history: CrmOpportunityHistory[] = [];
   stageHistory: CrmOpportunityStageHistory[] = []; loading = true; saving = false; teamSaving = false; showTeamPicker = false;
   teamDraftIds: number[] = []; newNote = ''; error = ''; toast = '';
+  equipmentTypes: CrmEquipmentType[]=[]; equipment: CrmOpportunityEquipment[]=[]; newEquipmentTypeId:number|null=null;
+  newEquipmentQuantity=1; showEquipmentAdd=false;
 
   constructor(private crm: CrmService, private route: ActivatedRoute, private router: Router, private host: ElementRef, public permissions: CrmPermissionsService) {}
   ngOnInit(): void { this.load(); }
   load(): void {
     this.loading = true;
-    forkJoin({ opportunity: this.crm.getOpportunity(this.orgId, this.id), stages: this.crm.getStages(this.orgId), accounts: this.crm.getAccounts(this.orgId), users: this.crm.getCrmUsers(this.orgId), teamUsers: this.crm.getOpportunityTeamUsers(this.orgId), categories: this.crm.getOrganisationCategories(this.orgId), notes: this.crm.getNotes(this.orgId, this.id), attachments: this.crm.getAttachments(this.orgId, this.id), history: this.crm.getHistory(this.orgId, this.id), stageHistory: this.crm.getStageHistory(this.orgId, this.id) }).subscribe({
-      next: r => { this.opportunity = r.opportunity; this.form = { ...r.opportunity, teamMembers: [...(r.opportunity.teamMembers || [])] }; this.stages = r.stages; this.accounts = r.accounts; this.users = r.users; this.teamUsers = r.teamUsers; this.categories = r.categories; this.notes = r.notes; this.attachments = r.attachments; this.history = r.history; this.stageHistory = r.stageHistory; this.loadContacts(); this.loading = false; },
+    forkJoin({ opportunity: this.crm.getOpportunity(this.orgId, this.id), stages: this.crm.getStages(this.orgId), accounts: this.crm.getAccounts(this.orgId), users: this.crm.getCrmUsers(this.orgId), teamUsers: this.crm.getOpportunityTeamUsers(this.orgId), categories: this.crm.getOrganisationCategories(this.orgId), equipmentTypes:this.crm.getEquipmentTypes(this.orgId), equipment:this.crm.getOpportunityEquipment(this.orgId,this.id), notes: this.crm.getNotes(this.orgId, this.id), attachments: this.crm.getAttachments(this.orgId, this.id), history: this.crm.getHistory(this.orgId, this.id), stageHistory: this.crm.getStageHistory(this.orgId, this.id) }).subscribe({
+      next: r => { this.opportunity = r.opportunity; this.form = { ...r.opportunity, teamMembers: [...(r.opportunity.teamMembers || [])] }; this.stages = r.stages; this.accounts = r.accounts; this.users = r.users; this.teamUsers = r.teamUsers; this.categories = r.categories; this.equipmentTypes=r.equipmentTypes;this.equipment=r.equipment; this.notes = r.notes; this.attachments = r.attachments; this.history = r.history; this.stageHistory = r.stageHistory; this.loadContacts(); this.loading = false; },
       error: e => { this.error = e?.error?.message || 'Opportunity not found.'; this.loading = false; }
     });
   }
   loadContacts(clear = false): void { if (!this.form?.accountId) { this.contacts = []; return; } if (clear) this.form.leadId = null; this.crm.getLeads(this.orgId, undefined, undefined, this.form.accountId).subscribe(v => this.contacts = v); }
   get contact(): CrmLead | undefined { return this.contacts.find(v => v.id === this.form?.leadId); }
   save(): void { if (!this.form || !this.permissions.canWriteCrm) return; this.saving = true; this.crm.updateOpportunity(this.orgId, this.id, this.form).subscribe({ next: () => { this.saving = false; this.flash('Opportunity saved'); this.load(); }, error: e => { this.error = e?.error?.message || 'Unable to save.'; this.saving = false; } }); }
+  get availableEquipmentTypes():CrmEquipmentType[]{return this.equipmentTypes.filter(type=>!this.equipment.some(item=>item.equipmentTypeId===type.id));}
+  addEquipment():void {if(!this.newEquipmentTypeId||this.newEquipmentQuantity<1)return;const type=this.equipmentTypes.find(x=>x.id===this.newEquipmentTypeId);if(!type)return;this.equipment=[...this.equipment,{equipmentTypeId:type.id!,equipmentCode:type.code,equipmentName:type.name,quantity:this.newEquipmentQuantity}];this.saveEquipment(()=>this.cancelEquipmentAdd());}
+  cancelEquipmentAdd():void {this.showEquipmentAdd=false;this.newEquipmentTypeId=null;this.newEquipmentQuantity=1;}
+  removeEquipment(index:number):void {const previous=this.equipment;this.equipment=this.equipment.filter((_,i)=>i!==index);this.saveEquipment(undefined,previous);}
+  saveEquipment(done?:()=>void,rollback?:CrmOpportunityEquipment[]):void {this.equipment=this.equipment.map(item=>({...item,quantity:Math.max(1,Number(item.quantity)||1)}));this.crm.saveOpportunityEquipment(this.orgId,this.id,this.equipment).subscribe({next:v=>{this.equipment=v;this.flash('Opportunity equipment saved');done?.();},error:e=>{if(rollback)this.equipment=rollback;this.error=e?.error?.message||'Unable to save equipment.';}});}
   changeStage(stage: CrmPipelineStage): void { if (!this.permissions.canWriteCrm || stage.id === this.opportunity?.stageId) return; this.crm.changeStage(this.orgId, this.id, stage.id!).subscribe({ next: () => { this.flash('Stage updated'); this.load(); }, error: e => this.error = e?.error?.message || 'Unable to change stage.' }); }
   openTeamPicker(): void { if (!this.permissions.canWriteCrm) return; this.teamDraftIds = (this.opportunity?.teamMembers || []).map(user => user.id); this.showTeamPicker = true; }
   toggleTeamMember(userId: number): void { this.teamDraftIds = this.teamDraftIds.includes(userId) ? this.teamDraftIds.filter(id => id !== userId) : [...this.teamDraftIds, userId]; }

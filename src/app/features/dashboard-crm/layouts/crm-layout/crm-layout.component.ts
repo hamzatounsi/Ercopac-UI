@@ -18,8 +18,8 @@ interface CrmSearchResults {
 export class CrmLayoutComponent {
   readonly mainItems = [
     { label: 'Dashboard', icon: 'dashboard', route: '/crm/dashboard' },
-    { label: 'Leads', icon: 'person', route: '/crm/leads' },
     { label: 'Accounts', icon: 'business_center', route: '/crm/accounts' },
+    { label: 'Leads', icon: 'person', route: '/crm/leads' },
     { label: 'Opportunities', icon: 'trending_up', route: '/crm/opportunities' }
   ];
   readonly insightItems = [
