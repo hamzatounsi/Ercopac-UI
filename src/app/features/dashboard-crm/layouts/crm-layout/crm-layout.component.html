@@ -21,7 +21,7 @@
     <aside class="crm-sidebar">
       <section><label>Main</label>
         <a *ngFor="let item of mainItems" [routerLink]="item.route" routerLinkActive="active"><span class="material-symbols-outlined">{{ item.icon }}</span>{{ item.label }}</a>
-        <a *ngIf="permissions.canAccessManagerView" routerLink="/crm/manager-view" routerLinkActive="active"><span class="material-symbols-outlined">groups</span>Manager View</a>
+        <a *ngIf="permissions.canAccessManagerView" routerLink="/crm/manager-view" routerLinkActive="active"><span class="material-symbols-outlined">groups</span>Manager view</a>
       </section>
       <section><label>Insights</label><a *ngFor="let item of insightItems" [routerLink]="item.route" routerLinkActive="active"><span class="material-symbols-outlined">{{ item.icon }}</span>{{ item.label }}</a></section>
       <section><label>Configuration</label><a routerLink="/crm/settings" routerLinkActive="active"><span class="material-symbols-outlined">settings</span>Settings</a></section>

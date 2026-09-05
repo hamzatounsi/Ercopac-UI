@@ -8,6 +8,7 @@ import { CrmOpportunity, emptyOpportunity } from '../../models/crm-opportunity.m
 import { CrmPipelineStage } from '../../models/crm-pipeline-stage.model';
 import { CrmPermissionsService } from '../../services/crm-permissions.service';
 import { CrmService } from '../../services/crm.service';
+import { AuthService } from 'src/app/core/auth/auth.service';
 
 @Component({ selector: 'app-crm-dashboard-page', templateUrl: './crm-dashboard-page.component.html', styleUrls: ['./crm-dashboard-page.component.scss'] })
 export class CrmDashboardPageComponent implements OnInit {
@@ -24,7 +25,8 @@ export class CrmDashboardPageComponent implements OnInit {
   oppForm: CrmOpportunity = emptyOpportunity();
   oppError = '';
 
-  constructor(private crmService: CrmService, private router: Router, public permissions: CrmPermissionsService) {}
+  constructor(private crmService: CrmService, private router: Router, public permissions: CrmPermissionsService, private auth: AuthService) {}
+  get currentUserName(): string { return this.auth.getCurrentUsername() || 'there'; }
   ngOnInit(): void { this.load(); }
 
   load(): void {
@@ -36,7 +38,8 @@ export class CrmDashboardPageComponent implements OnInit {
   }
 
   getOppsForStage(stage: CrmPipelineStage): CrmOpportunity[] { return this.allOpportunities.filter(opportunity => opportunity.stageId === stage.id && !opportunity.lost); }
-  openNewOpp(): void { this.oppForm = emptyOpportunity(); this.oppForm.stageId = this.stages[0]?.id ?? null; this.oppForm.accountId = this.accounts[0]?.id ?? null; this.oppError = ''; this.showNewOppModal = true; }
+  openNewOpp(): void { this.oppForm = emptyOpportunity(); this.oppForm.stageId = this.stages[0]?.id ?? null; this.oppForm.probability = this.stages[0]?.probability ?? 0; this.oppForm.accountId = this.accounts[0]?.id ?? null; this.oppError = ''; this.showNewOppModal = true; }
+  newOpportunityStageChanged(): void { this.oppForm.probability = this.stages.find(stage => stage.id === this.oppForm.stageId)?.probability ?? 0; }
   saveNewOpp(): void {
     if (!this.oppForm.name.trim()) { this.oppError = 'Opportunity name is required.'; return; }
     if (!this.oppForm.accountId) { this.oppError = 'Select an account.'; return; }

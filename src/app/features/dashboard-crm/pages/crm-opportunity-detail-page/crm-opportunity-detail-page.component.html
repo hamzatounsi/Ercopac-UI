@@ -9,7 +9,7 @@
       <div class="owner-card"><div class="avatar">{{ initials(opportunity.ownerName) }}</div><div><strong>{{ opportunity.ownerName || 'Unassigned' }}</strong><small>Owner</small></div></div>
       <span class="stage-pill" [style.background]="(opportunity.stageColor || '#64748b') + '1f'" [style.color]="opportunity.stageColor || '#64748b'">{{ opportunity.stageName || 'Unassigned' }}</span>
       <p>Pipeline: <strong>{{ opportunity.pipeline || '—' }}</strong></p><p>Closing: <strong>{{ opportunity.closingDate | crmDate }}</strong></p>
-      <label>Related list</label><button (click)="scroll('overview')">Overview</button><button (click)="scroll('value')">Value</button><button (click)="scroll('details')">Details</button><button (click)="scroll('notes')">Notes <i>{{ notes.length }}</i></button><button (click)="scroll('attachments')">Attachments <i>{{ attachments.length }}</i></button><button (click)="scroll('history')">History <i>{{ history.length }}</i></button>
+      <label>Related list</label><button (click)="scroll('overview')">Overview</button><button (click)="scroll('value')">Value</button><button (click)="scroll('details')">Details</button><button (click)="scroll('equipment')">Equipment <i>{{ equipment.length }}</i></button><button (click)="scroll('notes')">Notes <i>{{ notes.length }}</i></button><button (click)="scroll('attachments')">Attachments <i>{{ attachments.length }}</i></button><button (click)="scroll('history')">History <i>{{ history.length }}</i></button>
       <div class="sales-summary"><label>Sales summary</label><small>Probability</small><strong>{{ opportunity.probability }}%</strong><small>Cycle duration</small><strong>{{ cycleDuration() }}</strong></div>
     </aside>
 
@@ -44,6 +44,13 @@
         </div></section>
 
         <section class="card"><div class="card-header">Description</div><div class="card-body"><textarea class="description" [(ngModel)]="form.description" [disabled]="!permissions.canWriteCrm" placeholder="Add a description…"></textarea><button *ngIf="permissions.canWriteCrm" class="btn primary save" (click)="save()" [disabled]="saving">{{ saving ? 'Saving…' : 'Save opportunity' }}</button></div></section>
+
+        <section id="equipment" class="card equipment-card">
+          <div class="card-header">Opportunity equipment <span class="badge">{{equipment.length}}</span><button class="btn equipment-add-button" *ngIf="permissions.canWriteCrm" (click)="showEquipmentAdd=true">+ Add item</button></div>
+          <div class="equipment-row" *ngFor="let item of equipment;let i=index"><span class="equipment-icon">▣</span><code>{{item.equipmentCode}}</code><strong>{{item.equipmentName}}</strong><label>Qty <input type="number" min="1" [(ngModel)]="item.quantity" (change)="saveEquipment()" [disabled]="!permissions.canWriteCrm"></label><button class="icon-btn" *ngIf="permissions.canWriteCrm" (click)="removeEquipment(i)" title="Remove equipment">×</button></div>
+          <div class="empty" *ngIf="!equipment.length">No equipment added yet.</div>
+          <div class="equipment-form" *ngIf="permissions.canWriteCrm && showEquipmentAdd"><select [(ngModel)]="newEquipmentTypeId"><option [ngValue]="null">Equipment</option><option *ngFor="let item of availableEquipmentTypes" [ngValue]="item.id">{{item.code}} — {{item.name}}</option></select><input type="number" min="1" [(ngModel)]="newEquipmentQuantity" aria-label="Quantity"><button class="btn primary" (click)="addEquipment()">Add</button><button class="btn" (click)="cancelEquipmentAdd()">Cancel</button></div>
+        </section>
 
         <section id="notes" class="card"><div class="card-header">Notes <span class="badge">{{ notes.length }}</span></div><div class="note" *ngFor="let note of notes"><div class="avatar">{{ initials(note.authorName) }}</div><div><header><strong>{{ note.authorName }}</strong><small>{{ note.createdAt | crmDate }}</small></header><p>{{ note.content }}</p></div><button *ngIf="permissions.canWriteCrm" class="icon-btn" (click)="deleteNote(note)">×</button></div><div class="empty" *ngIf="!notes.length">No notes have been posted.</div><div class="note-editor" *ngIf="permissions.canWriteCrm"><textarea [(ngModel)]="newNote" placeholder="Write a note…"></textarea><button class="btn primary" (click)="addNote()">Post note</button></div></section>
 

@@ -4,10 +4,12 @@ import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { AuthService } from 'src/app/core/auth/auth.service';
 import { CrmDashboard } from '../models/crm-dashboard.model';
+import { CrmEquipmentType, CrmOpportunityEquipment, CrmEquipmentReport, CrmReportSchedule } from '../models/crm-equipment.model';
 import { CrmPipelineStage } from '../models/crm-pipeline-stage.model';
 import { CrmLead } from '../models/crm-lead.model';
 import { CrmOpportunity } from '../models/crm-opportunity.model';
 import { CrmAccount } from '../models/crm-account.model';
+import { CrmActivity } from '../models/crm-activity.model';
 import { CrmAnalytics } from '../models/crm-analytics.model';
 import { CrmManagerTeamMember, CrmManagerView, CrmOpportunityAttachment, CrmOpportunityHistory,
   CrmOpportunityNote, CrmOpportunityStageHistory, CrmReports, CrmSupplyCategory, CrmUser, CrmNotificationPreference, CrmIndustry } from '../models/crm-detail.model';
@@ -31,6 +33,17 @@ export class CrmService {
   getNotificationPreferences(orgId: number): Observable<CrmNotificationPreference> { return this.http.get<CrmNotificationPreference>(`${this.url(orgId)}/notification-preferences`); }
   saveNotificationPreferences(orgId: number, dto: CrmNotificationPreference): Observable<CrmNotificationPreference> { return this.http.put<CrmNotificationPreference>(`${this.url(orgId)}/notification-preferences`, dto); }
   getOpportunityTeamUsers(orgId: number): Observable<CrmUser[]> { return this.http.get<CrmUser[]>(`${this.url(orgId)}/opportunities/team-users`); }
+  getEquipmentTypes(orgId:number, includeInactive=false):Observable<CrmEquipmentType[]>{const params=includeInactive?new HttpParams().set('includeInactive','true'):undefined;return this.http.get<CrmEquipmentType[]>(`${this.url(orgId)}/equipment-types`,{params});}
+  createEquipmentType(orgId:number,dto:CrmEquipmentType):Observable<CrmEquipmentType>{return this.http.post<CrmEquipmentType>(`${this.url(orgId)}/equipment-types`,dto);}
+  updateEquipmentType(orgId:number,id:number,dto:CrmEquipmentType):Observable<CrmEquipmentType>{return this.http.put<CrmEquipmentType>(`${this.url(orgId)}/equipment-types/${id}`,dto);}
+  deleteEquipmentType(orgId:number,id:number):Observable<void>{return this.http.delete<void>(`${this.url(orgId)}/equipment-types/${id}`);}
+  getOpportunityEquipment(orgId:number,id:number):Observable<CrmOpportunityEquipment[]>{return this.http.get<CrmOpportunityEquipment[]>(`${this.url(orgId)}/opportunities/${id}/equipment`);}
+  saveOpportunityEquipment(orgId:number,id:number,items:CrmOpportunityEquipment[]):Observable<CrmOpportunityEquipment[]>{return this.http.put<CrmOpportunityEquipment[]>(`${this.url(orgId)}/opportunities/${id}/equipment`,items);}
+  getEquipmentReport(orgId:number,stage?:string,type?:string):Observable<CrmEquipmentReport>{let params=new HttpParams();if(stage&&stage!=='all')params=params.set('stage',stage);if(type&&type!=='all')params=params.set('type',type);return this.http.get<CrmEquipmentReport>(`${this.url(orgId)}/equipment-reports`,{params});}
+  getReportSchedules(orgId:number):Observable<CrmReportSchedule[]>{return this.http.get<CrmReportSchedule[]>(`${this.url(orgId)}/report-schedules`);}
+  createReportSchedule(orgId:number,dto:CrmReportSchedule):Observable<CrmReportSchedule>{return this.http.post<CrmReportSchedule>(`${this.url(orgId)}/report-schedules`,dto);}
+  updateReportSchedule(orgId:number,id:number,dto:CrmReportSchedule):Observable<CrmReportSchedule>{return this.http.put<CrmReportSchedule>(`${this.url(orgId)}/report-schedules/${id}`,dto);}
+  deleteReportSchedule(orgId:number,id:number):Observable<void>{return this.http.delete<void>(`${this.url(orgId)}/report-schedules/${id}`);}
 
   getAccounts(orgId: number, search?: string): Observable<CrmAccount[]> {
     let params = new HttpParams(); if (search?.trim()) params = params.set('search', search.trim());
@@ -63,6 +76,8 @@ export class CrmService {
     return this.http.get<CrmLead[]>(`${this.url(orgId)}/leads`, { params });
   }
   getLead(orgId: number, id: number): Observable<CrmLead> { return this.http.get<CrmLead>(`${this.url(orgId)}/leads/${id}`); }
+  getLeadActivities(orgId: number, id: number): Observable<CrmActivity[]> { return this.http.get<CrmActivity[]>(`${this.url(orgId)}/leads/${id}/activities`); }
+  addLeadActivity(orgId: number, id: number, description: string): Observable<CrmActivity> { return this.http.post<CrmActivity>(`${this.url(orgId)}/leads/${id}/activities`, { description }); }
   createLead(orgId: number, dto: CrmLead): Observable<CrmLead> { return this.http.post<CrmLead>(`${this.url(orgId)}/leads`, dto); }
   updateLead(orgId: number, id: number, dto: CrmLead): Observable<CrmLead> { return this.http.put<CrmLead>(`${this.url(orgId)}/leads/${id}`, dto); }
   deleteLead(orgId: number, id: number): Observable<void> { return this.http.delete<void>(`${this.url(orgId)}/leads/${id}`); }
