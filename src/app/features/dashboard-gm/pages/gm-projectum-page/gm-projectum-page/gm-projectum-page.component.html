@@ -372,10 +372,12 @@
                 <option *ngFor="let customer of formOptions.customers" [ngValue]="customer.id">{{ customer.code ? customer.code + ' - ' : '' }}{{ customer.name }}</option>
               </select>
             </div>
-
             <div class="mf span-2">
               <label>Country</label>
-              <input class="mi" [(ngModel)]="projectForm.country" placeholder="Germany, France..." />
+              <select class="mi" [(ngModel)]="projectForm.country">
+                <option [ngValue]="''">Select country</option>
+                <option *ngFor="let country of countryOptions" [ngValue]="country">{{ country }}</option>
+              </select>
             </div>
 
             <div class="mf span-2">

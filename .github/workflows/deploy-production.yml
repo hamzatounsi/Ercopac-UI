@@ -32,11 +32,11 @@ jobs:
 
             echo "=== Move to frontend source ==="
             cd /opt/projectum/frontend
-
             echo "=== Remember current frontend version ==="
             PREVIOUS_COMMIT=$(git rev-parse HEAD)
             echo "Previous commit: $PREVIOUS_COMMIT"
-
+            echo "=== Configure authenticated remote ==="
+            git remote set-url origin https://x-access-token:${{ secrets.DEPLOY_GIT_TOKEN }}@github.com/hamzatounsi/Ercopac-UI.git
             echo "=== Update frontend source ==="
             git fetch origin main
             git checkout main

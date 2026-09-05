@@ -12,7 +12,7 @@
 
     <div class="launcher-actions">
       <button class="launcher-action-link" type="button" (click)="logout()">Logout</button>
-      <span class="launcher-status-button" aria-label="Authenticated user">Logged in</span>
+      <span class="launcher-status-button" [attr.title]="currentUserName" aria-label="Authenticated user">{{ currentUserName }}</span>
       <div class="org-identity" [attr.title]="currentOrganisationName">
         <span class="org-identity-label">{{ organisationLabel }}</span>
         <span class="org-identity-name">{{ currentOrganisationName }}</span>
