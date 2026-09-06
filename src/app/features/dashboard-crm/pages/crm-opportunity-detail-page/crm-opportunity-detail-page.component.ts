@@ -176,190 +176,49 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
   
   changeStage(stage: CrmPipelineStage): void {
     if (!this.permissions.canWriteCrm || stage.id === this.opportunity?.stageId || !this.form || !this.opportunity) return;
-    const previous = { 
-      stageId: this.opportunity.stageId, 
-      stageName: this.opportunity.stageName, 
-      stageColor: this.opportunity.stageColor, 
-      probability: this.form.probability 
-    };
-    this.form.stageId = stage.id; 
-    this.form.probability = stage.probability;
-    this.opportunity = { 
-      ...this.opportunity, 
-      stageId: stage.id, 
-      stageName: stage.name, 
-      stageColor: stage.color, 
-      probability: stage.probability 
-    };
-    this.crm.changeStage(this.orgId, this.id, stage.id!).subscribe({ 
-      next: updated => {
-        this.opportunity = { ...this.opportunity!, ...updated };
-        if (this.form) { 
-          this.form.stageId = updated.stageId; 
-          this.form.stageName = updated.stageName; 
-          this.form.stageColor = updated.stageColor; 
-          this.form.probability = updated.probability; 
-        }
-        this.crm.getStageHistory(this.orgId, this.id).subscribe(history => this.stageHistory = history);
-        this.flash(this.i18n.t('opportunityDetail.toast.stageUpdated'));
-      }, 
-      error: e => {
-        this.form!.stageId = previous.stageId; 
-        this.form!.probability = previous.probability;
-        this.opportunity = { ...this.opportunity!, ...previous };
-        this.error = e?.error?.message || this.i18n.t('opportunityDetail.error.changeStage');
-      } 
-    });
+    const previous = { stageId: this.opportunity.stageId, stageName: this.opportunity.stageName,
+      stageColor: this.opportunity.stageColor, probability: this.form.probability };
+    this.form.stageId = stage.id; this.form.probability = stage.probability;
+    this.opportunity = { ...this.opportunity, stageId: stage.id, stageName: stage.name,
+      stageColor: stage.color, probability: stage.probability };
+    this.crm.changeStage(this.orgId, this.id, stage.id!).subscribe({ next: updated => {
+      this.opportunity = { ...this.opportunity!, ...updated };
+      if (this.form) { this.form.stageId = updated.stageId; this.form.stageName = updated.stageName; this.form.stageColor = updated.stageColor; this.form.probability = updated.probability; }
+      this.crm.getStageHistory(this.orgId, this.id).subscribe(history => this.stageHistory = history);
+      this.flash('Stage updated');
+    }, error: e => {
+      this.form!.stageId = previous.stageId; this.form!.probability = previous.probability;
+      this.opportunity = { ...this.opportunity!, ...previous };
+      this.error = e?.error?.message || 'Unable to change stage.';
+    } });
   }
-  
-  openTeamPicker(): void { 
-    if (!this.permissions.canWriteCrm) return; 
-    this.teamDraftIds = (this.opportunity?.teamMembers || []).map(user => user.id); 
-    this.showTeamPicker = true; 
+  openTeamPicker(): void { if (!this.permissions.canWriteCrm) return; this.teamDraftIds = (this.opportunity?.teamMembers || []).map(user => user.id); this.showTeamPicker = true; }
+  toggleTeamMember(userId: number): void { this.teamDraftIds = this.teamDraftIds.includes(userId) ? this.teamDraftIds.filter(id => id !== userId) : [...this.teamDraftIds, userId]; }
+  saveTeam(): void { if (!this.permissions.canWriteCrm || this.teamSaving) return; this.teamSaving = true; this.error = ''; this.crm.updateOpportunityTeam(this.orgId, this.id, this.teamDraftIds).subscribe({ next: opportunity => { this.opportunity = opportunity; if (this.form) this.form.teamMembers = [...opportunity.teamMembers]; this.teamSaving = false; this.showTeamPicker = false; this.flash(`${opportunity.teamMembers.length} team member(s) assigned`); }, error: e => { this.error = e?.error?.message || 'Unable to save the opportunity team.'; this.teamSaving = false; } }); }
+  addNote(): void { if (!this.newNote.trim()) return; this.crm.addNote(this.orgId, this.id, this.newNote).subscribe({ next: v => { this.notes = [...this.notes, v]; this.newNote = ''; this.flash('Note posted'); }, error: e => this.error = e?.error?.message || 'Unable to post note.' }); }
+  deleteNote(note: CrmOpportunityNote): void { this.crm.deleteNote(this.orgId, this.id, note.id).subscribe(() => this.notes = this.notes.filter(v => v.id !== note.id)); }
+  upload(event: Event): void { const input = event.target as HTMLInputElement; const file = input.files?.[0]; if (!file) return; this.crm.uploadAttachment(this.orgId, this.id, file).subscribe({ next: v => { this.attachments = [v, ...this.attachments]; input.value = ''; this.flash('File attached'); }, error: e => this.error = e?.error?.message || 'Unable to upload file.' }); }
+  download(attachment: CrmOpportunityAttachment): void { this.crm.downloadAttachment(this.orgId, this.id, attachment.id).subscribe(r => { const url = URL.createObjectURL(r.body!); const link = document.createElement('a'); link.href = url; link.download = attachment.originalFileName; link.click(); URL.revokeObjectURL(url); }); }
+  deleteAttachment(attachment: CrmOpportunityAttachment): void { this.crm.deleteAttachment(this.orgId, this.id, attachment.id).subscribe(() => this.attachments = this.attachments.filter(v => v.id !== attachment.id)); }
+  remove(): void { if (!confirm('Delete this opportunity?')) return; this.crm.deleteOpportunity(this.orgId, this.id).subscribe({ next: () => this.router.navigate(['/crm/opportunities']), error: e => this.error = e?.error?.message || 'Unable to delete.' }); }
+  scroll(id: string): void { this.host.nativeElement.querySelector('#' + id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  money(value: number | null | undefined, currency = 'EUR'): string { return value == null ? '—' : new Intl.NumberFormat('en', { style: 'currency', currency, maximumFractionDigits: 0 }).format(value); }
+  private cents(value: number | null | undefined): number { return Math.round((Number(value) || 0) * 100); }
+  private fromCents(value: number): number { return value / 100; }
+  get totalValue(): number { return this.fromCents(this.cents(this.form?.materialValue) + this.cents(this.form?.servicesValue)); }
+  get totalSalesSplit(): number { return this.fromCents(this.cents(this.form?.ercopacMaterialValue) + this.cents(this.form?.thirdPartyMaterialValue)); }
+  get totalResaleSplit(): number { return this.fromCents(this.cents(this.form?.ercopacResaleValue) + this.cents(this.form?.resaleValue)); }
+  get discountedValue(): number {
+    const discount = Math.max(0, Math.min(100, Number(this.form?.discount) || 0));
+    return this.fromCents(Math.round(this.cents(this.totalValue) * (100 - discount) / 100));
   }
-  
-  toggleTeamMember(userId: number): void { 
-    this.teamDraftIds = this.teamDraftIds.includes(userId) 
-      ? this.teamDraftIds.filter(id => id !== userId) 
-      : [...this.teamDraftIds, userId]; 
+  get expectedRevenue(): number {
+    return this.discountedValue;
   }
-  
-  saveTeam(): void { 
-    if (!this.permissions.canWriteCrm || this.teamSaving) return; 
-    this.teamSaving = true; 
-    this.error = ''; 
-    this.crm.updateOpportunityTeam(this.orgId, this.id, this.teamDraftIds).subscribe({ 
-      next: opportunity => { 
-        this.opportunity = opportunity; 
-        if (this.form) this.form.teamMembers = [...opportunity.teamMembers]; 
-        this.teamSaving = false; 
-        this.showTeamPicker = false; 
-        this.flash(`${opportunity.teamMembers.length} ${this.i18n.t('opportunityDetail.toast.teamAssigned')}`); 
-      }, 
-      error: e => { 
-        this.error = e?.error?.message || this.i18n.t('opportunityDetail.error.saveTeam'); 
-        this.teamSaving = false; 
-      } 
-    }); 
-  }
-  
-  addNote(): void { 
-    if (!this.newNote.trim()) return; 
-    this.crm.addNote(this.orgId, this.id, this.newNote).subscribe({ 
-      next: v => { 
-        this.notes = [...this.notes, v]; 
-        this.newNote = ''; 
-        this.flash(this.i18n.t('opportunityDetail.toast.notePosted')); 
-      }, 
-      error: e => {
-        this.error = e?.error?.message || this.i18n.t('opportunityDetail.error.postNote'); 
-      }
-    }); 
-  }
-  
-  deleteNote(note: CrmOpportunityNote): void { 
-    this.crm.deleteNote(this.orgId, this.id, note.id).subscribe(() => {
-      this.notes = this.notes.filter(v => v.id !== note.id);
-    }); 
-  }
-  
-  upload(event: Event): void { 
-    const input = event.target as HTMLInputElement; 
-    const file = input.files?.[0]; 
-    if (!file) return; 
-    this.crm.uploadAttachment(this.orgId, this.id, file).subscribe({ 
-      next: v => { 
-        this.attachments = [v, ...this.attachments]; 
-        input.value = ''; 
-        this.flash(this.i18n.t('opportunityDetail.toast.fileAttached')); 
-      }, 
-      error: e => {
-        this.error = e?.error?.message || this.i18n.t('opportunityDetail.error.upload'); 
-      }
-    }); 
-  }
-  
-  download(attachment: CrmOpportunityAttachment): void { 
-    this.crm.downloadAttachment(this.orgId, this.id, attachment.id).subscribe(r => { 
-      const url = URL.createObjectURL(r.body!); 
-      const link = document.createElement('a'); 
-      link.href = url; 
-      link.download = attachment.originalFileName; 
-      link.click(); 
-      URL.revokeObjectURL(url); 
-    }); 
-  }
-  
-  deleteAttachment(attachment: CrmOpportunityAttachment): void { 
-    this.crm.deleteAttachment(this.orgId, this.id, attachment.id).subscribe(() => {
-      this.attachments = this.attachments.filter(v => v.id !== attachment.id);
-    }); 
-  }
-  
-  remove(): void { 
-    if (!confirm(this.i18n.t('opportunityDetail.confirmDelete'))) return; 
-    this.crm.deleteOpportunity(this.orgId, this.id).subscribe({ 
-      next: () => this.router.navigate(['/crm/opportunities']), 
-      error: e => {
-        this.error = e?.error?.message || this.i18n.t('opportunityDetail.error.delete'); 
-      }
-    }); 
-  }
-  
-  scroll(id: string): void { 
-    this.host.nativeElement.querySelector('#' + id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
-  }
-  
-  money(value: number | null | undefined, currency = 'EUR'): string { 
-    return value == null ? '—' : new Intl.NumberFormat('en', { style: 'currency', currency, maximumFractionDigits: 0 }).format(value); 
-  }
-  
-  private cents(value: number | null | undefined): number { 
-    return Math.round((Number(value) || 0) * 100); 
-  }
-  
-  private fromCents(value: number): number { 
-    return value / 100; 
-  }
-  
-  get totalValue(): number { 
-    return this.fromCents(this.cents(this.form?.materialValue) + this.cents(this.form?.servicesValue)); 
-  }
-  
-  get totalSalesSplit(): number { 
-    return this.fromCents(this.cents(this.form?.ercopacMaterialValue) + this.cents(this.form?.thirdPartyMaterialValue)); 
-  }
-  
-  get totalResaleSplit(): number { 
-    return this.fromCents(this.cents(this.form?.ercopacResaleValue) + this.cents(this.form?.resaleValue)); 
-  }
-  
-  get discountedValue(): number { 
-    const discount = Math.max(0, Math.min(100, Number(this.form?.discount) || 0)); 
-    return this.fromCents(Math.round(this.cents(this.totalValue) * (100 - discount) / 100)); 
-  }
-  
-  get expectedRevenue(): number { 
-    const probability = Math.max(0, Math.min(100, Number(this.form?.probability) || 0)); 
-    return this.fromCents(Math.round(this.cents(this.discountedValue) * probability / 100)); 
-  }
-  
-  get hasSalesSplit(): boolean { 
-    return this.form?.ercopacMaterialValue != null || this.form?.thirdPartyMaterialValue != null; 
-  }
-  
-  get hasResaleSplit(): boolean { 
-    return this.form?.ercopacResaleValue != null || this.form?.resaleValue != null; 
-  }
-  
-  get salesSplitValid(): boolean { 
-    return !this.hasSalesSplit || this.cents(this.totalSalesSplit) === this.cents(this.totalValue); 
-  }
-  
-  get resaleSplitValid(): boolean { 
-    return !this.hasResaleSplit || this.cents(this.totalResaleSplit) === this.cents(this.totalValue); 
-  }
-  
+  get hasSalesSplit(): boolean { return this.form?.ercopacMaterialValue != null || this.form?.thirdPartyMaterialValue != null; }
+  get hasResaleSplit(): boolean { return this.form?.ercopacResaleValue != null || this.form?.resaleValue != null; }
+  get salesSplitValid(): boolean { return !this.hasSalesSplit || this.cents(this.totalSalesSplit) === this.cents(this.totalValue); }
+  get resaleSplitValid(): boolean { return !this.hasResaleSplit || this.cents(this.totalResaleSplit) === this.cents(this.totalValue); }
   private valueValidationError(): string {
     if ([this.form?.materialValue, this.form?.servicesValue, this.form?.ercopacMaterialValue, this.form?.thirdPartyMaterialValue, this.form?.ercopacResaleValue, this.form?.resaleValue]
       .some(value => value != null && Number(value) < 0)) {

@@ -19,18 +19,18 @@ export class CrmReportsPageComponent implements OnInit, AfterViewChecked, OnDest
   type = 'all'; stage = 'all'; period = 'all'; month = 'all'; year = new Date().getFullYear();
   equipmentReport?: CrmEquipmentReport;
   readonly cards: ReportCard[] = [
-    { id: 'map', title: 'reports.cards.map.title', description: 'reports.cards.map.description', category: 'Opportunity reports', icon: '◎', tone: 'blue' },
-    { id: 'country', title: 'reports.cards.country.title', description: 'reports.cards.country.description', category: 'Opportunity reports', icon: '◔', tone: 'green' },
-    { id: 'timeline', title: 'reports.cards.timeline.title', description: 'reports.cards.timeline.description', category: 'Opportunity reports', icon: '⌁', tone: 'amber' },
-    { id: 'value', title: 'reports.cards.value.title', description: 'reports.cards.value.description', category: 'Opportunity reports', icon: '▥', tone: 'purple' },
-    { id: 'tf', title: 'reports.cards.tf.title', description: 'reports.cards.tf.description', category: 'Value reports', icon: '✓', tone: 'blue' },
-    { id: 'expected', title: 'reports.cards.expected.title', description: 'reports.cards.expected.description', category: 'Value reports', icon: '↗', tone: 'green' },
-    { id: 'cs', title: 'reports.cards.cs.title', description: 'reports.cards.cs.description', category: 'Opportunity reports', icon: '▤', tone: 'purple' },
-    { id: 'bp', title: 'reports.cards.bp.title', description: 'reports.cards.bp.description', category: 'Opportunity reports', icon: '▤', tone: 'blue' },
-    { id: 'monthly', title: 'reports.cards.monthly.title', description: 'reports.cards.monthly.description', category: 'Opportunity reports', icon: '▤', tone: 'green' },
-    { id: 'resale', title: 'reports.cards.resale.title', description: 'reports.cards.resale.description', category: 'Value reports', icon: '→', tone: 'red' },
-    { id: 'equipment', title: 'reports.cards.equipment.title', description: 'reports.cards.equipment.description', category: 'Opportunity reports', icon: 'EQ', tone: 'amber' },
-    { id: 'shipment', title: 'reports.cards.shipment.title', description: 'reports.cards.shipment.description', category: 'Opportunity reports', icon: 'OT', tone: 'green' }
+    { id: 'map', title: 'World map', description: 'Opportunities plotted by country with bubble sizing by count', category: 'Opportunity reports', icon: '◎', tone: 'blue' },
+    { id: 'country', title: 'By country', description: 'Donut chart breakdown of opportunities by country', category: 'Opportunity reports', icon: '◔', tone: 'green' },
+    { id: 'timeline', title: 'Timeline', description: 'Opportunities plotted on a timeline by opening and closing dates', category: 'Opportunity reports', icon: '⌁', tone: 'amber' },
+    { id: 'value', title: 'Value split', description: 'Material vs Services breakdown across all opportunities', category: 'Opportunity reports', icon: '▥', tone: 'purple' },
+    { id: 'tf', title: 'Ercopac / TF split', description: 'Sales split between Ercopac and TF across opportunities', category: 'Value reports', icon: '✓', tone: 'blue' },
+    { id: 'expected', title: 'Expected revenue by month', description: 'Monthly total value after discount, grouped by closing date', category: 'Value reports', icon: '↗', tone: 'green' },
+    { id: 'cs', title: 'CS projects overview', description: 'All CS opportunities with owner, value, TF value, probability, closing and shipment dates', category: 'Opportunity reports', icon: '▤', tone: 'purple' },
+    { id: 'bp', title: 'BP projects overview', description: 'All BP opportunities with owner, value, TF value, probability, closing and shipment dates', category: 'Opportunity reports', icon: '▤', tone: 'blue' },
+    { id: 'monthly', title: 'Monthly overview', description: 'All opportunities with owner, value, TF value, probability, closing and shipment dates', category: 'Opportunity reports', icon: '▤', tone: 'green' },
+    { id: 'resale', title: 'Ercopac / Resale split', description: 'Breakdown between direct Ercopac revenue and resale revenue', category: 'Value reports', icon: '→', tone: 'red' }
+    ,{ id: 'equipment', title: 'Equipment overview', description: 'Equipment quantities across all opportunities, grouped by type', category: 'Opportunity reports', icon: 'EQ', tone: 'amber' },
+    { id: 'shipment', title: 'Equipment shipment on time', description: 'Shipment dates versus closing dates for equipment opportunities', category: 'Opportunity reports', icon: 'OT', tone: 'green' }
   ];
   private readonly palette = ['#1a56db', '#0f7b4f', '#f59e0b', '#8b5cf6', '#0891b2', '#c0392b', '#6366f1'];
   @ViewChild('worldCanvas') worldCanvas?: ElementRef<HTMLCanvasElement>;
@@ -135,7 +135,7 @@ export class CrmReportsPageComponent implements OnInit, AfterViewChecked, OnDest
   private exportName(): string { return `projectum-${(this.selectedCard?.title || 'report').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`; }
   private group(items: CrmOpportunity[], key: (item: CrmOpportunity) => string): Slice[] { const result = new Map<string, Slice>(); items.forEach(item => { const name = key(item); const current = result.get(name) || { key: name, value: 0, count: 0, color: this.palette[result.size % this.palette.length] }; current.value += item.value || 0; current.count++; result.set(name, current); }); return [...result.values()].sort((a, b) => b.value - a.value); }
   private fixedSlices(values: Array<[string, number]>): Slice[] { return values.map(([key, value], index) => ({ key, value, count: 0, color: this.palette[index + 1] })); }
-  expectedRevenue(item: CrmOpportunity): number { return item.expectedRevenue ?? (item.value || 0) * (1 - (item.discount || 0) / 100) * item.probability / 100; }
+  expectedRevenue(item: CrmOpportunity): number { return item.expectedRevenue ?? (item.value || 0) * (100 - (item.discount || 0)) / 100; }
   private localDate(value: string): Date { const [year, month, day] = value.slice(0, 10).split('-').map(Number); return new Date(year, month - 1, day); }
   private attachMap(canvas: HTMLCanvasElement): void {
     this.renderedCanvas = canvas; this.resizeObserver?.disconnect();
