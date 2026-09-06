@@ -5,6 +5,79 @@ export type CrmLang = 'fr' | 'it' | 'en';
 
 const STORAGE_KEY = 'crm-lang';
 
+// Traductions pour les valeurs dynamiques (noms d'étapes, sources, etc.)
+const DYNAMIC_TRANSLATIONS: Record<string, Record<CrmLang, string>> = {
+  // Pipeline stage names
+  'Make presentation': { en: 'Make presentation', fr: 'Faire une présentation', it: 'Fare una presentazione' },
+  'Problem setting': { en: 'Problem setting', fr: 'Définition du problème', it: 'Definizione del problema' },
+  'Problem solving': { en: 'Problem solving', fr: 'Résolution de problème', it: 'Risoluzione del problema' },
+  'Proposal/Quote': { en: 'Proposal/Quote', fr: 'Proposition/Devis', it: 'Proposta/Preventivo' },
+  'Negotiation/Revision': { en: 'Negotiation/Revision', fr: 'Négociation/Révision', it: 'Negoziazione/Revisione' },
+  'Closed won': { en: 'Closed won', fr: 'Gagné', it: 'Vinto' },
+  'Closed lost': { en: 'Closed lost', fr: 'Perdu', it: 'Perso' },
+  'Abandoned': { en: 'Abandoned', fr: 'Abandonné', it: 'Abbandonato' },
+  'Qualification': { en: 'Qualification', fr: 'Qualification', it: 'Qualifica' },
+  'Discovery': { en: 'Discovery', fr: 'Découverte', it: 'Scoperta' },
+  'Needs Analysis': { en: 'Needs Analysis', fr: 'Analyse des besoins', it: 'Analisi dei bisogni' },
+  'Value Proposition': { en: 'Value Proposition', fr: 'Proposition de valeur', it: 'Proposta di valore' },
+  'Identify Decision Makers': { en: 'Identify Decision Makers', fr: 'Identifier les décideurs', it: 'Identificare i decisori' },
+  'Perception Analysis': { en: 'Perception Analysis', fr: 'Analyse de perception', it: 'Analisi della percezione' },
+  'Proposal/Price Quote': { en: 'Proposal/Price Quote', fr: 'Proposition/Devis de prix', it: 'Proposta/Preventivo di prezzo' },
+  'Negotiation/Review': { en: 'Negotiation/Review', fr: 'Négociation/Révision', it: 'Negoziazione/Revisione' },
+  'Closed Won': { en: 'Closed Won', fr: 'Gagné', it: 'Vinto' },
+  'Closed Lost': { en: 'Closed Lost', fr: 'Perdu', it: 'Perso' },
+  'Prospecting': { en: 'Prospecting', fr: 'Prospection', it: 'Prospezione' },
+  'Contact Made': { en: 'Contact Made', fr: 'Contact établi', it: 'Contatto stabilito' },
+  'Meeting Scheduled': { en: 'Meeting Scheduled', fr: 'Réunion planifiée', it: 'Riunione programmata' },
+  
+  // Lead source names
+  'REFERRAL': { en: 'Referral', fr: 'Recommandation', it: 'Referral' },
+  'TRADE_FAIR': { en: 'Trade fair', fr: 'Salon professionnel', it: 'Fiera' },
+  'AGENT': { en: 'Agent', fr: 'Agent', it: 'Agente' },
+  'CUSTOMER': { en: 'Customer', fr: 'Client', it: 'Cliente' },
+  'PARTNER': { en: 'Partner', fr: 'Partenaire', it: 'Partner' },
+  'OTHER': { en: 'Other', fr: 'Autre', it: 'Altro' },
+  'WEBSITE': { en: 'Website', fr: 'Site web', it: 'Sito web' },
+  'SOCIAL_MEDIA': { en: 'Social media', fr: 'Réseaux sociaux', it: 'Social media' },
+  'EMAIL': { en: 'Email', fr: 'E-mail', it: 'E-mail' },
+  'COLD_CALL': { en: 'Cold call', fr: 'Appel à froid', it: 'Chiamata a freddo' },
+  'INBOUND': { en: 'Inbound', fr: 'Entrant', it: 'Inbound' },
+  'OUTBOUND': { en: 'Outbound', fr: 'Sortant', it: 'Outbound' },
+  
+  // Lead status names
+  'NOT_CONTACTED': { en: 'Not contacted', fr: 'Non contacté', it: 'Non contattato' },
+  'CONTACTED': { en: 'Contacted', fr: 'Contacté', it: 'Contattato' },
+  'CONVERTED': { en: 'Converted', fr: 'Converti', it: 'Convertito' },
+  'CONTACT_IN_FUTURE': { en: 'Contact in future', fr: 'Contacter plus tard', it: 'Contattare in futuro' },
+  
+  // Opportunity types
+  'BP': { en: 'BP', fr: 'BP', it: 'BP' },
+  'CS': { en: 'CS', fr: 'CS', it: 'CS' },
+  
+  // Pipeline types
+  'MTO': { en: 'MTO', fr: 'MTO', it: 'MTO' },
+  'ETO': { en: 'ETO', fr: 'ETO', it: 'ETO' },
+  
+  // Common words
+  'Unassigned': { en: 'Unassigned', fr: 'Non attribué', it: 'Non assegnato' },
+  'System': { en: 'System', fr: 'Système', it: 'Sistema' },
+  'Owner': { en: 'Owner', fr: 'Propriétaire', it: 'Proprietario' },
+  'Industry not specified': { en: 'Industry not specified', fr: 'Secteur non spécifié', it: 'Settore non specificato' },
+  'Country not specified': { en: 'Country not specified', fr: 'Pays non spécifié', it: 'Paese non specificato' },
+  'Account': { en: 'Account', fr: 'Compte', it: 'Account' },
+  'Contact': { en: 'Contact', fr: 'Contact', it: 'Contatto' },
+  'Hot': { en: 'Hot', fr: 'Chaud', it: 'Caldo' },
+  'Warm': { en: 'Warm', fr: 'Tiède', it: 'Tiepido' },
+  'Cold': { en: 'Cold', fr: 'Froid', it: 'Freddo' },
+  'No rating': { en: 'No rating', fr: 'Aucune évaluation', it: 'Nessuna valutazione' },
+  'Referral': { en: 'Referral', fr: 'Recommandation', it: 'Referral' },
+  'Trade fair': { en: 'Trade fair', fr: 'Salon professionnel', it: 'Fiera' },
+  'Agent': { en: 'Agent', fr: 'Agent', it: 'Agente' },
+  'Customer': { en: 'Customer', fr: 'Client', it: 'Cliente' },
+  'Partner': { en: 'Partner', fr: 'Partenaire', it: 'Partner' },
+  'Other': { en: 'Other', fr: 'Autre', it: 'Altro' }
+};
+
 const DICTIONARIES: Record<CrmLang, Record<string, any>> = {
   en: {
     'header.search.placeholder': 'Search records...',
@@ -122,7 +195,7 @@ const DICTIONARIES: Record<CrmLang, Record<string, any>> = {
       }
     },
     'settings': {
-      'pipelineStages': 'Pipeline stages', 'equipmentType': 'Equipment type', 'industry': 'Industry', 'reportSchedule': 'Report schedule', 'notifications': 'Notifications', 'loading': 'Loading settings...', 'manageStages': 'Manage the stages, colours and default probabilities used by your sales pipeline.', 'addStage': 'Add stage', 'colour': 'Colour', 'stageName': 'Stage name', 'probability': 'Probability', 'order': 'Order', 'moveUp': 'Move up', 'moveDown': 'Move down', 'removeStage': 'Remove stage', 'newStageName': 'New stage name', 'add': 'Add', 'cancel': 'Cancel', 'noStagesConfigured': 'No pipeline stages configured', 'addStageHint': 'Add a stage to start building your opportunity pipeline.', 'changingStageHint': 'Changing an opportunity’s stage automatically applies that stage’s probability.', 'equipmentCatalogue': 'Equipment type catalogue', 'defineEquipment': 'Define the equipment codes and names available on opportunities.', 'addEquipment': 'Add equipment', 'code': 'Code', 'equipmentName': 'Equipment name', 'actions': 'Actions', 'removeEquipment': 'Remove equipment type', 'noEquipmentTypes': 'No equipment types yet', 'addFirstType': 'Add the first type to make it available on opportunities.', 'industryCatalogue': 'Industry catalogue', 'defineIndustries': 'Define the sectors available when creating and editing accounts.', 'addIndustry': 'Add industry', 'industryName': 'Industry name', 'removeIndustry': 'Remove industry', 'noIndustriesConfigured': 'No industries configured', 'addIndustryHint': 'Add an industry to make it available on accounts.', 'configureDelivery': 'Configure automatic delivery of live CRM reports by email.', 'addSchedule': 'Add schedule', 'report': 'Report', 'typeFilter': 'Type filter', 'frequency': 'Frequency', 'recipients': 'Recipients', 'active': 'Active', 'save': 'Save', 'removeSchedule': 'Remove schedule', 'noScheduledReports': 'No scheduled reports', 'addScheduleHint': 'Add a schedule to deliver current CRM data automatically.', 'chooseEvents': 'Choose which CRM events should reach you by email.', 'saving': 'Saving…', 'emailNotifications': 'Email notifications', 'emailNotificationsDesc': 'Receive updates about your opportunities by email.', 'stageChangeAlerts': 'Stage change alerts', 'stageChangeAlertsDesc': 'Get notified when an opportunity moves to a new stage.', 'closingDateReminders': 'Closing date reminders', 'closingDateRemindersDesc': 'Receive a reminder seven days before an opportunity closes.', 'allTypes': 'All types',
+      'pipelineStages': 'Pipeline stages', 'equipmentType': 'Equipment type', 'industry': 'Industry', 'reportSchedule': 'Report schedule', 'notifications': 'Notifications', 'loading': 'Loading settings...', 'manageStages': 'Manage the stages, colours and default probabilities used by your sales pipeline.', 'addStage': 'Add stage', 'colour': 'Colour', 'stageName': 'Stage name', 'probability': 'Probability', 'order': 'Order', 'moveUp': 'Move up', 'moveDown': 'Move down', 'removeStage': 'Remove stage', 'newStageName': 'New stage name', 'add': 'Add', 'cancel': 'Cancel', 'noStagesConfigured': 'No pipeline stages configured', 'addStageHint': 'Add a stage to start building your opportunity pipeline.', 'changingStageHint': 'Changing an opportunity\'s stage automatically applies that stage\'s probability.', 'equipmentCatalogue': 'Equipment type catalogue', 'defineEquipment': 'Define the equipment codes and names available on opportunities.', 'addEquipment': 'Add equipment', 'code': 'Code', 'equipmentName': 'Equipment name', 'actions': 'Actions', 'removeEquipment': 'Remove equipment type', 'noEquipmentTypes': 'No equipment types yet', 'addFirstType': 'Add the first type to make it available on opportunities.', 'industryCatalogue': 'Industry catalogue', 'defineIndustries': 'Define the sectors available when creating and editing accounts.', 'addIndustry': 'Add industry', 'industryName': 'Industry name', 'removeIndustry': 'Remove industry', 'noIndustriesConfigured': 'No industries configured', 'addIndustryHint': 'Add an industry to make it available on accounts.', 'configureDelivery': 'Configure automatic delivery of live CRM reports by email.', 'addSchedule': 'Add schedule', 'report': 'Report', 'typeFilter': 'Type filter', 'frequency': 'Frequency', 'recipients': 'Recipients', 'active': 'Active', 'save': 'Save', 'removeSchedule': 'Remove schedule', 'noScheduledReports': 'No scheduled reports', 'addScheduleHint': 'Add a schedule to deliver current CRM data automatically.', 'chooseEvents': 'Choose which CRM events should reach you by email.', 'saving': 'Saving…', 'emailNotifications': 'Email notifications', 'emailNotificationsDesc': 'Receive updates about your opportunities by email.', 'stageChangeAlerts': 'Stage change alerts', 'stageChangeAlertsDesc': 'Get notified when an opportunity moves to a new stage.', 'closingDateReminders': 'Closing date reminders', 'closingDateRemindersDesc': 'Receive a reminder seven days before an opportunity closes.', 'allTypes': 'All types',
       'error': { 'load': 'Unable to load CRM settings.', 'saveEquipment': 'Unable to save equipment.', 'addEquipment': 'Unable to add equipment.', 'deactivateEquipment': 'Unable to deactivate equipment.', 'saveSchedule': 'Unable to save schedule.', 'removeSchedule': 'Unable to remove schedule.', 'saveStage': 'Unable to save stage.', 'reorderStages': 'Unable to reorder stages.', 'addStage': 'Unable to add stage.', 'deleteStage': 'Unable to delete stage.', 'saveIndustry': 'Unable to save industry.', 'addIndustry': 'Unable to add industry.', 'deleteIndustry': 'Unable to delete industry.', 'savePreferences': 'Unable to save notification preferences.', 'recipientsRequired': 'Recipients are required for every active report schedule.' },
       'toast': { 'equipmentSaved': 'Equipment saved', 'equipmentAdded': 'Equipment added', 'equipmentDeactivated': 'Equipment deactivated', 'scheduleSaved': 'Schedule saved', 'stageSaved': 'Pipeline stage saved', 'stageOrderSaved': 'Stage order saved', 'stageAdded': 'Pipeline stage added', 'industrySaved': 'Industry saved', 'industryAdded': 'Industry added', 'industryDeleted': 'Industry deleted', 'preferencesSaved': 'Notification preferences saved' },
       'confirm': { 'deactivateEquipment': 'Deactivate this equipment type?', 'removeSchedule': 'Remove this schedule?', 'deleteStage': 'Delete this stage?', 'deleteIndustry': 'Delete this industry?' },
@@ -443,6 +516,19 @@ export class CrmI18nService {
     }
     
     return (value !== undefined && value !== null && typeof value === 'string') ? value : key;
+  }
+
+  /**
+   * Traduit les valeurs dynamiques (noms d'étapes, sources, statuts, etc.)
+   * qui viennent de la base de données.
+   */
+  translateDynamic(value: string): string {
+    if (!value) return value;
+    const translations = DYNAMIC_TRANSLATIONS[value];
+    if (translations) {
+      return translations[this.currentLang] || translations.en || value;
+    }
+    return value;
   }
 
   private readStoredLang(): CrmLang {

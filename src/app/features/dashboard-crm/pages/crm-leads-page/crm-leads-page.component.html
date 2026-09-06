@@ -50,9 +50,11 @@
             <select *ngIf="permissions.canWriteCrm && lead.status!=='CONVERTED'; else statusBadge" class="inline-select" [(ngModel)]="lead.status" (change)="update(lead)">
               <option *ngFor="let status of statusOptions" [ngValue]="status.value">{{ status.label }}</option>
             </select>
-            <ng-template #statusBadge>
-              <span class="badge" [class.success]="lead.status==='CONVERTED'" [class.info]="lead.status==='CONTACTED'">{{ statusLabels[lead.status].label }}</span>
-            </ng-template>
+           <ng-template #statusBadge>
+  <span class="badge" [class.success]="lead.status==='CONVERTED'" [class.info]="lead.status==='CONTACTED'">
+    {{ i18n.translateDynamic(statusLabels[lead.status].label) }}
+  </span>
+</ng-template>
           </td>
           <td (click)="$event.stopPropagation()">
             <select *ngIf="permissions.canWriteCrm; else ownerText" class="inline-select" [(ngModel)]="lead.ownerId" (change)="update(lead)">

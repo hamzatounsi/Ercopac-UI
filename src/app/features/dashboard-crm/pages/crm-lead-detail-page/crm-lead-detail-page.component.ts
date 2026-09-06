@@ -152,9 +152,10 @@ export class CrmLeadDetailPageComponent implements OnInit {
     return this.accounts.find(item => item.id === this.lead?.accountId);
   }
 
-  sourceLabel(source: CrmLeadSource): string {
-    return LEAD_SOURCE_LABELS[source] || source;
-  }
+sourceLabel(source: CrmLeadSource): string {
+  const label = LEAD_SOURCE_LABELS[source] || source;
+  return this.i18n.translateDynamic(label);
+}
 
   initials(): string {
     return (this.lead?.fullName || '?').split(/\s+/).slice(0, 2).map(v => v[0]).join('').toUpperCase();
