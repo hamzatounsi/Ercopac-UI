@@ -8,19 +8,33 @@ import { CrmService } from '../../services/crm.service';
 @Component({ selector: 'app-crm-manager-view-page', templateUrl: './crm-manager-view-page.component.html', styleUrls: ['./crm-manager-view-page.component.scss'] })
 export class CrmManagerViewPageComponent implements OnInit {
   orgId = this.crm.getOrgIdFromToken(); year = new Date().getFullYear(); data?: CrmManagerView; stages: CrmPipelineStage[] = []; loading = true;
-  active: 'opportunities' | 'targets' | 'dashboard' = 'opportunities'; view: 'list' | 'board' = 'list'; targetView: 'list' | 'chart' = 'list'; ownerId: number | null = null; stageId: number | null = null; error = '';
+  active: 'opportunities' | 'targets' | 'dashboard' = 'opportunities'; view: 'list' | 'board' = 'list'; targetView: 'list' | 'chart' = 'list';
+  ownerId: number | null = null; stageId: number | null = null; country = '';
+  dashboardOwnerId: number | null = null; dashboardStageId: number | null = null; dashboardCountry = ''; error = '';
   constructor(private crm: CrmService, private router: Router) {}
   ngOnInit(): void { this.crm.getStages(this.orgId).subscribe(stages => this.stages = stages); this.load(); }
   load(): void { this.loading = true; this.crm.getManagerView(this.orgId, this.year).subscribe({ next: data => { this.data = data; this.loading = false; }, error: error => { this.error = error?.error?.message || 'Manager View is not available.'; this.loading = false; } }); }
-  get opportunities(): CrmOpportunity[] { return (this.data?.opportunities || []).filter(item => (!this.ownerId || item.ownerId === this.ownerId) && (!this.stageId || item.stageId === this.stageId)); }
+  get countries(): string[] { return [...new Set((this.data?.opportunities || []).map(item => item.accountCountry?.trim()).filter((value): value is string => !!value))].sort((a, b) => a.localeCompare(b)); }
+  get opportunities(): CrmOpportunity[] { return (this.data?.opportunities || []).filter(item => (!this.ownerId || item.ownerId === this.ownerId) && (!this.stageId || item.stageId === this.stageId) && (!this.country || item.accountCountry === this.country)); }
+  resetOpportunityFilters(): void { this.ownerId = null; this.stageId = null; this.country = ''; }
   byStage(id: number | null): CrmOpportunity[] { return this.opportunities.filter(item => item.stageId === id); }
   open(opportunity: CrmOpportunity): void { this.router.navigate(['/crm/opportunities', opportunity.id]); }
   money(value: number, currency = 'EUR'): string { return new Intl.NumberFormat('en', { style: 'currency', currency, maximumFractionDigits: 0 }).format(value || 0); }
   saveTarget(member: CrmManagerTeamMember): void { this.crm.saveTarget(this.orgId, member.userId, this.year, member.target, member.currency).subscribe({ next: () => this.load(), error: error => this.error = error?.error?.message || 'Unable to save target.' }); }
   progress(member: CrmManagerTeamMember): number { return member.target ? Math.min(100, Math.round(member.wonValue / member.target * 100)) : 0; }
-  get totalTarget(): number { return (this.data?.team || []).reduce((sum, member) => sum + member.target, 0); }
-  get totalWon(): number { return (this.data?.team || []).reduce((sum, member) => sum + member.wonValue, 0); }
-  get totalPipeline(): number { return (this.data?.team || []).reduce((sum, member) => sum + member.pipelineValue, 0); }
+  get dashboardOpportunities(): CrmOpportunity[] { return (this.data?.opportunities || []).filter(item => (!this.dashboardOwnerId || item.ownerId === this.dashboardOwnerId) && (!this.dashboardStageId || item.stageId === this.dashboardStageId) && (!this.dashboardCountry || item.accountCountry === this.dashboardCountry)); }
+  get dashboardMembers(): CrmManagerTeamMember[] {
+    return (this.data?.team || []).filter(member => !this.dashboardOwnerId || member.userId === this.dashboardOwnerId).map(member => {
+      const owned = this.dashboardOpportunities.filter(item => item.ownerId === member.userId);
+      return { ...member, opportunityCount: owned.length,
+        pipelineValue: owned.filter(item => !item.lost).reduce((sum, item) => sum + (item.value || 0), 0),
+        wonValue: owned.filter(item => item.won).reduce((sum, item) => sum + (item.value || 0), 0) };
+    });
+  }
+  resetDashboardFilters(): void { this.dashboardOwnerId = null; this.dashboardStageId = null; this.dashboardCountry = ''; }
+  get totalTarget(): number { return this.dashboardMembers.reduce((sum, member) => sum + member.target, 0); }
+  get totalWon(): number { return this.dashboardMembers.reduce((sum, member) => sum + member.wonValue, 0); }
+  get totalPipeline(): number { return this.dashboardMembers.reduce((sum, member) => sum + member.pipelineValue, 0); }
   get attainment(): number { return this.totalTarget ? Math.round(this.totalWon / this.totalTarget * 100) : 0; }
-  get maxTarget(): number { return Math.max(1, ...(this.data?.team || []).map(member => Math.max(member.target, member.wonValue))); }
+  get maxTarget(): number { return Math.max(1, ...this.dashboardMembers.map(member => Math.max(member.target, member.wonValue))); }
 }

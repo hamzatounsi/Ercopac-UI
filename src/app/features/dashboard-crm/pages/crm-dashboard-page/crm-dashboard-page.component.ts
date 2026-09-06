@@ -38,11 +38,14 @@ export class CrmDashboardPageComponent implements OnInit {
   }
 
   getOppsForStage(stage: CrmPipelineStage): CrmOpportunity[] { return this.allOpportunities.filter(opportunity => opportunity.stageId === stage.id && !opportunity.lost); }
-  openNewOpp(): void { this.oppForm = emptyOpportunity(); this.oppForm.stageId = this.stages[0]?.id ?? null; this.oppForm.probability = this.stages[0]?.probability ?? 0; this.oppForm.accountId = this.accounts[0]?.id ?? null; this.oppError = ''; this.showNewOppModal = true; }
+  openNewOpp(): void { this.oppForm = emptyOpportunity(); this.oppForm.stageId = this.stages[0]?.id ?? null; this.oppForm.probability = this.stages[0]?.probability ?? 0; this.oppForm.accountId = this.accounts[0]?.id ?? null; if (this.permissions.hasOwnOpportunityScope) this.oppForm.ownerId = this.permissions.currentUserId; this.oppError = ''; this.showNewOppModal = true; }
   newOpportunityStageChanged(): void { this.oppForm.probability = this.stages.find(stage => stage.id === this.oppForm.stageId)?.probability ?? 0; }
   saveNewOpp(): void {
     if (!this.oppForm.name.trim()) { this.oppError = 'Opportunity name is required.'; return; }
     if (!this.oppForm.accountId) { this.oppError = 'Select an account.'; return; }
+    if ((this.oppForm.materialValue || 0) < 0 || (this.oppForm.servicesValue || 0) < 0) { this.oppError = 'Material and services cannot be negative.'; return; }
+    if (this.oppForm.discount < 0 || this.oppForm.discount > 100) { this.oppError = 'Discount must be between 0 and 100.'; return; }
+    this.oppForm.value = (Math.round((this.oppForm.materialValue || 0) * 100) + Math.round((this.oppForm.servicesValue || 0) * 100)) / 100;
     this.savingOpp = true;
     this.crmService.createOpportunity(this.orgId, this.oppForm).subscribe({
       next: opportunity => { this.savingOpp = false; this.showNewOppModal = false; this.router.navigate(['/crm/opportunities', opportunity.id]); },

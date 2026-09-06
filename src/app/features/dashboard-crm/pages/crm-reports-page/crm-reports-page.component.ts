@@ -23,7 +23,7 @@ export class CrmReportsPageComponent implements OnInit, AfterViewChecked, OnDest
     { id: 'timeline', title: 'Timeline', description: 'Opportunities plotted on a timeline by opening and closing dates', category: 'Opportunity reports', icon: '⌁', tone: 'amber' },
     { id: 'value', title: 'Value split', description: 'Material vs Services breakdown across all opportunities', category: 'Opportunity reports', icon: '▥', tone: 'purple' },
     { id: 'tf', title: 'Ercopac / TF split', description: 'Sales split between Ercopac and TF across opportunities', category: 'Value reports', icon: '✓', tone: 'blue' },
-    { id: 'expected', title: 'Expected revenue by month', description: 'Monthly expected revenue (value × probability) plotted by closing date for the current year', category: 'Value reports', icon: '↗', tone: 'green' },
+    { id: 'expected', title: 'Expected revenue by month', description: 'Monthly expected revenue (discounted value × probability) plotted by closing date for the current year', category: 'Value reports', icon: '↗', tone: 'green' },
     { id: 'cs', title: 'CS projects overview', description: 'All CS opportunities with owner, value, TF value, probability, closing and shipment dates', category: 'Opportunity reports', icon: '▤', tone: 'purple' },
     { id: 'bp', title: 'BP projects overview', description: 'All BP opportunities with owner, value, TF value, probability, closing and shipment dates', category: 'Opportunity reports', icon: '▤', tone: 'blue' },
     { id: 'monthly', title: 'Monthly overview', description: 'All opportunities with owner, value, TF value, probability, closing and shipment dates', category: 'Opportunity reports', icon: '▤', tone: 'green' },
@@ -92,11 +92,11 @@ export class CrmReportsPageComponent implements OnInit, AfterViewChecked, OnDest
   get valueSlices(): Slice[] { return this.fixedSlices([['Material', this.total('materialValue')], ['Services', this.total('servicesValue')]]); }
   get tfSlices(): Slice[] { return this.fixedSlices([['Ercopac', this.total('ercopacMaterialValue')], ['TF', this.total('thirdPartyMaterialValue')]]); }
   get resaleSlices(): Slice[] { return this.fixedSlices([['Ercopac', this.total('ercopacResaleValue')], ['Resale', this.total('resaleValue')]]); }
-  get weightedTotal(): number { return this.filtered.reduce((sum, item) => sum + (item.value || 0) * item.probability / 100, 0); }
+  get weightedTotal(): number { return this.filtered.reduce((sum, item) => sum + this.expectedRevenue(item), 0); }
   get activeTotal(): number { return this.activeSlices.reduce((sum, item) => sum + item.value, 0); }
   get expectedMonths(): Slice[] {
     const values = Array.from({ length: 12 }, (_, index) => ({ key: new Date(this.year, index, 1).toLocaleString('en', { month: 'short' }), value: 0, count: 0, color: this.palette[0] }));
-    this.filtered.forEach(item => { if (!item.closingDate) return; const date = this.localDate(item.closingDate); if (date.getFullYear() === this.year) { values[date.getMonth()].value += (item.value || 0) * item.probability / 100; values[date.getMonth()].count++; } });
+    this.filtered.forEach(item => { if (!item.closingDate) return; const date = this.localDate(item.closingDate); if (date.getFullYear() === this.year) { values[date.getMonth()].value += this.expectedRevenue(item); values[date.getMonth()].count++; } });
     return values;
   }
   get availableYears(): number[] { const values = new Set<number>([new Date().getFullYear()]); (this.reports?.opportunities || []).forEach(item => { if (item.closingDate) values.add(this.localDate(item.closingDate).getFullYear()); }); return [...values].sort((a, b) => b - a); }
@@ -125,11 +125,12 @@ export class CrmReportsPageComponent implements OnInit, AfterViewChecked, OnDest
     if (this.selected === 'value' || this.selected === 'tf' || this.selected === 'resale') return this.activeSlices.map(row => ({ Category: row.key, Value: row.value, Percentage: this.percent(row.value, this.activeSlices) }));
     if (this.selected === 'expected') return this.expectedMonths.map(row => ({ Month: row.key, Year: this.year, Opportunities: row.count, 'Expected revenue': row.value }));
     const source = this.selected === 'cs' || this.selected === 'bp' || this.selected === 'monthly' ? this.projectRows : this.filtered;
-    return source.map(item => ({ Opportunity: item.name, Account: item.accountName || '', Owner: item.ownerName || '', Type: item.opportunityType || '', Stage: item.stageName || '', Value: item.value || 0, Currency: item.currency, Probability: item.probability, 'Expected revenue': (item.value || 0) * item.probability / 100, 'Closing date': item.closingDate || '', 'Shipment date': item.shipmentDate || '' }));
+    return source.map(item => ({ Opportunity: item.name, Account: item.accountName || '', Owner: item.ownerName || '', Type: item.opportunityType || '', Stage: item.stageName || '', Value: item.value || 0, Discount: item.discount || 0, Currency: item.currency, Probability: item.probability, 'Expected revenue': this.expectedRevenue(item), 'Closing date': item.closingDate || '', 'Shipment date': item.shipmentDate || '' }));
   }
   private exportName(): string { return `projectum-${(this.selectedCard?.title || 'report').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`; }
   private group(items: CrmOpportunity[], key: (item: CrmOpportunity) => string): Slice[] { const result = new Map<string, Slice>(); items.forEach(item => { const name = key(item); const current = result.get(name) || { key: name, value: 0, count: 0, color: this.palette[result.size % this.palette.length] }; current.value += item.value || 0; current.count++; result.set(name, current); }); return [...result.values()].sort((a, b) => b.value - a.value); }
   private fixedSlices(values: Array<[string, number]>): Slice[] { return values.map(([key, value], index) => ({ key, value, count: 0, color: this.palette[index + 1] })); }
+  expectedRevenue(item: CrmOpportunity): number { return item.expectedRevenue ?? (item.value || 0) * (1 - (item.discount || 0) / 100) * item.probability / 100; }
   private localDate(value: string): Date { const [year, month, day] = value.slice(0, 10).split('-').map(Number); return new Date(year, month - 1, day); }
   private attachMap(canvas: HTMLCanvasElement): void {
     this.renderedCanvas = canvas; this.resizeObserver?.disconnect();

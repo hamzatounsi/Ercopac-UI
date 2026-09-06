@@ -4,7 +4,7 @@
     <button [class.active]="active==='pipeline'" (click)="active='pipeline'">Pipeline stages</button>
     <button [class.active]="active==='equipment'" (click)="active='equipment'">Equipment type</button>
     <button [class.active]="active==='industry'" (click)="active='industry'">Industry</button>
-    <button [class.active]="active==='schedule'" (click)="active='schedule'">Report schedule</button>
+    <button *ngIf="permissions.canAccessManagerView" [class.active]="active==='schedule'" (click)="active='schedule'">Report schedule</button>
     <button [class.active]="active==='notifications'" (click)="active='notifications'">Notifications</button>
   </nav>
 
