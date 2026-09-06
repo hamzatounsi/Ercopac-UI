@@ -1,81 +1,80 @@
-<!-- Angular template for CrmSettingsPageComponent. -->
 <div class="crm-page crm-settings">
   <nav class="settings-tabs" aria-label="CRM settings">
-    <button [class.active]="active==='pipeline'" (click)="active='pipeline'">Pipeline stages</button>
-    <button [class.active]="active==='equipment'" (click)="active='equipment'">Equipment type</button>
-    <button [class.active]="active==='industry'" (click)="active='industry'">Industry</button>
-    <button *ngIf="permissions.canAccessManagerView" [class.active]="active==='schedule'" (click)="active='schedule'">Report schedule</button>
-    <button [class.active]="active==='notifications'" (click)="active='notifications'">Notifications</button>
+    <button [class.active]="active==='pipeline'" (click)="active='pipeline'">{{ i18n.t('settings.pipelineStages') }}</button>
+    <button [class.active]="active==='equipment'" (click)="active='equipment'">{{ i18n.t('settings.equipmentType') }}</button>
+    <button [class.active]="active==='industry'" (click)="active='industry'">{{ i18n.t('settings.industry') }}</button>
+    <button *ngIf="permissions.canAccessManagerView" [class.active]="active==='schedule'" (click)="active='schedule'">{{ i18n.t('settings.reportSchedule') }}</button>
+    <button [class.active]="active==='notifications'" (click)="active='notifications'">{{ i18n.t('settings.notifications') }}</button>
   </nav>
 
-  <div class="loading" *ngIf="loading">Loading settings...</div>
+  <div class="loading" *ngIf="loading">{{ i18n.t('settings.loading') }}</div>
 
   <section class="settings-panel" *ngIf="!loading && active==='pipeline'">
-    <div class="settings-intro"><div><h2>Pipeline stages</h2><p>Manage the stages, colours and default probabilities used by your sales pipeline.</p></div><button class="btn primary compact" *ngIf="permissions.canWriteCrm" (click)="startStage()" [disabled]="addingStage">+ Add stage</button></div>
+    <div class="settings-intro"><div><h2>{{ i18n.t('settings.pipelineStages') }}</h2><p>{{ i18n.t('settings.manageStages') }}</p></div><button class="btn primary compact" *ngIf="permissions.canWriteCrm" (click)="startStage()" [disabled]="addingStage">+ {{ i18n.t('settings.addStage') }}</button></div>
     <article class="settings-card">
-      <div class="stage-heading"><span></span><span>Colour</span><span>Stage name</span><span>Probability</span><span>Order</span><span></span></div>
+      <div class="stage-heading"><span></span><span>{{ i18n.t('settings.colour') }}</span><span>{{ i18n.t('settings.stageName') }}</span><span>{{ i18n.t('settings.probability') }}</span><span>{{ i18n.t('settings.order') }}</span><span></span></div>
       <div class="stage-list">
         <div class="stage-row" *ngFor="let stage of stages; let index=index">
-          <span class="drag" title="Use the arrows to reorder">⋮⋮</span>
-          <input class="colour" type="color" [(ngModel)]="stage.color" (change)="saveStage(stage)" [disabled]="!permissions.canWriteCrm" aria-label="Stage colour">
-          <input class="stage-name" [(ngModel)]="stage.name" (blur)="saveStage(stage)" [disabled]="!permissions.canWriteCrm" aria-label="Stage name">
-          <label class="probability-field"><input class="probability" type="number" min="0" max="100" [(ngModel)]="stage.probability" (blur)="saveStage(stage)" [disabled]="!permissions.canWriteCrm" aria-label="Stage probability"><span>%</span></label>
-          <div class="order-buttons"><button class="order" *ngIf="permissions.canWriteCrm" (click)="moveStage(index,-1)" [disabled]="index===0" title="Move up">↑</button><button class="order" *ngIf="permissions.canWriteCrm" (click)="moveStage(index,1)" [disabled]="index===stages.length-1" title="Move down">↓</button></div>
-          <button class="remove" *ngIf="permissions.canWriteCrm" (click)="deleteStage(stage)" title="Remove stage">×</button>
+          <span class="drag" [title]="i18n.t('settings.moveUp') + ' / ' + i18n.t('settings.moveDown')">⋮⋮</span>
+          <input class="colour" type="color" [(ngModel)]="stage.color" (change)="saveStage(stage)" [disabled]="!permissions.canWriteCrm" [attr.aria-label]="i18n.t('settings.colour')">
+          <input class="stage-name" [(ngModel)]="stage.name" (blur)="saveStage(stage)" [disabled]="!permissions.canWriteCrm" [attr.aria-label]="i18n.t('settings.stageName')">
+          <label class="probability-field"><input class="probability" type="number" min="0" max="100" [(ngModel)]="stage.probability" (blur)="saveStage(stage)" [disabled]="!permissions.canWriteCrm" [attr.aria-label]="i18n.t('settings.probability')"><span>%</span></label>
+          <div class="order-buttons"><button class="order" *ngIf="permissions.canWriteCrm" (click)="moveStage(index,-1)" [disabled]="index===0" [title]="i18n.t('settings.moveUp')">↑</button><button class="order" *ngIf="permissions.canWriteCrm" (click)="moveStage(index,1)" [disabled]="index===stages.length-1" [title]="i18n.t('settings.moveDown')">↓</button></div>
+          <button class="remove" *ngIf="permissions.canWriteCrm" (click)="deleteStage(stage)" [title]="i18n.t('settings.removeStage')">×</button>
         </div>
         <div class="stage-row new" *ngIf="addingStage">
-          <span class="drag">⋮⋮</span><input class="colour" type="color" [(ngModel)]="newStage.color" aria-label="New stage colour"><input class="stage-name" [(ngModel)]="newStage.name" placeholder="New stage name" (keyup.enter)="addStage()" autofocus><label class="probability-field"><input class="probability" type="number" min="0" max="100" [(ngModel)]="newStage.probability"><span>%</span></label><div class="new-actions"><button class="mini-action primary-action" (click)="addStage()">Add</button><button class="mini-action" (click)="addingStage=false">Cancel</button></div>
+          <span class="drag">⋮⋮</span><input class="colour" type="color" [(ngModel)]="newStage.color" [attr.aria-label]="i18n.t('settings.colour')"><input class="stage-name" [(ngModel)]="newStage.name" [placeholder]="i18n.t('settings.newStageName')" (keyup.enter)="addStage()" autofocus><label class="probability-field"><input class="probability" type="number" min="0" max="100" [(ngModel)]="newStage.probability"><span>%</span></label><div class="new-actions"><button class="mini-action primary-action" (click)="addStage()">{{ i18n.t('settings.add') }}</button><button class="mini-action" (click)="addingStage=false">{{ i18n.t('settings.cancel') }}</button></div>
         </div>
-        <div class="catalogue-empty" *ngIf="!stages.length && !addingStage"><span class="empty-icon">⌁</span><strong>No pipeline stages configured</strong><small>Add a stage to start building your opportunity pipeline.</small></div>
+        <div class="catalogue-empty" *ngIf="!stages.length && !addingStage"><span class="empty-icon">⌁</span><strong>{{ i18n.t('settings.noStagesConfigured') }}</strong><small>{{ i18n.t('settings.addStageHint') }}</small></div>
       </div>
     </article>
-    <p class="hint">Changing an opportunity’s stage automatically applies that stage’s probability.</p>
+    <p class="hint">{{ i18n.t('settings.changingStageHint') }}</p>
   </section>
 
   <section class="settings-panel catalogue-panel" *ngIf="!loading && active==='equipment'">
-    <div class="settings-intro"><div><h2>Equipment type catalogue</h2><p>Define the equipment codes and names available on opportunities.</p></div><button class="btn primary compact" *ngIf="permissions.canWriteCrm" (click)="startEquipment()" [disabled]="addingEquipment">+ Add equipment</button></div>
+    <div class="settings-intro"><div><h2>{{ i18n.t('settings.equipmentCatalogue') }}</h2><p>{{ i18n.t('settings.defineEquipment') }}</p></div><button class="btn primary compact" *ngIf="permissions.canWriteCrm" (click)="startEquipment()" [disabled]="addingEquipment">+ {{ i18n.t('settings.addEquipment') }}</button></div>
     <article class="settings-card">
-      <div class="catalogue-heading"><span>Code</span><span>Equipment name</span><span>Actions</span></div>
+      <div class="catalogue-heading"><span>{{ i18n.t('settings.code') }}</span><span>{{ i18n.t('settings.equipmentName') }}</span><span>{{ i18n.t('settings.actions') }}</span></div>
       <div class="catalogue-list">
-        <div class="catalogue-row" *ngFor="let item of activeEquipmentTypes"><input class="equipment-code" maxlength="8" [(ngModel)]="item.code" (blur)="saveEquipment(item)" [disabled]="!permissions.canWriteCrm" placeholder="e.g. ASR"><input [(ngModel)]="item.name" (blur)="saveEquipment(item)" [disabled]="!permissions.canWriteCrm" placeholder="Equipment name"><button class="remove" *ngIf="permissions.canWriteCrm" title="Remove equipment type" (click)="deleteEquipment(item)">×</button></div>
-        <div class="catalogue-row new" *ngIf="addingEquipment"><input class="equipment-code" maxlength="8" [(ngModel)]="newEquipment.code" placeholder="CODE"><input [(ngModel)]="newEquipment.name" placeholder="Equipment name" (keyup.enter)="addEquipment()"><div class="new-actions"><button class="mini-action primary-action" (click)="addEquipment()">Add</button><button class="mini-action" (click)="addingEquipment=false">Cancel</button></div></div>
-        <div class="catalogue-empty" *ngIf="!activeEquipmentTypes.length && !addingEquipment"><span class="empty-icon">⚙</span><strong>No equipment types yet</strong><small>Add the first type to make it available on opportunities.</small></div>
+        <div class="catalogue-row" *ngFor="let item of activeEquipmentTypes"><input class="equipment-code" maxlength="8" [(ngModel)]="item.code" (blur)="saveEquipment(item)" [disabled]="!permissions.canWriteCrm" placeholder="e.g. ASR"><input [(ngModel)]="item.name" (blur)="saveEquipment(item)" [disabled]="!permissions.canWriteCrm" [placeholder]="i18n.t('settings.equipmentName')"><button class="remove" *ngIf="permissions.canWriteCrm" [title]="i18n.t('settings.removeEquipment')" (click)="deleteEquipment(item)">×</button></div>
+        <div class="catalogue-row new" *ngIf="addingEquipment"><input class="equipment-code" maxlength="8" [(ngModel)]="newEquipment.code" [placeholder]="i18n.t('settings.code')"><input [(ngModel)]="newEquipment.name" [placeholder]="i18n.t('settings.equipmentName')" (keyup.enter)="addEquipment()"><div class="new-actions"><button class="mini-action primary-action" (click)="addEquipment()">{{ i18n.t('settings.add') }}</button><button class="mini-action" (click)="addingEquipment=false">{{ i18n.t('settings.cancel') }}</button></div></div>
+        <div class="catalogue-empty" *ngIf="!activeEquipmentTypes.length && !addingEquipment"><span class="empty-icon">⚙</span><strong>{{ i18n.t('settings.noEquipmentTypes') }}</strong><small>{{ i18n.t('settings.addFirstType') }}</small></div>
       </div>
     </article>
   </section>
 
   <section class="settings-panel catalogue-panel" *ngIf="!loading && active==='industry'">
-    <div class="settings-intro"><div><h2>Industry catalogue</h2><p>Define the sectors available when creating and editing accounts.</p></div><button class="btn primary compact" *ngIf="permissions.canWriteCrm" (click)="startIndustry()" [disabled]="addingIndustry">+ Add industry</button></div>
+    <div class="settings-intro"><div><h2>{{ i18n.t('settings.industryCatalogue') }}</h2><p>{{ i18n.t('settings.defineIndustries') }}</p></div><button class="btn primary compact" *ngIf="permissions.canWriteCrm" (click)="startIndustry()" [disabled]="addingIndustry">+ {{ i18n.t('settings.addIndustry') }}</button></div>
     <article class="settings-card">
-      <div class="simple-heading"><span>Industry name</span><span>Actions</span></div>
-      <div class="simple-list"><div class="simple-row" *ngFor="let industry of activeIndustries"><input [(ngModel)]="industry.name" (blur)="saveIndustry(industry)" [disabled]="!permissions.canWriteCrm"><button class="remove" *ngIf="permissions.canWriteCrm" (click)="deleteIndustry(industry)" title="Remove industry">×</button></div><div class="simple-row new" *ngIf="addingIndustry"><input [(ngModel)]="newIndustry.name" placeholder="New industry" (keyup.enter)="addIndustry()"><div class="new-actions"><button class="mini-action primary-action" (click)="addIndustry()">Add</button><button class="mini-action" (click)="addingIndustry=false">Cancel</button></div></div><div class="catalogue-empty" *ngIf="!activeIndustries.length && !addingIndustry"><span class="empty-icon">▦</span><strong>No industries configured</strong><small>Add an industry to make it available on accounts.</small></div></div>
+      <div class="simple-heading"><span>{{ i18n.t('settings.industryName') }}</span><span>{{ i18n.t('settings.actions') }}</span></div>
+      <div class="simple-list"><div class="simple-row" *ngFor="let industry of activeIndustries"><input [(ngModel)]="industry.name" (blur)="saveIndustry(industry)" [disabled]="!permissions.canWriteCrm"><button class="remove" *ngIf="permissions.canWriteCrm" (click)="deleteIndustry(industry)" [title]="i18n.t('settings.removeIndustry')">×</button></div><div class="simple-row new" *ngIf="addingIndustry"><input [(ngModel)]="newIndustry.name" [placeholder]="i18n.t('settings.industryName')" (keyup.enter)="addIndustry()"><div class="new-actions"><button class="mini-action primary-action" (click)="addIndustry()">{{ i18n.t('settings.add') }}</button><button class="mini-action" (click)="addingIndustry=false">{{ i18n.t('settings.cancel') }}</button></div></div><div class="catalogue-empty" *ngIf="!activeIndustries.length && !addingIndustry"><span class="empty-icon">▦</span><strong>{{ i18n.t('settings.noIndustriesConfigured') }}</strong><small>{{ i18n.t('settings.addIndustryHint') }}</small></div></div>
     </article>
   </section>
 
   <section class="settings-panel schedule-panel" *ngIf="!loading && active==='schedule'">
-    <div class="settings-intro"><div><h2>Report schedule</h2><p>Configure automatic delivery of live CRM reports by email.</p></div><button class="btn primary compact" *ngIf="permissions.canWriteCrm" (click)="addSchedule()">+ Add schedule</button></div>
-    <div class="schedule-columns" *ngIf="schedules.length"><span>Report</span><span>Type filter</span><span>Frequency</span><span>Recipients</span><span>Active</span><span></span></div>
+    <div class="settings-intro"><div><h2>{{ i18n.t('settings.reportSchedule') }}</h2><p>{{ i18n.t('settings.configureDelivery') }}</p></div><button class="btn primary compact" *ngIf="permissions.canWriteCrm" (click)="addSchedule()">+ {{ i18n.t('settings.addSchedule') }}</button></div>
+    <div class="schedule-columns" *ngIf="schedules.length"><span>{{ i18n.t('settings.report') }}</span><span>{{ i18n.t('settings.typeFilter') }}</span><span>{{ i18n.t('settings.frequency') }}</span><span>{{ i18n.t('settings.recipients') }}</span><span>{{ i18n.t('settings.active') }}</span><span></span></div>
     <div class="schedule-list">
       <article class="schedule-card" *ngFor="let item of schedules" [class.unsaved]="!item.id">
         <div class="schedule-fields">
-          <label><span>Report</span><select [(ngModel)]="item.reportType" (change)="saveSchedule(item)" [disabled]="!permissions.canWriteCrm"><option *ngFor="let report of reportOptions" [value]="report.id">{{report.label}}</option></select></label>
-          <label><span>Type filter</span><select [(ngModel)]="item.typeFilter" (change)="saveSchedule(item)" [disabled]="!permissions.canWriteCrm"><option value="ALL">All types</option><option value="BP">BP only</option><option value="CS">CS only</option></select></label>
-          <label><span>Frequency</span><select [(ngModel)]="item.frequency" (change)="saveSchedule(item)" [disabled]="!permissions.canWriteCrm"><option value="DAILY">Daily</option><option value="WEEKLY">Weekly</option><option value="BIWEEKLY">Biweekly</option><option value="MONTHLY">Monthly</option><option value="QUARTERLY">Quarterly</option></select></label>
-          <label class="schedule-recipients"><span>Recipients</span><input [(ngModel)]="item.recipients" (blur)="saveSchedule(item)" [disabled]="!permissions.canWriteCrm" placeholder="name@company.com, team@company.com"></label>
-          <label class="schedule-active"><span>Active</span><i class="toggle"><input type="checkbox" [(ngModel)]="item.active" (change)="saveSchedule(item)" [disabled]="!permissions.canWriteCrm"><b></b></i></label>
-          <div class="schedule-actions"><button class="mini-action primary-action" *ngIf="permissions.canWriteCrm && !item.id" (click)="saveSchedule(item)">Save</button><button class="remove schedule-remove" *ngIf="permissions.canWriteCrm" title="Remove schedule" (click)="deleteSchedule(item)">×</button></div>
+          <label><span>{{ i18n.t('settings.report') }}</span><select [(ngModel)]="item.reportType" (change)="saveSchedule(item)" [disabled]="!permissions.canWriteCrm"><option *ngFor="let report of reportOptions" [value]="report.id">{{ i18n.t('settings.reports.' + report.id) }}</option></select></label>
+          <label><span>{{ i18n.t('settings.typeFilter') }}</span><select [(ngModel)]="item.typeFilter" (change)="saveSchedule(item)" [disabled]="!permissions.canWriteCrm"><option value="ALL">{{ i18n.t('settings.allTypes') }}</option><option value="BP">BP only</option><option value="CS">CS only</option></select></label>
+          <label><span>{{ i18n.t('settings.frequency') }}</span><select [(ngModel)]="item.frequency" (change)="saveSchedule(item)" [disabled]="!permissions.canWriteCrm"><option value="DAILY">Daily</option><option value="WEEKLY">Weekly</option><option value="BIWEEKLY">Biweekly</option><option value="MONTHLY">Monthly</option><option value="QUARTERLY">Quarterly</option></select></label>
+          <label class="schedule-recipients"><span>{{ i18n.t('settings.recipients') }}</span><input [(ngModel)]="item.recipients" (blur)="saveSchedule(item)" [disabled]="!permissions.canWriteCrm" [placeholder]="'name@company.com, team@company.com'"></label>
+          <label class="schedule-active"><span>{{ i18n.t('settings.active') }}</span><i class="toggle"><input type="checkbox" [(ngModel)]="item.active" (change)="saveSchedule(item)" [disabled]="!permissions.canWriteCrm"><b></b></i></label>
+          <div class="schedule-actions"><button class="mini-action primary-action" *ngIf="permissions.canWriteCrm && !item.id" (click)="saveSchedule(item)">{{ i18n.t('settings.save') }}</button><button class="remove schedule-remove" *ngIf="permissions.canWriteCrm" [title]="i18n.t('settings.removeSchedule')" (click)="deleteSchedule(item)">×</button></div>
         </div>
       </article>
-      <div class="schedule-empty" *ngIf="!schedules.length"><span class="empty-icon">◷</span><strong>No scheduled reports</strong><small>Add a schedule to deliver current CRM data automatically.</small></div>
+      <div class="schedule-empty" *ngIf="!schedules.length"><span class="empty-icon">◷</span><strong>{{ i18n.t('settings.noScheduledReports') }}</strong><small>{{ i18n.t('settings.addScheduleHint') }}</small></div>
     </div>
   </section>
 
   <section class="settings-panel notifications-panel" *ngIf="!loading && active==='notifications'">
-    <div class="settings-intro"><div><h2>Notifications</h2><p>Choose which CRM events should reach you by email.</p></div><span class="saving-state" *ngIf="savingPreferences">Saving…</span></div>
+    <div class="settings-intro"><div><h2>{{ i18n.t('settings.notifications') }}</h2><p>{{ i18n.t('settings.chooseEvents') }}</p></div><span class="saving-state" *ngIf="savingPreferences">{{ i18n.t('settings.saving') }}</span></div>
     <article class="settings-card notification-card"><div class="notification-list">
-      <label><span class="notification-icon">✉</span><span class="notification-copy"><strong>Email notifications</strong><small>Receive updates about your opportunities by email.</small></span><i class="toggle"><input type="checkbox" [(ngModel)]="preferences.emailNotifications" (change)="savePreferences()"><b></b></i></label>
-      <label><span class="notification-icon">↗</span><span class="notification-copy"><strong>Stage change alerts</strong><small>Get notified when an opportunity moves to a new stage.</small></span><i class="toggle"><input type="checkbox" [(ngModel)]="preferences.stageChangeAlerts" (change)="savePreferences()"><b></b></i></label>
-      <label><span class="notification-icon">◷</span><span class="notification-copy"><strong>Closing date reminders</strong><small>Receive a reminder seven days before an opportunity closes.</small></span><i class="toggle"><input type="checkbox" [(ngModel)]="preferences.closingDateReminders" (change)="savePreferences()"><b></b></i></label>
+      <label><span class="notification-icon">✉</span><span class="notification-copy"><strong>{{ i18n.t('settings.emailNotifications') }}</strong><small>{{ i18n.t('settings.emailNotificationsDesc') }}</small></span><i class="toggle"><input type="checkbox" [(ngModel)]="preferences.emailNotifications" (change)="savePreferences()"><b></b></i></label>
+      <label><span class="notification-icon">↗</span><span class="notification-copy"><strong>{{ i18n.t('settings.stageChangeAlerts') }}</strong><small>{{ i18n.t('settings.stageChangeAlertsDesc') }}</small></span><i class="toggle"><input type="checkbox" [(ngModel)]="preferences.stageChangeAlerts" (change)="savePreferences()"><b></b></i></label>
+      <label><span class="notification-icon">◷</span><span class="notification-copy"><strong>{{ i18n.t('settings.closingDateReminders') }}</strong><small>{{ i18n.t('settings.closingDateRemindersDesc') }}</small></span><i class="toggle"><input type="checkbox" [(ngModel)]="preferences.closingDateReminders" (change)="savePreferences()"><b></b></i></label>
     </div></article>
   </section>
 

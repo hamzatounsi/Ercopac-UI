@@ -6,41 +6,41 @@
   <div class="page-header">
     <div>
       <h1 class="page-title">Dashboard</h1>
-      <p class="page-sub">Welcome back, {{ currentUserName }}</p>
+      <p class="page-sub">{{ i18n.t('dashboard.welcomeBack') }}, {{ currentUserName }}</p>
     </div>
     <div class="header-actions">
-      <button class="btn-secondary" routerLink="/crm/reports">View reports</button>
-      <button *ngIf="permissions.canWriteCrm" class="btn-primary" (click)="openNewOpp()">+ New opportunity</button>
+      <button class="btn-secondary" routerLink="/crm/reports">{{ i18n.t('dashboard.viewReports') }}</button>
+      <button *ngIf="permissions.canWriteCrm" class="btn-primary" (click)="openNewOpp()">{{ i18n.t('dashboard.newOpportunity') }}</button>
     </div>
   </div>
 
   <!-- KPI CARDS -->
   <div class="kpi-grid">
     <div class="kpi-card">
-      <div class="kpi-label">Open opportunities</div>
+      <div class="kpi-label">{{ i18n.t('dashboard.openOpportunities') }}</div>
       <div class="kpi-value">{{ dashboard.openOpportunities }}</div>
-      <div class="kpi-sub gray">Currently open</div>
+      <div class="kpi-sub gray">{{ i18n.t('dashboard.currentlyOpen') }}</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-label">Pipeline value</div>
-      <div class="kpi-value">{{ formatValue(dashboard.pipelineValue) }}</div>
+      <div class="kpi-label">{{ i18n.t('dashboard.pipelineValue') }}</div>
+      <div class="kpi-value">{{ formatValue(dashboard.pipelineValue)}}</div>
       <div class="kpi-sub gray">
-        {{ dashboard.openOpportunities }} deals · Open pipeline
+        {{ dashboard.openOpportunities }} {{ i18n.t('dashboard.dealsWord') }} · {{ i18n.t('dashboard.openPipelineLabel') }}
       </div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-label">Active leads</div>
+      <div class="kpi-label">{{ i18n.t('dashboard.activeLeads') }}</div>
       <div class="kpi-value">{{ dashboard.activeLeads }}</div>
       <div class="kpi-sub"
         [class.red]="dashboard.activeLeads === 0"
         [class.gray]="dashboard.activeLeads > 0">
-        {{ dashboard.activeLeads > 0 ? 'In progress' : 'No active leads' }}
+        {{ dashboard.activeLeads > 0 ? i18n.t('dashboard.inProgress') : i18n.t('dashboard.noActiveLeads') }}
       </div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-label">Won this month</div>
+      <div class="kpi-label">{{ i18n.t('dashboard.wonThisMonth') }}</div>
       <div class="kpi-value">{{ dashboard.wonThisMonth }}</div>
-      <div class="kpi-sub gray">Closed this month</div>
+      <div class="kpi-sub gray">{{ i18n.t('dashboard.closedThisMonth') }}</div>
     </div>
   </div>
 
@@ -50,8 +50,8 @@
     <!-- PIPELINE KANBAN -->
     <div class="pipeline-card">
       <div class="section-header">
-        <span class="section-title">Opportunity pipeline</span>
-        <button class="btn-link" [routerLink]="'/crm/opportunities'">View all</button>
+        <span class="section-title">{{ i18n.t('dashboard.opportunityPipeline') }}</span>
+        <button class="btn-link" [routerLink]="'/crm/opportunities'">{{ i18n.t('dashboard.viewAll') }}</button>
       </div>
 
       <div class="pipeline-columns">
@@ -76,7 +76,7 @@
 
           <!-- Empty state -->
           <div class="pipeline-empty" *ngIf="getOppsForStage(stage).length === 0">
-            No deals
+            {{ i18n.t('dashboard.noDeals') }}
           </div>
 
         </div>
@@ -85,7 +85,7 @@
 
     <!-- RECENT ACTIVITY -->
     <div class="activity-card">
-      <div class="section-title" style="margin-bottom:16px">Recent activity</div>
+      <div class="section-title" style="margin-bottom:16px">{{ i18n.t('dashboard.recentActivity') }}</div>
       <div class="activity-list">
         <div class="activity-item" *ngFor="let act of dashboard.recentActivities">
           <div class="activity-dot"
@@ -100,7 +100,7 @@
           </div>
         </div>
         <div class="activity-empty" *ngIf="dashboard.recentActivities.length === 0">
-          No recent activity yet.
+          {{ i18n.t('dashboard.noRecentActivity') }}
         </div>
       </div>
     </div>
@@ -112,16 +112,16 @@
 
     <div class="closing-card">
       <div class="section-title" style="margin-bottom:16px">
-        Opportunities closing this month
+        {{ i18n.t('dashboard.closingThisMonth') }}
       </div>
       <table class="crm-table">
         <thead>
           <tr>
-            <th>OPPORTUNITY</th>
-            <th>STAGE</th>
-            <th>VALUE</th>
-            <th>CLOSING</th>
-            <th>OWNER</th>
+            <th>{{ i18n.t('dashboard.col.opportunity') }}</th>
+            <th>{{ i18n.t('dashboard.col.stage') }}</th>
+            <th>{{ i18n.t('dashboard.col.value') }}</th>
+            <th>{{ i18n.t('dashboard.col.closing') }}</th>
+            <th>{{ i18n.t('dashboard.col.owner') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -136,10 +136,10 @@
             </td>
             <td class="value-cell">{{ formatValue(opp.value) }}</td>
             <td class="date-cell">{{ opp.closingDate | crmDate }}</td>
-            <td>{{ opp.ownerName ? (opp.ownerName | slice:0:7) + '.' : '—' }}</td>
+            <td>{{ opp.ownerName ? (opp.ownerName | slice:0:7) + '.': '—' }}</td>
           </tr>
           <tr *ngIf="dashboard.closingThisMonth.length === 0">
-            <td colspan="5" class="empty-row">No opportunities closing this month.</td>
+            <td colspan="5" class="empty-row">{{ i18n.t('dashboard.noClosingOpportunities') }}</td>
           </tr>
         </tbody>
       </table>
@@ -147,7 +147,7 @@
 
     <!-- LEADS BY SOURCE — donut chart -->
     <div class="source-card">
-      <div class="section-title" style="margin-bottom:16px">Leads by source</div>
+      <div class="section-title" style="margin-bottom:16px">{{ i18n.t('dashboard.leadsBySource') }}</div>
 
       <div class="donut-wrap">
         <svg width="120" height="120" viewBox="0 0 100 100">
@@ -170,7 +170,7 @@
           </text>
           <text x="50" y="60" text-anchor="middle"
             style="font-size:10px;fill:#94a3b8">
-            leads
+            {{ i18n.t('dashboard.leadsUnit') }}
           </text>
         </svg>
       </div>
@@ -183,7 +183,7 @@
           </span>
         </div>
         <div class="source-empty" *ngIf="sourceEntries().length === 0">
-          No leads yet.
+          {{ i18n.t('dashboard.noLeadsYet') }}
         </div>
       </div>
     </div>
@@ -196,45 +196,45 @@
 <div class="modal-overlay" *ngIf="showNewOppModal" (click)="cancelNewOpp()">
   <div class="modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <span>New opportunity</span>
+      <span>{{ i18n.t('modal.newOpportunity.title') }}</span>
       <button class="modal-close" (click)="cancelNewOpp()">✕</button>
     </div>
     <div class="modal-body">
       <div class="form-group">
-        <label>Opportunity name *</label>
-        <input [(ngModel)]="oppForm.name" placeholder="e.g. Steel Supply Q3" />
+        <label>{{ i18n.t('modal.oppName') }}</label>
+        <input [(ngModel)]="oppForm.name" [placeholder]="i18n.t('modal.oppNamePlaceholder')" />
       </div>
       <div class="form-group">
-        <label>Account *</label>
+        <label>{{ i18n.t('modal.account') }}</label>
         <select [(ngModel)]="oppForm.accountId">
-          <option [ngValue]="null">Select an account</option>
+          <option [ngValue]="null">{{ i18n.t('modal.selectAccount') }}</option>
           <option *ngFor="let account of accounts" [ngValue]="account.id">{{ account.name }}</option>
         </select>
       </div>
-      <div class="form-group"><label>Material</label><input type="number" min="0" [(ngModel)]="oppForm.materialValue" /></div>
-      <div class="form-group"><label>Services</label><input type="number" min="0" [(ngModel)]="oppForm.servicesValue" /></div>
-      <div class="form-group"><label>Discount (%)</label><input type="number" min="0" max="100" step="0.01" [(ngModel)]="oppForm.discount" /></div>
+      <div class="form-group"><label>{{ i18n.t('modal.material') }}</label><input type="number" min="0" [(ngModel)]="oppForm.materialValue" /></div>
+      <div class="form-group"><label>{{ i18n.t('modal.services') }}</label><input type="number" min="0" [(ngModel)]="oppForm.servicesValue" /></div>
+      <div class="form-group"><label>{{ i18n.t('modal.discount') }}</label><input type="number" min="0" max="100" step="0.01" [(ngModel)]="oppForm.discount" /></div>
       <div class="form-group">
-        <label>Stage</label>
+        <label>{{ i18n.t('modal.stage') }}</label>
   <select [(ngModel)]="oppForm.stageId" (ngModelChange)="newOpportunityStageChanged()">
           <option *ngFor="let s of stages" [ngValue]="s.id">{{ s.name }}</option>
         </select>
       </div>
       <div class="form-group">
-        <label>Closing date</label>
+        <label>{{ i18n.t('modal.closingDate') }}</label>
         <input type="date" [(ngModel)]="oppForm.closingDate" />
       </div>
       <div class="form-error" *ngIf="oppError">{{ oppError }}</div>
     </div>
     <div class="modal-footer">
-      <button class="btn-cancel" (click)="cancelNewOpp()">Cancel</button>
+      <button class="btn-cancel" (click)="cancelNewOpp()">{{ i18n.t('modal.cancel') }}</button>
       <button class="btn-primary" (click)="saveNewOpp()" [disabled]="savingOpp">
-        {{ savingOpp ? 'Creating...' : 'Create opportunity' }}
+        {{ savingOpp ? i18n.t('modal.creating') : i18n.t('modal.createOpportunity') }}
       </button>
     </div>
   </div>
 </div>
 
 <ng-template #loadingTpl>
-  <div class="crm-loading">Loading dashboard...</div>
+  <div class="crm-loading">{{ i18n.t('dashboard.loading') }}</div>
 </ng-template>
