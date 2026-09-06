@@ -13,6 +13,9 @@ export interface CrmOpportunity {
   value: number | null;
   currency: string;
   probability: number;
+  discount: number;
+  discountedValue: number | null;
+  expectedRevenue: number | null;
   closingDate: string | null;
   ownerId: number | null;
   ownerName: string | null;
@@ -44,7 +47,8 @@ export interface CrmOpportunity {
 export function emptyOpportunity(): CrmOpportunity {
   return {
     id: null, name: '', accountName: '', accountCountry: null, accountId: null, stageId: null, stageName: null,
-    stageColor: null, value: null, currency: 'EUR', probability: 0,
+    stageColor: null, value: null, currency: 'EUR', probability: 0, discount: 0,
+    discountedValue: 0, expectedRevenue: 0,
     closingDate: null, ownerId: null, ownerName: null, leadId: null, contactName: null,
     supplyCategoryId: null, supplyCategoryName: null, opportunityType: 'BP', pipeline: 'MTO',
     quoteNumber: '', quoteRequestedDate: null, quoteSubmittedDate: null, shipmentDate: null,

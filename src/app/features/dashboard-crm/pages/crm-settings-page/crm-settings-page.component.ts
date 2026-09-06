@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
 import { CrmPipelineStage, emptyStage } from '../../models/crm-pipeline-stage.model';
 import { CrmIndustry, CrmNotificationPreference } from '../../models/crm-detail.model';
 import { CrmEquipmentType, CrmReportSchedule } from '../../models/crm-equipment.model';
@@ -21,7 +21,7 @@ export class CrmSettingsPageComponent implements OnInit {
   ];
   constructor(private crm: CrmService, public permissions: CrmPermissionsService) {}
   ngOnInit(): void { this.load(); }
-  load(): void { forkJoin({ stages: this.crm.getStages(this.orgId), industries: this.crm.getIndustries(this.orgId, true), equipment:this.crm.getEquipmentTypes(this.orgId,true), schedules:this.crm.getReportSchedules(this.orgId), preferences: this.crm.getNotificationPreferences(this.orgId) }).subscribe({ next: result => { this.stages = result.stages; this.industries = result.industries; this.equipmentTypes=result.equipment;this.schedules=result.schedules; this.preferences = result.preferences; this.loading = false; }, error: error => { this.error = error?.error?.message || 'Unable to load CRM settings.'; this.loading = false; } }); }
+  load(): void { forkJoin({ stages: this.crm.getStages(this.orgId), industries: this.crm.getIndustries(this.orgId, true), equipment:this.crm.getEquipmentTypes(this.orgId,true), schedules:this.permissions.canAccessManagerView?this.crm.getReportSchedules(this.orgId):of([] as CrmReportSchedule[]), preferences: this.crm.getNotificationPreferences(this.orgId) }).subscribe({ next: result => { this.stages = result.stages; this.industries = result.industries; this.equipmentTypes=result.equipment;this.schedules=result.schedules; this.preferences = result.preferences; this.loading = false; }, error: error => { this.error = error?.error?.message || 'Unable to load CRM settings.'; this.loading = false; } }); }
   saveEquipment(item:CrmEquipmentType):void {if(!item.id)return;this.crm.updateEquipmentType(this.orgId,item.id,item).subscribe({next:v=>{Object.assign(item,v);this.flash('Equipment saved');},error:e=>this.error=e?.error?.message||'Unable to save equipment.'});}
   addEquipment():void {if(!this.newEquipment.code.trim()||!this.newEquipment.name.trim())return;this.crm.createEquipmentType(this.orgId,this.newEquipment).subscribe({next:v=>{this.equipmentTypes=[...this.equipmentTypes,v];this.newEquipment={id:null,code:'',name:'',active:true};this.addingEquipment=false;this.flash('Equipment added');},error:e=>this.error=e?.error?.message||'Unable to add equipment.'});}
   deleteEquipment(item:CrmEquipmentType):void {if(!item.id||!confirm('Deactivate this equipment type?'))return;this.crm.deleteEquipmentType(this.orgId,item.id).subscribe({next:()=>{item.active=false;this.flash('Equipment deactivated');},error:e=>this.error=e?.error?.message||'Unable to deactivate equipment.'});}
