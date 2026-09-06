@@ -1,22 +1,75 @@
 <div class="crm-page">
   <header class="page-header">
-    <div><h1 class="page-title">Leads</h1><p class="page-sub">{{leads.length}} total leads</p></div>
-    <div class="page-actions"><input class="search" [(ngModel)]="search" (ngModelChange)="load()" placeholder="Search contacts…"><button *ngIf="permissions.canWriteCrm" class="btn primary" (click)="openNew()">+ Create lead</button></div>
+    <div>
+      <h1 class="page-title">{{ i18n.t('leads.pageTitle') }}</h1>
+      <p class="page-sub">{{ leads.length }} {{ i18n.t('leads.totalLeads') }}</p>
+    </div>
+    <div class="page-actions">
+      <input class="search" [(ngModel)]="search" (ngModelChange)="load()" [placeholder]="i18n.t('leads.searchPlaceholder')">
+      <button *ngIf="permissions.canWriteCrm" class="btn primary" (click)="openNew()">+ {{ i18n.t('leads.createLead') }}</button>
+    </div>
   </header>
-  <div class="filter-bar"><button class="chip" [class.active]="filter==='ALL'" (click)="setFilter('ALL')">All leads</button><button class="chip" [class.active]="filter==='CONVERTED'" (click)="setFilter('CONVERTED')">Converted</button><button class="chip" [class.active]="filter==='NOT_CONTACTED'" (click)="setFilter('NOT_CONTACTED')">Not contacted</button><button class="chip" [class.active]="filter==='CONTACTED'" (click)="setFilter('CONTACTED')">Contacted</button></div>
-  <div *ngIf="error && !showForm" class="form-error page-error">{{error}}</div>
-  <div *ngIf="loading" class="loading">Loading leads…</div>
+  
+  <div class="filter-bar">
+    <button class="chip" [class.active]="filter==='ALL'" (click)="setFilter('ALL')">{{ i18n.t('leads.filterAll') }}</button>
+    <button class="chip" [class.active]="filter==='CONVERTED'" (click)="setFilter('CONVERTED')">{{ i18n.t('leads.filterConverted') }}</button>
+    <button class="chip" [class.active]="filter==='NOT_CONTACTED'" (click)="setFilter('NOT_CONTACTED')">{{ i18n.t('leads.filterNotContacted') }}</button>
+    <button class="chip" [class.active]="filter==='CONTACTED'" (click)="setFilter('CONTACTED')">{{ i18n.t('leads.filterContacted') }}</button>
+  </div>
+
+  <div *ngIf="error && !showForm" class="form-error page-error">{{ error }}</div>
+  <div *ngIf="loading" class="loading">{{ i18n.t('leads.loading') }}</div>
+  
   <div *ngIf="!loading" class="table-wrap">
-    <table class="crm-table"><thead><tr><th>Lead name</th><th>Account</th><th>Job title</th><th>Email</th><th>Phone</th><th>Source</th><th>Status</th><th>Owner</th><th *ngIf="permissions.canWriteCrm" aria-label="Actions"></th></tr></thead>
+    <table class="crm-table">
+      <thead>
+        <tr>
+          <th>{{ i18n.t('leads.col.name') }}</th>
+          <th>{{ i18n.t('leads.col.account') }}</th>
+          <th>{{ i18n.t('leads.col.jobTitle') }}</th>
+          <th>{{ i18n.t('leads.col.email') }}</th>
+          <th>{{ i18n.t('leads.col.phone') }}</th>
+          <th>{{ i18n.t('leads.col.source') }}</th>
+          <th>{{ i18n.t('leads.col.status') }}</th>
+          <th>{{ i18n.t('leads.col.owner') }}</th>
+          <th *ngIf="permissions.canWriteCrm" aria-label="Actions"></th>
+        </tr>
+      </thead>
       <tbody>
         <tr *ngFor="let lead of leads" class="clickable" (click)="open(lead)">
-          <td class="lead-cell"><div class="avatar">{{lead.fullName.slice(0,2).toUpperCase()}}</div><span class="link">{{lead.fullName}}</span></td>
-          <td>{{lead.accountName||lead.company||'—'}}</td><td>{{lead.jobTitle||'—'}}</td><td>{{lead.email||'—'}}</td><td>{{lead.mobile||lead.phone||'—'}}</td><td><span class="badge">{{lead.source.replace('_',' ')}}</span></td>
-          <td (click)="$event.stopPropagation()"><select *ngIf="permissions.canWriteCrm && lead.status!=='CONVERTED'; else statusBadge" class="inline-select" [(ngModel)]="lead.status" (change)="update(lead)"><option *ngFor="let status of statusOptions" [ngValue]="status.value">{{status.label}}</option></select><ng-template #statusBadge><span class="badge" [class.success]="lead.status==='CONVERTED'" [class.info]="lead.status==='CONTACTED'">{{statusLabels[lead.status].label}}</span></ng-template></td>
-          <td (click)="$event.stopPropagation()"><select *ngIf="permissions.canWriteCrm; else ownerText" class="inline-select" [(ngModel)]="lead.ownerId" (change)="update(lead)"><option [ngValue]="null">Unassigned</option><option *ngFor="let user of users" [ngValue]="user.id">{{user.name}}</option></select><ng-template #ownerText>{{lead.ownerName||'Unassigned'}}</ng-template></td>
-          <td *ngIf="permissions.canWriteCrm" (click)="$event.stopPropagation()"><button class="row-delete" type="button" (click)="delete($event,lead)" aria-label="Delete lead">×</button></td>
+          <td class="lead-cell">
+            <div class="avatar">{{ lead.fullName.slice(0,2).toUpperCase() }}</div>
+            <span class="link">{{ lead.fullName }}</span>
+          </td>
+          <td>{{ lead.accountName || lead.company || '—' }}</td>
+          <td>{{ lead.jobTitle || '—' }}</td>
+          <td>{{ lead.email || '—' }}</td>
+          <td>{{ lead.mobile || lead.phone || '—' }}</td>
+          <td><span class="badge">{{ lead.source.replace('_',' ') }}</span></td>
+          <td (click)="$event.stopPropagation()">
+            <select *ngIf="permissions.canWriteCrm && lead.status!=='CONVERTED'; else statusBadge" class="inline-select" [(ngModel)]="lead.status" (change)="update(lead)">
+              <option *ngFor="let status of statusOptions" [ngValue]="status.value">{{ status.label }}</option>
+            </select>
+           <ng-template #statusBadge>
+  <span class="badge" [class.success]="lead.status==='CONVERTED'" [class.info]="lead.status==='CONTACTED'">
+    {{ i18n.translateDynamic(statusLabels[lead.status].label) }}
+  </span>
+</ng-template>
+          </td>
+          <td (click)="$event.stopPropagation()">
+            <select *ngIf="permissions.canWriteCrm; else ownerText" class="inline-select" [(ngModel)]="lead.ownerId" (change)="update(lead)">
+              <option [ngValue]="null">{{ i18n.t('leads.modal.unassigned') }}</option>
+              <option *ngFor="let user of users" [ngValue]="user.id">{{ user.name }}</option>
+            </select>
+            <ng-template #ownerText>{{ lead.ownerName || i18n.t('leads.modal.unassigned') }}</ng-template>
+          </td>
+          <td *ngIf="permissions.canWriteCrm" (click)="$event.stopPropagation()">
+            <button class="row-delete" type="button" (click)="delete($event, lead)" aria-label="Delete lead">×</button>
+          </td>
         </tr>
-        <tr *ngIf="!leads.length"><td [attr.colspan]="permissions.canWriteCrm?9:8" class="empty">No leads match the selected filters.</td></tr>
+        <tr *ngIf="!leads.length">
+          <td [attr.colspan]="permissions.canWriteCrm ? 9 : 8" class="empty">{{ i18n.t('leads.empty') }}</td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -24,8 +77,60 @@
 
 <div class="modal-backdrop" *ngIf="showForm" (click)="showForm=false">
   <form class="modal" (click)="$event.stopPropagation()" (ngSubmit)="save()">
-    <div class="modal-header">Create lead<button type="button" class="icon-btn" style="margin-left:auto" (click)="showForm=false">✕</button></div>
-    <div class="modal-body field-grid"><div class="field full"><label>Full name *</label><input name="name" [(ngModel)]="form.fullName"></div><div class="field full"><label>Account *</label><select name="account" [(ngModel)]="form.accountId"><option [ngValue]="null">Select account</option><option *ngFor="let account of accounts" [ngValue]="account.id">{{account.name}}</option></select></div><div class="field"><label>Job title</label><input name="job" [(ngModel)]="form.jobTitle"></div><div class="field"><label>Email</label><input name="email" type="email" [(ngModel)]="form.email"></div><div class="field"><label>Phone</label><input name="phone" [(ngModel)]="form.phone"></div><div class="field"><label>Mobile</label><input name="mobile" [(ngModel)]="form.mobile"></div><div class="field"><label>Source</label><select name="source" [(ngModel)]="form.source"><option *ngFor="let source of sources" [ngValue]="source[0]">{{source[1]}}</option></select></div><div class="field"><label>Owner</label><select name="owner" [(ngModel)]="form.ownerId"><option [ngValue]="null">Unassigned</option><option *ngFor="let user of users" [ngValue]="user.id">{{user.name}}</option></select></div><div class="field full"><label>Notes &amp; description</label><textarea name="notes" [(ngModel)]="form.notes"></textarea></div><div class="form-error full" *ngIf="error">{{error}}</div></div>
-    <div class="modal-footer"><button type="button" class="btn" (click)="showForm=false">Cancel</button><button class="btn primary" [disabled]="saving">{{saving?'Creating…':'Create lead'}}</button></div>
+    <div class="modal-header">
+      {{ i18n.t('leads.modal.title') }}
+      <button type="button" class="icon-btn" style="margin-left:auto" (click)="showForm=false"></button>
+    </div>
+    <div class="modal-body field-grid">
+      <div class="field full">
+        <label>{{ i18n.t('leads.modal.fullName') }}</label>
+        <input name="name" [(ngModel)]="form.fullName">
+      </div>
+      <div class="field full">
+        <label>{{ i18n.t('leads.modal.account') }}</label>
+        <select name="account" [(ngModel)]="form.accountId">
+          <option [ngValue]="null">{{ i18n.t('leads.modal.selectAccount') }}</option>
+          <option *ngFor="let account of accounts" [ngValue]="account.id">{{ account.name }}</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>{{ i18n.t('leads.modal.jobTitle') }}</label>
+        <input name="job" [(ngModel)]="form.jobTitle">
+      </div>
+      <div class="field">
+        <label>{{ i18n.t('leads.modal.email') }}</label>
+        <input name="email" type="email" [(ngModel)]="form.email">
+      </div>
+      <div class="field">
+        <label>{{ i18n.t('leads.modal.phone') }}</label>
+        <input name="phone" [(ngModel)]="form.phone">
+      </div>
+      <div class="field">
+        <label>{{ i18n.t('leads.modal.mobile') }}</label>
+        <input name="mobile" [(ngModel)]="form.mobile">
+      </div>
+      <div class="field">
+        <label>{{ i18n.t('leads.modal.source') }}</label>
+        <select name="source" [(ngModel)]="form.source">
+          <option *ngFor="let source of sources" [ngValue]="source[0]">{{ source[1] }}</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>{{ i18n.t('leads.modal.owner') }}</label>
+        <select name="owner" [(ngModel)]="form.ownerId">
+          <option [ngValue]="null">{{ i18n.t('leads.modal.unassigned') }}</option>
+          <option *ngFor="let user of users" [ngValue]="user.id">{{ user.name }}</option>
+        </select>
+      </div>
+      <div class="field full">
+        <label>{{ i18n.t('leads.modal.notes') }}</label>
+        <textarea name="notes" [(ngModel)]="form.notes"></textarea>
+      </div>
+      <div class="form-error full" *ngIf="error">{{ error }}</div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" (click)="showForm=false">{{ i18n.t('leads.modal.cancel') }}</button>
+      <button class="btn primary" [disabled]="saving">{{ saving ? i18n.t('leads.modal.creating') : i18n.t('leads.modal.create') }}</button>
+    </div>
   </form>
 </div>

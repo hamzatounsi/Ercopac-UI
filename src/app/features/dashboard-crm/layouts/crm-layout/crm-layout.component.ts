@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { AuthService } from 'src/app/core/auth/auth.service';
 import { CrmPermissionsService } from '../../services/crm-permissions.service';
+import { CrmI18nService, CrmLang } from '../../services/crm-i18n.service';
 import { CrmAccount } from '../../models/crm-account.model';
 import { CrmLead } from '../../models/crm-lead.model';
 import { CrmOpportunity } from '../../models/crm-opportunity.model';
@@ -17,24 +18,40 @@ interface CrmSearchResults {
 @Component({ selector: 'app-crm-layout', templateUrl: './crm-layout.component.html', styleUrls: ['./crm-layout.component.scss'] })
 export class CrmLayoutComponent {
   readonly mainItems = [
-    { label: 'Dashboard', icon: 'dashboard', route: '/crm/dashboard' },
-    { label: 'Accounts', icon: 'business_center', route: '/crm/accounts' },
-    { label: 'Leads', icon: 'person', route: '/crm/leads' },
-    { label: 'Opportunities', icon: 'trending_up', route: '/crm/opportunities' }
+    { label: 'Dashboard', icon: 'dashboard', route: '/crm/dashboard', key: 'nav.dashboard' },
+    { label: 'Accounts', icon: 'business_center', route: '/crm/accounts', key: 'nav.accounts' },
+    { label: 'Leads', icon: 'person', route: '/crm/leads', key: 'nav.leads' },
+    { label: 'Opportunities', icon: 'trending_up', route: '/crm/opportunities', key: 'nav.opportunities' }
   ];
   readonly insightItems = [
-    { label: 'Reports', icon: 'description', route: '/crm/reports' },
-    { label: 'Analytics', icon: 'analytics', route: '/crm/analytics' }
+    { label: 'Reports', icon: 'description', route: '/crm/reports', key: 'nav.reports' },
+    { label: 'Analytics', icon: 'analytics', route: '/crm/analytics', key: 'nav.analytics' }
+  ];
+  readonly languages: { code: CrmLang; label: string }[] = [
+    { code: 'en', label: 'EN' },
+    { code: 'fr', label: 'FR' },
+    { code: 'it', label: 'IT' }
   ];
   query = '';
   searching = false;
   showResults = false;
   results: CrmSearchResults = { accounts: [], leads: [], opportunities: [] };
 
-  constructor(private router: Router, private crm: CrmService, public auth: AuthService, public permissions: CrmPermissionsService) {}
+  constructor(
+    private router: Router,
+    private crm: CrmService,
+    public auth: AuthService,
+    public permissions: CrmPermissionsService,
+    public i18n: CrmI18nService
+  ) {}
+
   get initials(): string { return (this.auth.getCurrentUsername() || 'User').split(/\s+/).slice(0, 2).map(v => v[0]).join('').toUpperCase(); }
   get organisation(): string { return this.auth.getOrganisationName() || 'Organisation'; }
   goBack(): void { this.router.navigate(['/workspace']); }
+
+  setLanguage(lang: CrmLang): void {
+    this.i18n.setLang(lang);
+  }
 
   search(value: string): void {
     const query = value.trim();

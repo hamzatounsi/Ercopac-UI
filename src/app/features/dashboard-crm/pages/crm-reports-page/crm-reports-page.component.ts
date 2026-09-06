@@ -6,6 +6,7 @@ import { CrmReports } from '../../models/crm-detail.model';
 import { CrmEquipmentReport } from '../../models/crm-equipment.model';
 import { CrmService } from '../../services/crm.service';
 import { CrmCountryService } from '../../services/crm-country.service';
+import { CrmI18nService } from '../../services/crm-i18n.service';
 import * as XLSX from 'xlsx';
 
 type ReportId = 'map' | 'country' | 'timeline' | 'value' | 'tf' | 'expected' | 'cs' | 'bp' | 'monthly' | 'resale' | 'equipment' | 'shipment';
@@ -36,10 +37,14 @@ export class CrmReportsPageComponent implements OnInit, AfterViewChecked, OnDest
   mapBubbles: Array<Slice & { left: number; top: number }> = [];
   mapLoading = true; mapMessage = '';
   private mapFeatures: any[] = []; private renderedCanvas?: HTMLCanvasElement; private resizeObserver?: ResizeObserver;
-  constructor(private crm: CrmService, public countries: CrmCountryService) {}
-  ngOnInit(): void { this.crm.getReports(this.orgId).subscribe({ next: reports => { this.reports = reports; this.loading = false; }, error: error => { this.error = error?.error?.message || 'Unable to load reports.'; this.loading = false; } }); }
+  
+  constructor(private crm: CrmService, public countries: CrmCountryService, public i18n: CrmI18nService) {}
+  
+  ngOnInit(): void { this.crm.getReports(this.orgId).subscribe({ next: reports => { this.reports = reports; this.loading = false; }, error: error => { this.error = error?.error?.message || this.i18n.t('reports.error.load'); this.loading = false; } }); }
+  
   open(id: ReportId): void { this.selected = id; this.type = this.stage = this.period = this.month = 'all'; this.year = new Date().getFullYear(); if(id==='equipment'||id==='shipment')this.loadEquipmentReport(); }
-  loadEquipmentReport():void { this.crm.getEquipmentReport(this.orgId,this.stage,this.type).subscribe({next:r=>this.equipmentReport=r,error:e=>this.error=e?.error?.message||'Unable to load equipment report.'}); }
+  loadEquipmentReport():void { this.crm.getEquipmentReport(this.orgId,this.stage,this.type).subscribe({next:r=>this.equipmentReport=r,error:e=>this.error=e?.error?.message||this.i18n.t('reports.error.loadEquipment')}); }
+  
   get equipmentUnits():number{return (this.equipmentReport?.totals||[]).reduce((sum,item)=>sum+item.quantity,0);}
   get onTimeShipments():number{return (this.equipmentReport?.shipments||[]).filter(item=>item.status==='On Time').length;}
   get equipmentDetails(){return this.equipmentReport?.details||[];}
@@ -160,7 +165,6 @@ export class CrmReportsPageComponent implements OnInit, AfterViewChecked, OnDest
     context.fillStyle = '#d1fae5'; context.strokeStyle = '#6ee7b7'; context.lineWidth = .45;
     polygons.forEach((polygon: any[]) => polygon.forEach(ring => { context.beginPath(); ring.forEach((point: number[], index: number) => { const projected = this.projectEquirectangular(point[0], point[1], width, height); if (index) context.lineTo(projected[0], projected[1]); else context.moveTo(projected[0], projected[1]); }); context.closePath(); context.fill(); context.stroke(); }));
   }
-  /** Standard geographic equirectangular projection fitted to the 2:1 map viewport. */
   private projectEquirectangular(longitude: number, latitude: number, width: number, height: number): [number, number] { return [(longitude + 180) / 360 * width, (90 - Math.max(-90, Math.min(90, latitude))) / 180 * height]; }
   private featureCentre(feature: any): [number, number] { const polygons = feature.geometry?.type === 'Polygon' ? [feature.geometry.coordinates] : feature.geometry?.coordinates || []; let largest: number[][] | undefined; let largestArea = 0; polygons.forEach((polygon: number[][][]) => { const ring = polygon[0]; const area = Math.abs(this.ringArea(ring)); if (area > largestArea) { largest = ring; largestArea = area; } }); return largest ? this.ringCentroid(largest) : [0, 0]; }
   private ringArea(ring: number[][]): number { return ring.reduce((sum, point, index) => { const next = ring[(index + 1) % ring.length]; return sum + point[0] * next[1] - next[0] * point[1]; }, 0) / 2; }

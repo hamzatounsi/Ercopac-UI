@@ -9,42 +9,171 @@ import { CrmOpportunityAttachment, CrmOpportunityHistory, CrmOpportunityNote, Cr
 import { CrmEquipmentType, CrmOpportunityEquipment } from '../../models/crm-equipment.model';
 import { CrmPermissionsService } from '../../services/crm-permissions.service';
 import { CrmService } from '../../services/crm.service';
+import { CrmI18nService } from '../../services/crm-i18n.service';
 
-@Component({ selector: 'app-crm-opportunity-detail-page', templateUrl: './crm-opportunity-detail-page.component.html', styleUrls: ['./crm-opportunity-detail-page.component.scss'] })
+@Component({ 
+  selector: 'app-crm-opportunity-detail-page', 
+  templateUrl: './crm-opportunity-detail-page.component.html', 
+  styleUrls: ['./crm-opportunity-detail-page.component.scss'] 
+})
 export class CrmOpportunityDetailPageComponent implements OnInit {
-  orgId = this.crm.getOrgIdFromToken(); id = Number(this.route.snapshot.paramMap.get('id'));
-  opportunity?: CrmOpportunity; form?: CrmOpportunity; stages: CrmPipelineStage[] = []; accounts: CrmAccount[] = [];
-  contacts: CrmLead[] = []; users: CrmUser[] = []; teamUsers: CrmUser[] = []; categories: CrmSupplyCategory[] = [];
-  notes: CrmOpportunityNote[] = []; attachments: CrmOpportunityAttachment[] = []; history: CrmOpportunityHistory[] = [];
-  stageHistory: CrmOpportunityStageHistory[] = []; loading = true; saving = false; teamSaving = false; showTeamPicker = false;
-  teamDraftIds: number[] = []; newNote = ''; error = ''; toast = '';
-  equipmentTypes: CrmEquipmentType[]=[]; equipment: CrmOpportunityEquipment[]=[]; newEquipmentTypeId:number|null=null;
-  newEquipmentQuantity=1; showEquipmentAdd=false;
+  orgId = this.crm.getOrgIdFromToken(); 
+  id = Number(this.route.snapshot.paramMap.get('id'));
+  opportunity?: CrmOpportunity; 
+  form?: CrmOpportunity; 
+  stages: CrmPipelineStage[] = []; 
+  accounts: CrmAccount[] = [];
+  contacts: CrmLead[] = []; 
+  users: CrmUser[] = []; 
+  teamUsers: CrmUser[] = []; 
+  categories: CrmSupplyCategory[] = [];
+  notes: CrmOpportunityNote[] = []; 
+  attachments: CrmOpportunityAttachment[] = []; 
+  history: CrmOpportunityHistory[] = [];
+  stageHistory: CrmOpportunityStageHistory[] = []; 
+  loading = true; 
+  saving = false; 
+  teamSaving = false; 
+  showTeamPicker = false;
+  teamDraftIds: number[] = []; 
+  newNote = ''; 
+  error = ''; 
+  toast = '';
+  equipmentTypes: CrmEquipmentType[] = []; 
+  equipment: CrmOpportunityEquipment[] = []; 
+  newEquipmentTypeId: number | null = null;
+  newEquipmentQuantity = 1; 
+  showEquipmentAdd = false;
 
-  constructor(private crm: CrmService, private route: ActivatedRoute, private router: Router, private host: ElementRef, public permissions: CrmPermissionsService) {}
-  ngOnInit(): void { this.load(); }
+  constructor(
+    private crm: CrmService, 
+    private route: ActivatedRoute, 
+    private router: Router, 
+    private host: ElementRef, 
+    public permissions: CrmPermissionsService, 
+    public i18n: CrmI18nService
+  ) {}
+  
+  ngOnInit(): void { 
+    this.load(); 
+  }
+  
   load(): void {
     this.loading = true;
-    forkJoin({ opportunity: this.crm.getOpportunity(this.orgId, this.id), stages: this.crm.getStages(this.orgId), accounts: this.crm.getAccounts(this.orgId), users: this.crm.getCrmUsers(this.orgId), teamUsers: this.crm.getOpportunityTeamUsers(this.orgId), categories: this.crm.getOrganisationCategories(this.orgId), equipmentTypes:this.crm.getEquipmentTypes(this.orgId), equipment:this.crm.getOpportunityEquipment(this.orgId,this.id), notes: this.crm.getNotes(this.orgId, this.id), attachments: this.crm.getAttachments(this.orgId, this.id), history: this.crm.getHistory(this.orgId, this.id), stageHistory: this.crm.getStageHistory(this.orgId, this.id) }).subscribe({
-      next: r => { this.opportunity = r.opportunity; this.form = { ...r.opportunity, teamMembers: [...(r.opportunity.teamMembers || [])] }; this.stages = r.stages; this.accounts = r.accounts; this.users = r.users; this.teamUsers = r.teamUsers; this.categories = r.categories; this.equipmentTypes=r.equipmentTypes;this.equipment=r.equipment; this.notes = r.notes; this.attachments = r.attachments; this.history = r.history; this.stageHistory = r.stageHistory; this.loadContacts(); this.loading = false; },
-      error: e => { this.error = e?.error?.message || 'Opportunity not found.'; this.loading = false; }
+    forkJoin({ 
+      opportunity: this.crm.getOpportunity(this.orgId, this.id), 
+      stages: this.crm.getStages(this.orgId), 
+      accounts: this.crm.getAccounts(this.orgId), 
+      users: this.crm.getCrmUsers(this.orgId), 
+      teamUsers: this.crm.getOpportunityTeamUsers(this.orgId), 
+      categories: this.crm.getOrganisationCategories(this.orgId), 
+      equipmentTypes: this.crm.getEquipmentTypes(this.orgId), 
+      equipment: this.crm.getOpportunityEquipment(this.orgId, this.id), 
+      notes: this.crm.getNotes(this.orgId, this.id), 
+      attachments: this.crm.getAttachments(this.orgId, this.id), 
+      history: this.crm.getHistory(this.orgId, this.id), 
+      stageHistory: this.crm.getStageHistory(this.orgId, this.id) 
+    }).subscribe({
+      next: r => { 
+        this.opportunity = r.opportunity; 
+        this.form = { ...r.opportunity, teamMembers: [...(r.opportunity.teamMembers || [])] }; 
+        this.stages = r.stages; 
+        this.accounts = r.accounts; 
+        this.users = r.users; 
+        this.teamUsers = r.teamUsers; 
+        this.categories = r.categories; 
+        this.equipmentTypes = r.equipmentTypes;
+        this.equipment = r.equipment; 
+        this.notes = r.notes; 
+        this.attachments = r.attachments; 
+        this.history = r.history; 
+        this.stageHistory = r.stageHistory; 
+        this.loadContacts(); 
+        this.loading = false; 
+      },
+      error: e => { 
+        this.error = e?.error?.message || this.i18n.t('opportunityDetail.error.notFound'); 
+        this.loading = false; 
+      }
     });
   }
-  loadContacts(clear = false): void { if (!this.form?.accountId) { this.contacts = []; return; } if (clear) this.form.leadId = null; this.crm.getLeads(this.orgId, undefined, undefined, this.form.accountId).subscribe(v => this.contacts = v); }
-  get contact(): CrmLead | undefined { return this.contacts.find(v => v.id === this.form?.leadId); }
+  
+  loadContacts(clear = false): void { 
+    if (!this.form?.accountId) { 
+      this.contacts = []; 
+      return; 
+    } 
+    if (clear) this.form.leadId = null; 
+    this.crm.getLeads(this.orgId, undefined, undefined, this.form.accountId).subscribe(v => this.contacts = v); 
+  }
+  
+  get contact(): CrmLead | undefined { 
+    return this.contacts.find(v => v.id === this.form?.leadId); 
+  }
+  
   save(): void {
     if (!this.form || !this.permissions.canWriteCrm) return;
     this.error = this.valueValidationError();
     if (this.error) return;
     this.form.value = this.totalValue;
     this.saving = true;
-    this.crm.updateOpportunity(this.orgId, this.id, this.form).subscribe({ next: () => { this.saving = false; this.flash('Opportunity saved'); this.load(); }, error: e => { this.error = e?.error?.message || 'Unable to save.'; this.saving = false; } });
+    this.crm.updateOpportunity(this.orgId, this.id, this.form).subscribe({ 
+      next: () => { 
+        this.saving = false; 
+        this.flash(this.i18n.t('opportunityDetail.toast.saved')); 
+        this.load(); 
+      }, 
+      error: e => { 
+        this.error = e?.error?.message || this.i18n.t('opportunityDetail.error.save'); 
+        this.saving = false; 
+      } 
+    });
   }
-  get availableEquipmentTypes():CrmEquipmentType[]{return this.equipmentTypes.filter(type=>!this.equipment.some(item=>item.equipmentTypeId===type.id));}
-  addEquipment():void {if(!this.newEquipmentTypeId||this.newEquipmentQuantity<1)return;const type=this.equipmentTypes.find(x=>x.id===this.newEquipmentTypeId);if(!type)return;this.equipment=[...this.equipment,{equipmentTypeId:type.id!,equipmentCode:type.code,equipmentName:type.name,quantity:this.newEquipmentQuantity}];this.saveEquipment(()=>this.cancelEquipmentAdd());}
-  cancelEquipmentAdd():void {this.showEquipmentAdd=false;this.newEquipmentTypeId=null;this.newEquipmentQuantity=1;}
-  removeEquipment(index:number):void {const previous=this.equipment;this.equipment=this.equipment.filter((_,i)=>i!==index);this.saveEquipment(undefined,previous);}
-  saveEquipment(done?:()=>void,rollback?:CrmOpportunityEquipment[]):void {this.equipment=this.equipment.map(item=>({...item,quantity:Math.max(1,Number(item.quantity)||1)}));this.crm.saveOpportunityEquipment(this.orgId,this.id,this.equipment).subscribe({next:v=>{this.equipment=v;this.flash('Opportunity equipment saved');done?.();},error:e=>{if(rollback)this.equipment=rollback;this.error=e?.error?.message||'Unable to save equipment.';}});}
+  
+  get availableEquipmentTypes(): CrmEquipmentType[] {
+    return this.equipmentTypes.filter(type => !this.equipment.some(item => item.equipmentTypeId === type.id));
+  }
+  
+  addEquipment(): void {
+    if (!this.newEquipmentTypeId || this.newEquipmentQuantity < 1) return;
+    const type = this.equipmentTypes.find(x => x.id === this.newEquipmentTypeId);
+    if (!type) return;
+    this.equipment = [...this.equipment, {
+      equipmentTypeId: type.id!,
+      equipmentCode: type.code,
+      equipmentName: type.name,
+      quantity: this.newEquipmentQuantity
+    }];
+    this.saveEquipment(() => this.cancelEquipmentAdd());
+  }
+  
+  cancelEquipmentAdd(): void {
+    this.showEquipmentAdd = false;
+    this.newEquipmentTypeId = null;
+    this.newEquipmentQuantity = 1;
+  }
+  
+  removeEquipment(index: number): void {
+    const previous = this.equipment;
+    this.equipment = this.equipment.filter((_, i) => i !== index);
+    this.saveEquipment(undefined, previous);
+  }
+  
+  saveEquipment(done?: () => void, rollback?: CrmOpportunityEquipment[]): void {
+    this.equipment = this.equipment.map(item => ({...item, quantity: Math.max(1, Number(item.quantity) || 1)}));
+    this.crm.saveOpportunityEquipment(this.orgId, this.id, this.equipment).subscribe({
+      next: v => {
+        this.equipment = v;
+        this.flash(this.i18n.t('opportunityDetail.toast.equipmentSaved'));
+        done?.();
+      },
+      error: e => {
+        if (rollback) this.equipment = rollback;
+        this.error = e?.error?.message || this.i18n.t('opportunityDetail.error.save');
+      }
+    });
+  }
+  
   changeStage(stage: CrmPipelineStage): void {
     if (!this.permissions.canWriteCrm || stage.id === this.opportunity?.stageId || !this.form || !this.opportunity) return;
     const previous = { stageId: this.opportunity.stageId, stageName: this.opportunity.stageName,
@@ -91,19 +220,51 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
   get salesSplitValid(): boolean { return !this.hasSalesSplit || this.cents(this.totalSalesSplit) === this.cents(this.totalValue); }
   get resaleSplitValid(): boolean { return !this.hasResaleSplit || this.cents(this.totalResaleSplit) === this.cents(this.totalValue); }
   private valueValidationError(): string {
-    if ([this.form?.materialValue, this.form?.servicesValue, this.form?.ercopacMaterialValue,
-      this.form?.thirdPartyMaterialValue, this.form?.ercopacResaleValue, this.form?.resaleValue]
-      .some(value => value != null && Number(value) < 0)) return 'Opportunity values cannot be negative.';
+    if ([this.form?.materialValue, this.form?.servicesValue, this.form?.ercopacMaterialValue, this.form?.thirdPartyMaterialValue, this.form?.ercopacResaleValue, this.form?.resaleValue]
+      .some(value => value != null && Number(value) < 0)) {
+      return this.i18n.t('opportunityDetail.error.negativeValues');
+    }
     const discount = Number(this.form?.discount) || 0;
-    if (discount < 0 || discount > 100) return 'Discount must be between 0 and 100%.';
-    if (!this.salesSplitValid) return 'Sales split must equal Total Value.';
-    if (!this.resaleSplitValid) return 'Resale split must equal Total Value.';
+    if (discount < 0 || discount > 100) {
+      return this.i18n.t('opportunityDetail.error.discountRange');
+    }
+    if (!this.salesSplitValid) {
+      return this.i18n.t('opportunityDetail.error.salesSplit');
+    }
+    if (!this.resaleSplitValid) {
+      return this.i18n.t('opportunityDetail.error.resaleSplit');
+    }
     return '';
   }
-  get account(): CrmAccount | undefined { return this.accounts.find(v => v.id === this.form?.accountId); }
-  cycleDuration(): string { if (!this.opportunity?.createdAt) return '—'; const start = new Date(this.opportunity.createdAt); if (Number.isNaN(start.getTime())) return '—'; const days = Math.max(0, Math.floor((Date.now() - start.getTime()) / 86400000)); return days === 1 ? '1 day' : days + ' days'; }
-  stageClass(stage: CrmPipelineStage): string { const current = this.stages.findIndex(v => v.id === this.opportunity?.stageId), index = this.stages.indexOf(stage); return index < current ? 'done' : index === current ? (stage.lost ? 'lost' : 'current') : ''; }
-  initials(value: string | null | undefined): string { return (value || '?').split(/\s+/).slice(0, 2).map(item => item[0]).join('').toUpperCase(); }
-  fileSize(value: number): string { return value > 1048576 ? (value / 1048576).toFixed(1) + ' MB' : Math.ceil(value / 1024) + ' KB'; }
-  private flash(value: string): void { this.toast = value; setTimeout(() => this.toast = '', 2200); }
+  
+  get account(): CrmAccount | undefined { 
+    return this.accounts.find(v => v.id === this.form?.accountId); 
+  }
+  
+  cycleDuration(): string { 
+    if (!this.opportunity?.createdAt) return '—'; 
+    const start = new Date(this.opportunity.createdAt); 
+    if (Number.isNaN(start.getTime())) return '—'; 
+    const days = Math.max(0, Math.floor((Date.now() - start.getTime()) / 86400000)); 
+    return days === 1 ? '1 day' : days + ' days'; 
+  }
+  
+  stageClass(stage: CrmPipelineStage): string { 
+    const current = this.stages.findIndex(v => v.id === this.opportunity?.stageId);
+    const index = this.stages.indexOf(stage); 
+    return index < current ? 'done' : index === current ? (stage.lost ? 'lost' : 'current') : ''; 
+  }
+  
+  initials(value: string | null | undefined): string { 
+    return (value || '?').split(/\s+/).slice(0, 2).map(item => item[0]).join('').toUpperCase(); 
+  }
+  
+  fileSize(value: number): string { 
+    return value > 1048576 ? (value / 1048576).toFixed(1) + ' MB' : Math.ceil(value / 1024) + ' KB'; 
+  }
+  
+  private flash(value: string): void { 
+    this.toast = value; 
+    setTimeout(() => this.toast = '', 2200); 
+  }
 }

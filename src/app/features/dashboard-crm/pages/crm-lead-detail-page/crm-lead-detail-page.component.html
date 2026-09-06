@@ -1,29 +1,171 @@
 <div class="crm-page" *ngIf="!loading && lead && form; else state">
   <header class="lead-header">
-    <div class="breadcrumbs"><a routerLink="/crm/leads">‹ Leads</a><span>/</span><span>{{ lead.fullName }}</span><div class="page-actions"><button *ngIf="permissions.canWriteCrm && !lead.converted" class="btn" (click)="convert()">Convert to opportunity</button><button *ngIf="permissions.canWriteCrm" class="btn danger" (click)="remove()">Delete</button></div></div>
-    <div class="identity"><div class="lead-avatar">{{ initials() }}</div><div><h1>{{ lead.fullName }}</h1><p>{{ lead.jobTitle || 'Contact' }} · {{ lead.accountName || lead.company }}</p></div><span class="badge">{{ statusLabels[lead.status].label }}</span></div>
+    <div class="breadcrumbs">
+      <a routerLink="/crm/leads">‹ {{ i18n.t('leadDetail.backToLeads') }}</a>
+      <span>/</span>
+      <span>{{ lead.fullName }}</span>
+      <div class="page-actions">
+        <button *ngIf="permissions.canWriteCrm && !lead.converted" class="btn" (click)="convert()">{{ i18n.t('leadDetail.convertToOpportunity') }}</button>
+        <button *ngIf="permissions.canWriteCrm" class="btn danger" (click)="remove()">{{ i18n.t('leadDetail.delete') }}</button>
+      </div>
+    </div>
+    <div class="identity">
+      <div class="lead-avatar">{{ initials() }}</div>
+      <div>
+        <h1>{{ lead.fullName }}</h1>
+        <p>{{ lead.jobTitle || i18n.t('leadDetail.contactFallback') }} · {{ lead.accountName || lead.company }}</p>
+      </div>
+      <span class="badge">{{ statusLabels[lead.status].label }}</span>
+    </div>
   </header>
 
-  <div class="status-bar"><button *ngFor="let status of statuses" [class.active]="lead.status === status.value" [disabled]="!permissions.canWriteCrm" (click)="setStatus(status.value)">{{status.label}}</button></div>
+  <div class="status-bar">
+    <button *ngFor="let status of statuses" [class.active]="lead.status === status.value" [disabled]="!permissions.canWriteCrm" (click)="setStatus(status.value)">{{ status.label }}</button>
+  </div>
 
   <div class="page-content detail-grid">
     <div class="stack">
-      <section class="card"><div class="card-header">Contact information <span>— all fields are editable</span><button *ngIf="permissions.canWriteCrm && !editing" class="btn edit" (click)="editing=true">Edit</button></div>
-        <div *ngIf="!editing" class="info-grid"><div><label>Email</label><strong>{{lead.email||'—'}}</strong></div><div><label>Phone</label><strong>{{lead.phone||'—'}}</strong></div><div><label>Mobile</label><strong>{{lead.mobile||'—'}}</strong></div><div><label>Job title</label><strong>{{lead.jobTitle||'—'}}</strong></div></div>
-        <form *ngIf="editing" class="card-body field-grid" (ngSubmit)="save()"><div class="field full"><label>Full name</label><input name="name" [(ngModel)]="form.fullName" required></div><div class="field"><label>Email</label><input name="email" type="email" [(ngModel)]="form.email"></div><div class="field"><label>Phone</label><input name="phone" [(ngModel)]="form.phone"></div><div class="field"><label>Mobile</label><input name="mobile" [(ngModel)]="form.mobile"></div><div class="field"><label>Job title</label><input name="job" [(ngModel)]="form.jobTitle"></div><div class="field"><label>Account</label><select name="account" [(ngModel)]="form.accountId"><option *ngFor="let account of accounts" [ngValue]="account.id">{{account.name}}</option></select></div><div class="field"><label>Owner</label><select name="owner" [(ngModel)]="form.ownerId"><option [ngValue]="null">Unassigned</option><option *ngFor="let user of users" [ngValue]="user.id">{{user.name}}</option></select></div><div class="field"><label>Source</label><select name="source" [(ngModel)]="form.source"><option value="REFERRAL">Referral</option><option value="TRADE_FAIR">Trade fair</option><option value="AGENT">Agent</option><option value="CUSTOMER">Customer</option><option value="PARTNER">Partner</option><option value="OTHER">Other</option></select></div><div class="field"><label>Rating</label><select name="rating" [(ngModel)]="form.rating"><option value="">No rating</option><option>Hot</option><option>Warm</option><option>Cold</option></select></div><div class="field full actions"><button type="button" class="btn" (click)="cancel()">Cancel</button><button class="btn primary" [disabled]="saving">Save</button></div></form>
+      <section class="card">
+        <div class="card-header">
+          {{ i18n.t('leadDetail.contactInfoTitle') }} 
+          <span>— {{ i18n.t('leadDetail.editableHint') }}</span>
+          <button *ngIf="permissions.canWriteCrm && !editing" class="btn edit" (click)="editing=true">{{ i18n.t('leadDetail.edit') }}</button>
+        </div>
+        <div *ngIf="!editing" class="info-grid">
+          <div><label>{{ i18n.t('leadDetail.field.email') }}</label><strong>{{ lead.email || '—' }}</strong></div>
+          <div><label>{{ i18n.t('leadDetail.field.phone') }}</label><strong>{{ lead.phone || '—' }}</strong></div>
+          <div><label>{{ i18n.t('leadDetail.field.mobile') }}</label><strong>{{ lead.mobile || '—' }}</strong></div>
+          <div><label>{{ i18n.t('leadDetail.field.jobTitle') }}</label><strong>{{ lead.jobTitle || '—' }}</strong></div>
+        </div>
+        <form *ngIf="editing" class="card-body field-grid" (ngSubmit)="save()">
+          <div class="field full"><label>{{ i18n.t('leadDetail.field.fullName') }}</label><input name="name" [(ngModel)]="form.fullName" required></div>
+          <div class="field"><label>{{ i18n.t('leadDetail.field.email') }}</label><input name="email" type="email" [(ngModel)]="form.email"></div>
+          <div class="field"><label>{{ i18n.t('leadDetail.field.phone') }}</label><input name="phone" [(ngModel)]="form.phone"></div>
+          <div class="field"><label>{{ i18n.t('leadDetail.field.mobile') }}</label><input name="mobile" [(ngModel)]="form.mobile"></div>
+          <div class="field"><label>{{ i18n.t('leadDetail.field.jobTitle') }}</label><input name="job" [(ngModel)]="form.jobTitle"></div>
+          <div class="field"><label>{{ i18n.t('leadDetail.field.account') }}</label>
+            <select name="account" [(ngModel)]="form.accountId">
+              <option *ngFor="let account of accounts" [ngValue]="account.id">{{ account.name }}</option>
+            </select>
+          </div>
+          <div class="field"><label>{{ i18n.t('leadDetail.field.owner') }}</label>
+            <select name="owner" [(ngModel)]="form.ownerId">
+              <option [ngValue]="null">{{ i18n.t('leadDetail.unassigned') }}</option>
+              <option *ngFor="let user of users" [ngValue]="user.id">{{ user.name }}</option>
+            </select>
+          </div>
+          <div class="field"><label>{{ i18n.t('leadDetail.field.source') }}</label>
+            <select name="source" [(ngModel)]="form.source">
+              <option value="REFERRAL">{{ i18n.t('leadDetail.source.referral') }}</option>
+              <option value="TRADE_FAIR">{{ i18n.t('leadDetail.source.tradeFair') }}</option>
+              <option value="AGENT">{{ i18n.t('leadDetail.source.agent') }}</option>
+              <option value="CUSTOMER">{{ i18n.t('leadDetail.source.customer') }}</option>
+              <option value="PARTNER">{{ i18n.t('leadDetail.source.partner') }}</option>
+              <option value="OTHER">{{ i18n.t('leadDetail.source.other') }}</option>
+            </select>
+          </div>
+          <div class="field"><label>{{ i18n.t('leadDetail.field.rating') }}</label>
+            <select name="rating" [(ngModel)]="form.rating">
+              <option value="">{{ i18n.t('leadDetail.rating.none') }}</option>
+              <option value="Hot">{{ i18n.t('leadDetail.rating.hot') }}</option>
+              <option value="Warm">{{ i18n.t('leadDetail.rating.warm') }}</option>
+              <option value="Cold">{{ i18n.t('leadDetail.rating.cold') }}</option>
+            </select>
+          </div>
+          <div class="field full actions">
+            <button type="button" class="btn" (click)="cancel()">{{ i18n.t('leadDetail.cancel') }}</button>
+            <button class="btn primary" [disabled]="saving">{{ i18n.t('leadDetail.save') }}</button>
+          </div>
+        </form>
       </section>
 
-      <section class="card"><div class="card-header">Company information</div><div class="company-panel" *ngIf="account"><div class="company-avatar">{{account.name.slice(0,2).toUpperCase()}}</div><div><a [routerLink]="['/crm/accounts',account.id]">{{account.name}}</a><small>{{account.industry||'Industry not specified'}} · {{account.country||'Country not specified'}}</small></div></div><div class="empty" *ngIf="!account">No account linked.</div></section>
-      <section class="card"><div class="card-header">Additional information</div><div class="info-grid"><div><label>Lead source</label><strong>{{sourceLabel(lead.source)}}</strong></div><div><label>Rating</label><strong>{{lead.rating||'—'}}</strong></div><div><label>Lead owner</label><strong>{{lead.ownerName||'Unassigned'}}</strong></div><div><label>Status</label><strong>{{statusLabels[lead.status].label}}</strong></div></div></section>
-      <section class="card"><div class="card-header">Notes &amp; description <button *ngIf="permissions.canWriteCrm && !editingNotes" class="btn edit" (click)="editingNotes=true">Edit</button></div><div class="card-body notes" *ngIf="!editingNotes">{{lead.notes||'No notes recorded.'}}</div><div class="card-body" *ngIf="editingNotes"><textarea class="notes-editor" [(ngModel)]="form.notes"></textarea><div class="note-actions"><button class="btn" (click)="cancelNotes()">Cancel</button><button class="btn primary" (click)="saveNotes()">Save</button></div></div></section>
+      <section class="card">
+        <div class="card-header">{{ i18n.t('leadDetail.companyInfoTitle') }}</div>
+        <div class="company-panel" *ngIf="account">
+          <div class="company-avatar">{{ account.name.slice(0,2).toUpperCase() }}</div>
+          <div>
+            <a [routerLink]="['/crm/accounts', account.id]">{{ account.name }}</a>
+            <small>{{ account.industry || i18n.t('leadDetail.industryNotSpecified') }} · {{ account.country || i18n.t('leadDetail.countryNotSpecified') }}</small>
+          </div>
+        </div>
+        <div class="empty" *ngIf="!account">{{ i18n.t('leadDetail.noAccountLinked') }}</div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">{{ i18n.t('leadDetail.additionalInfoTitle') }}</div>
+        <div class="info-grid">
+          <div><label>{{ i18n.t('leadDetail.field.leadSource') }}</label><strong>{{ sourceLabel(lead.source) }}</strong></div>
+          <div><label>{{ i18n.t('leadDetail.field.rating') }}</label><strong>{{ lead.rating || '—' }}</strong></div>
+          <div><label>{{ i18n.t('leadDetail.field.leadOwner') }}</label><strong>{{ lead.ownerName || i18n.t('leadDetail.unassigned') }}</strong></div>
+          <div><label>{{ i18n.t('leadDetail.field.status') }}</label><strong>{{ statusLabels[lead.status].label }}</strong></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          {{ i18n.t('leadDetail.notesTitle') }} 
+          <button *ngIf="permissions.canWriteCrm && !editingNotes" class="btn edit" (click)="editingNotes=true">{{ i18n.t('leadDetail.edit') }}</button>
+        </div>
+        <div class="card-body notes" *ngIf="!editingNotes">{{ lead.notes || i18n.t('leadDetail.noNotes') }}</div>
+        <div class="card-body" *ngIf="editingNotes">
+          <textarea class="notes-editor" [(ngModel)]="form.notes"></textarea>
+          <div class="note-actions">
+            <button class="btn" (click)="cancelNotes()">{{ i18n.t('leadDetail.cancel') }}</button>
+            <button class="btn primary" (click)="saveNotes()">{{ i18n.t('leadDetail.save') }}</button>
+          </div>
+        </div>
+      </section>
     </div>
 
     <aside class="stack">
-      <section class="card"><div class="card-header">Lead summary</div><div class="summary-row"><label>Status</label><strong>{{statusLabels[lead.status].label}}</strong></div><div class="summary-row"><label>Source</label><strong>{{sourceLabel(lead.source)}}</strong></div><div class="summary-row"><label>Created</label><strong>{{lead.createdAt|crmDate}}</strong></div><div class="summary-row"><label>Opportunities</label><strong>{{opportunities.length}}</strong></div></section>
-      <section class="card"><div class="card-header">Activity <button *ngIf="permissions.canWriteCrm" class="btn edit" (click)="loggingActivity=!loggingActivity">+ Log</button></div><div class="activity-editor" *ngIf="loggingActivity"><textarea [(ngModel)]="newActivity" placeholder="Describe the activity…"></textarea><div><button class="btn" (click)="loggingActivity=false">Cancel</button><button class="btn primary" (click)="addActivity()">Log activity</button></div></div><div class="timeline"><div class="timeline-item" *ngFor="let activity of activities"><i></i><div><strong>{{activity.description}}</strong><small>{{activity.createdAt|crmDate}}<span *ngIf="activity.userName"> · {{activity.userName}}</span></small></div></div><div class="empty" *ngIf="!activities.length">No activity recorded.</div></div></section>
-      <section class="card"><div class="card-header">Related opportunities <span class="badge">{{opportunities.length}}</span></div><a class="related" *ngFor="let opportunity of opportunities" [routerLink]="['/crm/opportunities',opportunity.id]"><strong>{{opportunity.name}}</strong><small>{{opportunity.stageName||'Unassigned'}}</small></a><div class="empty" *ngIf="!opportunities.length">No related opportunities.</div></section>
-      <div class="form-error" *ngIf="error">{{error}}</div>
+      <section class="card">
+        <div class="card-header">{{ i18n.t('leadDetail.summaryTitle') }}</div>
+        <div class="summary-row"><label>{{ i18n.t('leadDetail.field.status') }}</label><strong>{{ statusLabels[lead.status].label }}</strong></div>
+        <div class="summary-row"><label>{{ i18n.t('leadDetail.field.leadSource') }}</label><strong>{{ sourceLabel(lead.source) }}</strong></div>
+        <div class="summary-row"><label>{{ i18n.t('leadDetail.field.created') }}</label><strong>{{ lead.createdAt | crmDate }}</strong></div>
+        <div class="summary-row"><label>{{ i18n.t('leadDetail.field.opportunities') }}</label><strong>{{ opportunities.length }}</strong></div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          {{ i18n.t('leadDetail.activityTitle') }} 
+          <button *ngIf="permissions.canWriteCrm" class="btn edit" (click)="loggingActivity=!loggingActivity">+ {{ i18n.t('leadDetail.log') }}</button>
+        </div>
+        <div class="activity-editor" *ngIf="loggingActivity">
+          <textarea [(ngModel)]="newActivity" [placeholder]="i18n.t('leadDetail.activityPlaceholder')"></textarea>
+          <div>
+            <button class="btn" (click)="loggingActivity=false">{{ i18n.t('leadDetail.cancel') }}</button>
+            <button class="btn primary" (click)="addActivity()">{{ i18n.t('leadDetail.logActivityBtn') }}</button>
+          </div>
+        </div>
+        <div class="timeline">
+          <div class="timeline-item" *ngFor="let activity of activities">
+            <i></i>
+            <div>
+              <strong>{{ activity.description }}</strong>
+              <small>{{ activity.createdAt | crmDate }}<span *ngIf="activity.userName"> · {{ activity.userName }}</span></small>
+            </div>
+          </div>
+          <div class="empty" *ngIf="!activities.length">{{ i18n.t('leadDetail.noActivity') }}</div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          {{ i18n.t('leadDetail.relatedOppsTitle') }} <span class="badge">{{ opportunities.length }}</span>
+        </div>
+        <a class="related" *ngFor="let opportunity of opportunities" [routerLink]="['/crm/opportunities', opportunity.id]">
+          <strong>{{ opportunity.name }}</strong>
+          <small>{{ opportunity.stageName || i18n.t('leadDetail.unassigned') }}</small>
+        </a>
+        <div class="empty" *ngIf="!opportunities.length">{{ i18n.t('leadDetail.noRelatedOpps') }}</div>
+      </section>
+
+      <div class="form-error" *ngIf="error">{{ error }}</div>
     </aside>
   </div>
 </div>
-<ng-template #state><div class="loading">{{error||'Loading lead…'}}</div></ng-template>
+
+<ng-template #state>
+  <div class="loading">{{ error || i18n.t('leadDetail.loading') }}</div>
+</ng-template>
