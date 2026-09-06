@@ -3,28 +3,41 @@
     <a class="crm-logo" routerLink="/crm/dashboard"><span class="logo-mark">⌁</span>Projectum CRM</a>
     <div class="global-search">
       <span class="material-symbols-outlined">search</span>
-      <input [(ngModel)]="query" (ngModelChange)="search($event)" (focus)="showResults = query.trim().length >= 2" (blur)="closeResults()" placeholder="Search records..." aria-label="Search CRM records">
+      <input [(ngModel)]="query" (ngModelChange)="search($event)" (focus)="showResults = query.trim().length >= 2" (blur)="closeResults()" [placeholder]="i18n.t('header.search.placeholder')" aria-label="Search CRM records">
       <div class="search-results" *ngIf="showResults">
-        <div class="search-state" *ngIf="searching">Searching records...</div>
+        <div class="search-state" *ngIf="searching">{{ i18n.t('search.searching') }}</div>
         <ng-container *ngIf="!searching">
-          <a *ngFor="let account of results.accounts" (mousedown)="openResult(['/crm/accounts', account.id])"><span>Account</span>{{ account.name }}</a>
-          <a *ngFor="let lead of results.leads" (mousedown)="openResult(['/crm/leads', lead.id])"><span>Lead</span>{{ lead.fullName }}</a>
-          <a *ngFor="let opportunity of results.opportunities" (mousedown)="openResult(['/crm/opportunities', opportunity.id])"><span>Opportunity</span>{{ opportunity.name }}</a>
-          <div class="search-state" *ngIf="!hasResults">No matching CRM records.</div>
+          <a *ngFor="let account of results.accounts" (mousedown)="openResult(['/crm/accounts', account.id])"><span>{{ i18n.t('search.account') }}</span>{{ account.name }}</a>
+          <a *ngFor="let lead of results.leads" (mousedown)="openResult(['/crm/leads', lead.id])"><span>{{ i18n.t('search.lead') }}</span>{{ lead.fullName }}</a>
+          <a *ngFor="let opportunity of results.opportunities" (mousedown)="openResult(['/crm/opportunities', opportunity.id])"><span>{{ i18n.t('search.opportunity') }}</span>{{ opportunity.name }}</a>
+          <div class="search-state" *ngIf="!hasResults">{{ i18n.t('search.noResults') }}</div>
         </ng-container>
       </div>
     </div>
-    <button class="workspace-link" (click)="goBack()"><span class="material-symbols-outlined">apps</span>Workspaces</button>
+
+    <!-- ✅ Sélecteur de langue CRM (EN / FR / IT) -->
+    <div class="lang-switcher" role="group" aria-label="Language">
+      <button
+        *ngFor="let lang of languages"
+        type="button"
+        class="lang-btn"
+        [class.active]="i18n.currentLang === lang.code"
+        (click)="setLanguage(lang.code)">
+        {{ lang.label }}
+      </button>
+    </div>
+
+    <button class="workspace-link" (click)="goBack()"><span class="material-symbols-outlined">apps</span>{{ i18n.t('header.workspaces') }}</button>
     <div class="header-user"><div class="avatar">{{ initials }}</div><div><strong>{{ auth.getCurrentUsername() }}</strong><small>{{ organisation }}</small></div></div>
   </header>
   <div class="crm-body">
     <aside class="crm-sidebar">
-      <section><label>Main</label>
-        <a *ngFor="let item of mainItems" [routerLink]="item.route" routerLinkActive="active"><span class="material-symbols-outlined">{{ item.icon }}</span>{{ item.label }}</a>
-        <a *ngIf="permissions.canAccessManagerView" routerLink="/crm/manager-view" routerLinkActive="active"><span class="material-symbols-outlined">groups</span>Manager view</a>
+      <section><label>{{ i18n.t('nav.main') }}</label>
+        <a *ngFor="let item of mainItems" [routerLink]="item.route" routerLinkActive="active"><span class="material-symbols-outlined">{{ item.icon }}</span>{{ i18n.t(item.key) }}</a>
+        <a *ngIf="permissions.canAccessManagerView" routerLink="/crm/manager-view" routerLinkActive="active"><span class="material-symbols-outlined">groups</span>{{ i18n.t('nav.managerView') }}</a>
       </section>
-      <section><label>Insights</label><a *ngFor="let item of insightItems" [routerLink]="item.route" routerLinkActive="active"><span class="material-symbols-outlined">{{ item.icon }}</span>{{ item.label }}</a></section>
-      <section><label>Configuration</label><a routerLink="/crm/settings" routerLinkActive="active"><span class="material-symbols-outlined">settings</span>Settings</a></section>
+      <section><label>{{ i18n.t('nav.insights') }}</label><a *ngFor="let item of insightItems" [routerLink]="item.route" routerLinkActive="active"><span class="material-symbols-outlined">{{ item.icon }}</span>{{ i18n.t(item.key) }}</a></section>
+      <section><label>{{ i18n.t('nav.configuration') }}</label><a routerLink="/crm/settings" routerLinkActive="active"><span class="material-symbols-outlined">settings</span>{{ i18n.t('nav.settings') }}</a></section>
       <div class="org-card"><div class="org-logo">{{ organisation.charAt(0) }}</div><div><strong>{{ organisation }}</strong><small>{{ auth.getCurrentRole().replace('_', ' ') }}</small></div></div>
     </aside>
     <main class="crm-main"><router-outlet></router-outlet></main>

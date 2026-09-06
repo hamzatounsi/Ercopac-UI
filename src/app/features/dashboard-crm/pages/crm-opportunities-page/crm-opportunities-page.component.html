@@ -1,29 +1,167 @@
 <div class="crm-page">
-  <header class="page-header"><div><h1 class="page-title">Opportunities</h1><p class="page-sub">Your pipeline</p></div><div class="page-actions"><input class="search" [(ngModel)]="search" placeholder="Search opportunities…"><button *ngIf="permissions.canWriteCrm" class="btn primary" (click)="openNew()">+ New opportunity</button></div></header>
-  <div class="filter-bar"><button class="chip" [class.active]="stageFilter===null" (click)="setStage(null)">All stages</button><button class="chip" *ngFor="let stage of stages" [class.active]="stageFilter===stage.id" (click)="setStage(stage.id!)"><span class="dot" [style.background]="stage.color"></span>{{stage.name}}</button></div>
-  <div *ngIf="error && !showForm" class="form-error page-error">{{error}}</div>
-  <div *ngIf="loading" class="loading">Loading opportunities…</div>
-  <div class="table-wrap" *ngIf="!loading"><table class="crm-table"><thead><tr><th>Opportunity name</th><th>Account</th><th>Stage</th><th>Value</th><th>Probability</th><th>Closing date</th><th>Owner</th></tr></thead><tbody><tr *ngFor="let opportunity of filtered" class="clickable" (click)="open(opportunity)"><td class="link">{{opportunity.name}}</td><td>{{opportunity.accountName||'—'}}</td><td><span class="stage-badge" [style.background]="(opportunity.stageColor||'#64748b')+'1f'" [style.color]="opportunity.stageColor||'#64748b'"><i [style.background]="opportunity.stageColor||'#64748b'"></i>{{opportunity.stageName||'Unassigned'}}</span></td><td class="currency">{{money(opportunity.value,opportunity.currency)}}</td><td><div class="prob"><span><i [style.width.%]="opportunity.probability"></i></span>{{opportunity.probability}}%</div></td><td>{{opportunity.closingDate | crmDate}}</td><td>{{opportunity.ownerName||'Unassigned'}}</td></tr><tr *ngIf="!filtered.length"><td colspan="7" class="empty">No opportunities match the selected filters.</td></tr></tbody></table></div>
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">{{ i18n.t('opportunities.pageTitle') }}</h1>
+      <p class="page-sub">{{ i18n.t('opportunities.pageSubtitle') }}</p>
+    </div>
+    <div class="page-actions">
+      <input class="search" [(ngModel)]="search" [placeholder]="i18n.t('opportunities.searchPlaceholder')">
+      <button *ngIf="permissions.canWriteCrm" class="btn primary" (click)="openNew()">+ {{ i18n.t('opportunities.newOpportunity') }}</button>
+    </div>
+  </header>
+
+  <div class="filter-bar">
+    <button class="chip" [class.active]="stageFilter===null" (click)="setStage(null)">{{ i18n.t('opportunities.allStages') }}</button>
+    <button class="chip" *ngFor="let stage of stages" [class.active]="stageFilter===stage.id" (click)="setStage(stage.id!)">
+      <span class="dot" [style.background]="stage.color"></span>{{ stage.name }}
+    </button>
+  </div>
+
+  <div *ngIf="error && !showForm" class="form-error page-error">{{ error }}</div>
+  <div *ngIf="loading" class="loading">{{ i18n.t('opportunities.loading') }}</div>
+
+  <div class="table-wrap" *ngIf="!loading">
+    <table class="crm-table">
+      <thead>
+        <tr>
+          <th>{{ i18n.t('opportunities.col.name') }}</th>
+          <th>{{ i18n.t('opportunities.col.account') }}</th>
+          <th>{{ i18n.t('opportunities.col.stage') }}</th>
+          <th>{{ i18n.t('opportunities.col.value') }}</th>
+          <th>{{ i18n.t('opportunities.col.probability') }}</th>
+          <th>{{ i18n.t('opportunities.col.closingDate') }}</th>
+          <th>{{ i18n.t('opportunities.col.owner') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let opportunity of filtered" class="clickable" (click)="open(opportunity)">
+          <td class="link">{{ opportunity.name }}</td>
+          <td>{{ opportunity.accountName || '—' }}</td>
+          <td>
+            <span class="stage-badge" [style.background]="(opportunity.stageColor||'#64748b')+'1f'" [style.color]="opportunity.stageColor||'#64748b'">
+              <i [style.background]="opportunity.stageColor||'#64748b'"></i>{{ opportunity.stageName || i18n.t('opportunities.unassigned') }}
+            </span>
+          </td>
+          <td class="currency">{{ money(opportunity.value, opportunity.currency) }}</td>
+          <td>
+            <div class="prob"><span><i [style.width.%]="opportunity.probability"></i></span>{{ opportunity.probability }}%</div>
+          </td>
+          <td>{{ opportunity.closingDate | crmDate }}</td>
+          <td>{{ opportunity.ownerName || i18n.t('opportunities.unassigned') }}</td>
+        </tr>
+        <tr *ngIf="!filtered.length">
+          <td colspan="7" class="empty">{{ i18n.t('opportunities.empty') }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <div class="modal-backdrop" *ngIf="showForm" (click)="showForm=false">
   <form class="modal" (click)="$event.stopPropagation()" (ngSubmit)="save()">
-    <div class="modal-header">New opportunity<button type="button" class="icon-btn" style="margin-left:auto" (click)="showForm=false">✕</button></div>
-    <div class="modal-body field-grid">
-      <div class="field full"><label>Opportunity name *</label><input name="name" [(ngModel)]="form.name"></div>
-      <div class="field full"><label>Account *</label><select name="account" [(ngModel)]="form.accountId" (ngModelChange)="accountChanged()"><option [ngValue]="null">Select account</option><option *ngFor="let account of accounts" [ngValue]="account.id">{{account.name}}</option></select></div>
-      <div class="field"><label>Contact person</label><select name="contact" [(ngModel)]="form.leadId"><option [ngValue]="null">Select contact</option><option *ngFor="let contact of contacts" [ngValue]="contact.id">{{contact.fullName}}</option></select></div>
-      <div class="field"><label>Owner</label><select name="owner" [(ngModel)]="form.ownerId" [disabled]="permissions.hasOwnOpportunityScope"><option [ngValue]="null">Unassigned</option><option *ngFor="let user of users" [ngValue]="user.id">{{user.name}}</option></select></div>
-      <div class="field"><label>Pipeline stage</label><select name="stage" [(ngModel)]="form.stageId" (ngModelChange)="stageChanged()"><option *ngFor="let stage of stages" [ngValue]="stage.id">{{stage.name}}</option></select></div>
-      <div class="field"><label>Probability (%)</label><input name="probability" type="number" min="0" max="100" [(ngModel)]="form.probability"></div>
-      <div class="field"><label>Discount (%)</label><input name="discount" type="number" min="0" max="100" step="0.01" [(ngModel)]="form.discount"></div>
-      <div class="field"><label>Supply category</label><select name="category" [(ngModel)]="form.supplyCategoryId"><option [ngValue]="null">Select category</option><option *ngFor="let category of categories" [ngValue]="category.id">{{category.name}}</option></select></div>
-      <div class="field"><label>Material value</label><input name="material" type="number" min="0" [(ngModel)]="form.materialValue"></div><div class="field"><label>Services value</label><input name="services" type="number" min="0" [(ngModel)]="form.servicesValue"></div><div class="field full"><label>Total value</label><strong class="currency">{{money(totalValue, form.currency)}}</strong></div>
-      <div class="field"><label>Ercopac sales split</label><input name="ercopacMaterial" type="number" min="0" [(ngModel)]="form.ercopacMaterialValue"></div><div class="field"><label>Third-party sales split</label><input name="thirdPartyMaterial" type="number" min="0" [(ngModel)]="form.thirdPartyMaterialValue"></div><div class="field full"><label>Total sales split</label><strong class="currency">{{money(totalSalesSplit, form.currency)}}</strong></div>
-      <div class="field"><label>Ercopac resale split</label><input name="ercopacResale" type="number" min="0" [(ngModel)]="form.ercopacResaleValue"></div><div class="field"><label>Resale split</label><input name="resale" type="number" min="0" [(ngModel)]="form.resaleValue"></div><div class="field full"><label>Total resale split</label><strong class="currency">{{money(totalResaleSplit, form.currency)}}</strong></div>
-      <div class="field"><label>Closing date</label><input name="closing" type="date" [(ngModel)]="form.closingDate"></div><div class="field"><label>Opportunity type</label><select name="type" [(ngModel)]="form.opportunityType"><option>BP</option><option>CS</option></select></div>
-      <div class="form-error full" *ngIf="error">{{error}}</div>
+    <div class="modal-header">
+      {{ i18n.t('opportunities.modal.title') }}
+      <button type="button" class="icon-btn" style="margin-left:auto" (click)="showForm=false"></button>
     </div>
-    <div class="modal-footer"><button type="button" class="btn" (click)="showForm=false">Cancel</button><button class="btn primary" [disabled]="saving">{{saving?'Creating…':'Create opportunity'}}</button></div>
+    <div class="modal-body field-grid">
+      <div class="field full">
+        <label>{{ i18n.t('opportunities.modal.name') }}</label>
+        <input name="name" [(ngModel)]="form.name">
+      </div>
+      <div class="field full">
+        <label>{{ i18n.t('opportunities.modal.account') }}</label>
+        <select name="account" [(ngModel)]="form.accountId" (ngModelChange)="accountChanged()">
+          <option [ngValue]="null">{{ i18n.t('opportunities.modal.selectAccount') }}</option>
+          <option *ngFor="let account of accounts" [ngValue]="account.id">{{ account.name }}</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>{{ i18n.t('opportunities.modal.contactPerson') }}</label>
+        <select name="contact" [(ngModel)]="form.leadId">
+          <option [ngValue]="null">{{ i18n.t('opportunities.modal.selectContact') }}</option>
+          <option *ngFor="let contact of contacts" [ngValue]="contact.id">{{ contact.fullName }}</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>{{ i18n.t('opportunities.modal.owner') }}</label>
+        <select name="owner" [(ngModel)]="form.ownerId" [disabled]="permissions.hasOwnOpportunityScope">
+          <option [ngValue]="null">{{ i18n.t('opportunities.modal.unassigned') }}</option>
+          <option *ngFor="let user of users" [ngValue]="user.id">{{ user.name }}</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>{{ i18n.t('opportunities.modal.stage') }}</label>
+        <select name="stage" [(ngModel)]="form.stageId" (ngModelChange)="stageChanged()">
+          <option *ngFor="let stage of stages" [ngValue]="stage.id">{{ stage.name }}</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>{{ i18n.t('opportunities.modal.probability') }}</label>
+        <input name="probability" type="number" min="0" max="100" [(ngModel)]="form.probability">
+      </div>
+      <div class="field">
+        <label>{{ i18n.t('opportunities.modal.discount') }}</label>
+        <input name="discount" type="number" min="0" max="100" step="0.01" [(ngModel)]="form.discount">
+      </div>
+      <div class="field">
+        <label>{{ i18n.t('opportunities.modal.supplyCategory') }}</label>
+        <select name="category" [(ngModel)]="form.supplyCategoryId">
+          <option [ngValue]="null">{{ i18n.t('opportunities.modal.selectCategory') }}</option>
+          <option *ngFor="let category of categories" [ngValue]="category.id">{{ category.name }}</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>{{ i18n.t('opportunities.modal.materialValue') }}</label>
+        <input name="material" type="number" min="0" [(ngModel)]="form.materialValue">
+      </div>
+      <div class="field">
+        <label>{{ i18n.t('opportunities.modal.servicesValue') }}</label>
+        <input name="services" type="number" min="0" [(ngModel)]="form.servicesValue">
+      </div>
+      <div class="field full">
+        <label>{{ i18n.t('opportunities.modal.totalValue') }}</label>
+        <strong class="currency">{{ money(totalValue, form.currency) }}</strong>
+      </div>
+      <div class="field">
+        <label>{{ i18n.t('opportunities.modal.ercopacSalesSplit') }}</label>
+        <input name="ercopacMaterial" type="number" min="0" [(ngModel)]="form.ercopacMaterialValue">
+      </div>
+      <div class="field">
+        <label>{{ i18n.t('opportunities.modal.thirdPartySalesSplit') }}</label>
+        <input name="thirdPartyMaterial" type="number" min="0" [(ngModel)]="form.thirdPartyMaterialValue">
+      </div>
+      <div class="field full">
+        <label>{{ i18n.t('opportunities.modal.totalSalesSplit') }}</label>
+        <strong class="currency">{{ money(totalSalesSplit, form.currency) }}</strong>
+      </div>
+      <div class="field">
+        <label>{{ i18n.t('opportunities.modal.ercopacResaleSplit') }}</label>
+        <input name="ercopacResale" type="number" min="0" [(ngModel)]="form.ercopacResaleValue">
+      </div>
+      <div class="field">
+        <label>{{ i18n.t('opportunities.modal.resaleSplit') }}</label>
+        <input name="resale" type="number" min="0" [(ngModel)]="form.resaleValue">
+      </div>
+      <div class="field full">
+        <label>{{ i18n.t('opportunities.modal.totalResaleSplit') }}</label>
+        <strong class="currency">{{ money(totalResaleSplit, form.currency) }}</strong>
+      </div>
+      <div class="field">
+        <label>{{ i18n.t('opportunities.modal.closingDate') }}</label>
+        <input name="closing" type="date" [(ngModel)]="form.closingDate">
+      </div>
+      <div class="field">
+        <label>{{ i18n.t('opportunities.modal.opportunityType') }}</label>
+        <select name="type" [(ngModel)]="form.opportunityType">
+          <option>BP</option>
+          <option>CS</option>
+        </select>
+      </div>
+      <div class="form-error full" *ngIf="error">{{ error }}</div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" (click)="showForm=false">{{ i18n.t('opportunities.modal.cancel') }}</button>
+      <button class="btn primary" [disabled]="saving">{{ saving ? i18n.t('opportunities.modal.creating') : i18n.t('opportunities.modal.create') }}</button>
+    </div>
   </form>
 </div>
