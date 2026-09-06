@@ -84,8 +84,7 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
     return this.fromCents(Math.round(this.cents(this.totalValue) * (100 - discount) / 100));
   }
   get expectedRevenue(): number {
-    const probability = Math.max(0, Math.min(100, Number(this.form?.probability) || 0));
-    return this.fromCents(Math.round(this.cents(this.discountedValue) * probability / 100));
+    return this.discountedValue;
   }
   get hasSalesSplit(): boolean { return this.form?.ercopacMaterialValue != null || this.form?.thirdPartyMaterialValue != null; }
   get hasResaleSplit(): boolean { return this.form?.ercopacResaleValue != null || this.form?.resaleValue != null; }

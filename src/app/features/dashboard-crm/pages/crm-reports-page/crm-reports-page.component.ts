@@ -23,7 +23,7 @@ export class CrmReportsPageComponent implements OnInit, AfterViewChecked, OnDest
     { id: 'timeline', title: 'Timeline', description: 'Opportunities plotted on a timeline by opening and closing dates', category: 'Opportunity reports', icon: '⌁', tone: 'amber' },
     { id: 'value', title: 'Value split', description: 'Material vs Services breakdown across all opportunities', category: 'Opportunity reports', icon: '▥', tone: 'purple' },
     { id: 'tf', title: 'Ercopac / TF split', description: 'Sales split between Ercopac and TF across opportunities', category: 'Value reports', icon: '✓', tone: 'blue' },
-    { id: 'expected', title: 'Expected revenue by month', description: 'Monthly expected revenue (discounted value × probability) plotted by closing date for the current year', category: 'Value reports', icon: '↗', tone: 'green' },
+    { id: 'expected', title: 'Expected revenue by month', description: 'Monthly total value after discount, grouped by closing date', category: 'Value reports', icon: '↗', tone: 'green' },
     { id: 'cs', title: 'CS projects overview', description: 'All CS opportunities with owner, value, TF value, probability, closing and shipment dates', category: 'Opportunity reports', icon: '▤', tone: 'purple' },
     { id: 'bp', title: 'BP projects overview', description: 'All BP opportunities with owner, value, TF value, probability, closing and shipment dates', category: 'Opportunity reports', icon: '▤', tone: 'blue' },
     { id: 'monthly', title: 'Monthly overview', description: 'All opportunities with owner, value, TF value, probability, closing and shipment dates', category: 'Opportunity reports', icon: '▤', tone: 'green' },
@@ -130,7 +130,7 @@ export class CrmReportsPageComponent implements OnInit, AfterViewChecked, OnDest
   private exportName(): string { return `projectum-${(this.selectedCard?.title || 'report').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`; }
   private group(items: CrmOpportunity[], key: (item: CrmOpportunity) => string): Slice[] { const result = new Map<string, Slice>(); items.forEach(item => { const name = key(item); const current = result.get(name) || { key: name, value: 0, count: 0, color: this.palette[result.size % this.palette.length] }; current.value += item.value || 0; current.count++; result.set(name, current); }); return [...result.values()].sort((a, b) => b.value - a.value); }
   private fixedSlices(values: Array<[string, number]>): Slice[] { return values.map(([key, value], index) => ({ key, value, count: 0, color: this.palette[index + 1] })); }
-  expectedRevenue(item: CrmOpportunity): number { return item.expectedRevenue ?? (item.value || 0) * (1 - (item.discount || 0) / 100) * item.probability / 100; }
+  expectedRevenue(item: CrmOpportunity): number { return item.expectedRevenue ?? (item.value || 0) * (100 - (item.discount || 0)) / 100; }
   private localDate(value: string): Date { const [year, month, day] = value.slice(0, 10).split('-').map(Number); return new Date(year, month - 1, day); }
   private attachMap(canvas: HTMLCanvasElement): void {
     this.renderedCanvas = canvas; this.resizeObserver?.disconnect();
