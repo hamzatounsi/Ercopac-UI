@@ -160,3 +160,8 @@ tr.gantt-row {
 .milestone-marker {
   will-change: transform;
 }
+/* ── Espace blanc permanent après la dernière ligne ── */
+.left-body,
+.gantt-body-scroll {
+  padding-bottom: 120px !important;
+}
