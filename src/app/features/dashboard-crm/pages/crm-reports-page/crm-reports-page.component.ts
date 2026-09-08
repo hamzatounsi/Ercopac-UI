@@ -17,6 +17,7 @@ interface Slice { key: string; value: number; count: number; color: string; }
 export class CrmReportsPageComponent implements OnInit, AfterViewChecked, OnDestroy {
   orgId = this.crm.getOrgIdFromToken(); reports?: CrmReports; loading = true; error = ''; selected?: ReportId;
   type = 'all'; stage = 'all'; period = 'all'; month = 'all'; year = new Date().getFullYear();
+  catalogScope: 'all' | 'BP' | 'CS' = 'all';
   equipmentReport?: CrmEquipmentReport;
   readonly cards: ReportCard[] = [
     { id: 'map', title: 'World map', description: 'Opportunities plotted by country with bubble sizing by count', category: 'Opportunity reports', icon: '◎', tone: 'blue' },
@@ -42,8 +43,17 @@ export class CrmReportsPageComponent implements OnInit, AfterViewChecked, OnDest
   
   ngOnInit(): void { this.crm.getReports(this.orgId).subscribe({ next: reports => { this.reports = reports; this.loading = false; }, error: error => { this.error = error?.error?.message || this.i18n.t('reports.error.load'); this.loading = false; } }); }
   
-  open(id: ReportId): void { this.selected = id; this.type = this.stage = this.period = this.month = 'all'; this.year = new Date().getFullYear(); if(id==='equipment'||id==='shipment')this.loadEquipmentReport(); }
-  loadEquipmentReport():void { this.crm.getEquipmentReport(this.orgId,this.stage,this.type).subscribe({next:r=>this.equipmentReport=r,error:e=>this.error=e?.error?.message||this.i18n.t('reports.error.loadEquipment')}); }
+open(id: ReportId): void {
+  this.selected = id;
+  this.type = this.catalogScope === 'all' ? 'all' : this.catalogScope;
+  this.stage = this.period = this.month = 'all';
+  this.year = new Date().getFullYear();
+  if (id === 'equipment' || id === 'shipment') this.loadEquipmentReport();
+}
+
+setCatalogScope(scope: 'all' | 'BP' | 'CS'): void {
+  this.catalogScope = scope;
+}  loadEquipmentReport():void { this.crm.getEquipmentReport(this.orgId,this.stage,this.type).subscribe({next:r=>this.equipmentReport=r,error:e=>this.error=e?.error?.message||this.i18n.t('reports.error.loadEquipment')}); }
   
   get equipmentUnits():number{return (this.equipmentReport?.totals||[]).reduce((sum,item)=>sum+item.quantity,0);}
   get onTimeShipments():number{return (this.equipmentReport?.shipments||[]).filter(item=>item.status==='On Time').length;}
@@ -77,8 +87,18 @@ export class CrmReportsPageComponent implements OnInit, AfterViewChecked, OnDest
   get showsTypeFilter(): boolean { return !!this.selected && !['cs', 'bp', 'shipment'].includes(this.selected); }
   get showsStageFilter(): boolean { return !!this.selected && !['value', 'tf', 'resale', 'expected'].includes(this.selected); }
   get showsPeriodFilter(): boolean { return !!this.selected && ['map', 'country', 'monthly', 'cs', 'bp'].includes(this.selected); }
-  get opportunityCards(): ReportCard[] { return this.cards.filter(card => card.category === 'Opportunity reports'); }
-  get valueCards(): ReportCard[] { return this.cards.filter(card => card.category === 'Value reports'); }
+  get opportunityCards(): ReportCard[] {
+  return this.cards.filter(card => card.category === 'Opportunity reports' && this.matchesScope(card.id));
+}
+get valueCards(): ReportCard[] {
+  return this.cards.filter(card => card.category === 'Value reports' && this.matchesScope(card.id));
+}
+
+private matchesScope(id: ReportId): boolean {
+  if (this.catalogScope === 'BP' && id === 'cs') return false;
+  if (this.catalogScope === 'CS' && id === 'bp') return false;
+  return true;
+}
   get stages(): string[] { return [...new Set((this.reports?.opportunities || []).map(item => item.stageName).filter((value): value is string => !!value))]; }
   get filtered(): CrmOpportunity[] {
     const now = new Date();
@@ -143,12 +163,14 @@ export class CrmReportsPageComponent implements OnInit, AfterViewChecked, OnDest
     this.loadMapData();
   }
   private loadMapData(): void {
-    if (this.mapFeatures.length) { this.drawWorldMap(); return; }
-    const countries = topojsonFeature(worldAtlas as any, (worldAtlas as any).objects.countries) as any;
-    this.mapFeatures = countries.features || [];
+  if (this.mapFeatures.length) { this.drawWorldMap(); return; }
+  const countries = topojsonFeature(worldAtlas as any, (worldAtlas as any).objects.countries) as any;
+  this.mapFeatures = countries.features || [];
+  setTimeout(() => {
     this.mapLoading = false;
     this.drawWorldMap();
-  }
+  });
+}
   private drawWorldMap(): void {
     const canvas = this.renderedCanvas; if (!canvas || !this.mapFeatures.length) return;
     const width = Math.max(320, canvas.parentElement?.clientWidth || 720); const height = Math.round(width / 2);
