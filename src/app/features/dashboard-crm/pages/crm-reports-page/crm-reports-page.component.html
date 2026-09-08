@@ -8,6 +8,18 @@
 
   <ng-container *ngIf="!loading && reports">
     <section *ngIf="!selected" class="page-content report-catalog">
+      <div class="scope-switch">
+        <button class="scope-pill" [class.active]="catalogScope==='all'" (click)="setCatalogScope('all')">
+          {{ i18n.t('reports.allTypes') }}
+        </button>
+        <span class="scope-divider"></span>
+        <button class="scope-pill bp" [class.active]="catalogScope==='BP'" (click)="setCatalogScope('BP')">
+          BP
+        </button>
+        <button class="scope-pill cs" [class.active]="catalogScope==='CS'" (click)="setCatalogScope('CS')">
+          CS
+        </button>
+      </div>
       <h2>{{ i18n.t('reports.opportunityReports') }}</h2>
       <div class="reports-grid">
         <button class="rep-card" *ngFor="let card of opportunityCards" (click)="open(card.id)">
