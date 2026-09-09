@@ -29,6 +29,22 @@ export class CrmService {
     if (opportunityType) params = params.set('opportunityType', opportunityType);
     return this.http.get<CrmAnalytics>(`${this.url(orgId)}/analytics`, { params });
   }
+  // Dans crm.service.ts, ajoute cette méthode
+
+/**
+ * Envoyer une notification aux membres de l'équipe
+ */
+sendOpportunityNotification(orgId: number, dto: {
+  opportunityId: number;
+  opportunityName: string;
+  recipientUserIds: number[];
+  subject: string;
+  message: string;
+  channel: string;
+  severity: string;
+}): Observable<any> {
+  return this.http.post(`${this.url(orgId)}/notifications`, dto);
+}
   getCrmUsers(orgId: number): Observable<CrmUser[]> { return this.http.get<CrmUser[]>(`${this.url(orgId)}/users`); }
   getNotificationPreferences(orgId: number): Observable<CrmNotificationPreference> { return this.http.get<CrmNotificationPreference>(`${this.url(orgId)}/notification-preferences`); }
   saveNotificationPreferences(orgId: number, dto: CrmNotificationPreference): Observable<CrmNotificationPreference> { return this.http.put<CrmNotificationPreference>(`${this.url(orgId)}/notification-preferences`, dto); }
