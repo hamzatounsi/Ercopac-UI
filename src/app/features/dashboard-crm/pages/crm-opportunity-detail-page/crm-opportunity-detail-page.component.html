@@ -27,7 +27,12 @@
           </section>
           <div class="side-cards">
             <section class="card"><div class="card-header">{{ i18n.t('opportunityDetail.account') }}</div><div class="account-card" *ngIf="account"><div class="account-logo">{{ initials(account.name) }}</div><div><a [routerLink]="['/crm/accounts', account.id]">{{ account.name }}</a><small>{{ account.industry || i18n.t('opportunityDetail.account') }} · {{ account.country || '—' }}</small></div></div><select [(ngModel)]="form.accountId" (ngModelChange)="loadContacts(true)" [disabled]="!permissions.canWriteCrm"><option *ngFor="let item of accounts" [ngValue]="item.id">{{ item.name }}</option></select></section>
-            <section class="card"><div class="card-header">{{ i18n.t('opportunityDetail.contactPerson') }}</div><div class="card-body"><select [(ngModel)]="form.leadId" [disabled]="!permissions.canWriteCrm"><option [ngValue]="null">{{ i18n.t('opportunityDetail.selectContact') }}</option><option *ngFor="let item of contacts" [ngValue]="item.id">{{ item.fullName }} — {{ item.jobTitle || i18n.t('opportunityDetail.contactPerson') }}</option></select><a *ngIf="contact" [routerLink]="['/crm/leads', contact.id]" style="display:block;margin-top:8px;padding:9px 10px;border-radius:6px;background:#f8f9fc;color:#1a56db;font-size:12px;font-weight:700;text-decoration:none">{{ contact.fullName }} · {{ contact.jobTitle || contact.email || i18n.t('opportunityDetail.contactPerson') }}</a></div></section>
+           <section class="card"><div class="card-header">{{ i18n.t('opportunityDetail.contactPerson') }}</div><div class="card-body"><select [(ngModel)]="form.leadId" [disabled]="!permissions.canWriteCrm"><option [ngValue]="null">{{ i18n.t('opportunityDetail.selectContact') }}</option><option *ngFor="let item of contacts" [ngValue]="item.id">{{ item.fullName }} — {{ item.jobTitle || i18n.t('opportunityDetail.contactPerson') }}</option></select><a *ngIf="contact" [routerLink]="['/crm/leads', contact.id]" style="display:block;margin-top:8px;padding:9px 10px;border-radius:6px;background:#f8f9fc;color:#1a56db;font-size:12px;font-weight:700;text-decoration:none">{{ contact.fullName }} · {{ contact.jobTitle || contact.email || i18n.t('opportunityDetail.contactPerson') }}</a>
+  <div class="summary-row" *ngIf="form.leadId" style="margin-top:12px">
+    <label>{{ i18n.t('opportunityDetail.contactedDate') }}</label>
+    <input type="date" [(ngModel)]="contactedDate" [disabled]="!permissions.canWriteCrm" (change)="saveContactedDate()">
+  </div>
+</div></section>
           </div>
         </div>
 

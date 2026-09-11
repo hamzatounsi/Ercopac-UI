@@ -44,6 +44,7 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
   newEquipmentTypeId: number | null = null;
   newEquipmentQuantity = 1; 
   showEquipmentAdd = false;
+  contactedDate: string | null = null;
 
   constructor(
     private crm: CrmService, 
@@ -105,11 +106,35 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
       return; 
     } 
     if (clear) this.form.leadId = null; 
-    this.crm.getLeads(this.orgId, undefined, undefined, this.form.accountId).subscribe(v => this.contacts = v); 
+    this.crm.getLeads(this.orgId, undefined, undefined, this.form.accountId).subscribe(v => {
+      this.contacts = v;
+      this.syncContactedDate();
+    }); 
   }
   
   get contact(): CrmLead | undefined { 
     return this.contacts.find(v => v.id === this.form?.leadId); 
+  }
+
+  private syncContactedDate(): void {
+    this.contactedDate = this.contact?.contactedDate ?? null;
+  }
+
+  saveContactedDate(): void {
+    if (!this.form?.leadId) return;
+    const lead = this.contact;
+    if (!lead) return;
+    const payload = { ...lead, contactedDate: this.contactedDate };
+    this.crm.updateLead(this.orgId, lead.id!, payload).subscribe({
+      next: updated => {
+        this.contacts = this.contacts.map(item => item.id === updated.id ? updated : item);
+        this.flash(this.i18n.t('opportunityDetail.toast.contactedDateSaved'));
+      },
+      error: e => {
+        console.error(e);
+        this.error = e?.error?.message || this.i18n.t('opportunityDetail.error.save');
+      }
+    });
   }
   
   save(): void {

@@ -11,4 +11,8 @@ export interface CrmDashboard {
   closingThisMonth: CrmOpportunity[];
   leadsBySource: Record<string, number>;
   pipeline: CrmPipelineStage[];
+  contactedLeadsLastMonth: number;
+  closingThisWeekCount: number;
+wonThisYear: number;
+annualTarget: number;
 }
