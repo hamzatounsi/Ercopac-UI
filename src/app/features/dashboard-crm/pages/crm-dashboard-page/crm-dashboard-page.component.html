@@ -28,19 +28,40 @@
         {{ dashboard.openOpportunities }} {{ i18n.t('dashboard.dealsWord') }} · {{ i18n.t('dashboard.openPipelineLabel') }}
       </div>
     </div>
-    <div class="kpi-card">
-      <div class="kpi-label">{{ i18n.t('dashboard.activeLeads') }}</div>
-      <div class="kpi-value">{{ dashboard.activeLeads }}</div>
-      <div class="kpi-sub"
-        [class.red]="dashboard.activeLeads === 0"
-        [class.gray]="dashboard.activeLeads > 0">
-        {{ dashboard.activeLeads > 0 ? i18n.t('dashboard.inProgress') : i18n.t('dashboard.noActiveLeads') }}
-      </div>
-    </div>
+  <div class="kpi-card">
+  <div class="kpi-label">{{ i18n.t('dashboard.contactedLeads') }}</div>
+  <div class="kpi-value">{{ dashboard.activeLeads }}</div>
+  <div class="kpi-sub" [class.green]="leadsTrend() >= 0" [class.red]="leadsTrend() < 0">
+    <span *ngIf="dashboard.activeLeads > 0 || dashboard.contactedLeadsLastMonth > 0">
+      {{ leadsTrend() >= 0 ? '↑' : '↓' }} {{ Math.abs(leadsTrend()) }}% {{ i18n.t('dashboard.vsLastMonth') }}
+    </span>
+    <span *ngIf="dashboard.activeLeads === 0 && dashboard.contactedLeadsLastMonth === 0" class="gray">
+      {{ i18n.t('dashboard.noActiveLeads') }}
+    </span>
+  </div>
+</div>
     <div class="kpi-card">
       <div class="kpi-label">{{ i18n.t('dashboard.wonThisMonth') }}</div>
       <div class="kpi-value">{{ dashboard.wonThisMonth }}</div>
       <div class="kpi-sub gray">{{ i18n.t('dashboard.closedThisMonth') }}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">{{ i18n.t('dashboard.closingThisWeek') }}</div>
+      <div class="kpi-value" [class.amber-text]="dashboard.closingThisWeekCount > 0">{{ dashboard.closingThisWeekCount }}</div>
+      <div class="kpi-sub" [class.gray]="dashboard.closingThisWeekCount === 0">
+        {{ dashboard.closingThisWeekCount > 0 ? i18n.t('dashboard.closingThisWeekLabel') : i18n.t('dashboard.noClosingsThisWeek') }}
+      </div>
+    </div>
+    <div class="kpi-card kpi-card-accent">
+      <div class="kpi-label">{{ i18n.t('dashboard.wonVsTarget') }}</div>
+      <div class="kpi-value green-text">{{ formatValue(dashboard.wonThisYear) }}</div>
+      <div class="kpi-progress-track">
+        <div class="kpi-progress-fill" [style.width.%]="targetPercent()"></div>
+      </div>
+      <div class="kpi-sub-row">
+        <span class="blue-text">{{ targetPercent() }}% {{ i18n.t('dashboard.ofTarget') }}</span>
+        <span class="gray">{{ i18n.t('dashboard.targetLabel') }}: {{ formatValue(dashboard.annualTarget) }}</span>
+      </div>
     </div>
   </div>
 

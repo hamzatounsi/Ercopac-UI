@@ -18,6 +18,7 @@ import { CrmI18nService } from '../../services/crm-i18n.service';
   styleUrls: ['./crm-dashboard-page.component.scss']
 })
 export class CrmDashboardPageComponent implements OnInit {
+   protected readonly Math = Math;
   orgId = this.crmService.getOrgIdFromToken();
   dashboard: CrmDashboard | null = null;
   loading = false;
@@ -195,5 +196,18 @@ export class CrmDashboardPageComponent implements OnInit {
       offset += dash;
       return segment;
     });
+  }
+
+  leadsTrend(): number {
+    if (!this.dashboard) return 0;
+    const current = this.dashboard.activeLeads;
+    const last = this.dashboard.contactedLeadsLastMonth;
+    if (!last) return current > 0 ? 100 : 0;
+    return Math.round(((current - last) / last) * 100);
+  }
+
+  targetPercent(): number {
+    if (!this.dashboard || !this.dashboard.annualTarget) return 0;
+    return Math.round((this.dashboard.wonThisYear / this.dashboard.annualTarget) * 100);
   }
 }

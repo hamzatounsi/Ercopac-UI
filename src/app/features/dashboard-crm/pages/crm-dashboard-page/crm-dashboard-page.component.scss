@@ -335,3 +335,25 @@
   color: #dc2626; font-size: 12px; margin-top: 8px;
   padding: 8px 12px; background: #fee2e2; border-radius: 6px;
 }
+.kpi-card-accent { border-left: 3px solid #1a56db; }
+.green-text { color: #0f7b4f; }
+.amber-text { color: #d97706; }
+.blue-text { color: #1a56db; font-weight: 700; }
+.kpi-progress-track {
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 3px;
+  margin: 8px 0 6px;
+  overflow: hidden;
+}
+.kpi-progress-fill {
+  height: 100%;
+  background: #1a56db;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+.kpi-sub-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+}
