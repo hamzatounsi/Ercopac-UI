@@ -97,7 +97,9 @@ export class CrmLayoutComponent {
     this.query = '';
     this.router.navigate(route);
   }
-
+get isSalesManagerLead(): boolean {
+  return this.auth.getCurrentRole() === 'SALES_MANAGER_LEAD';
+}
   closeResults(): void { window.setTimeout(() => this.showResults = false, 150); }
   get hasResults(): boolean { return this.results.accounts.length + this.results.leads.length + this.results.opportunities.length > 0; }
 }

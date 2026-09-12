@@ -37,7 +37,7 @@
         <a *ngIf="permissions.canAccessManagerView" routerLink="/crm/manager-view" routerLinkActive="active"><span class="material-symbols-outlined">groups</span>{{ i18n.t('nav.managerView') }}</a>
       </section>
       <section><label>{{ i18n.t('nav.insights') }}</label><a *ngFor="let item of insightItems" [routerLink]="item.route" routerLinkActive="active"><span class="material-symbols-outlined">{{ item.icon }}</span>{{ i18n.t(item.key) }}</a></section>
-      <section><label>{{ i18n.t('nav.configuration') }}</label><a routerLink="/crm/settings" routerLinkActive="active"><span class="material-symbols-outlined">settings</span>{{ i18n.t('nav.settings') }}</a></section>
+      <section *ngIf="isSalesManagerLead"><label>{{ i18n.t('nav.configuration') }}</label><a routerLink="/crm/settings" routerLinkActive="active"><span class="material-symbols-outlined">settings</span>{{ i18n.t('nav.settings') }}</a></section>
       <div class="org-card"><div class="org-logo">{{ organisation.charAt(0) }}</div><div><strong>{{ organisation }}</strong><small>{{ auth.getCurrentRole().replace('_', ' ') }}</small></div></div>
     </aside>
     <main class="crm-main"><router-outlet></router-outlet></main>
