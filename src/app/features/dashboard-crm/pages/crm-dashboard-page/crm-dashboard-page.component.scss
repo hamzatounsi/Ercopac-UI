@@ -20,7 +20,7 @@
 /* ── KPI cards ───────────────────────────────────────────── */
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 16px;
   margin-bottom: 20px;
 }
@@ -30,16 +30,40 @@
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 140px;
 }
 
-.kpi-label { font-size: 12px; color: #64748b; margin-bottom: 8px; }
-.kpi-value { font-size: 28px; font-weight: 800; color: #1e293b; margin-bottom: 6px; }
-.kpi-sub   { font-size: 12px; }
+.kpi-label { 
+  font-size: 12px; 
+  color: #64748b; 
+  margin-bottom: 8px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kpi-value { 
+  font-size: 28px; 
+  font-weight: 800; 
+  color: #1e293b; 
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+
+.kpi-sub { 
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 .kpi-sub.green { color: #16a34a; }
 .kpi-sub.red   { color: #dc2626; }
 .kpi-sub.gray  { color: #94a3b8; }
 
-/* ── Middle grid ─────────────────────────────────────────── */
+/* ─ Middle grid ─────────────────────────────────────────── */
 .middle-grid {
   display: grid;
   grid-template-columns: 1fr 280px;
@@ -223,7 +247,7 @@
   white-space: nowrap;
 }
 
-/* ── Donut chart ─────────────────────────────────────────── */
+/* ── Donut chart ────────────────────────────────────────── */
 .donut-wrap {
   display: flex;
   align-items: center;
@@ -243,7 +267,7 @@
 .source-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 .source-empty { color: #94a3b8; font-size: 13px; }
 
-/* ── Buttons ─────────────────────────────────────────────── */
+/* ── Buttons ────────────────────────────────────────────── */
 .btn-primary {
   padding: 9px 20px; background: #3b82f6; color: #fff;
   border: none; border-radius: 8px; font-size: 13px;
@@ -335,10 +359,12 @@
   color: #dc2626; font-size: 12px; margin-top: 8px;
   padding: 8px 12px; background: #fee2e2; border-radius: 6px;
 }
+
 .kpi-card-accent { border-left: 3px solid #1a56db; }
 .green-text { color: #0f7b4f; }
 .amber-text { color: #d97706; }
 .blue-text { color: #1a56db; font-weight: 700; }
+
 .kpi-progress-track {
   height: 6px;
   background: #e2e8f0;
@@ -346,14 +372,46 @@
   margin: 8px 0 6px;
   overflow: hidden;
 }
+
 .kpi-progress-fill {
   height: 100%;
   background: #1a56db;
   border-radius: 3px;
   transition: width 0.3s ease;
 }
+
 .kpi-sub-row {
   display: flex;
   justify-content: space-between;
   font-size: 11px;
+}
+
+/* ─ Responsive ──────────────────────────────────────────── */
+@media (max-width: 1400px) {
+  .kpi-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .kpi-card {
+    min-height: auto;
+    padding: 16px;
+  }
+  
+  .kpi-value {
+    font-size: 24px;
+  }
+  
+  .middle-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .bottom-grid {
+    grid-template-columns: 1fr;
+  }
 }
