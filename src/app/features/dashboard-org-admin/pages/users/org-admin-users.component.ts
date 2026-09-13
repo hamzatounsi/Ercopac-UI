@@ -110,8 +110,14 @@ export class OrgAdminUsersComponent implements OnInit, OnDestroy {
   }
 
   openEdit(user: OrganisationUser): void {
+    const roles =
+      Array.isArray(user.roles) && user.roles.length
+        ? user.roles
+        : user.role
+          ? [user.role]
+          : [];
     this.editingUser = user; this.formError = ''; this.drawerOpen = true;
-    this.userForm.reset({ fullName: user.fullName, email: user.email, password: '', roles: [...user.roles], departmentId: user.departmentId, resourceTypeId: user.resourceTypeId, employeeCode: user.employeeCode || '', jobTitle: user.jobTitle || '', active: user.active });
+    this.userForm.reset({ fullName: user.fullName, email: user.email, password: '', roles, departmentId: user.departmentId, resourceTypeId: user.resourceTypeId, employeeCode: user.employeeCode || '', jobTitle: user.jobTitle || '', active: user.active });
     this.updateResourceProfileValidators();
     this.userForm.controls.password.clearValidators(); this.userForm.controls.password.updateValueAndValidity();
   }
