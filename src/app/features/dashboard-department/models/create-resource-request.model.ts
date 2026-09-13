@@ -6,7 +6,7 @@ export interface CreateResourceRequest {
   departmentCode?: string | null;
   resourceType?: string | null;
   jobTitle?: string | null;
-  role: string;
+  roles: string[];
   seniority?: string | null;
   internalUser?: boolean | null;
   hoursPerDay?: number | null;

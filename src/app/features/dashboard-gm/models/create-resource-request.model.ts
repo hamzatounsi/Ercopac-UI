@@ -2,7 +2,7 @@ export interface CreateResourceRequest {
   fullName: string;
   email: string;
   password: string;
-  role: string;
+  roles: string[];
 
   employeeCode?: string;
   departmentCode?: string;

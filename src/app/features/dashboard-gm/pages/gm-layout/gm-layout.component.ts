@@ -30,6 +30,21 @@ export class GmLayoutComponent implements OnInit, OnDestroy {
     this.navigationSubscription?.unsubscribe();
   }
 
+  get showLogoutInsteadOfMainMenu(): boolean {
+    const roles = this.auth.getRoles();
+    if (this.auth.hasAnyRole(['PLATFORM_OWNER', 'ORG_ADMIN'])) return false;
+    return roles.length === 1;
+  }
+
+  handleMainNavigation(): void {
+    if (this.showLogoutInsteadOfMainMenu) {
+      this.auth.logout();
+      void this.router.navigate(['/']);
+      return;
+    }
+    void this.router.navigateByUrl(this.auth.getHomeRoute());
+  }
+
   private updateHeaderVisibility(url: string): void {
     const path = url.split('?')[0].replace(/\/$/, '');
     // The workspace launcher has its own authenticated account header.

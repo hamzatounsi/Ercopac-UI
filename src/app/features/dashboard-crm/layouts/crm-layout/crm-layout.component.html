@@ -27,7 +27,7 @@
       </button>
     </div>
 
-    <button class="workspace-link" (click)="goBack()"><span class="material-symbols-outlined">apps</span>{{ i18n.t('header.workspaces') }}</button>
+    <button class="workspace-link" (click)="handleWorkspaceNavigation()"><span class="material-symbols-outlined">{{ showLogoutInsteadOfWorkspace ? 'logout' : 'apps' }}</span>{{ showLogoutInsteadOfWorkspace ? 'Logout' : i18n.t('header.workspaces') }}</button>
     <div class="header-user"><div class="avatar">{{ initials }}</div><div><strong>{{ auth.getCurrentUsername() }}</strong><small>{{ organisation }}</small></div></div>
   </header>
   <div class="crm-body">
@@ -38,7 +38,7 @@
       </section>
       <section><label>{{ i18n.t('nav.insights') }}</label><a *ngFor="let item of insightItems" [routerLink]="item.route" routerLinkActive="active"><span class="material-symbols-outlined">{{ item.icon }}</span>{{ i18n.t(item.key) }}</a></section>
       <section><label>{{ i18n.t('nav.configuration') }}</label><a routerLink="/crm/settings" routerLinkActive="active"><span class="material-symbols-outlined">settings</span>{{ i18n.t('nav.settings') }}</a></section>
-      <div class="org-card"><div class="org-logo">{{ organisation.charAt(0) }}</div><div><strong>{{ organisation }}</strong><small>{{ auth.getCurrentRole().replace('_', ' ') }}</small></div></div>
+      <div class="org-card"><div class="org-logo">{{ organisation.charAt(0) }}</div><div><strong>{{ organisation }}</strong><small>{{ auth.getRoles().join(', ').replaceAll('_', ' ') }}</small></div></div>
     </aside>
     <main class="crm-main"><router-outlet></router-outlet></main>
   </div>

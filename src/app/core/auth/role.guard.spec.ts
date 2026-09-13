@@ -31,6 +31,12 @@ describe('RoleGuard', () => {
     expect(TestBed.inject(Router).serializeUrl(result as UrlTree)).toBe('/forbidden');
   });
 
+  it('accepts a route when any one of several assigned roles is allowed', () => {
+    auth.isLoggedIn.and.returnValue(true);
+    auth.getRoles.and.returnValue(['PROJECT_MANAGER', 'SALES_MANAGER']);
+    expect(guard.canActivate(routeWithRoles('SALES_MANAGER_LEAD', 'SALES_MANAGER'))).toBeTrue();
+  });
+
   function routeWithRoles(...roles: string[]): ActivatedRouteSnapshot {
     const route = new ActivatedRouteSnapshot();
     Object.defineProperty(route, 'data', { value: { roles } });

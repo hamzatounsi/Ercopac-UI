@@ -14,31 +14,41 @@ describe('AuthService', () => {
   afterEach(() => localStorage.clear());
 
   it('normalizes role prefixes and routes Organisation Admin to its isolated home', () => {
-    localStorage.setItem('token', token({ role: 'ROLE_ORG_ADMIN', exp: Math.floor(Date.now() / 1000) + 300 }));
+    localStorage.setItem('token', token({ roles: ['ROLE_ORG_ADMIN'], exp: Math.floor(Date.now() / 1000) + 300 }));
     expect(service.getRoles()).toEqual(['ORG_ADMIN']);
     expect(service.getHomeRoute()).toBe('/org-admin');
     expect(service.isLoggedIn()).toBeTrue();
   });
 
-  it('routes platform ownership directly and operational roles through the workspace', () => {
+  it('routes every single role directly to its primary module', () => {
     const expiry = Math.floor(Date.now() / 1000) + 300;
     const expectedHomes: Array<[string, string]> = [
       ['PLATFORM_OWNER', '/owner'],
-      ['PROJECT_MANAGER', '/workspace'],
-      ['DEPARTMENT_MANAGER', '/workspace'],
+      ['PROJECT_MANAGER', '/gm/projectum'],
+      ['DEPARTMENT_MANAGER', '/department'],
       ['EMPLOYEE', '/employee'],
-      ['SALES_MANAGER', '/workspace'],
-      ['CLIENT', '/workspace']
+      ['SALES_MANAGER', '/crm/opportunities'],
+      ['CLIENT', '/tickets']
     ];
 
     expectedHomes.forEach(([role, home]) => {
-      localStorage.setItem('token', token({ role, exp: expiry }));
+      localStorage.setItem('token', token({ roles: [role], exp: expiry }));
       expect(service.getHomeRoute()).withContext(role).toBe(home);
     });
   });
 
+  it('routes multiple roles to workspace and deduplicates modules', () => {
+    const expiry = Math.floor(Date.now() / 1000) + 300;
+    localStorage.setItem('token', token({ roles: ['PROJECT_MANAGER', 'SALES_MANAGER'], exp: expiry }));
+    expect(service.getHomeRoute()).toBe('/workspace');
+    expect(service.getAccessibleWorkspaceModules().map(module => module.key)).toEqual(['PROJECTUM', 'CRM']);
+
+    localStorage.setItem('token', token({ roles: ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD'], exp: expiry }));
+    expect(service.getAccessibleWorkspaceModules().map(module => module.key)).toEqual(['PROJECTUM']);
+  });
+
   it('treats an expired token as logged out', () => {
-    localStorage.setItem('token', token({ role: 'ORG_ADMIN', exp: Math.floor(Date.now() / 1000) - 30 }));
+    localStorage.setItem('token', token({ roles: ['ORG_ADMIN'], exp: Math.floor(Date.now() / 1000) - 30 }));
     expect(service.isLoggedIn()).toBeFalse();
   });
 

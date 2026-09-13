@@ -47,7 +47,19 @@ export class CrmLayoutComponent {
 
   get initials(): string { return (this.auth.getCurrentUsername() || 'User').split(/\s+/).slice(0, 2).map(v => v[0]).join('').toUpperCase(); }
   get organisation(): string { return this.auth.getOrganisationName() || 'Organisation'; }
-  goBack(): void { this.router.navigate(['/workspace']); }
+  get showLogoutInsteadOfWorkspace(): boolean {
+    const roles = this.auth.getRoles();
+    if (this.auth.hasAnyRole(['PLATFORM_OWNER', 'ORG_ADMIN'])) return false;
+    return roles.length === 1;
+  }
+  handleWorkspaceNavigation(): void {
+    if (this.showLogoutInsteadOfWorkspace) {
+      this.auth.logout();
+      void this.router.navigate(['/']);
+      return;
+    }
+    void this.router.navigate(['/workspace']);
+  }
 
   setLanguage(lang: CrmLang): void {
     this.i18n.setLang(lang);
