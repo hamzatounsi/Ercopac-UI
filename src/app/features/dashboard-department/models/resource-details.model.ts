@@ -6,7 +6,7 @@ export interface ResourceDetails {
   resourceType: string | null;
   jobTitle: string | null;
   email: string;
-  role: string | null;
+  roles: string[];
   seniority: string | null;
   internalUser: boolean;
   hoursPerDay: number | null;

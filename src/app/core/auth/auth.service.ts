@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { tap } from 'rxjs/operators';
 import { jwtDecode } from 'jwt-decode';
 import { API_AUTH_URL } from '../config/api.config';
+import { accessibleWorkspaceModules, directRouteForRole, WorkspaceModule } from './role-module.config';
 
 export type AppRole =
   | 'PLATFORM_OWNER'
@@ -37,7 +38,7 @@ export interface LoginResponse {
   token: string | null;
   userId: number;
   email: string;
-  role: AppRole;
+  roles: AppRole[];
   organisationId: number | null;
   organisationCode: string | null;
   organisationName: string | null;
@@ -136,6 +137,18 @@ export class AuthService {
     return this.getRoles()[0] || '';
   }
 
+  hasRole(role: AppRole | string): boolean {
+    return this.getRoles().includes(role.replace(/^ROLE_/, '') as AppRole);
+  }
+
+  hasAnyRole(roles: readonly (AppRole | string)[]): boolean {
+    return roles.some(role => this.hasRole(role));
+  }
+
+  getAccessibleWorkspaceModules(): WorkspaceModule[] {
+    return accessibleWorkspaceModules(this.getRoles());
+  }
+
   getCurrentUserId(): number | null {
     return this.getPayload()?.userId ?? null;
   }
@@ -150,16 +163,8 @@ export class AuthService {
     }
 
     const roles = this.getRoles();
-    if (roles.includes('PLATFORM_OWNER')) {
-      return '/owner';
-    }
-    if (roles.includes('ORG_ADMIN')) {
-      return '/org-admin';
-    }
-    if (roles.includes('EMPLOYEE')) {
-      return '/employee';
-    }
-    return '/workspace';
+    if (roles.length >= 2) return '/workspace';
+    return roles.length === 1 ? directRouteForRole(roles[0]) : '/';
   }
 
   resetPassword(token: string, newPassword: string) {

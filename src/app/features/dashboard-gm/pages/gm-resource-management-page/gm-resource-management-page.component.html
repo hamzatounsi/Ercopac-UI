@@ -503,7 +503,7 @@
 
             <div class="form-field">
               <label>System Role</label>
-              <select [(ngModel)]="resourceCreateForm.role">
+              <select [(ngModel)]="resourceCreateForm.roles[0]">
                 <option *ngFor="let role of roleOptions" [value]="role">{{ role }}</option>
               </select>
             </div>
@@ -625,7 +625,7 @@
 
           <div class="form-field full">
             <label>System Role</label>
-            <input [ngModel]="selectedResource?.role || ''" disabled />
+            <input [ngModel]="selectedResource?.roles?.join(', ') || ''" disabled />
           </div>
 
           <div class="section-title">Cost</div>
