@@ -6,7 +6,7 @@ export interface ResourceDetails {
   resourceType?: string;
   jobTitle?: string;
   email?: string;
-  role?: string;
+  roles?: string[];
   seniority?: string;
   internalUser?: boolean;
   hoursPerDay?: number;

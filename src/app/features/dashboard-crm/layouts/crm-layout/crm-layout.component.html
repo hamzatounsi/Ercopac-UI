@@ -27,7 +27,7 @@
       </button>
     </div>
 
-    <button class="workspace-link" (click)="goBack()"><span class="material-symbols-outlined">apps</span>{{ i18n.t('header.workspaces') }}</button>
+    <button class="workspace-link" (click)="handleWorkspaceNavigation()"><span class="material-symbols-outlined">{{ showLogoutInsteadOfWorkspace ? 'logout' : 'apps' }}</span>{{ showLogoutInsteadOfWorkspace ? 'Logout' : i18n.t('header.workspaces') }}</button>
     <div class="header-user"><div class="avatar">{{ initials }}</div><div><strong>{{ auth.getCurrentUsername() }}</strong><small>{{ organisation }}</small></div></div>
   </header>
   <div class="crm-body">

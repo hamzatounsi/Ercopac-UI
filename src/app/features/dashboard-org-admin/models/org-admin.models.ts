@@ -61,7 +61,8 @@ export interface OrganisationUser {
   id: number;
   fullName: string;
   email: string;
-  role: OrganisationRole;
+  roles?: OrganisationRole[];
+  role?: OrganisationRole;
   departmentId: number | null;
   departmentCode: string | null;
   departmentName: string | null;
@@ -77,7 +78,7 @@ export interface SaveOrganisationUser {
   fullName: string;
   email: string;
   password?: string;
-  role: OrganisationRole;
+  roles: OrganisationRole[];
   departmentId: number | null;
   resourceTypeId: number | null;
   employeeCode: string | null;

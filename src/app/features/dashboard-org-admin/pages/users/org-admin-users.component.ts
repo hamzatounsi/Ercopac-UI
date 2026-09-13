@@ -46,7 +46,7 @@ export class OrgAdminUsersComponent implements OnInit, OnDestroy {
     fullName: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(150)]),
     email: this.fb.nonNullable.control('', [Validators.required, Validators.email, Validators.maxLength(180)]),
     password: this.fb.nonNullable.control(''),
-    role: this.fb.nonNullable.control<OrganisationRole>('EMPLOYEE', Validators.required),
+    roles: this.fb.nonNullable.control<OrganisationRole[]>(['EMPLOYEE'], Validators.required),
     departmentId: this.fb.control<number | null>(null),
     resourceTypeId: this.fb.control<number | null>(null),
     employeeCode: this.fb.nonNullable.control('', Validators.maxLength(40)),
@@ -64,7 +64,7 @@ export class OrgAdminUsersComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.searchControl.valueChanges.pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$)).subscribe(() => { this.page = 0; this.loadUsers(); });
     this.filterForm.valueChanges.pipe(debounceTime(50), takeUntil(this.destroy$)).subscribe(() => { this.page = 0; this.loadUsers(); });
-    this.userForm.controls.role.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.updateResourceProfileValidators());
+    this.userForm.controls.roles.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.updateResourceProfileValidators());
     this.loadMetadata();
   }
 
@@ -103,15 +103,21 @@ export class OrgAdminUsersComponent implements OnInit, OnDestroy {
 
   openCreate(): void {
     this.editingUser = null; this.formError = ''; this.drawerOpen = true;
-    this.userForm.reset({ fullName: '', email: '', password: '', role: 'EMPLOYEE', departmentId: null, resourceTypeId: null, employeeCode: '', jobTitle: '', active: true });
+    this.userForm.reset({ fullName: '', email: '', password: '', roles: ['EMPLOYEE'], departmentId: null, resourceTypeId: null, employeeCode: '', jobTitle: '', active: true });
     this.updateResourceProfileValidators();
     this.userForm.controls.password.setValidators([Validators.required, Validators.minLength(8), Validators.maxLength(128)]);
     this.userForm.controls.password.updateValueAndValidity();
   }
 
   openEdit(user: OrganisationUser): void {
+    const roles =
+      Array.isArray(user.roles) && user.roles.length
+        ? user.roles
+        : user.role
+          ? [user.role]
+          : [];
     this.editingUser = user; this.formError = ''; this.drawerOpen = true;
-    this.userForm.reset({ fullName: user.fullName, email: user.email, password: '', role: user.role, departmentId: user.departmentId, resourceTypeId: user.resourceTypeId, employeeCode: user.employeeCode || '', jobTitle: user.jobTitle || '', active: user.active });
+    this.userForm.reset({ fullName: user.fullName, email: user.email, password: '', roles, departmentId: user.departmentId, resourceTypeId: user.resourceTypeId, employeeCode: user.employeeCode || '', jobTitle: user.jobTitle || '', active: user.active });
     this.updateResourceProfileValidators();
     this.userForm.controls.password.clearValidators(); this.userForm.controls.password.updateValueAndValidity();
   }
@@ -122,7 +128,7 @@ export class OrgAdminUsersComponent implements OnInit, OnDestroy {
     if (this.userForm.invalid || this.saving) { this.userForm.markAllAsTouched(); return; }
     const value = this.userForm.getRawValue();
     const payload: SaveOrganisationUser = {
-      fullName: value.fullName.trim(), email: value.email.trim(), role: value.role,
+      fullName: value.fullName.trim(), email: value.email.trim(), roles: value.roles,
       departmentId: value.departmentId, resourceTypeId: value.resourceTypeId, employeeCode: value.employeeCode.trim() || null,
       jobTitle: value.jobTitle.trim() || null, active: value.active
     };
@@ -156,11 +162,18 @@ export class OrgAdminUsersComponent implements OnInit, OnDestroy {
   nextPage(): void { if (this.page + 1 < this.totalPages) { this.page++; this.loadUsers(); } }
   trackUser(_index: number, user: OrganisationUser): number { return user.id; }
   roleLabel(role: OrganisationRole): string { return this.roles.find(item => item.role === role)?.label || role.replace(/_/g, ' '); }
-  requiresResourceProfile(role: OrganisationRole): boolean {
-    return ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'DEPARTMENT_MANAGER', 'EMPLOYEE'].includes(role);
+  toggleRole(role: OrganisationRole, checked: boolean): void {
+    const selected = new Set(this.userForm.controls.roles.value);
+    checked ? selected.add(role) : selected.delete(role);
+    this.userForm.controls.roles.setValue([...selected]);
+    this.userForm.controls.roles.markAsTouched();
+  }
+  hasSelectedRole(role: OrganisationRole): boolean { return this.userForm.controls.roles.value.includes(role); }
+  requiresResourceProfile(roles: OrganisationRole[]): boolean {
+    return roles.some(role => ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'DEPARTMENT_MANAGER', 'EMPLOYEE'].includes(role));
   }
   private updateResourceProfileValidators(): void {
-    const required = this.requiresResourceProfile(this.userForm.controls.role.value);
+    const required = this.requiresResourceProfile(this.userForm.controls.roles.value);
     const controls = [this.userForm.controls.departmentId, this.userForm.controls.resourceTypeId];
     controls.forEach(control => {
       control.setValidators(required ? [Validators.required] : []);
