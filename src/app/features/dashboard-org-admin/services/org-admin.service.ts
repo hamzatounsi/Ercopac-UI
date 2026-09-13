@@ -85,7 +85,10 @@ export class OrgAdminService {
 
   updateUser(id: number, payload: SaveOrganisationUser): Observable<OrganisationUser> {
     const { password: _password, ...request } = payload;
-    return this.http.put<OrganisationUser>(`${this.baseUrl}/users/${id}`, request);
+    return this.http.put<OrganisationUser>(`${this.baseUrl}/users/${id}`, {
+      ...request,
+      role: request.roles[0]
+    });
   }
 
   updateUserStatus(id: number, active: boolean): Observable<OrganisationUser> {
