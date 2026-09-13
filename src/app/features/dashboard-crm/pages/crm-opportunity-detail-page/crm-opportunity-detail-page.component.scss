@@ -10,3 +10,52 @@
 
 // Updated supervisor value-information and summary treatment.
 .money-field>span{position:relative;display:block}.money-field i{position:absolute;left:8px;top:7px;color:#8b91a2;font-size:11px;font-style:normal}.money-field>span input{padding-left:22px}.total{min-width:170px}.total em{display:block;margin-top:3px;color:#c43d3d;font-size:10px;font-style:normal}.value-row.invalid{box-shadow:inset 3px 0 #d94b4b}.value-row.invalid .money-field input{border-color:#d9a0a0}.discount-control{display:flex;align-items:center;gap:10px;flex:1}.discount-control>span{white-space:nowrap;color:#8a5a00;font-weight:700}.discount-control input{width:80px!important;color:#8a5a00;font-weight:700}.discount-control small,.expected-row small{color:#8b91a2;font-size:10px}.expected-row>div{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.expected-row .currency{font-size:17px;color:#1a56db}
+.sales-index-card {
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 12px;
+  }
+
+  .sales-index-icon {
+    font-size: 16px;
+  }
+
+  .sales-index-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .sales-index-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid #f1f5f9;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .sales-index-label {
+    font-size: 12px;
+    color: #64748b;
+  }
+
+  .sales-index-value {
+    font-size: 13px;
+    color: #1e293b;
+    font-weight: 500;
+
+    &.strong {
+      font-weight: 800;
+      color: #1a56db;
+    }
+  }
+}
