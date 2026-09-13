@@ -61,7 +61,8 @@ export interface OrganisationUser {
   id: number;
   fullName: string;
   email: string;
-  roles: OrganisationRole[];
+  roles?: OrganisationRole[];
+  role?: OrganisationRole;
   departmentId: number | null;
   departmentCode: string | null;
   departmentName: string | null;
