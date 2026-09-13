@@ -10,7 +10,6 @@
       <span class="stage-pill" [style.background]="(opportunity.stageColor || '#64748b') + '1f'" [style.color]="opportunity.stageColor || '#64748b'">{{ opportunity.stageName || i18n.t('opportunityDetail.unassigned') }}</span>
       <p>{{ i18n.t('opportunityDetail.pipeline') }}: <strong>{{ opportunity.pipeline || '—' }}</strong></p><p>{{ i18n.t('opportunityDetail.closing') }}: <strong>{{ opportunity.closingDate | crmDate }}</strong></p>
       <label>{{ i18n.t('opportunityDetail.relatedList') }}</label><button (click)="scroll('overview')">{{ i18n.t('opportunityDetail.overview') }}</button><button (click)="scroll('value')">{{ i18n.t('opportunityDetail.value') }}</button><button (click)="scroll('details')">{{ i18n.t('opportunityDetail.details') }}</button><button (click)="scroll('equipment')">{{ i18n.t('opportunityDetail.equipment') }} <i>{{ equipment.length }}</i></button><button (click)="scroll('notes')">{{ i18n.t('opportunityDetail.notes') }} <i>{{ notes.length }}</i></button><button (click)="scroll('attachments')">{{ i18n.t('opportunityDetail.attachments') }} <i>{{ attachments.length }}</i></button><button (click)="scroll('history')">{{ i18n.t('opportunityDetail.history') }} <i>{{ history.length }}</i></button>
-      <div class="sales-summary"><label>{{ i18n.t('opportunityDetail.salesSummary') }}</label><small>{{ i18n.t('opportunityDetail.probability') }}</small><strong>{{ opportunity.probability }}%</strong><small>{{ i18n.t('opportunityDetail.cycleDuration') }}</small><strong>{{ cycleDuration() }}</strong></div>
     </aside>
 
     <main class="opportunity-main">
@@ -27,7 +26,34 @@
           </section>
           <div class="side-cards">
             <section class="card"><div class="card-header">{{ i18n.t('opportunityDetail.account') }}</div><div class="account-card" *ngIf="account"><div class="account-logo">{{ initials(account.name) }}</div><div><a [routerLink]="['/crm/accounts', account.id]">{{ account.name }}</a><small>{{ account.industry || i18n.t('opportunityDetail.account') }} · {{ account.country || '—' }}</small></div></div><select [(ngModel)]="form.accountId" (ngModelChange)="loadContacts(true)" [disabled]="!permissions.canWriteCrm"><option *ngFor="let item of accounts" [ngValue]="item.id">{{ item.name }}</option></select></section>
-            <section class="card"><div class="card-header">{{ i18n.t('opportunityDetail.contactPerson') }}</div><div class="card-body"><select [(ngModel)]="form.leadId" [disabled]="!permissions.canWriteCrm"><option [ngValue]="null">{{ i18n.t('opportunityDetail.selectContact') }}</option><option *ngFor="let item of contacts" [ngValue]="item.id">{{ item.fullName }} — {{ item.jobTitle || i18n.t('opportunityDetail.contactPerson') }}</option></select><a *ngIf="contact" [routerLink]="['/crm/leads', contact.id]" style="display:block;margin-top:8px;padding:9px 10px;border-radius:6px;background:#f8f9fc;color:#1a56db;font-size:12px;font-weight:700;text-decoration:none">{{ contact.fullName }} · {{ contact.jobTitle || contact.email || i18n.t('opportunityDetail.contactPerson') }}</a></div></section>
+            <section class="card"><div class="card-header">{{ i18n.t('opportunityDetail.contactPerson') }}</div><div class="card-body"><select [(ngModel)]="form.leadId" [disabled]="!permissions.canWriteCrm"><option [ngValue]="null">{{ i18n.t('opportunityDetail.selectContact') }}</option><option *ngFor="let item of contacts" [ngValue]="item.id">{{ item.fullName }} — {{ item.jobTitle || i18n.t('opportunityDetail.contactPerson') }}</option></select><a *ngIf="contact" [routerLink]="['/crm/leads', contact.id]" style="display:block;margin-top:8px;padding:9px 10px;border-radius:6px;background:#f8f9fc;color:#1a56db;font-size:12px;font-weight:700;text-decoration:none">{{ contact.fullName }} · {{ contact.jobTitle || contact.email || i18n.t('opportunityDetail.contactPerson') }}</a>
+              <div class="summary-row" *ngIf="form.leadId" style="margin-top:12px">
+                <label>{{ i18n.t('opportunityDetail.contactedDate') }}</label>
+                <input type="date" [(ngModel)]="contactedDate" [disabled]="!permissions.canWriteCrm" (change)="saveContactedDate()">
+              </div>
+            </div></section>
+
+            <!-- ✅ SALES INDEX - Ajouté sous Contact Person -->
+            <section class="card sales-index-card">
+              <div class="card-header">
+                <span class="sales-index-icon">📈</span>
+                {{ i18n.t('opportunityDetail.salesIndex') }}
+              </div>
+              <div class="card-body sales-index-body">
+                <div class="sales-index-row">
+                  <span class="sales-index-label">{{ i18n.t('opportunityDetail.leadConversionTime') }}</span>
+                  <span class="sales-index-value strong">{{ leadConversionTime() }}%</span>
+                </div>
+                <div class="sales-index-row">
+                  <span class="sales-index-label">{{ i18n.t('opportunityDetail.salesCycleDuration') }}</span>
+                  <span class="sales-index-value">{{ salesCycleDuration() || '—' }}</span>
+                </div>
+                <div class="sales-index-row">
+                  <span class="sales-index-label">{{ i18n.t('opportunityDetail.overallSalesDuration') }}</span>
+                  <span class="sales-index-value">{{ overallSalesDuration() || '—' }}</span>
+                </div>
+              </div>
+            </section>
           </div>
         </div>
 
@@ -49,7 +75,7 @@
 
         <section id="equipment" class="card equipment-card">
           <div class="card-header">{{ i18n.t('opportunityDetail.opportunityEquipment') }} <span class="badge">{{equipment.length}}</span><button class="btn equipment-add-button" *ngIf="permissions.canWriteCrm" (click)="showEquipmentAdd=true">+ {{ i18n.t('opportunityDetail.addItem') }}</button></div>
-          <div class="equipment-row" *ngFor="let item of equipment;let i=index"><span class="equipment-icon">▣</span><code>{{item.equipmentCode}}</code><strong>{{item.equipmentName}}</strong><label>{{ i18n.t('opportunityDetail.qty') }} <input type="number" min="1" [(ngModel)]="item.quantity" (change)="saveEquipment()" [disabled]="!permissions.canWriteCrm"></label><button class="icon-btn" *ngIf="permissions.canWriteCrm" (click)="removeEquipment(i)" [title]="i18n.t('opportunityDetail.removeEquipment')">×</button></div>
+          <div class="equipment-row" *ngFor="let item of equipment;let i=index"><span class="equipment-icon"></span><code>{{item.equipmentCode}}</code><strong>{{item.equipmentName}}</strong><label>{{ i18n.t('opportunityDetail.qty') }} <input type="number" min="1" [(ngModel)]="item.quantity" (change)="saveEquipment()" [disabled]="!permissions.canWriteCrm"></label><button class="icon-btn" *ngIf="permissions.canWriteCrm" (click)="removeEquipment(i)" [title]="i18n.t('opportunityDetail.removeEquipment')">×</button></div>
           <div class="empty" *ngIf="!equipment.length">{{ i18n.t('opportunityDetail.noEquipmentAdded') }}</div>
           <div class="equipment-form" *ngIf="permissions.canWriteCrm && showEquipmentAdd"><select [(ngModel)]="newEquipmentTypeId"><option [ngValue]="null">{{ i18n.t('opportunityDetail.equipment') }}</option><option *ngFor="let item of availableEquipmentTypes" [ngValue]="item.id">{{item.code}} — {{item.name}}</option></select><input type="number" min="1" [(ngModel)]="newEquipmentQuantity" [attr.aria-label]="i18n.t('opportunityDetail.quantity')"><button class="btn primary" (click)="addEquipment()">{{ i18n.t('opportunityDetail.add') }}</button><button class="btn" (click)="cancelEquipmentAdd()">{{ i18n.t('opportunityDetail.cancel') }}</button></div>
         </section>

@@ -305,6 +305,18 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   handleDocumentKeydown(event: KeyboardEvent): void {
     if (event.key === 'Escape' && this.contextMenuOpen) {
       this.closeContextMenu();
+      return;
+    }
+    const target = event.target as HTMLElement;
+    const isTypingField = ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName);
+    if (isTypingField) return;
+
+    if (event.key === 'Home') {
+      event.preventDefault();
+      this.scrollToTop();
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      this.scrollToBottom();
     }
   }
 
@@ -2463,7 +2475,6 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
     }
     if (this.contextMenuOpen) this.closeContextMenu();
   }
-
   private resetScroll(): void {
     this.leftHeaderScroll?.nativeElement.scrollTo(0, 0);
     this.tableBodyScroll?.nativeElement.scrollTo(0, 0);
@@ -2471,7 +2482,17 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
     this.timelineHeaderScroll?.nativeElement.scrollTo(0, 0);
     this.ganttBodyScroll?.nativeElement.scrollTo(0, 0);
   }
+    scrollToTop(): void {
+    this.tableBodyScroll?.nativeElement.scrollTo({ top: 0, behavior: 'smooth' });
+    this.ganttBodyScroll?.nativeElement.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
+  scrollToBottom(): void {
+    const tableEl = this.tableBodyScroll?.nativeElement;
+    const ganttEl = this.ganttBodyScroll?.nativeElement;
+    if (tableEl) tableEl.scrollTo({ top: tableEl.scrollHeight, behavior: 'smooth' });
+    if (ganttEl) ganttEl.scrollTo({ top: ganttEl.scrollHeight, behavior: 'smooth' });
+  }
   // ---------------- Column sizing ----------------
   get visibleColumnTemplate(): string {
     const cols: string[] = [];
@@ -3259,4 +3280,5 @@ getSelectedMilestoneCode(task: GmProjectScheduleTask): string | null {
   const type = this.milestoneTypes.find(item => Number(item.id) === Number(task.milestoneTypeId));
   return type ? type.code : null;
 }
+
 }
