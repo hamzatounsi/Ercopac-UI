@@ -142,7 +142,6 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
     this.error = this.valueValidationError();
     if (this.error) return;
 
-    // ✅ Payload strict pour la sécurité (Mass Assignment)
     const payload = {
       name: this.form.name,
       accountId: this.form.accountId,
@@ -168,7 +167,7 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
       opportunityType: this.form.opportunityType,
       pipeline: this.form.pipeline,
       currency: this.form.currency,
-      teamMembers: this.form.teamMembers // Le backend détectera les changements d'équipe et enverra les notifications
+      teamMembers: this.form.teamMembers
     };
 
     this.saving = true;
@@ -177,7 +176,6 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
         this.saving = false; 
         this.flash(this.i18n.t('opportunityDetail.toast.saved')); 
         this.load();
-        // ✅ Le backend (CrmOpportunityAssignmentNotifier) envoie AUTOMATIQUEMENT les emails ici
       }, 
       error: e => { 
         console.error(e);
@@ -261,7 +259,6 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
         }
         this.crm.getStageHistory(this.orgId, this.id).subscribe(history => this.stageHistory = history);
         this.flash(this.i18n.t('opportunityDetail.toast.stageUpdated'));
-        // ✅ Le backend envoie AUTOMATIQUEMENT les emails ici
       }, 
       error: e => {
         console.error(e);
@@ -297,7 +294,6 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
         this.teamSaving = false; 
         this.showTeamPicker = false; 
         this.flash(`${opportunity.teamMembers.length} ${this.i18n.t('opportunityDetail.toast.teamAssigned')}`);
-        // ✅ Le backend envoie AUTOMATIQUEMENT les emails aux nouveaux membres ici
       }, 
       error: e => { 
         console.error(e);
@@ -314,7 +310,6 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
         this.notes = [...this.notes, v]; 
         this.newNote = ''; 
         this.flash(this.i18n.t('opportunityDetail.toast.notePosted'));
-        // ✅ Le backend envoie AUTOMATIQUEMENT les emails ici
       }, 
       error: e => {
         console.error(e);
@@ -334,7 +329,7 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
     const file = input.files?.[0]; 
     if (!file) return; 
     
-    if (file.size > 10 * 1024 * 1024) { // 10 Mo max (cohérent avec le backend)
+    if (file.size > 10 * 1024 * 1024) {
       this.error = this.i18n.t('opportunityDetail.error.fileTooLarge');
       input.value = '';
       return;
@@ -463,6 +458,19 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
     if (Number.isNaN(start.getTime())) return '—'; 
     const days = Math.max(0, Math.floor((Date.now() - start.getTime()) / 86400000)); 
     return days === 1 ? '1 day' : days + ' days'; 
+  }
+
+  // ✅ AJOUT DES 3 MÉTHODES MANQUANTES POUR LE SALES INDEX
+  leadConversionTime(): number {
+    return this.opportunity?.probability ?? 0;
+  }
+
+  salesCycleDuration(): string {
+    return this.cycleDuration();
+  }
+
+  overallSalesDuration(): string {
+    return this.cycleDuration();
   }
   
   stageClass(stage: CrmPipelineStage): string { 
