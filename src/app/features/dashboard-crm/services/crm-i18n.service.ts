@@ -166,7 +166,7 @@ const DICTIONARIES: Record<CrmLang, Record<string, any>> = {
     },
     'leadDetail': {
       'backToLeads': 'Leads', 'convertToOpportunity': 'Convert to opportunity', 'delete': 'Delete', 'contactFallback': 'Contact', 'contactInfoTitle': 'Contact information', 'editableHint': 'all fields are editable', 'edit': 'Edit',
-      'field': { 'fullName': 'Full name', 'email': 'Email', 'phone': 'Phone', 'mobile': 'Mobile', 'jobTitle': 'Job title', 'account': 'Account', 'owner': 'Owner', 'source': 'Source', 'rating': 'Rating', 'leadSource': 'Lead source', 'leadOwner': 'Lead owner', 'status': 'Status', 'created': 'Created', 'opportunities': 'Opportunities' },
+      'field': { 'fullName': 'Full name', 'email': 'Email', 'phone': 'Phone', 'mobile': 'Mobile', 'jobTitle': 'Job title', 'account': 'Account', 'owner': 'Owner', 'source': 'Source', 'rating': 'Rating', 'leadSource': 'Lead source', 'leadOwner': 'Lead owner', 'status': 'Status', 'created': 'Created', 'opportunities': 'Opportunities', 'contactedDate': 'Contacted date' },
       'unassigned': 'Unassigned',
       'source': { 'referral': 'Referral', 'tradeFair': 'Trade fair', 'agent': 'Agent', 'customer': 'Customer', 'partner': 'Partner', 'other': 'Other' },
       'rating': { 'none': 'No rating', 'hot': 'Hot', 'warm': 'Warm', 'cold': 'Cold' },
@@ -297,7 +297,7 @@ const DICTIONARIES: Record<CrmLang, Record<string, any>> = {
     },
     'leadDetail': {
       'backToLeads': 'Prospects', 'convertToOpportunity': 'Convertir en opportunité', 'delete': 'Supprimer', 'contactFallback': 'Contact', 'contactInfoTitle': 'Informations de contact', 'editableHint': 'tous les champs sont modifiables', 'edit': 'Modifier',
-      'field': { 'fullName': 'Nom complet', 'email': 'E-mail', 'phone': 'Téléphone', 'mobile': 'Mobile', 'jobTitle': 'Fonction', 'account': 'Compte', 'owner': 'Propriétaire', 'source': 'Source', 'rating': 'Évaluation', 'leadSource': 'Source du prospect', 'leadOwner': 'Propriétaire du prospect', 'status': 'Statut', 'created': 'Créé le', 'opportunities': 'Opportunités' },
+      'field': { 'fullName': 'Nom complet', 'email': 'E-mail', 'phone': 'Téléphone', 'mobile': 'Mobile', 'jobTitle': 'Fonction', 'account': 'Compte', 'owner': 'Propriétaire', 'source': 'Source', 'rating': 'Évaluation', 'leadSource': 'Source du prospect', 'leadOwner': 'Propriétaire du prospect', 'status': 'Statut', 'created': 'Créé le', 'opportunities': 'Opportunités', 'contactedDate': 'Date de contact' },
       'unassigned': 'Non attribué',
       'source': { 'referral': 'Recommandation', 'tradeFair': 'Salon professionnel', 'agent': 'Agent', 'customer': 'Client', 'partner': 'Partenaire', 'other': 'Autre' },
       'rating': { 'none': 'Aucune évaluation', 'hot': 'Chaud', 'warm': 'Tiède', 'cold': 'Froid' },
@@ -428,7 +428,7 @@ const DICTIONARIES: Record<CrmLang, Record<string, any>> = {
     },
     'leadDetail': {
       'backToLeads': 'Contatti', 'convertToOpportunity': 'Converti in opportunità', 'delete': 'Elimina', 'contactFallback': 'Contatto', 'contactInfoTitle': 'Informazioni di contatto', 'editableHint': 'tutti i campi sono modificabili', 'edit': 'Modifica',
-      'field': { 'fullName': 'Nome completo', 'email': 'E-mail', 'phone': 'Telefono', 'mobile': 'Cellulare', 'jobTitle': 'Titolo lavorativo', 'account': 'Account', 'owner': 'Proprietario', 'source': 'Fonte', 'rating': 'Valutazione', 'leadSource': 'Fonte del contatto', 'leadOwner': 'Proprietario del contatto', 'status': 'Stato', 'created': 'Creato il', 'opportunities': 'Opportunità' },
+      'field': { 'fullName': 'Nome completo', 'email': 'E-mail', 'phone': 'Telefono', 'mobile': 'Cellulare', 'jobTitle': 'Titolo lavorativo', 'account': 'Account', 'owner': 'Proprietario', 'source': 'Fonte', 'rating': 'Valutazione', 'leadSource': 'Fonte del contatto', 'leadOwner': 'Proprietario del contatto', 'status': 'Stato', 'created': 'Creato il', 'opportunities': 'Opportunità', 'contactedDate': 'Data di contatto' },
       'unassigned': 'Non assegnato',
       'source': { 'referral': 'Referral', 'tradeFair': 'Fiera', 'agent': 'Agente', 'customer': 'Cliente', 'partner': 'Partner', 'other': 'Altro' },
       'rating': { 'none': 'Nessuna valutazione', 'hot': 'Caldo', 'warm': 'Tiepido', 'cold': 'Freddo' },

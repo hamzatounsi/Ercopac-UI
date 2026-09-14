@@ -72,6 +72,13 @@
               <option value="Cold">{{ i18n.t('leadDetail.rating.cold') }}</option>
             </select>
           </div>
+          
+          <!-- ✅ AJOUT DU CHAMP CONTACTED DATE DANS LE FORMULAIRE D'ÉDITION -->
+          <div class="field">
+            <label>{{ i18n.t('leadDetail.field.contactedDate') }}</label>
+            <input type="date" name="contactedDate" [(ngModel)]="form.contactedDate">
+          </div>
+
           <div class="field full actions">
             <button type="button" class="btn" (click)="cancel()">{{ i18n.t('leadDetail.cancel') }}</button>
             <button class="btn primary" [disabled]="saving">{{ i18n.t('leadDetail.save') }}</button>
@@ -98,6 +105,12 @@
           <div><label>{{ i18n.t('leadDetail.field.rating') }}</label><strong>{{ lead.rating || '—' }}</strong></div>
           <div><label>{{ i18n.t('leadDetail.field.leadOwner') }}</label><strong>{{ lead.ownerName || i18n.t('leadDetail.unassigned') }}</strong></div>
           <div><label>{{ i18n.t('leadDetail.field.status') }}</label><strong>{{ statusLabels[lead.status].label }}</strong></div>
+          
+          <!-- ✅ AFFICHAGE EN LECTURE SEULE DU CONTACTED DATE -->
+          <div>
+            <label>{{ i18n.t('leadDetail.field.contactedDate') }}</label>
+            <strong>{{ lead.contactedDate ? (lead.contactedDate | crmDate) : '—' }}</strong>
+          </div>
         </div>
       </section>
 
