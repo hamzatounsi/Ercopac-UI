@@ -16,11 +16,12 @@ import { CrmReportsPageComponent } from './pages/crm-reports-page/crm-reports-pa
 import { CrmAnalyticsPageComponent } from './pages/crm-analytics-page/crm-analytics-page.component';
 import { CrmSettingsPageComponent } from './pages/crm-settings-page/crm-settings-page.component';
 import { CrmDatePipe } from './shared/crm-date.pipe';
+import { SalesDashboardComponent } from './pages/sales-dashboard/sales-dashboard.component';
 
 @NgModule({
   declarations: [CrmLayoutComponent, CrmDashboardPageComponent, CrmLeadsPageComponent, CrmLeadDetailPageComponent,
     CrmAccountsPageComponent, CrmAccountDetailPageComponent, CrmOpportunitiesPageComponent,
-    CrmOpportunityDetailPageComponent, CrmManagerViewPageComponent, CrmReportsPageComponent, CrmAnalyticsPageComponent, CrmSettingsPageComponent, CrmDatePipe],
+    CrmOpportunityDetailPageComponent, CrmManagerViewPageComponent, CrmReportsPageComponent, CrmAnalyticsPageComponent, CrmSettingsPageComponent, CrmDatePipe, SalesDashboardComponent],
   imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule, DashboardCrmRoutingModule]
 })
 export class DashboardCrmModule {}

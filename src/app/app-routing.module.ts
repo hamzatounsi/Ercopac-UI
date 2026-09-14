@@ -8,7 +8,7 @@ import { DashboardEmployeeComponent } from './features/dashboard-employee/dashbo
 import { ForbiddenComponent } from './features/forbidden/forbidden.component';
 import { MyDepartmentPageComponent } from './features/dashboard-department/pages/my-department-page/my-department-page.component';
 import { ResourceSettingsPageComponent } from './features/dashboard-department/pages/resource-settings-page/resource-settings-page.component';
-
+import { SalesDashboardComponent } from './features/dashboard-crm/pages/sales-dashboard/sales-dashboard.component';
 import { AuthGuard } from './core/auth/auth.guard';
 import { RoleGuard } from './core/auth/role.guard';
 
@@ -64,7 +64,15 @@ const routes: Routes = [
     data: {
       roles: ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'PLATFORM_OWNER', 'SALES_MANAGER_LEAD', 'SALES_MANAGER', 'SYSTEM_ENGINEER']
     }
+    
   },
+  {
+    path: 'crm/sales',
+    component: SalesDashboardComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: {
+      roles: ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'PLATFORM_OWNER', 'SALES_MANAGER_LEAD', 'SALES_MANAGER', 'SYSTEM_ENGINEER']
+    }},
 
   // DEPARTMENT MANAGER — lands here after login
 {
