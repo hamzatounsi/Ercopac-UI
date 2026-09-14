@@ -9,7 +9,7 @@ import { CrmPipelineStage } from '../../models/crm-pipeline-stage.model';
 import { CrmUser } from '../../models/crm-detail.model';
 import { CrmPermissionsService } from '../../services/crm-permissions.service';
 import { CrmService } from '../../services/crm.service';
-import { CrmI18nService } from '../../services/crm-i18n.service'; // 👈 IMPORT I18N
+import { CrmI18nService } from '../../services/crm-i18n.service';
 
 @Component({
   selector: 'app-crm-lead-detail-page',
@@ -41,7 +41,7 @@ export class CrmLeadDetailPageComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     public permissions: CrmPermissionsService,
-    public i18n: CrmI18nService // 👈 INJECT I18N
+    public i18n: CrmI18nService
   ) {}
 
   ngOnInit(): void {
@@ -60,7 +60,7 @@ export class CrmLeadDetailPageComponent implements OnInit {
     }).subscribe({
       next: r => {
         this.lead = r.lead;
-        this.form = { ...r.lead };
+        this.form = { ...r.lead }; // ✅ Copie automatiquement contactedDate s'il existe
         this.accounts = r.accounts;
         this.users = r.users;
         this.stages = r.stages;
@@ -78,6 +78,7 @@ export class CrmLeadDetailPageComponent implements OnInit {
   save(): void {
     if (!this.form) return;
     this.saving = true;
+    // ✅ Envoie l'objet form complet (incluant contactedDate mis à jour) au backend
     this.crm.updateLead(this.orgId, this.id, this.form).subscribe({
       next: v => {
         this.lead = v;
@@ -113,7 +114,6 @@ export class CrmLeadDetailPageComponent implements OnInit {
   }
 
   remove(): void {
-    // 👈 Use i18n for the confirmation dialog
     if (!confirm(this.i18n.t('leadDetail.confirmDelete'))) return;
     this.crm.deleteLead(this.orgId, this.id).subscribe({
       next: () => this.router.navigate(['/crm/leads']),
@@ -152,10 +152,10 @@ export class CrmLeadDetailPageComponent implements OnInit {
     return this.accounts.find(item => item.id === this.lead?.accountId);
   }
 
-sourceLabel(source: CrmLeadSource): string {
-  const label = LEAD_SOURCE_LABELS[source] || source;
-  return this.i18n.translateDynamic(label);
-}
+  sourceLabel(source: CrmLeadSource): string {
+    const label = LEAD_SOURCE_LABELS[source] || source;
+    return this.i18n.translateDynamic(label);
+  }
 
   initials(): string {
     return (this.lead?.fullName || '?').split(/\s+/).slice(0, 2).map(v => v[0]).join('').toUpperCase();
