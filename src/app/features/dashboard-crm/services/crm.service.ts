@@ -45,6 +45,7 @@ sendOpportunityNotification(orgId: number, dto: {
 }): Observable<any> {
   return this.http.post(`${this.url(orgId)}/notifications`, dto);
 }
+
   getCrmUsers(orgId: number): Observable<CrmUser[]> { return this.http.get<CrmUser[]>(`${this.url(orgId)}/users`); }
   getNotificationPreferences(orgId: number): Observable<CrmNotificationPreference> { return this.http.get<CrmNotificationPreference>(`${this.url(orgId)}/notification-preferences`); }
   saveNotificationPreferences(orgId: number, dto: CrmNotificationPreference): Observable<CrmNotificationPreference> { return this.http.put<CrmNotificationPreference>(`${this.url(orgId)}/notification-preferences`, dto); }
@@ -90,6 +91,9 @@ sendOpportunityNotification(orgId: number, dto: {
     if (status?.trim()) params = params.set('status', status.trim());
     if (accountId) params = params.set('accountId', accountId);
     return this.http.get<CrmLead[]>(`${this.url(orgId)}/leads`, { params });
+  }
+    getSalesDashboard(orgId: number): Observable<any> {
+    return this.http.get<any>(`${this.url(orgId)}/sales-dashboard`);
   }
   getLead(orgId: number, id: number): Observable<CrmLead> { return this.http.get<CrmLead>(`${this.url(orgId)}/leads/${id}`); }
   getLeadActivities(orgId: number, id: number): Observable<CrmActivity[]> { return this.http.get<CrmActivity[]>(`${this.url(orgId)}/leads/${id}/activities`); }

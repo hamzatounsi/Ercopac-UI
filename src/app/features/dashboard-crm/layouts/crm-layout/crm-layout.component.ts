@@ -43,7 +43,11 @@ export class CrmLayoutComponent {
     public auth: AuthService,
     public permissions: CrmPermissionsService,
     public i18n: CrmI18nService
-  ) {}
+  ) {
+     // ✅ AJOUTE CES LIGNES POUR DÉBOGUER LE RÔLE
+    console.log('🔍 Rôle principal retourné :', this.auth.getCurrentRole());
+    console.log('🔍 Liste complète des rôles :', this.auth.getRoles());
+  }
 
   get initials(): string { return (this.auth.getCurrentUsername() || 'User').split(/\s+/).slice(0, 2).map(v => v[0]).join('').toUpperCase(); }
   get organisation(): string { return this.auth.getOrganisationName() || 'Organisation'; }
@@ -110,7 +114,8 @@ export class CrmLayoutComponent {
     this.router.navigate(route);
   }
 get isSalesManagerLead(): boolean {
-  return this.auth.getCurrentRole() === 'SALES_MANAGER_LEAD';
+  const roles = this.auth.getRoles();
+  return roles.includes('SALES_MANAGER_LEAD');
 }
   closeResults(): void { window.setTimeout(() => this.showResults = false, 150); }
   get hasResults(): boolean { return this.results.accounts.length + this.results.leads.length + this.results.opportunities.length > 0; }
