@@ -20,7 +20,7 @@
 /* ── KPI cards ───────────────────────────────────────────── */
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(6, 1fr); /* 6 columns for 6 KPIs in one line */
   gap: 16px;
   margin-bottom: 20px;
 }
@@ -34,23 +34,28 @@
   flex-direction: column;
   justify-content: space-between;
   min-height: 140px;
+  transition: box-shadow 0.2s;
+  
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
 }
 
 .kpi-label { 
-  font-size: 12px; 
+  font-size: 13px; 
   color: #64748b; 
-  margin-bottom: 8px;
-  font-weight: 600;
+  margin-bottom: 12px;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .kpi-value { 
-  font-size: 28px; 
+  font-size: 32px; 
   font-weight: 800; 
   color: #1e293b; 
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   line-height: 1.2;
 }
 
@@ -329,7 +334,7 @@
   display: flex; justify-content: flex-end; gap: 10px;
 }
 
-/* ── Form groups ─────────────────────────────────────────── */
+/* ── Form groups ────────────────────────────────────────── */
 .form-group {
   margin-bottom: 16px;
 
@@ -360,7 +365,11 @@
   padding: 8px 12px; background: #fee2e2; border-radius: 6px;
 }
 
-.kpi-card-accent { border-left: 3px solid #1a56db; }
+.kpi-card-accent { 
+  border-left: 4px solid #3b82f6;
+  border-left-width: 4px;
+}
+
 .green-text { color: #0f7b4f; }
 .amber-text { color: #d97706; }
 .blue-text { color: #1a56db; font-weight: 700; }
@@ -369,13 +378,13 @@
   height: 6px;
   background: #e2e8f0;
   border-radius: 3px;
-  margin: 8px 0 6px;
+  margin: 10px 0 8px;
   overflow: hidden;
 }
 
 .kpi-progress-fill {
   height: 100%;
-  background: #1a56db;
+  background: #10b981;
   border-radius: 3px;
   transition: width 0.3s ease;
 }
@@ -384,18 +393,19 @@
   display: flex;
   justify-content: space-between;
   font-size: 11px;
+  margin-top: auto;
 }
 
 /* ─ Responsive ──────────────────────────────────────────── */
-@media (max-width: 1400px) {
+@media (max-width: 1600px) {
   .kpi-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, 1fr); /* 3x2 layout on medium screens */
   }
 }
 
 @media (max-width: 768px) {
   .kpi-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr); /* 2x3 layout on tablets */
   }
   
   .kpi-card {
