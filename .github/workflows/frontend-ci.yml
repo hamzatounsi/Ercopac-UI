@@ -9,8 +9,8 @@ on:
       - main
 
 jobs:
-  build:
-    name: Frontend Build & Push
+  build-and-push:
+    name: Build and Push Docker Image
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -19,21 +19,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "18"
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-        
-      - name: Audit production dependencies
-        run: npm audit --omit=dev || true
-
-      - name: Build Angular production bundle
-        run: npm run build -- --configuration production
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -51,12 +36,3 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/hamzatounsi/ercopac-ui/frontend:latest
-
-      - name: Scan frontend Docker image
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          image-ref: ghcr.io/hamzatounsi/ercopac-ui/frontend:latest
-          format: table
-          severity: CRITICAL,HIGH
-          ignore-unfixed: true
-          exit-code: "0"

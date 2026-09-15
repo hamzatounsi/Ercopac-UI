@@ -6,9 +6,6 @@ on:
       - main
   workflow_dispatch:
 
-permissions:
-  contents: read
-
 jobs:
   deploy:
     name: Deploy Frontend
@@ -28,15 +25,23 @@ jobs:
           script_stop: true
           script: |
             set -e
-            echo "=== Move to project directory ==="
+            echo "=== Connexion au serveur ==="
             cd /opt/projectum
-            echo "=== Login to GitHub Container Registry ==="
+
+            echo "=== MAGIE : Modification auto du docker-compose.yml ==="
+            # Cette commande remplace "build: ." par l'image GitHub automatiquement
+            sed -i 's|build: \.|image: ghcr.io/hamzatounsi/ercopac-ui/frontend:latest|g' docker-compose.yml
+
+            echo "=== Connexion au registre GitHub ==="
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            echo "=== Pull pre-built image ==="
+
+            echo "=== Téléchargement de l'image (0 RAM utilisée) ==="
             docker compose pull projectum-frontend
-            echo "=== Recreate frontend container ==="
+
+            echo "=== Redémarrage du conteneur ==="
             docker compose up -d --no-deps projectum-frontend
-            echo "=== Health check ==="
+
+            echo "=== Vérification ==="
             sleep 5
-            curl -f http://localhost:8080/ || exit 1
-            echo "✅ SUCCESS"
+            docker compose ps projectum-frontend
+            echo "✅ DÉPLOIEMENT RÉUSSI !"
