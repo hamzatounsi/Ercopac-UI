@@ -11,6 +11,12 @@
         <label>Owner:</label><select [(ngModel)]="ownerId"><option [ngValue]="null">All owners</option><option *ngFor="let member of data.team" [ngValue]="member.userId">{{member.name}}</option></select>
         <label>Stage:</label><select [(ngModel)]="stageId"><option [ngValue]="null">All stages</option><option *ngFor="let stage of stages" [ngValue]="stage.id">{{stage.name}}</option></select>
         <label>Country:</label><select [(ngModel)]="country"><option value="">All countries</option><option *ngFor="let value of countries" [value]="value">{{value}}</option></select>
+          <label>Type:</label>
+  <select [(ngModel)]="opportunityType">
+    <option value="">All types</option>
+    <option value="BP">BP</option>
+    <option value="CS">CS</option>
+  </select>
         <button type="button" class="reset-filters" (click)="resetOpportunityFilters()">Reset filters</button><span class="result-count">{{opportunities.length}} opportunities</span>
       </div>
       <div class="table-wrap" *ngIf="view==='list'"><table class="crm-table"><thead><tr><th>Opportunity</th><th>Account</th><th>Stage</th><th>Value</th><th>Probability</th><th>Closing</th><th>Owner</th></tr></thead><tbody><tr class="clickable" *ngFor="let item of opportunities" (click)="open(item)"><td class="link">{{item.name}}</td><td>{{item.accountName}}</td><td><span class="badge">{{item.stageName}}</span></td><td class="currency">{{money(item.value||0,item.currency)}}</td><td>{{item.probability}}%</td><td>{{item.closingDate | crmDate}}</td><td>{{item.ownerName||'Unassigned'}}</td></tr><tr *ngIf="!opportunities.length"><td colspan="7" class="empty">No opportunities match the selected filters.</td></tr></tbody></table></div>
@@ -27,6 +33,12 @@
         <label>Owner:</label><select [(ngModel)]="dashboardOwnerId"><option [ngValue]="null">All owners</option><option *ngFor="let member of data.team" [ngValue]="member.userId">{{member.name}}</option></select>
         <label>Stage:</label><select [(ngModel)]="dashboardStageId"><option [ngValue]="null">All stages</option><option *ngFor="let stage of stages" [ngValue]="stage.id">{{stage.name}}</option></select>
         <label>Country:</label><select [(ngModel)]="dashboardCountry"><option value="">All countries</option><option *ngFor="let value of countries" [value]="value">{{value}}</option></select>
+         <label>Type:</label>
+  <select [(ngModel)]="dashboardOpportunityType">
+    <option value="">All types</option>
+    <option value="BP">BP</option>
+    <option value="CS">CS</option>
+  </select>
         <button type="button" class="reset-filters" (click)="resetDashboardFilters()">Reset filters</button><span class="result-count">{{dashboardOpportunities.length}} opportunities</span>
       </div>
       <div class="stats-grid"><article class="stat-card"><label>Team target</label><strong>{{money(totalTarget)}}</strong><small>{{year}}</small></article><article class="stat-card"><label>Won value</label><strong>{{money(totalWon)}}</strong><small>Closed won opportunities</small></article><article class="stat-card"><label>Attainment</label><strong>{{attainment}}%</strong><small>Across the team</small></article><article class="stat-card"><label>Pipeline value</label><strong>{{money(totalPipeline)}}</strong><small>Filtered opportunities</small></article></div>

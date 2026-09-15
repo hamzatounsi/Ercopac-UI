@@ -1,48 +1,48 @@
-<div class="admin-page">
-  <!-- TABS -->
-  <div class="tab-bar">
-    <button (click)="setTab('licences')" [class.active]="activeTab==='licences'">
-      🔒 Licences
-    </button>
+  <div class="admin-page">
+    <!-- TABS -->
+    <div class="tab-bar">
+      <button (click)="setTab('licences')" [class.active]="activeTab==='licences'">
+        🔒 Licences
+      </button>
 
-    <button (click)="setTab('categories')" [class.active]="activeTab==='categories'">
-      🏷️ Categories
-    </button>
+      <button (click)="setTab('categories')" [class.active]="activeTab==='categories'">
+        🏷️ Categories
+      </button>
 
-    <button (click)="setTab('types')" [class.active]="activeTab==='types'">
-      📄 Project Types
-    </button>
+      <button (click)="setTab('types')" [class.active]="activeTab==='types'">
+        📄 Project Types
+      </button>
 
-    <button (click)="setTab('customers')" [class.active]="activeTab==='customers'">
-      🏢 Customers
-    </button>
+      <button (click)="setTab('customers')" [class.active]="activeTab==='customers'">
+        🏢 Customers
+      </button>
 
-    <button (click)="setTab('resources')" [class.active]="activeTab==='resources'">
-      👥 Resources
-    </button>
+      <button (click)="setTab('resources')" [class.active]="activeTab==='resources'">
+        👥 Resources
+      </button>
 
-    <button (click)="setTab('security')" [class.active]="activeTab==='security'">
-      🛡️ Security
-    </button>
+      <button (click)="setTab('security')" [class.active]="activeTab==='security'">
+        🛡️ Security
+      </button>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="tab-content">
+
+      <app-gm-resource-management-page
+        *ngIf="activeTab==='resources'">
+      </app-gm-resource-management-page>
+
+      <app-licences-tab *ngIf="activeTab==='licences'"></app-licences-tab>
+
+      <app-categories-tab *ngIf="activeTab==='categories'"></app-categories-tab>
+
+      <app-types-tab *ngIf="activeTab==='types'"></app-types-tab>
+
+      <app-customers-tab *ngIf="activeTab==='customers'"></app-customers-tab>
+
+      <app-security-tab *ngIf="activeTab==='security'"></app-security-tab>
+
+    </div>
+
   </div>
-
-  <!-- CONTENT -->
-  <div class="tab-content">
-
-    <app-gm-resource-management-page
-      *ngIf="activeTab==='resources'">
-    </app-gm-resource-management-page>
-
-    <app-licences-tab *ngIf="activeTab==='licences'"></app-licences-tab>
-
-    <app-categories-tab *ngIf="activeTab==='categories'"></app-categories-tab>
-
-    <app-types-tab *ngIf="activeTab==='types'"></app-types-tab>
-
-    <app-customers-tab *ngIf="activeTab==='customers'"></app-customers-tab>
-
-    <app-security-tab *ngIf="activeTab==='security'"></app-security-tab>
-
-  </div>
-
-</div>
