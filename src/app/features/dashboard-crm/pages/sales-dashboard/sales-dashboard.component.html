@@ -6,26 +6,11 @@
 
   <!-- 5 KPIs -->
   <div class="stats-grid">
-    <div class="kpi-card">
-      <small>Order Intake MTD</small>
-      <b class="blue">{{ money(data.orderIntakeMtd) }}</b>
-    </div>
-    <div class="kpi-card">
-      <small>Pipeline Value</small>
-      <b class="green">{{ money(data.pipelineValue) }}</b>
-    </div>
-    <div class="kpi-card">
-      <small>Open Opportunities</small>
-      <b class="amber">{{ data.openOpportunities }}</b>
-    </div>
-    <div class="kpi-card">
-      <small>Win Rate</small>
-      <b class="purple">{{ pct(data.winRate) }}</b>
-    </div>
-    <div class="kpi-card">
-      <small>Active Deals</small>
-      <b>{{ data.topOpportunities?.length || 0 }}</b>
-    </div>
+    <div class="kpi-card"><small>Order Intake MTD</small><b class="blue">{{ money(data.orderIntakeMtd) }}</b></div>
+    <div class="kpi-card"><small>Pipeline Value</small><b class="green">{{ money(data.pipelineValue) }}</b></div>
+    <div class="kpi-card"><small>Open Opportunities</small><b class="amber">{{ data.openOpportunities }}</b></div>
+    <div class="kpi-card"><small>Win Rate</small><b class="purple">{{ pct(data.winRate) }}</b></div>
+    <div class="kpi-card"><small>Active Deals</small><b>{{ data.topOpportunities?.length || 0 }}</b></div>
   </div>
 
   <div class="grid-2">
@@ -33,22 +18,14 @@
     <article class="detail-card">
       <header><b>Revenue vs Target</b><span>Last 6 months performance</span></header>
       <table class="revenue-table">
-        <thead>
-          <tr><th>Month</th><th>Target</th><th>Actual</th><th>Variance</th><th>Status</th></tr>
-        </thead>
+        <thead><tr><th>Month</th><th>Target</th><th>Actual</th><th>Variance</th><th>Status</th></tr></thead>
         <tbody>
           <tr *ngFor="let m of data.monthlyRevenue">
             <td><b>{{ m.month }}</b></td>
             <td>{{ money(m.target) }}</td>
             <td>{{ money(m.actual) }}</td>
-            <td [class.negative]="m.actual < m.target" [class.positive]="m.actual >= m.target">
-              {{ money(m.actual - m.target) }}
-            </td>
-            <td>
-              <span class="badge" [class.badge-success]="m.actual >= m.target" [class.badge-warn]="m.actual < m.target">
-                {{ m.actual >= m.target ? 'On Track' : 'Behind' }}
-              </span>
-            </td>
+            <td [class.negative]="m.actual < m.target" [class.positive]="m.actual >= m.target">{{ money(m.actual - m.target) }}</td>
+            <td><span class="badge" [class.badge-success]="m.actual >= m.target" [class.badge-warn]="m.actual < m.target">{{ m.actual >= m.target ? 'On Track' : 'Behind' }}</span></td>
           </tr>
         </tbody>
       </table>
@@ -59,10 +36,7 @@
       <header><b>Sales Pipeline</b><span>By stage</span></header>
       <div class="pipeline-bars">
         <div class="pipeline-row" *ngFor="let stage of data.pipelineByStage">
-          <div class="pipeline-label">
-            <span>{{ stage.stageName }}</span>
-            <small>{{ stage.count }} deals</small>
-          </div>
+          <div class="pipeline-label"><span>{{ stage.stageName }}</span><small>{{ stage.count }} deals</small></div>
           <div class="pipeline-track">
             <div class="pipeline-fill" [style.width.%]="(stage.value / maxPipelineValue()) * 100" [style.background]="stage.stageColor || '#3b82f6'">
               <span class="pipeline-value">{{ money(stage.value) }}</span>
@@ -77,31 +51,21 @@
   <article class="detail-card full-width">
     <header><b>Top Opportunities</b><span>Highest value open deals</span></header>
     <table class="opp-table">
-      <thead>
-        <tr><th>Opportunity</th><th>Account</th><th>Stage</th><th>Value</th><th>Probability</th><th>Owner</th></tr>
-      </thead>
+      <thead><tr><th>Opportunity</th><th>Account</th><th>Stage</th><th>Value</th><th>Probability</th><th>Owner</th></tr></thead>
       <tbody>
         <tr *ngFor="let opp of data.topOpportunities">
           <td><b>{{ opp.name }}</b></td>
           <td>{{ opp.accountName || '—' }}</td>
-          <td>
-            <span class="stage-pill" [style.background]="(opp.stageColor || '#64748b') + '20'" [style.color]="opp.stageColor || '#64748b'">
-              {{ opp.stageName || 'Unassigned' }}
-            </span>
-          </td>
+          <td><span class="stage-pill" [style.background]="(opp.stageColor || '#64748b') + '20'" [style.color]="opp.stageColor || '#64748b'">{{ opp.stageName || 'Unassigned' }}</span></td>
           <td><b>{{ money(opp.value) }}</b></td>
           <td>{{ opp.probability }}%</td>
           <td>{{ opp.ownerName || 'Unassigned' }}</td>
         </tr>
-        <tr *ngIf="!data.topOpportunities?.length">
-          <td colspan="6" class="empty">No open opportunities found.</td>
-        </tr>
+        <tr *ngIf="!data.topOpportunities?.length"><td colspan="6" class="empty">No open opportunities found.</td></tr>
       </tbody>
     </table>
   </article>
 </section>
 
-<ng-template #loadingTpl>
-  <section class="sales-page state">Loading Sales Dashboard…</section>
-</ng-template>
+<ng-template #loadingTpl><section class="sales-page state">Loading Sales Dashboard…</section></ng-template>
 <section class="sales-page state error" *ngIf="error">{{ error }}</section>

@@ -34,6 +34,7 @@ export class CrmService {
 /**
  * Envoyer une notification aux membres de l'équipe
  */
+
 sendOpportunityNotification(orgId: number, dto: {
   opportunityId: number;
   opportunityName: string;
