@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-
   workflow_dispatch:
 
 permissions:
@@ -29,102 +28,15 @@ jobs:
           script_stop: true
           script: |
             set -e
-
-            echo "=== Move to frontend source ==="
-            cd /opt/projectum/frontend
-            echo "=== Remember current frontend version ==="
-            PREVIOUS_COMMIT=$(git rev-parse HEAD)
-            echo "Previous commit: $PREVIOUS_COMMIT"
-            echo "=== Configure authenticated remote ==="
-            git remote set-url origin https://x-access-token:${{ secrets.DEPLOY_GIT_TOKEN }}@github.com/hamzatounsi/Ercopac-UI.git
-            echo "=== Update frontend source ==="
-            git fetch origin main
-            git checkout main
-            git pull --ff-only origin main
-
-            NEW_COMMIT=$(git rev-parse HEAD)
-            echo "Deploying commit: $NEW_COMMIT"
-
-            echo "=== Rebuild frontend ==="
+            echo "=== Move to project directory ==="
             cd /opt/projectum
-            docker compose build projectum-frontend
-
+            echo "=== Login to GitHub Container Registry ==="
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo "=== Pull pre-built image ==="
+            docker compose pull projectum-frontend
             echo "=== Recreate frontend container ==="
             docker compose up -d --no-deps projectum-frontend
-
-            echo "=== Frontend health check ==="
-
-            HEALTHY=false
-
-            for i in {1..12}; do
-              if curl --fail --silent --show-error \
-                  http://localhost:8080/ > /dev/null; then
-
-                HEALTHY=true
-                echo "Frontend is healthy."
-                break
-              fi
-
-              echo "Waiting for frontend... attempt $i/12"
-              sleep 5
-            done
-
-            if [ "$HEALTHY" = true ]; then
-              echo "=== Frontend deployment successful ==="
-              docker compose ps projectum-frontend
-              exit 0
-            fi
-
-            echo "======================================"
-            echo "NEW FRONTEND DEPLOYMENT FAILED"
-            echo "Starting automatic rollback..."
-            echo "======================================"
-
-            echo "=== Failed frontend logs ==="
-            docker compose logs --tail=100 projectum-frontend || true
-
-            echo "=== Restore previous frontend version ==="
-            cd /opt/projectum/frontend
-            git checkout "$PREVIOUS_COMMIT"
-
-            echo "=== Rebuild previous frontend ==="
-            cd /opt/projectum
-            docker compose build projectum-frontend
-
-            echo "=== Restart previous frontend ==="
-            docker compose up -d --no-deps projectum-frontend
-
-            echo "=== Verify rollback ==="
-
-            ROLLBACK_HEALTHY=false
-
-            for i in {1..12}; do
-              if curl --fail --silent --show-error \
-                  http://localhost:8080/ > /dev/null; then
-
-                ROLLBACK_HEALTHY=true
-                echo "Rollback successful. Previous frontend is healthy."
-                break
-              fi
-
-              echo "Waiting for rollback... attempt $i/12"
-              sleep 5
-            done
-
-            if [ "$ROLLBACK_HEALTHY" = true ]; then
-              echo "======================================"
-              echo "DEPLOYMENT FAILED BUT ROLLBACK SUCCEEDED"
-              echo "Restored commit: $PREVIOUS_COMMIT"
-              echo "Failed commit:   $NEW_COMMIT"
-              echo "======================================"
-
-              docker compose ps projectum-frontend
-              exit 1
-            fi
-
-            echo "======================================"
-            echo "CRITICAL: FRONTEND ROLLBACK ALSO FAILED"
-            echo "======================================"
-
-            docker compose logs --tail=150 projectum-frontend || true
-            exit 1
+            echo "=== Health check ==="
+            sleep 5
+            curl -f http://localhost:8080/ || exit 1
+            echo "✅ SUCCESS"
