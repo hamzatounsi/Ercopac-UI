@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CompanyDashboard, CompanyDashboardService } from '../../services/company-dashboard.service';
+import { CrmService } from '../../../dashboard-crm/services/crm.service'; // ✅ Adjust path if your CrmService is elsewhere
 
 @Component({ 
   selector: 'app-company-dashboard', 
@@ -9,10 +10,15 @@ import { CompanyDashboard, CompanyDashboardService } from '../../services/compan
 })
 export class CompanyDashboardComponent implements OnInit {
   dashboard: CompanyDashboard | null = null;
+  salesData: any = null; // ✅ Holds the separate sales dashboard data
   loading = true;
   error = '';
 
-  constructor(private readonly service: CompanyDashboardService, private readonly router: Router) {}
+  constructor(
+    private readonly service: CompanyDashboardService, 
+    private readonly router: Router,
+    private readonly crm: CrmService // ✅ Injected to fetch sales data
+  ) {}
 
   ngOnInit(): void { 
     this.refresh(); 
@@ -21,10 +27,23 @@ export class CompanyDashboardComponent implements OnInit {
   refresh(): void {
     this.loading = true; 
     this.error = '';
+    
+    // 1. Load main dashboard (existing logic untouched)
     this.service.getDashboard().subscribe({ 
       next: dashboard => { 
         this.dashboard = dashboard; 
         this.loading = false; 
+        
+        // 2. Load sales data in the background (won't block the UI)
+        const orgId = this.crm.getOrgIdFromToken();
+        this.crm.getSalesDashboard(orgId).subscribe({
+          next: sales => { 
+            this.salesData = sales; 
+          },
+          error: () => { 
+            console.warn('Sales data not available'); 
+          }
+        });
       }, 
       error: () => { 
         this.error = 'Company performance data could not be loaded.'; 
@@ -40,19 +59,21 @@ export class CompanyDashboardComponent implements OnInit {
   openProjectPerformance(): void { 
     this.router.navigate(['/gm/command-center/project-performance'], { queryParams: { view: 'performance' } }); 
   }
-getSalesOrderIntakeToday(): number {
-  return this.dashboard?.salesOrderIntakeToday || 0;
-}
 
-getSalesWonVsTarget(): number {
-  return this.dashboard?.salesWonVsTarget || 0;
-}
-  // ✅ AJOUTE CETTE MÉTHODE POUR NAVIGUER VERS LA PAGE SALES
   openSalesDashboard(): void { 
     this.router.navigate(['/crm/sales']); 
   }
 
   currency(value: number | null | undefined): string { 
     return new Intl.NumberFormat('en-IE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value || 0); 
+  }
+
+  // ✅ Safe helper methods for the HTML template to prevent "null" errors
+  getSalesOrderIntakeToday(): number {
+    return this.salesData?.orderIntakeMtd || 0;
+  }
+
+  getSalesWonVsTarget(): number {
+    return this.salesData?.winRate || 0;
   }
 }
