@@ -140,4 +140,5 @@ sendOpportunityNotification(orgId: number, dto: {
   saveTarget(orgId: number, userId: number, year: number, amount: number, currency = 'EUR'): Observable<CrmManagerTeamMember> {
     return this.http.put<CrmManagerTeamMember>(`${this.url(orgId)}/manager/targets/${userId}`, { amount, currency }, { params: { year } });
   }
+  
 }
