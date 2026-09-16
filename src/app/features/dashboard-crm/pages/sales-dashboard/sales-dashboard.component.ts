@@ -17,17 +17,21 @@ export class SalesDashboardComponent implements OnInit {
 
   ngOnInit(): void { this.load(); }
 
-  load(): void {
-    this.loading = true;
-    this.crm.getSalesDashboard(this.orgId).subscribe({
-      next: (res: any) => { this.data = res; this.loading = false; },
-      error: (err: any) => {
-        console.error(err);
-        this.error = 'Failed to load sales dashboard.';
-        this.loading = false;
-      }
-    });
-  }
+load(): void {
+  this.loading = true;
+  this.crm.getSalesDashboard(this.orgId).subscribe({
+    next: (res: any) => { 
+      console.log('✅ Sales Dashboard Data Received:', res); // ADD THIS LINE
+      this.data = res; 
+      this.loading = false; 
+    },
+    error: (err: any) => {
+      console.error('❌ Error loading sales dashboard:', err);
+      this.error = 'Failed to load sales dashboard.';
+      this.loading = false;
+    }
+  });
+}
 
   back(): void { this.router.navigate(['/gm/command-center']); }
 

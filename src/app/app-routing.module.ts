@@ -62,7 +62,7 @@ const routes: Routes = [
         .then(m => m.DashboardCrmModule),
     canActivate: [AuthGuard, RoleGuard],
     data: {
-      roles: ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'PLATFORM_OWNER', 'SALES_MANAGER_LEAD', 'SALES_MANAGER', 'SYSTEM_ENGINEER']
+      roles: ['MANAGER','PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'PLATFORM_OWNER', 'SALES_MANAGER_LEAD', 'SALES_MANAGER', 'SYSTEM_ENGINEER']
     }
     
   },

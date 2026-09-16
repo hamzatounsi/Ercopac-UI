@@ -35,22 +35,39 @@
       <footer>{{ d.delayedProjects }} delayed · {{ d.averageProgress }}% average progress</footer>
     </article>
 
-    <!-- Sales Performance Card (REPLACED Financial Performance) -->
-    <article class="section-card green-card" role="button" tabindex="0" (click)="openSalesDashboard()" (keyup.enter)="openSalesDashboard()" style="cursor: pointer;">
-      <header>
-        <span>💰</span>
-        <div>
-          <h2>Sales Performance</h2>
-          <p>Order Intake · Pipeline · Win Rate</p>
-        </div>
-        <b>Live</b>
-      </header>
-      <div class="kpis">
-        <div><strong class="green-text">€4.8M</strong><span>Pipeline Value</span></div>
-        <div><strong>12</strong><span>Open Deals</span></div>
-      </div>
-      <footer>Click to view detailed sales dashboard →</footer>
-    </article>
+    <!-- Sales Performance Card -->
+<article class="section-card green-card" role="button" tabindex="0" (click)="openSalesDashboard()" (keyup.enter)="openSalesDashboard()" style="cursor: pointer;">
+  <header>
+    <span>💰</span>
+    <div>
+      <h2>Sales Performance</h2>
+      <p>Order Intake · Pipeline · Opportunities</p>
+    </div>
+    <b class="attention">Attention</b>
+  </header>
+  <div class="kpis">
+    <div>
+      <strong class="green-text">{{ currency(getSalesOrderIntakeToday()) }}</strong>
+      <span>Order Intake Today</span>
+      <small>Won vs target: {{ getSalesWonVsTarget() }}%</small>
+    </div>
+    <div>
+      <strong class="blue-text">{{ currency(d.salesPipelineValue || 0) }}</strong>
+      <span>Pipeline Value</span>
+      <small>{{ d.salesActiveDeals || 0 }} active deals</small>
+    </div>
+    <div>
+      <strong class="amber-text">{{ d.salesOpenOpportunities || 0 }}</strong>
+      <span>Open Opportunities</span>
+      <small>{{ d.salesClosingThisMonth || 0 }} closing this month</small>
+    </div>
+  </div>
+  <footer>
+    <span>✓ Order intake today: {{ currency(getSalesOrderIntakeToday()) }}</span>
+    <span>✓ Won vs target: {{ getSalesWonVsTarget() }}%</span>
+    <span>⊕ {{ d.salesClosingThisMonth || 0 }} opportunities closing soon</span>
+  </footer>
+</article>
 
     <!-- Delivery & Risk Card -->
     <article class="section-card amber-card">
