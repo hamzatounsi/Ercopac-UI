@@ -9,7 +9,16 @@ export interface CompanyDashboard {
   actualCost: number; forecastCost: number; openRisks: number; highRisks: number;
   openActions: number; overdueActions: number;
   projects: CompanyProject[]; topRisks: CompanyRisk[]; alerts: CompanyAlert[];
+  
+  // ✅ AJOUTE CES NOUVELLES PROPRIÉTÉS SALES :
+  salesOrderIntakeToday?: number;
+  salesPipelineValue?: number;
+  salesOpenOpportunities?: number;
+  salesActiveDeals?: number;
+  salesClosingThisMonth?: number;
+  salesWonVsTarget?: number;
 }
+
 export interface CompanyProject { id: number; name: string; code: string; manager: string | null; phase: string; progress: number; health: string; budget: number | null; }
 export interface CompanyRisk { description: string; project: string; impact: string; probability: number | null; state: string; }
 export interface CompanyAlert { severity: 'critical' | 'warning'; title: string; detail: string; }

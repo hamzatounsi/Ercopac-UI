@@ -40,7 +40,13 @@ export class CompanyDashboardComponent implements OnInit {
   openProjectPerformance(): void { 
     this.router.navigate(['/gm/command-center/project-performance'], { queryParams: { view: 'performance' } }); 
   }
+getSalesOrderIntakeToday(): number {
+  return this.dashboard?.salesOrderIntakeToday || 0;
+}
 
+getSalesWonVsTarget(): number {
+  return this.dashboard?.salesWonVsTarget || 0;
+}
   // ✅ AJOUTE CETTE MÉTHODE POUR NAVIGUER VERS LA PAGE SALES
   openSalesDashboard(): void { 
     this.router.navigate(['/crm/sales']); 
