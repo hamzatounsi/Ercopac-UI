@@ -31,3 +31,21 @@
 .crm-sidebar a.active .material-symbols-outlined {
   font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24;
 }
+/* ✅ Style pour la lettre "O" personnalisée (Opportunities) */
+.icon-letter-o {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--crm-muted, #5a5f72);
+  width: 20px;
+  text-align: center;
+  display: inline-block;
+  line-height: 1;
+  margin-right: 9px;
+}
+
+/* ✅ Quand le lien est actif, le "O" devient bleu */
+.crm-sidebar a.active .icon-letter-o {
+  color: var(--crm-brand, #1a56db);
+  font-weight: 800;
+}

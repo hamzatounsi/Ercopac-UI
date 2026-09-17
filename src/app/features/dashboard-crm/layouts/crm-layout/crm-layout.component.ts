@@ -17,12 +17,12 @@ interface CrmSearchResults {
 
 @Component({ selector: 'app-crm-layout', templateUrl: './crm-layout.component.html', styleUrls: ['./crm-layout.component.scss'] })
 export class CrmLayoutComponent {
-  readonly mainItems = [
-    { label: 'Dashboard', icon: 'dashboard', route: '/crm/dashboard', key: 'nav.dashboard' },
-    { label: 'Accounts', icon: 'business_center', route: '/crm/accounts', key: 'nav.accounts' },
-    { label: 'Leads', icon: 'person', route: '/crm/leads', key: 'nav.leads' },
-    { label: 'Opportunities', icon: 'trending_up', route: '/crm/opportunities', key: 'nav.opportunities' }
-  ];
+readonly mainItems = [
+  { label: 'Dashboard', icon: 'dashboard', route: '/crm/dashboard', key: 'nav.dashboard' },
+  { label: 'Accounts', icon: 'business_center', route: '/crm/accounts', key: 'nav.accounts' },
+  { label: 'Leads', icon: 'person', route: '/crm/leads', key: 'nav.leads' },
+  { label: 'Opportunities', icon: 'letter-O', route: '/crm/opportunities', key: 'nav.opportunities' } // ✅ Changé ici
+];
   readonly insightItems = [
     { label: 'Reports', icon: 'description', route: '/crm/reports', key: 'nav.reports' },
     { label: 'Analytics', icon: 'analytics', route: '/crm/analytics', key: 'nav.analytics' }
@@ -44,9 +44,7 @@ export class CrmLayoutComponent {
     public permissions: CrmPermissionsService,
     public i18n: CrmI18nService
   ) {
-     // ✅ AJOUTE CES LIGNES POUR DÉBOGUER LE RÔLE
-    console.log('🔍 Rôle principal retourné :', this.auth.getCurrentRole());
-    console.log('🔍 Liste complète des rôles :', this.auth.getRoles());
+    
   }
 
   get initials(): string { return (this.auth.getCurrentUsername() || 'User').split(/\s+/).slice(0, 2).map(v => v[0]).join('').toUpperCase(); }
