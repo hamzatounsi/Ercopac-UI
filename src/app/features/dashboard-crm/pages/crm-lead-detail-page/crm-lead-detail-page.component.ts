@@ -19,13 +19,16 @@ import { CrmI18nService } from '../../services/crm-i18n.service';
 export class CrmLeadDetailPageComponent implements OnInit {
   orgId = this.crm.getOrgIdFromToken();
   id = Number(this.route.snapshot.paramMap.get('id'));
+  
   lead?: CrmLead;
   form?: CrmLead;
+  
   accounts: CrmAccount[] = [];
   users: CrmUser[] = [];
   stages: CrmPipelineStage[] = [];
   opportunities: CrmOpportunity[] = [];
   activities: CrmActivity[] = [];
+  
   loading = true;
   editing = false;
   editingNotes = false;
@@ -33,8 +36,12 @@ export class CrmLeadDetailPageComponent implements OnInit {
   saving = false;
   newActivity = '';
   error = '';
+  
   statusLabels = LEAD_STATUS_LABELS;
-  statuses = Object.entries(LEAD_STATUS_LABELS).map(([value, item]) => ({ value: value as CrmLeadStatus, label: item.label }));
+  statuses = Object.entries(LEAD_STATUS_LABELS).map(([value, item]) => ({ 
+    value: value as CrmLeadStatus, 
+    label: item.label 
+  }));
 
   constructor(
     private crm: CrmService,
@@ -78,7 +85,7 @@ export class CrmLeadDetailPageComponent implements OnInit {
   save(): void {
     if (!this.form) return;
     this.saving = true;
-    // ✅ Envoie l'objet form complet (incluant contactedDate mis à jour) au backend
+    
     this.crm.updateLead(this.orgId, this.id, this.form).subscribe({
       next: v => {
         this.lead = v;
@@ -96,11 +103,25 @@ export class CrmLeadDetailPageComponent implements OnInit {
 
   setStatus(status: CrmLeadStatus): void {
     if (!this.form || !this.permissions.canWriteCrm) return;
+    
     if (status === 'CONVERTED' && !this.lead?.converted) {
       this.convert();
       return;
     }
+    
     this.form.status = status;
+
+    // ✅ SYNCHRONISATION AUTOMATIQUE DE LA DATE DE CONTACT
+    if (status === 'CONTACTED') {
+      // Si la date est vide, on la remplit avec la date du jour (format YYYY-MM-DD)
+      if (!this.form.contactedDate) {
+        this.form.contactedDate = new Date().toISOString().split('T')[0];
+      }
+    } else {
+      // Si le statut change vers autre chose (ex: NOT_CONTACTED), on efface la date
+      this.form.contactedDate = null;
+    }
+    
     this.save();
   }
 
