@@ -107,10 +107,7 @@
           <div><label>{{ i18n.t('leadDetail.field.status') }}</label><strong>{{ statusLabels[lead.status].label }}</strong></div>
           
           <!-- ✅ AFFICHAGE EN LECTURE SEULE DU CONTACTED DATE -->
-          <div>
-            <label>{{ i18n.t('leadDetail.field.contactedDate') }}</label>
-            <strong>{{ lead.contactedDate ? (lead.contactedDate | crmDate) : '—' }}</strong>
-          </div>
+         
         </div>
       </section>
 
@@ -136,6 +133,11 @@
         <div class="summary-row"><label>{{ i18n.t('leadDetail.field.status') }}</label><strong>{{ statusLabels[lead.status].label }}</strong></div>
         <div class="summary-row"><label>{{ i18n.t('leadDetail.field.leadSource') }}</label><strong>{{ sourceLabel(lead.source) }}</strong></div>
         <div class="summary-row"><label>{{ i18n.t('leadDetail.field.created') }}</label><strong>{{ lead.createdAt | crmDate }}</strong></div>
+         <!-- ✅ AJOUTÉ ICI : Contacted date sous Created -->
+  <div class="summary-row">
+    <label>{{ i18n.t('leadDetail.field.contactedDate') }}</label>
+    <strong>{{ lead.contactedDate ? (lead.contactedDate | crmDate) : '—' }}</strong>
+  </div>
         <div class="summary-row"><label>{{ i18n.t('leadDetail.field.opportunities') }}</label><strong>{{ opportunities.length }}</strong></div>
       </section>
 
