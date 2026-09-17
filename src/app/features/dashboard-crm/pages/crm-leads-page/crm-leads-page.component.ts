@@ -16,15 +16,20 @@ import { CrmI18nService } from '../../services/crm-i18n.service';
 export class CrmLeadsPageComponent implements OnInit {
   orgId = this.crm.getOrgIdFromToken();
   leads: CrmLead[] = [];
+  filteredLeads: CrmLead[] = []; // ✅ Tableau filtré pour l'affichage
   accounts: CrmAccount[] = [];
   users: CrmUser[] = [];
+  
   loading = true;
   search = '';
   filter = 'ALL';
+  ownerFilter: number | null = null; // ✅ Filtre Owner
+  
   showForm = false;
   saving = false;
   form = emptyLead();
   error = '';
+  
   sources = Object.entries(LEAD_SOURCE_LABELS);
   statusLabels = LEAD_STATUS_LABELS;
   statusOptions = Object.entries(LEAD_STATUS_LABELS)
@@ -54,6 +59,7 @@ export class CrmLeadsPageComponent implements OnInit {
     this.crm.getLeads(this.orgId, this.search, this.filter === 'ALL' ? undefined : this.filter).subscribe({
       next: v => {
         this.leads = v;
+        this.applyOwnerFilter(); // ✅ Appliquer le filtre owner sur les résultats reçus
         this.loading = false;
       },
       error: e => {
@@ -63,9 +69,18 @@ export class CrmLeadsPageComponent implements OnInit {
     });
   }
 
+  // ✅ Méthode pour filtrer localement par owner
+  applyOwnerFilter(): void {
+    if (!this.ownerFilter) {
+      this.filteredLeads = this.leads;
+    } else {
+      this.filteredLeads = this.leads.filter(lead => lead.ownerId === this.ownerFilter);
+    }
+  }
+
   setFilter(v: string): void {
     this.filter = v;
-    this.load();
+    this.load(); // Recharge depuis le backend pour le statut
   }
 
   openNew(): void {
@@ -96,7 +111,10 @@ export class CrmLeadsPageComponent implements OnInit {
   update(lead: CrmLead): void {
     this.error = '';
     this.crm.updateLead(this.orgId, lead.id!, lead).subscribe({
-      next: value => Object.assign(lead, value),
+      next: value => {
+        Object.assign(lead, value);
+        this.applyOwnerFilter(); // ✅ Mettre à jour l'affichage filtré
+      },
       error: e => {
         this.error = e?.error?.message || this.i18n.t('leads.error.update');
         this.load();
@@ -110,7 +128,10 @@ export class CrmLeadsPageComponent implements OnInit {
     if (!window.confirm(msg)) return;
     
     this.crm.deleteLead(this.orgId, lead.id!).subscribe({
-      next: () => this.leads = this.leads.filter(item => item.id !== lead.id),
+      next: () => {
+        this.leads = this.leads.filter(item => item.id !== lead.id);
+        this.applyOwnerFilter(); // ✅ Mettre à jour l'affichage filtré
+      },
       error: e => this.error = e?.error?.message || this.i18n.t('leads.error.delete')
     });
   }

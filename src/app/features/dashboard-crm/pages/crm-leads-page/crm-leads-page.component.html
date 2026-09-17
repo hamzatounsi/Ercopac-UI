@@ -11,10 +11,26 @@
   </header>
   
   <div class="filter-bar">
+    <!-- Chips de statut (à gauche) -->
     <button class="chip" [class.active]="filter==='ALL'" (click)="setFilter('ALL')">{{ i18n.t('leads.filterAll') }}</button>
     <button class="chip" [class.active]="filter==='CONVERTED'" (click)="setFilter('CONVERTED')">{{ i18n.t('leads.filterConverted') }}</button>
     <button class="chip" [class.active]="filter==='NOT_CONTACTED'" (click)="setFilter('NOT_CONTACTED')">{{ i18n.t('leads.filterNotContacted') }}</button>
     <button class="chip" [class.active]="filter==='CONTACTED'" (click)="setFilter('CONTACTED')">{{ i18n.t('leads.filterContacted') }}</button>
+
+    <!-- ✅ NOUVEAU : Filtre Owner aligné tout à droite -->
+    <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+      <span style="font-size: 11px; font-weight: 700; color: #9499ad; text-transform: uppercase; letter-spacing: 0.04em;">
+        {{ i18n.t('leads.col.owner') }}
+      </span>
+      <select 
+        class="search" 
+        style="min-width: 160px; height: 30px; padding: 0 10px; font-size: 13px;"
+        [(ngModel)]="ownerFilter" 
+        (ngModelChange)="applyOwnerFilter()">
+        <option [ngValue]="null">{{ i18n.t('leads.modal.allOwners') || 'All owners' }}</option>
+        <option *ngFor="let user of users" [ngValue]="user.id">{{ user.name }}</option>
+      </select>
+    </div>
   </div>
 
   <div *ngIf="error && !showForm" class="form-error page-error">{{ error }}</div>
@@ -36,7 +52,8 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let lead of leads" class="clickable" (click)="open(lead)">
+        <!-- ✅ MODIFIÉ : Utiliser filteredLeads au lieu de leads -->
+        <tr *ngFor="let lead of filteredLeads" class="clickable" (click)="open(lead)">
           <td class="lead-cell">
             <div class="avatar">{{ lead.fullName.slice(0,2).toUpperCase() }}</div>
             <span class="link">{{ lead.fullName }}</span>
@@ -51,10 +68,10 @@
               <option *ngFor="let status of statusOptions" [ngValue]="status.value">{{ status.label }}</option>
             </select>
            <ng-template #statusBadge>
-  <span class="badge" [class.success]="lead.status==='CONVERTED'" [class.info]="lead.status==='CONTACTED'">
-    {{ i18n.translateDynamic(statusLabels[lead.status].label) }}
-  </span>
-</ng-template>
+              <span class="badge" [class.success]="lead.status==='CONVERTED'" [class.info]="lead.status==='CONTACTED'">
+                {{ i18n.translateDynamic(statusLabels[lead.status].label) }}
+              </span>
+            </ng-template>
           </td>
           <td (click)="$event.stopPropagation()">
             <select *ngIf="permissions.canWriteCrm; else ownerText" class="inline-select" [(ngModel)]="lead.ownerId" (change)="update(lead)">
@@ -67,7 +84,8 @@
             <button class="row-delete" type="button" (click)="delete($event, lead)" aria-label="Delete lead">×</button>
           </td>
         </tr>
-        <tr *ngIf="!leads.length">
+        <!-- ✅ MODIFIÉ : Utiliser filteredLeads pour le message vide -->
+        <tr *ngIf="!filteredLeads.length">
           <td [attr.colspan]="permissions.canWriteCrm ? 9 : 8" class="empty">{{ i18n.t('leads.empty') }}</td>
         </tr>
       </tbody>
@@ -75,11 +93,12 @@
   </div>
 </div>
 
+<!-- Le modal reste inchangé -->
 <div class="modal-backdrop" *ngIf="showForm" (click)="showForm=false">
   <form class="modal" (click)="$event.stopPropagation()" (ngSubmit)="save()">
     <div class="modal-header">
       {{ i18n.t('leads.modal.title') }}
-      <button type="button" class="icon-btn" style="margin-left:auto" (click)="showForm=false"></button>
+      <button type="button" class="icon-btn" style="margin-left:auto" (click)="showForm=false">✕</button>
     </div>
     <div class="modal-body field-grid">
       <div class="field full">
