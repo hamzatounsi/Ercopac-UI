@@ -1,6 +1,8 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { RoleGuard } from 'src/app/core/auth/role.guard';
+
+// Composants CRM existants
 import { CrmLayoutComponent } from './layouts/crm-layout/crm-layout.component';
 import { CrmDashboardPageComponent } from './pages/crm-dashboard-page/crm-dashboard-page.component';
 import { CrmLeadsPageComponent } from './pages/crm-leads-page/crm-leads-page.component';
@@ -14,23 +16,37 @@ import { CrmReportsPageComponent } from './pages/crm-reports-page/crm-reports-pa
 import { CrmAnalyticsPageComponent } from './pages/crm-analytics-page/crm-analytics-page.component';
 import { CrmSettingsPageComponent } from './pages/crm-settings-page/crm-settings-page.component';
 
-const routes: Routes = [{ path: '', component: CrmLayoutComponent, children: [
-  // The supervisor workspace opens on the CRM overview. Opportunities stay
-  // one click away, but a fresh /crm navigation must always exercise and show
-  // the live dashboard instead of silently bypassing it.
-  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-  { path: 'dashboard', component: CrmDashboardPageComponent },
-  { path: 'leads', component: CrmLeadsPageComponent },
-  { path: 'leads/:id', component: CrmLeadDetailPageComponent },
-  { path: 'accounts', component: CrmAccountsPageComponent },
-  { path: 'accounts/:id', component: CrmAccountDetailPageComponent },
-  { path: 'opportunities', component: CrmOpportunitiesPageComponent },
-  { path: 'opportunities/:id', component: CrmOpportunityDetailPageComponent },
-  { path: 'manager-view', component: CrmManagerViewPageComponent, canActivate: [RoleGuard], data: { roles: ['SALES_MANAGER_LEAD'] } },
-  { path: 'reports', component: CrmReportsPageComponent },
-  { path: 'analytics', component: CrmAnalyticsPageComponent },
-  { path: 'settings', component: CrmSettingsPageComponent }
-]}];
+// ✅ NOUVEAUX IMPORTS : Dashboards Sales & Customer Success
+import { SalesDashboardComponent } from './pages/sales-dashboard/sales-dashboard.component';
+import { CustomerSuccessDashboardComponent } from './pages/customer-success-dashboard/customer-success-dashboard.component';
 
-@NgModule({ imports: [RouterModule.forChild(routes)], exports: [RouterModule] })
+const routes: Routes = [
+  { 
+    path: '', 
+    component: CrmLayoutComponent, 
+    children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: 'dashboard', component: CrmDashboardPageComponent },
+      { path: 'leads', component: CrmLeadsPageComponent },
+      { path: 'leads/:id', component: CrmLeadDetailPageComponent },
+      { path: 'accounts', component: CrmAccountsPageComponent },
+      { path: 'accounts/:id', component: CrmAccountDetailPageComponent },
+      { path: 'opportunities', component: CrmOpportunitiesPageComponent },
+      { path: 'opportunities/:id', component: CrmOpportunityDetailPageComponent },
+      { path: 'manager-view', component: CrmManagerViewPageComponent, canActivate: [RoleGuard], data: { roles: ['SALES_MANAGER_LEAD'] } },
+      { path: 'reports', component: CrmReportsPageComponent },
+      { path: 'analytics', component: CrmAnalyticsPageComponent },
+      { path: 'settings', component: CrmSettingsPageComponent },
+      
+      // ✅ NOUVELLES ROUTES AJOUTÉES ICI
+      { path: 'sales', component: SalesDashboardComponent },
+      { path: 'customer-success', component: CustomerSuccessDashboardComponent }
+    ]
+  }
+];
+
+@NgModule({ 
+  imports: [RouterModule.forChild(routes)], 
+  exports: [RouterModule] 
+})
 export class DashboardCrmRoutingModule {}
