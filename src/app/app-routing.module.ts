@@ -14,7 +14,6 @@ import { RoleGuard } from './core/auth/role.guard';
 
 const routes: Routes = [
   { path: '', component: LoginComponent, pathMatch: 'full' },
-  // Retain the historic URL without maintaining a second public entry page.
   { path: 'login', redirectTo: '', pathMatch: 'full' },
   {
     path: 'workspace',
@@ -22,130 +21,75 @@ const routes: Routes = [
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['PLATFORM_OWNER', 'ORG_ADMIN', 'PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'MANAGER', 'DEPARTMENT_MANAGER', 'EMPLOYEE', 'SALES_MANAGER_LEAD', 'SALES_MANAGER', 'SYSTEM_ENGINEER', 'CLIENT'] }
   },
-
   {
     path: 'tickets',
     loadChildren: () => import('./features/ticketing/ticketing.module').then(m => m.TicketingModule)
   },
-
   {
     path: 'reset-password',
     component: LoginComponent
   },
-
-  // Organisation administration is isolated from operational workspaces.
   {
     path: 'org-admin',
-    loadChildren: () =>
-      import('./features/dashboard-org-admin/org-admin.module')
-        .then(m => m.OrgAdminModule),
+    loadChildren: () => import('./features/dashboard-org-admin/org-admin.module').then(m => m.OrgAdminModule),
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['ORG_ADMIN'] }
   },
-
-  // GM module — full dashboard
   {
     path: 'gm',
-    loadChildren: () =>
-      import('./features/dashboard-gm/gm-dashboard.module').then(m => m.GmDashboardModule),
+    loadChildren: () => import('./features/dashboard-gm/gm-dashboard.module').then(m => m.GmDashboardModule),
     canActivate: [AuthGuard, RoleGuard],
-    data: {
-      roles: ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'MANAGER', 'DEPARTMENT_MANAGER', 'PLATFORM_OWNER', 'ORG_ADMIN']
-    }
+    data: { roles: ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'MANAGER', 'DEPARTMENT_MANAGER', 'PLATFORM_OWNER', 'ORG_ADMIN'] }
   },
-
-  // CRM module
   {
     path: 'crm',
-    loadChildren: () =>
-      import('./features/dashboard-crm/dashboard-crm.module')
-        .then(m => m.DashboardCrmModule),
+    loadChildren: () => import('./features/dashboard-crm/dashboard-crm.module').then(m => m.DashboardCrmModule),
     canActivate: [AuthGuard, RoleGuard],
-    data: {
-      roles: ['MANAGER','PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'PLATFORM_OWNER', 'SALES_MANAGER_LEAD', 'SALES_MANAGER', 'SYSTEM_ENGINEER']
-    }
-    
+    data: { roles: ['MANAGER','PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'PLATFORM_OWNER', 'SALES_MANAGER_LEAD', 'SALES_MANAGER', 'SYSTEM_ENGINEER'] }
   },
   {
     path: 'crm/sales',
     component: SalesDashboardComponent,
     canActivate: [AuthGuard, RoleGuard],
-    data: {
-      roles: ['MANAGER','PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'PLATFORM_OWNER', 'SALES_MANAGER_LEAD', 'SALES_MANAGER', 'SYSTEM_ENGINEER']
-    }},
-
-  // DEPARTMENT MANAGER — lands here after login
-{
-  path: 'department',
-  component: MyDepartmentPageComponent,
-  canActivate: [AuthGuard, RoleGuard],
-  data: {
-    roles: ['DEPARTMENT_MANAGER', 'PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'PLATFORM_OWNER']
-  }
-},
-  // EMPLOYEE dashboard
+    data: { roles: ['MANAGER','PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'PLATFORM_OWNER', 'SALES_MANAGER_LEAD', 'SALES_MANAGER', 'SYSTEM_ENGINEER'] }
+  },
+  {
+    path: 'department',
+    component: MyDepartmentPageComponent,
+    canActivate: [AuthGuard, RoleGuard],
+    data: { roles: ['DEPARTMENT_MANAGER', 'PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'PLATFORM_OWNER'] }
+  },
   {
     path: 'employee',
     component: DashboardEmployeeComponent,
     pathMatch: 'full',
     canActivate: [AuthGuard, RoleGuard],
-    data: {
-      employeePage: 'home',
-      roles: ['EMPLOYEE']                    // ← fixed: only EMPLOYEE
-    }
+    data: { employeePage: 'home', roles: ['EMPLOYEE'] }
   },
-
-  {
-    path: 'employee/tasks', component: DashboardEmployeeComponent,
-    canActivate: [AuthGuard, RoleGuard], data: { roles: ['EMPLOYEE'], employeePage: 'tasks' }
-  },
-  {
-    path: 'employee/actions', component: DashboardEmployeeComponent,
-    canActivate: [AuthGuard, RoleGuard], data: { roles: ['EMPLOYEE'], employeePage: 'actions' }
-  },
-  {
-    path: 'employee/schedule', component: DashboardEmployeeComponent,
-    canActivate: [AuthGuard, RoleGuard], data: { roles: ['EMPLOYEE'], employeePage: 'schedule' }
-  },
-  {
-    path: 'employee/projects', component: DashboardEmployeeComponent,
-    canActivate: [AuthGuard, RoleGuard], data: { roles: ['EMPLOYEE'], employeePage: 'projects' }
-  },
-  {
-    path: 'employee/notifications', component: DashboardEmployeeComponent,
-    canActivate: [AuthGuard, RoleGuard], data: { roles: ['EMPLOYEE'], employeePage: 'notifications' }
-  },
-
-  // OWNER module
+  { path: 'employee/tasks', component: DashboardEmployeeComponent, canActivate: [AuthGuard, RoleGuard], data: { roles: ['EMPLOYEE'], employeePage: 'tasks' } },
+  { path: 'employee/actions', component: DashboardEmployeeComponent, canActivate: [AuthGuard, RoleGuard], data: { roles: ['EMPLOYEE'], employeePage: 'actions' } },
+  { path: 'employee/schedule', component: DashboardEmployeeComponent, canActivate: [AuthGuard, RoleGuard], data: { roles: ['EMPLOYEE'], employeePage: 'schedule' } },
+  { path: 'employee/projects', component: DashboardEmployeeComponent, canActivate: [AuthGuard, RoleGuard], data: { roles: ['EMPLOYEE'], employeePage: 'projects' } },
+  { path: 'employee/notifications', component: DashboardEmployeeComponent, canActivate: [AuthGuard, RoleGuard], data: { roles: ['EMPLOYEE'], employeePage: 'notifications' } },
   {
     path: 'owner',
-    loadChildren: () =>
-      import('./features/dashboard-owner/dashboard-owner.module')
-        .then(m => m.DashboardOwnerModule),
+    loadChildren: () => import('./features/dashboard-owner/dashboard-owner.module').then(m => m.DashboardOwnerModule),
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['PLATFORM_OWNER'] }
   },
-
-  // GM accessing My Department page directly
   {
     path: 'gm/my-department',
     component: MyDepartmentPageComponent,
     canActivate: [AuthGuard, RoleGuard],
-    data: {
-      roles: ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'PLATFORM_OWNER']
-    }
+    data: { roles: ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'PLATFORM_OWNER'] }
   },
-
-  // Resource settings
   {
     path: 'department/resources',
     component: ResourceSettingsPageComponent,
     canActivate: [AuthGuard, RoleGuard],
     data: { roles: ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'DEPARTMENT_MANAGER'] }
   },
-
   { path: 'forbidden', component: ForbiddenComponent },
-
   { path: '**', redirectTo: '' }
 ];
 

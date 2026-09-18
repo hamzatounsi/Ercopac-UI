@@ -45,6 +45,16 @@ export const ROLE_MODULE_MAP: Record<AppRole, WorkspaceModuleKey> = {
 
 export function accessibleWorkspaceModules(roles: readonly AppRole[]): WorkspaceModule[] {
   const keys = roles.map(role => ROLE_MODULE_MAP[role]).filter(Boolean);
+  
+  // ✅ AJOUT : Si l'utilisateur a l'un de ces rôles, on ajoute aussi Ticketing
+  const hasTicketingAccess = roles.some(role => 
+    ['CLIENT', 'SALES_MANAGER', 'SALES_MANAGER_LEAD', 'PLATFORM_OWNER', 'ORG_ADMIN'].includes(role)
+  );
+  
+  if (hasTicketingAccess && !keys.includes('TICKETING')) {
+    keys.push('TICKETING');
+  }
+  
   return [...new Set(keys)].map(key => WORKSPACE_MODULES[key]);
 }
 
