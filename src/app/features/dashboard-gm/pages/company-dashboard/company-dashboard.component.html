@@ -66,19 +66,34 @@
     </article>
 
     <!-- Delivery & Risk Card -->
-    <article class="section-card amber-card">
+        <!-- ✅ Customer Success Card (Opportunités de type "CS") -->
+    <article class="section-card purple-card" role="button" tabindex="0" (click)="openCustomerSuccessDashboard()" (keyup.enter)="openCustomerSuccessDashboard()" style="cursor: pointer;">
       <header>
-        <span>🔥</span>
+        <span>🤝</span>
         <div>
-          <h2>Delivery & Risk</h2>
-          <p>Risks · Actions · Exceptions</p>
+          <h2>Customer Success</h2>
+          <p>CS Order Intake · Retention · CS Pipeline</p>
         </div>
+        <b>Live</b>
       </header>
       <div class="kpis">
-        <div><strong class="amber-text">{{ d.openRisks }}</strong><span>Open Risks</span></div>
-        <div><strong class="red-text">{{ d.highRisks }}</strong><span>High Exposure</span></div>
-        <div><strong class="red-text">{{ d.overdueActions }}</strong><span>Overdue Actions</span></div>
+        <div>
+          <strong class="green-text">{{ currency(getCsOrderIntakeMtd()) }}</strong>
+          <span>CS Order Intake MTD</span>
+          <small>Renewal Rate: {{ getCsRenewalRate() | number:'1.1-1' }}%</small>
+        </div>
+        <div>
+          <strong class="blue-text">{{ currency(csData?.pipelineValue) }}</strong>
+          <span>CS Pipeline Value</span>
+          <small>{{ csData?.openOpportunities || 0 }} open CS deals</small>
+        </div>
+        <div>
+          <strong class="amber-text">{{ csData?.topOpportunities?.length || 0 }}</strong>
+          <span>Top CS Opportunities</span>
+          <small>Active pipeline</small>
+        </div>
       </div>
+      <footer>Click to view detailed CS dashboard →</footer>
     </article>
   </div>
 

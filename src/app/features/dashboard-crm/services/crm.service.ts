@@ -93,8 +93,13 @@ sendOpportunityNotification(orgId: number, dto: {
     if (accountId) params = params.set('accountId', accountId);
     return this.http.get<CrmLead[]>(`${this.url(orgId)}/leads`, { params });
   }
-    getSalesDashboard(orgId: number): Observable<any> {
-    return this.http.get<any>(`${this.url(orgId)}/sales-dashboard`);
+    // ✅ Modified to support both BP and CS types
+  getSalesDashboard(orgId: number, opportunityType?: string): Observable<any> {
+    let params = new HttpParams();
+    if (opportunityType) {
+      params = params.set('opportunityType', opportunityType);
+    }
+    return this.http.get<any>(`${this.url(orgId)}/sales-dashboard`, { params });
   }
   getLead(orgId: number, id: number): Observable<CrmLead> { return this.http.get<CrmLead>(`${this.url(orgId)}/leads/${id}`); }
   getLeadActivities(orgId: number, id: number): Observable<CrmActivity[]> { return this.http.get<CrmActivity[]>(`${this.url(orgId)}/leads/${id}/activities`); }

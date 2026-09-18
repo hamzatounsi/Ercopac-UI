@@ -11,6 +11,7 @@ import { CrmService } from '../../../dashboard-crm/services/crm.service';
 export class CompanyDashboardComponent implements OnInit {
   dashboard: CompanyDashboard | null = null;
   salesData: any = null; 
+  csData: any = null; // ✅ NOUVEAU : Données Customer Success (Type CS)
   loading = true;
   error = '';
 
@@ -28,23 +29,26 @@ export class CompanyDashboardComponent implements OnInit {
     this.loading = true; 
     this.error = '';
     
-    // 1. Load main Command Center dashboard
     this.service.getDashboard().subscribe({ 
       next: (dashboard) => { 
         this.dashboard = dashboard; 
         this.loading = false; 
         
-        // 2. Load sales data in the background
         const orgId = this.crm.getOrgIdFromToken();
-        this.crm.getSalesDashboard(orgId).subscribe({
-          next: (sales) => { 
-            this.salesData = sales; 
-            
-            // 🔥 CRUCIAL DEBUG: This will show us EXACTLY what the backend is returning
-            console.log('🔥 SALES DATA RECEIVED FROM BACKEND:', this.salesData); 
-          },
+        
+        // 1. Charger les données Sales (Type "BP" ou par défaut)
+        this.crm.getSalesDashboard(orgId, 'BP').subscribe({
+          next: (sales) => { this.salesData = sales; },
+          error: (err) => { console.error('❌ ERROR LOADING SALES DATA:', err); }
+        });
+
+        // 2. ✅ Charger les données Customer Success (Type "CS")
+        this.crm.getSalesDashboard(orgId, 'CS').subscribe({
+          next: (cs) => { this.csData = cs; },
           error: (err) => { 
-            console.error('❌ ERROR LOADING SALES DATA:', err); 
+            console.error('❌ ERROR LOADING CS DATA:', err); 
+            // Fallback pour éviter les erreurs d'affichage si l'endpoint n'est pas encore prêt
+            this.csData = { orderIntakeMtd: 0, pipelineValue: 0, openOpportunities: 0, topOpportunities: [] };
           }
         });
       }, 
@@ -68,28 +72,27 @@ export class CompanyDashboardComponent implements OnInit {
     this.router.navigate(['/crm/sales']); 
   }
 
+  // ✅ NOUVEAU : Navigation vers le dashboard Customer Success
+  openCustomerSuccessDashboard(): void { 
+    // 🔧 Adaptez cette route si votre page CS a un chemin différent (ex: '/crm/customer-success')
+    this.router.navigate(['/crm/customer-success']); 
+  }
+
   currency(value: number | null | undefined): string { 
     return new Intl.NumberFormat('en-IE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value || 0); 
   }
 
-  // ✅ Safe helper methods for the HTML template
-  getSalesOrderIntakeToday(): number {
-    return this.salesData?.orderIntakeMtd || 0;
+  // --- Helpers Sales (BP) ---
+  getSalesOrderIntakeToday(): number { return this.salesData?.orderIntakeMtd || 0; }
+  getSalesWonVsTarget(): number { return this.salesData?.winRate || 0; }
+
+  // --- ✅ Helpers Customer Success (CS) ---
+  getCsOrderIntakeMtd(): number { 
+    return this.csData?.orderIntakeMtd || 0; 
   }
 
-  getSalesWonVsTarget(): number {
-    return this.salesData?.winRate || 0;
-  }
-
-  getSalesPipelineValue(): number {
-    return this.salesData?.pipelineValue || 0;
-  }
-
-  getSalesOpenOpportunities(): number {
-    return this.salesData?.openOpportunities || 0;
-  }
-
-  getSalesTopOpportunitiesCount(): number {
-    return this.salesData?.topOpportunities?.length || 0;
+  getCsRenewalRate(): number { 
+    // Utilise le winRate ou un champ spécifique 'renewalRate' si votre backend le fournit pour le CS
+    return this.csData?.renewalRate || this.csData?.winRate || 0; 
   }
 }

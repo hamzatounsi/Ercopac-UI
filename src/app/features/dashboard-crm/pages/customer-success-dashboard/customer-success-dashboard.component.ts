@@ -3,11 +3,11 @@ import { Router } from '@angular/router';
 import { CrmService } from '../../services/crm.service';
 
 @Component({
-  selector: 'app-sales-dashboard',
-  templateUrl: './sales-dashboard.component.html',
-  styleUrls: ['./sales-dashboard.component.scss']
+  selector: 'app-customer-success-dashboard',
+  templateUrl: './customer-success-dashboard.component.html',
+  styleUrls: ['./customer-success-dashboard.component.scss']
 })
-export class SalesDashboardComponent implements OnInit {
+export class CustomerSuccessDashboardComponent implements OnInit {
   loading = true;
   error = '';
   data: any = null;
@@ -19,16 +19,16 @@ export class SalesDashboardComponent implements OnInit {
 
   load(): void {
     this.loading = true;
-    // ✅ Filter by BP type
-    this.crm.getSalesDashboard(this.orgId, 'BP').subscribe({
+    // ✅ Filter by CS type
+    this.crm.getSalesDashboard(this.orgId, 'CS').subscribe({
       next: (res: any) => { 
-        console.log('✅ Sales Dashboard (BP) Data Received:', res);
+        console.log('✅ CS Dashboard Data Received:', res);
         this.data = res; 
         this.loading = false; 
       },
       error: (err: any) => {
-        console.error('❌ Error loading sales dashboard:', err);
-        this.error = 'Failed to load sales dashboard.';
+        console.error('❌ Error loading CS dashboard:', err);
+        this.error = 'Failed to load Customer Success dashboard.';
         this.loading = false;
       }
     });
