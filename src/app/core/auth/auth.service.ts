@@ -103,19 +103,10 @@ export class AuthService {
 
   getOrganisationName(): string {
     const token = localStorage.getItem('token');
-
-    if (!token) {
-      return '';
-    }
-
+    if (!token) return '';
     try {
       const payload = jwtDecode<JwtPayload>(token);
-
-      return payload.organisationName
-        || payload.orgName
-        || payload.organizationName
-        || payload.organisation
-        || '';
+      return payload.organisationName || payload.orgName || payload.organizationName || payload.organisation || '';
     } catch {
       return '';
     }
@@ -124,7 +115,6 @@ export class AuthService {
   getCurrentUsername(): string {
     const token = this.getToken();
     if (!token) return '';
-
     try {
       const payload = jwtDecode<JwtPayload>(token);
       return payload.fullName || payload.name || payload.username || payload.sub || '';
@@ -157,21 +147,21 @@ export class AuthService {
     return this.getPayload()?.organisationId ?? null;
   }
 
-  getHomeRoute(): string {
+   getHomeRoute(): string {
     if (!this.isLoggedIn()) {
-      return '/';
+      console.log('❌ Not logged in');
+      return '/login';
     }
-
+    
     const roles = this.getRoles();
-    if (roles.length >= 2) return '/workspace';
-    return roles.length === 1 ? directRouteForRole(roles[0]) : '/';
+    console.log('✅ User roles:', roles);
+    console.log('🎯 Redirecting to: /workspace');
+    
+    return '/workspace';
   }
 
   resetPassword(token: string, newPassword: string) {
-    return this.http.post<any>(`${API_AUTH_URL}/password-reset/reset`, {
-      token,
-      newPassword
-    });
+    return this.http.post<any>(`${API_AUTH_URL}/password-reset/reset`, { token, newPassword });
   }
 
   requestPasswordReset(email: string) {
@@ -179,9 +169,7 @@ export class AuthService {
   }
 
   checkApprovedReset(email: string) {
-    return this.http.post<any>(`${API_AUTH_URL}/password-reset/check-approved`, {
-      email
-    });
+    return this.http.post<any>(`${API_AUTH_URL}/password-reset/check-approved`, { email });
   }
 
   private getPayload(): JwtPayload | null {
