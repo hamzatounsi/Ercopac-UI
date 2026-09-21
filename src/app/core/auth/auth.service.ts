@@ -5,6 +5,7 @@ import { jwtDecode } from 'jwt-decode';
 import { API_AUTH_URL } from '../config/api.config';
 import { accessibleWorkspaceModules, directRouteForRole, WorkspaceModule } from './role-module.config';
 
+// 👇 MISE À JOUR : Ajout de H24 et H24_LEAD
 export type AppRole =
   | 'PLATFORM_OWNER'
   | 'ORG_ADMIN'
@@ -16,7 +17,9 @@ export type AppRole =
   | 'SALES_MANAGER_LEAD'
   | 'SALES_MANAGER'
   | 'SYSTEM_ENGINEER'
-  | 'CLIENT';
+  | 'CLIENT'
+  | 'H24'
+  | 'H24_LEAD';
 
 interface JwtPayload {
   sub?: string;
@@ -50,7 +53,6 @@ export interface LoginResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-
   private loginUrl = `${API_AUTH_URL}/login`;
 
   constructor(private http: HttpClient) {}
@@ -147,7 +149,7 @@ export class AuthService {
     return this.getPayload()?.organisationId ?? null;
   }
 
-   getHomeRoute(): string {
+  getHomeRoute(): string {
     if (!this.isLoggedIn()) {
       console.log('❌ Not logged in');
       return '/login';
