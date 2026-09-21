@@ -342,7 +342,12 @@
       <div class="form-grid">
         <label>Customer code <span>*</span><input type="text" formControlName="customerCode" autofocus autocomplete="off" /></label>
         <label>Customer name <span>*</span><input type="text" formControlName="name" autocomplete="off" /></label>
-        <label>Country<input type="text" formControlName="country" /></label>
+        <label>Country
+  <select formControlName="country">
+    <option value="">Select a country</option>
+    <option *ngFor="let country of countries" [value]="country">{{ country }}</option>
+  </select>
+</label>
         <label>Town or city<input type="text" formControlName="town" /></label>
         <label class="wide">Address<input type="text" formControlName="address" /></label>
         <label>VAT / tax ID<input type="text" formControlName="vatTaxId" /></label>
