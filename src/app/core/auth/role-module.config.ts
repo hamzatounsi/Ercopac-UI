@@ -26,7 +26,7 @@ const WORKSPACE_MODULES: Record<WorkspaceModuleKey, WorkspaceModule> = {
   DEPARTMENT: { key: 'DEPARTMENT', name: 'My Department', route: '/department', icon: APPLICATION_ICONS.myDepartment },
   EMPLOYEE: { key: 'EMPLOYEE', name: 'Employee', route: '/employee', icon: APPLICATION_ICONS.employee },
   CRM: { key: 'CRM', name: 'My CRM', route: '/crm/opportunities', icon: APPLICATION_ICONS.myCrm },
-  TICKETING: { key: 'TICKETING', name: 'Ticketing', route: '/tickets', icon: APPLICATION_ICONS.ticketing }
+  TICKETING: { key: 'TICKETING', name: 'My Ticketing', route: '/tickets', icon: APPLICATION_ICONS.ticketing }
 };
 
 export const ROLE_MODULE_MAP: Record<AppRole, WorkspaceModuleKey> = {
@@ -40,15 +40,17 @@ export const ROLE_MODULE_MAP: Record<AppRole, WorkspaceModuleKey> = {
   SALES_MANAGER_LEAD: 'CRM',
   SALES_MANAGER: 'CRM',
   SYSTEM_ENGINEER: 'CRM',
-  CLIENT: 'TICKETING'
+  CLIENT: 'TICKETING',
+  H24: 'TICKETING',        // 👈 AJOUT : Mappe H24 vers le module Ticketing
+  H24_LEAD: 'TICKETING'    // 👈 AJOUT : Mappe H24_LEAD vers le module Ticketing
 };
 
 export function accessibleWorkspaceModules(roles: readonly AppRole[]): WorkspaceModule[] {
   const keys = roles.map(role => ROLE_MODULE_MAP[role]).filter(Boolean);
   
-  // ✅ AJOUT : Si l'utilisateur a l'un de ces rôles, on ajoute aussi Ticketing
+  // ✅ MISE À JOUR : Ajout de H24 et H24_LEAD dans la liste des rôles ayant accès au ticketing
   const hasTicketingAccess = roles.some(role => 
-    ['CLIENT', 'SALES_MANAGER', 'SALES_MANAGER_LEAD', 'PLATFORM_OWNER', 'ORG_ADMIN'].includes(role)
+    ['CLIENT', 'SALES_MANAGER', 'SALES_MANAGER_LEAD', 'PLATFORM_OWNER', 'ORG_ADMIN', 'H24', 'H24_LEAD'].includes(role)
   );
   
   if (hasTicketingAccess && !keys.includes('TICKETING')) {
