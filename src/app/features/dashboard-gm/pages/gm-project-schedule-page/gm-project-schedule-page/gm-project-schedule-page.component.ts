@@ -2594,21 +2594,32 @@ this.isProjectManagerLead = roles.includes('PROJECT_MANAGER_LEAD');
     return 'ACTIVITY';
   }
 
-  // ================= MILESTONES (CORRIGÉ) =================
-  loadMilestoneTypes(): void {
-    console.log('Loading milestones...');
-    this.milestoneService.getMilestoneTypes(this.projectId).subscribe({
-      next: (types) => {
-        console.log('Milestones loaded:', types);
-        this.milestoneTypes = (types ?? []).map(type => ({ ...type, id: Number(type.id) }));
-      },
-      error: (err) => {
-        console.error('Failed to load milestone types', err);
-        this.milestoneTypes = [];
-      }
-    });
-  }
+ loadMilestoneTypes(): void {
+  console.log('Loading milestones...');
+  
+  // ✅ Check if user is PM Lead
+  const roles = this.authService.getRoles();
+  this.isProjectManagerLead = roles.includes('PROJECT_MANAGER_LEAD');
 
+  this.milestoneService.getMilestoneTypes(this.projectId).subscribe({
+    next: (types) => {
+      console.log('Milestones loaded:', types);
+      this.milestoneTypes = (types ?? []).map(type => ({ ...type, id: Number(type.id) }));
+    },
+    error: (err) => {
+      console.error('Failed to load milestone types', err);
+      this.milestoneTypes = [];
+    }
+  });
+}
+// ✅ ADD THIS GETTER
+get sharedMilestoneTypes(): any[] {
+  return this.milestoneTypes.filter(mt => mt.shared === true);
+}
+// ✅ ADD THIS GETTER
+get visibleMilestoneTypes(): any[] {
+  return this.milestoneTypes.filter(mt => mt.shared === true);
+}
   saveNewMilestoneType(): void {
     const name = this.newMilestoneType.label.trim();
     if (!name) return;
@@ -2701,6 +2712,7 @@ this.isProjectManagerLead = roles.includes('PROJECT_MANAGER_LEAD');
     });
   }
   // ✅ ADD THIS NEW METHOD:
+// ✅ ADD THIS NEW METHOD
 toggleMilestoneSharing(milestoneType: any): void {
   if (!this.isProjectManagerLead) {
     alert('Only the Project Manager Lead can share milestones.');
@@ -2709,9 +2721,10 @@ toggleMilestoneSharing(milestoneType: any): void {
 
   const newSharedStatus = !milestoneType.shared;
 
+  // Ensure your service has this method (see step 3)
   this.milestoneService.updateMilestoneTypeSharing(this.projectId, milestoneType.id, newSharedStatus).subscribe({
     next: () => {
-      milestoneType.shared = newSharedStatus;
+      milestoneType.shared = newSharedStatus; // Update local state
     },
     error: (err) => {
       console.error('Failed to update milestone sharing', err);

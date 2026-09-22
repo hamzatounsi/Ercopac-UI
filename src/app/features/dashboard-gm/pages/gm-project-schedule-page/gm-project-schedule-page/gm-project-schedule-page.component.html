@@ -238,9 +238,9 @@
     style="flex: 1; padding: 2px 4px; border: 1px solid #d1d5db; border-radius: 3px; font-size: 12px;"
   >
     <option [ngValue]="null">-- Select milestone --</option>
-    <option *ngFor="let mt of milestoneTypes" [value]="mt.code" [style.background]="mt.color">
-      {{ mt.code }} - {{ mt.label }}
-    </option>
+    <option *ngFor="let mt of sharedMilestoneTypes" [value]="mt.code" [style.background]="mt.color">
+  {{ mt.code }} - {{ mt.label }}
+</option>
   </select>
 </ng-container>
 
@@ -1128,7 +1128,7 @@
             </div>
 
             <!-- List of Milestones -->
-            <div class="drawer-list-card" *ngFor="let mt of milestoneTypes">
+            <div class="drawer-list-card" *ngFor="let mt of visibleMilestoneTypes">
               <div class="calendar-avatar" [style.background]="mt.color" style="color: white; font-weight: bold; display: flex; align-items: center; justify-content: center;">
                 {{ mt.letterCode || mt.code }}
               </div>
