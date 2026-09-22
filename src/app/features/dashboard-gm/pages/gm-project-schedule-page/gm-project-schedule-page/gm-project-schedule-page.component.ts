@@ -153,7 +153,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   milestoneTypes: any[] = [];
   newMilestoneType = { code: '', label: '', color: '#cccccc', letterCode: '' };
   editingMilestoneType: any | null = null;
-
+isProjectManagerLead = false;
   history: GmProjectScheduleTask[][] = [];
   future: GmProjectScheduleTask[][] = [];
   templateName = '';
@@ -296,6 +296,8 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
       this.loadConfiguredResourceTypes();
       this.loadProjectName();
       this.loadMilestoneTypes();
+      const roles = this.authService.getRoles();
+this.isProjectManagerLead = roles.includes('PROJECT_MANAGER_LEAD');
     });
   }
 
@@ -2698,6 +2700,25 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
       error: (err) => console.error('Failed to update milestone type', err)
     });
   }
+  // ✅ ADD THIS NEW METHOD:
+toggleMilestoneSharing(milestoneType: any): void {
+  if (!this.isProjectManagerLead) {
+    alert('Only the Project Manager Lead can share milestones.');
+    return;
+  }
+
+  const newSharedStatus = !milestoneType.shared;
+
+  this.milestoneService.updateMilestoneTypeSharing(this.projectId, milestoneType.id, newSharedStatus).subscribe({
+    next: () => {
+      milestoneType.shared = newSharedStatus;
+    },
+    error: (err) => {
+      console.error('Failed to update milestone sharing', err);
+      alert('Could not update sharing status.');
+    }
+  });
+}
 
   selectedMilestoneTypeId(task: GmProjectScheduleTask): number | null {
     return task.milestoneTypeId == null ? null : Number(task.milestoneTypeId);

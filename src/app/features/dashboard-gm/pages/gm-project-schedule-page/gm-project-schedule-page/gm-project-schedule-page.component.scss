@@ -165,3 +165,29 @@ tr.gantt-row {
 .gantt-body-scroll {
   padding-bottom: 120px !important;
 }
+.shared-toggle-btn {
+  color: #94a3b8;
+  transition: all 0.2s ease;
+
+  &.shared {
+    color: #3b82f6;
+    
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 1;
+    }
+  }
+
+  &:hover:not(:disabled) {
+    background: #f1f5f9;
+    color: #3b82f6;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  .material-symbols-outlined {
+    font-size: 20px;
+  }
+}

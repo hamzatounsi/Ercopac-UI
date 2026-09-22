@@ -12,4 +12,5 @@ export interface CreateMilestoneTypeRequest {
   label: string;
   color: string;
   letterCode: string;
+    shared?: boolean; 
 }
