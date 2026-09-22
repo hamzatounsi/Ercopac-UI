@@ -2593,8 +2593,7 @@ this.isProjectManagerLead = roles.includes('PROJECT_MANAGER_LEAD');
     if (normalized === 'MILESTONE') return 'MILESTONE';
     return 'ACTIVITY';
   }
-
- loadMilestoneTypes(): void {
+loadMilestoneTypes(): void {
   console.log('Loading milestones...');
   
   // ✅ Check if user is PM Lead
@@ -2604,7 +2603,11 @@ this.isProjectManagerLead = roles.includes('PROJECT_MANAGER_LEAD');
   this.milestoneService.getMilestoneTypes(this.projectId).subscribe({
     next: (types) => {
       console.log('Milestones loaded:', types);
-      this.milestoneTypes = (types ?? []).map(type => ({ ...type, id: Number(type.id) }));
+      this.milestoneTypes = (types ?? []).map(type => ({ 
+        ...type, 
+        id: Number(type.id),
+        shared: type.shared ?? false // Ensure shared defaults to false
+      }));
     },
     error: (err) => {
       console.error('Failed to load milestone types', err);
@@ -2618,8 +2621,12 @@ get sharedMilestoneTypes(): any[] {
 }
 // ✅ ADD THIS GETTER
 get visibleMilestoneTypes(): any[] {
-  return this.milestoneTypes.filter(mt => mt.shared === true);
+  if (this.isProjectManagerLead) {
+    return this.milestoneTypes; // PM Lead sees ALL milestones in Settings
+  }
+  return this.milestoneTypes.filter(mt => mt.shared === true); // Regular PM sees only shared
 }
+
   saveNewMilestoneType(): void {
     const name = this.newMilestoneType.label.trim();
     if (!name) return;
