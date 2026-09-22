@@ -10,7 +10,7 @@ import { InitializedProjectResponse } from '../models/initialized-project-respon
   providedIn: 'root'
 })
 export class GmProjectScheduleService {
-  private readonly baseUrl = API_GM_URL;
+  private readonly baseUrl = API_GM_URL; // ✅ Notice it's baseUrl
 
   constructor(private http: HttpClient) {}
 
@@ -21,5 +21,10 @@ export class GmProjectScheduleService {
       `${this.baseUrl}/projects/schedule-init`,
       payload
     );
+  }
+
+  // ✅ CORRECTED METHOD
+  updateMilestoneTypeSharing(projectId: number, milestoneTypeId: number, shared: boolean): Observable<any> {
+    return this.http.patch(`${this.baseUrl}/projects/${projectId}/milestone-types/${milestoneTypeId}/sharing`, { shared });
   }
 }

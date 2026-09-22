@@ -39,7 +39,10 @@ export class MilestoneService {
   deleteMilestoneType(projectId: number, id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/projects/${projectId}/types/${id}`);
   }
-
+  // ✅ FIXED: Changed `this.apiUrl` to `this.baseUrl` and matched the URL pattern of your other methods
+  updateMilestoneTypeSharing(projectId: number, milestoneTypeId: number, shared: boolean): Observable<any> {
+    return this.http.patch<any>(`${this.baseUrl}/projects/${projectId}/types/${milestoneTypeId}/sharing`, { shared });
+  }
   getMilestonesByDateRange(projectIds: number[], startDate: string, endDate: string): Observable<ProjectMilestone[]> {
     const params = new HttpParams()
       .set('projectIds', projectIds.join(','))
