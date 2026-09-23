@@ -2,15 +2,13 @@ import { GmDashboardService } from '../../services/gm-dashboard.service';
 import { MilestoneService, ProjectMilestone } from '../../services/milestone.service';
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+
 @Component({
   selector: 'app-milestone-dashboard',
   templateUrl: './milestone-dashboard.component.html',
   styleUrls: ['./milestone-dashboard.component.scss']
 })
 export class MilestoneDashboardComponent implements OnInit {
-  // ✅ Contexte projet (repris de la route, même logique que Finance) — utilisé
-  // uniquement pour l'affichage du header (badge projet + barre d'onglets).
-  // Ne filtre PAS le tableau : celui-ci reste global (tous les projets).
   projectId: number | null = null;
   projectName = '';
 
@@ -21,7 +19,6 @@ export class MilestoneDashboardComponent implements OnInit {
   startDate = this.toDateInput(new Date(new Date().getFullYear() - 1, 0, 1));
   endDate = this.toDateInput(new Date(new Date().getFullYear() + 5, 11, 31));
   
-  // ✅ Largeur fixe par jour en pixels (comme ta version originale qui marchait)
   dayWidth = 30;
 
   constructor(
@@ -53,8 +50,6 @@ export class MilestoneDashboardComponent implements OnInit {
     });
   }
 
-  // ✅ Résout le nom du projet courant pour le badge du header (même logique que Finance).
-  // N'affecte pas la liste `projects` ni le tableau des milestones.
   private resolveProjectName(): void {
     if (!this.projectId) { this.projectName = ''; return; }
     const project = this.projects.find((p: any) => Number(p.id) === this.projectId);
@@ -72,6 +67,8 @@ export class MilestoneDashboardComponent implements OnInit {
       this.projects.map(project => Number(project.id)), this.startDate, this.endDate
     ).subscribe({
       next: milestones => {
+        // ✅ The backend now automatically filters this list to ONLY include 
+        // milestones where shared = true (checked in settings).
         this.milestones = milestones ?? [];
         this.loading = false;
       },
@@ -89,7 +86,6 @@ export class MilestoneDashboardComponent implements OnInit {
       .sort((left, right) => left.milestoneDate.localeCompare(right.milestoneDate));
   }
 
-  // ✅ Largeur totale de la timeline en pixels
   get timelineWidth(): number {
     return this.daysInRange * this.dayWidth;
   }
@@ -98,7 +94,6 @@ export class MilestoneDashboardComponent implements OnInit {
     return Math.max(1, Math.round((this.asDate(this.endDate).getTime() - this.asDate(this.startDate).getTime()) / 86400000) + 1);
   }
 
-  // ✅ Liste des mois avec largeur en pixels
   get months(): { label: string; width: number }[] {
     const months: { label: string; width: number }[] = [];
     let cursor = new Date(this.asDate(this.startDate).getFullYear(), this.asDate(this.startDate).getMonth(), 1);
@@ -117,7 +112,6 @@ export class MilestoneDashboardComponent implements OnInit {
     return months;
   }
 
-  // ✅ Liste des jours
   get days(): { label: string; isWeekend: boolean }[] {
     const daysList = [];
     let cursor = this.asDate(this.startDate);
@@ -133,7 +127,6 @@ export class MilestoneDashboardComponent implements OnInit {
     return daysList;
   }
 
-  // ✅ Position du milestone en PIXELS (pas en pourcentage)
   milestoneOffsetPx(milestone: ProjectMilestone): number {
     const offsetDays = Math.round((this.asDate(milestone.milestoneDate).getTime() - this.asDate(this.startDate).getTime()) / 86400000);
     return Math.max(0, offsetDays * this.dayWidth + (this.dayWidth / 2));
@@ -171,5 +164,6 @@ export class MilestoneDashboardComponent implements OnInit {
   private toDateInput(date: Date): string {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   }
+  
   private asDate(value: string): Date { return new Date(`${value}T00:00:00`); }
 }

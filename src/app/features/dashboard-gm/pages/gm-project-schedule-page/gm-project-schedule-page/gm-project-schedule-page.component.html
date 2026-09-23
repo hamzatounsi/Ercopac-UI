@@ -1150,18 +1150,17 @@
   </ng-container>
   <ng-template #viewActions>
     <!-- ✅ NEW: Shared checkbox button -->
-    <button
-      type="button"
-      class="icon-square-btn shared-toggle-btn"
-      [class.shared]="mt.shared"
-    
-      [title]="mt.shared ? 'Shared with all PMs (click to unshare)' : 'Share with all PMs'"
-      (click)="toggleMilestoneSharing(mt)"
-    >
-      <span class="material-symbols-outlined">
-        {{ mt.shared ? 'check_box' : 'check_box_outline_blank' }}
-      </span>
-    </button>
+ <button
+  type="button"
+  class="icon-square-btn shared-toggle-btn"
+  [class.shared]="mt.shared"
+  [title]="mt.shared ? 'Visible in Milestone Dashboard' : 'Hidden from Milestone Dashboard'"
+  (click)="toggleMilestoneSharing(mt)"
+>
+  <span class="material-symbols-outlined">
+    {{ mt.shared ? 'check_box' : 'check_box_outline_blank' }}
+  </span>
+</button>
 
     <button type="button" class="icon-square-btn" (click)="beginEditMilestoneType(mt)" title="Edit milestone"><span class="material-symbols-outlined">edit</span></button>
     <button type="button" class="icon-square-btn danger" (click)="deleteMilestoneType(mt.id)">
