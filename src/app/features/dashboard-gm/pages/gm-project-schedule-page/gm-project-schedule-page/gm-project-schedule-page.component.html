@@ -238,7 +238,7 @@
     style="flex: 1; padding: 2px 4px; border: 1px solid #d1d5db; border-radius: 3px; font-size: 12px;"
   >
     <option [ngValue]="null">-- Select milestone --</option>
-    <option *ngFor="let mt of sharedMilestoneTypes" [value]="mt.code" [style.background]="mt.color">
+   <option *ngFor="let mt of milestoneTypes" [value]="mt.code" [style.background]="mt.color">
   {{ mt.code }} - {{ mt.label }}
 </option>
   </select>
@@ -1154,7 +1154,7 @@
       type="button"
       class="icon-square-btn shared-toggle-btn"
       [class.shared]="mt.shared"
-      [disabled]="!isProjectManagerLead"
+    
       [title]="mt.shared ? 'Shared with all PMs (click to unshare)' : 'Share with all PMs'"
       (click)="toggleMilestoneSharing(mt)"
     >
