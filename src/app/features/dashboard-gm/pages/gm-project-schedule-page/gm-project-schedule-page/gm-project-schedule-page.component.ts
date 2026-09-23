@@ -153,7 +153,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   milestoneTypes: any[] = [];
   newMilestoneType = { code: '', label: '', color: '#cccccc', letterCode: '' };
   editingMilestoneType: any | null = null;
-isProjectManagerLead = false;
+
   history: GmProjectScheduleTask[][] = [];
   future: GmProjectScheduleTask[][] = [];
   templateName = '';
@@ -297,7 +297,7 @@ isProjectManagerLead = false;
       this.loadProjectName();
       this.loadMilestoneTypes();
       const roles = this.authService.getRoles();
-this.isProjectManagerLead = roles.includes('PROJECT_MANAGER_LEAD');
+
     });
   }
 
@@ -2596,9 +2596,6 @@ this.isProjectManagerLead = roles.includes('PROJECT_MANAGER_LEAD');
 loadMilestoneTypes(): void {
   console.log('Loading milestones...');
   
-  // ✅ Check if user is PM Lead
-  const roles = this.authService.getRoles();
-  this.isProjectManagerLead = roles.includes('PROJECT_MANAGER_LEAD');
 
   this.milestoneService.getMilestoneTypes(this.projectId).subscribe({
     next: (types) => {
@@ -2616,15 +2613,14 @@ loadMilestoneTypes(): void {
   });
 }
 // ✅ ADD THIS GETTER
+
 get sharedMilestoneTypes(): any[] {
-  return this.milestoneTypes.filter(mt => mt.shared === true);
+  return this.milestoneTypes.filter(mt => mt.shared === true); // Everyone sees only shared in Schedule
 }
 // ✅ ADD THIS GETTER
+// ✅ ADD THESE GETTERS
 get visibleMilestoneTypes(): any[] {
-  if (this.isProjectManagerLead) {
-    return this.milestoneTypes; // PM Lead sees ALL milestones in Settings
-  }
-  return this.milestoneTypes.filter(mt => mt.shared === true); // Regular PM sees only shared
+  return this.milestoneTypes; // Everyone sees ALL milestones in Settings
 }
 
   saveNewMilestoneType(): void {
@@ -2646,7 +2642,7 @@ get visibleMilestoneTypes(): any[] {
 
   loadDefaultMilestones(): void {
     this.loadMilestoneTypes();
-    return;
+   
     const defaultMilestones = [
       { code: 'RT', label: 'RT', letterCode: '', color: '#7FFFD4' },
       { code: 'KOM', label: 'KOM', letterCode: '', color: '#228B22' },
@@ -2721,10 +2717,7 @@ get visibleMilestoneTypes(): any[] {
   // ✅ ADD THIS NEW METHOD:
 // ✅ ADD THIS NEW METHOD
 toggleMilestoneSharing(milestoneType: any): void {
-  if (!this.isProjectManagerLead) {
-    alert('Only the Project Manager Lead can share milestones.');
-    return;
-  }
+
 
   const newSharedStatus = !milestoneType.shared;
 
