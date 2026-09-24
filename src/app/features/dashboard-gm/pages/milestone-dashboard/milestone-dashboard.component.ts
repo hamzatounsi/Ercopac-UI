@@ -1,7 +1,11 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { GmDashboardService } from '../../services/gm-dashboard.service';
-import { MilestoneService, ProjectMilestone } from '../../services/milestone.service';
+import { MilestoneService } from '../../services/milestone.service';
+import { GmProjectTimelineService } from '../../services/gm-project-timeline.service';
+import { GmProjectScheduleTask } from '../../models/gm-project-schedule-task.model';
 
 interface TimelineDay {
   label: string;
@@ -14,6 +18,20 @@ interface TimelineMonth {
   width: number;
 }
 
+/** Milestone as displayed in the dashboard, built from the schedule task. */
+export interface DashboardMilestone {
+  id: number;                 // task id
+  projectId: number;
+  taskName: string;
+  milestoneTypeId: number | null;
+  milestoneTypeCode: string;
+  milestoneTypeLabel: string;
+  milestoneTypeColor: string;
+  milestoneDate: string;      // yyyy-MM-dd (actual date, fallback baseline)
+  dateSource: 'actual' | 'baseline';
+  baselineDate: string | null;
+}
+
 @Component({
   selector: 'app-milestone-dashboard',
   templateUrl: './milestone-dashboard.component.html',
@@ -24,7 +42,8 @@ export class MilestoneDashboardComponent implements OnInit {
   projectName = '';
 
   projects: any[] = [];
-  milestones: ProjectMilestone[] = [];
+  milestones: DashboardMilestone[] = [];
+  private milestonesByProject = new Map<number, DashboardMilestone[]>();
   loading = false;
   errorMessage = '';
 
@@ -34,7 +53,7 @@ export class MilestoneDashboardComponent implements OnInit {
 
   dayWidth = 30;
 
-  // Cached timeline (rebuilt only on init / Apply, never on change detection)
+  // Cached timeline (rebuilt only on init / Apply)
   days: TimelineDay[] = [];
   months: TimelineMonth[] = [];
   timelineWidth = 0;
@@ -54,7 +73,8 @@ export class MilestoneDashboardComponent implements OnInit {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly milestoneService: MilestoneService,
-    private readonly dashboardService: GmDashboardService
+    private readonly dashboardService: GmDashboardService,
+    private readonly timelineService: GmProjectTimelineService
   ) {
     const year = new Date().getFullYear();
     this.startDate = this.toDateInput(new Date(year - 1, 0, 1));
@@ -131,13 +151,11 @@ export class MilestoneDashboardComponent implements OnInit {
       this.pendingScroll = false;
       return;
     }
-    // Fixed columns are sticky inside the same scroller,
-    // so scrollLeft is simply the offset inside the timeline track.
     this.scrollEl.scrollLeft = offsetDays * this.dayWidth;
     this.pendingScroll = false;
   }
 
-  milestoneOffsetPx(milestone: ProjectMilestone): number {
+  milestoneOffsetPx(milestone: DashboardMilestone): number {
     const offsetDays = this.dayDiff(this.asDate(this.startDate), this.asDate(milestone.milestoneDate));
     return Math.max(0, offsetDays * this.dayWidth + this.dayWidth / 2);
   }
@@ -170,37 +188,109 @@ export class MilestoneDashboardComponent implements OnInit {
     this.projectName = project?.name || project?.projectName || `Project #${this.projectId}`;
   }
 
+  /**
+   * Reads milestones directly from each project's schedule so the dashboard
+   * always shows the same date as the Schedule page:
+   *   actual date (actualStart) → fallback baseline date.
+   * Only milestone types marked "shared" are displayed.
+   */
   loadMilestones(): void {
     if (!this.projects.length) {
       this.milestones = [];
+      this.milestonesByProject.clear();
       this.loading = false;
       return;
     }
 
-    this.milestoneService
-      .getMilestonesByDateRange(
-        this.projects.map(project => Number(project.id)),
-        this.startDate,
-        this.endDate
-      )
-      .subscribe({
-        next: milestones => {
-          // Backend returns only milestones where shared = true
-          this.milestones = milestones ?? [];
-          this.loading = false;
-        },
-        error: () => {
-          this.milestones = [];
-          this.loading = false;
-          this.errorMessage = 'Milestones could not be loaded. Please try again.';
-        }
-      });
+    this.loading = true;
+    const rangeStart = this.startDate;
+    const rangeEnd = this.endDate;
+
+    const requests = this.projects.map(project => {
+      const projectId = Number(project.id);
+      return forkJoin({
+        tasks: this.timelineService.getProjectSchedule(projectId).pipe(
+          catchError(() => of([] as GmProjectScheduleTask[]))
+        ),
+        types: this.milestoneService.getMilestoneTypes(projectId).pipe(
+          catchError(() => of([] as any[]))
+        )
+      }).pipe(
+        map(({ tasks, types }) => this.toDashboardMilestones(projectId, tasks ?? [], types ?? [], rangeStart, rangeEnd))
+      );
+    });
+
+    forkJoin(requests).subscribe({
+      next: perProject => {
+        this.milestones = perProject.flat();
+        this.milestonesByProject.clear();
+        this.milestones.forEach(m => {
+          const list = this.milestonesByProject.get(m.projectId) ?? [];
+          list.push(m);
+          this.milestonesByProject.set(m.projectId, list);
+        });
+        this.milestonesByProject.forEach(list =>
+          list.sort((a, b) => a.milestoneDate.localeCompare(b.milestoneDate))
+        );
+        this.loading = false;
+      },
+      error: () => {
+        this.milestones = [];
+        this.milestonesByProject.clear();
+        this.loading = false;
+        this.errorMessage = 'Milestones could not be loaded. Please try again.';
+      }
+    });
   }
 
-  milestonesFor(projectId: number | string): ProjectMilestone[] {
-    return this.milestones
-      .filter(milestone => Number(milestone.projectId) === Number(projectId))
-      .sort((left, right) => left.milestoneDate.localeCompare(right.milestoneDate));
+  private toDashboardMilestones(
+    projectId: number,
+    tasks: GmProjectScheduleTask[],
+    types: any[],
+    rangeStart: string,
+    rangeEnd: string
+  ): DashboardMilestone[] {
+    const typeById = new Map<number, any>(types.map(t => [Number(t.id), t]));
+
+    return tasks
+      .filter(task => (task.taskType || '').toUpperCase() === 'MILESTONE')
+      .map(task => {
+        const typeId = task.milestoneTypeId == null ? null : Number(task.milestoneTypeId);
+        const type = typeId != null ? typeById.get(typeId) : undefined;
+        if (!type || type.shared !== true) return null;           // only shared types
+
+        const actual = this.normalizeDate(task.actualStart ?? task.actualEnd);
+        const baseline = this.normalizeDate(
+          task.baselineStart ?? task.plannedStart ?? task.baselineEnd ?? task.plannedEnd
+        );
+        const date = actual ?? baseline;
+        if (!date || date < rangeStart || date > rangeEnd) return null;
+
+        return {
+          id: task.id,
+          projectId,
+          taskName: task.name ?? '',
+          milestoneTypeId: typeId,
+          milestoneTypeCode: type.letterCode || type.code || 'M',
+          milestoneTypeLabel: type.label || type.code || task.name || 'Milestone',
+          milestoneTypeColor: type.color || task.color || '#6b7280',
+          milestoneDate: date,
+          dateSource: actual ? 'actual' : 'baseline',
+          baselineDate: baseline
+        } as DashboardMilestone;
+      })
+      .filter((m): m is DashboardMilestone => m !== null);
+  }
+
+  milestonesFor(projectId: number | string): DashboardMilestone[] {
+    return this.milestonesByProject.get(Number(projectId)) ?? [];
+  }
+
+  milestoneTitle(m: DashboardMilestone): string {
+    const main = `${m.milestoneTypeLabel} — ${this.formatDate(m.milestoneDate)} (${m.dateSource === 'actual' ? 'Actual' : 'Baseline'})`;
+    return m.dateSource === 'actual' && m.baselineDate && m.baselineDate !== m.milestoneDate
+      ? `${main}\nBaseline: ${this.formatDate(m.baselineDate)}`
+      : main;
   }
 
   // ---------- Display helpers ----------
@@ -234,13 +324,23 @@ export class MilestoneDashboardComponent implements OnInit {
   // ---------- trackBy ----------
 
   trackProject(_: number, project: any): number { return Number(project.id); }
-  trackMilestone(_: number, milestone: ProjectMilestone): number { return milestone.id; }
+  trackMilestone(_: number, milestone: DashboardMilestone): number { return milestone.id; }
   trackIndex(index: number): number { return index; }
 
   // ---------- Date utils ----------
 
+  /** Accepts yyyy-MM-dd, yyyy-MM-ddTHH:mm..., or dd.MM.yyyy → yyyy-MM-dd */
+  private normalizeDate(value?: string | null): string | null {
+    if (!value) return null;
+    const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+    if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+    const dotted = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(value);
+    if (dotted) return `${dotted[3]}-${dotted[2]}-${dotted[1]}`;
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? null : this.toDateInput(d);
+  }
+
   private dayDiff(from: Date, to: Date): number {
-    // Math.round absorbs the 1-hour DST shift
     return Math.round((to.getTime() - from.getTime()) / 86400000);
   }
 

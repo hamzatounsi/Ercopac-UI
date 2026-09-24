@@ -76,8 +76,9 @@
             <span *ngFor="let milestone of milestonesFor(project.id); trackBy: trackMilestone"
                   class="marker"
                   [style.left.px]="milestoneOffsetPx(milestone)"
+                  [class.is-baseline]="milestone.dateSource === 'baseline'"
                   [style.background-color]="milestone.milestoneTypeColor || '#6b7280'"
-                  [title]="(milestone.milestoneTypeLabel || milestone.milestoneTypeCode) + ' — ' + formatDate(milestone.milestoneDate)">
+                  [title]="milestoneTitle(milestone)">
               {{ milestone.milestoneTypeCode || 'M' }}
             </span>
           </div>
