@@ -1,9 +1,14 @@
 <main class="milestone-page">
-  <app-projectum-workspace-header [projectId]="projectId" [projectName]="projectName" title="Project milestones" subtitle="Scheduled milestones by project.">
+  <app-projectum-workspace-header
+    [projectId]="projectId"
+    [projectName]="projectName"
+    title="Project milestones"
+    subtitle="Scheduled milestones by project.">
     <div projectumHeaderActions class="date-filter">
       <label>From <input type="date" [(ngModel)]="startDate"></label>
       <label>To <input type="date" [(ngModel)]="endDate"></label>
-      <button type="button" (click)="loadMilestones()">Apply</button>
+      <button type="button" (click)="applyFilter()">Apply</button>
+      <button type="button" class="btn-today" (click)="scrollToCurrentMonth()">Today</button>
     </div>
   </app-projectum-workspace-header>
 
@@ -12,10 +17,10 @@
   <section *ngIf="!loading && !projects.length" class="empty-state">No accessible projects.</section>
 
   <section *ngIf="!loading && projects.length" class="timeline-card">
-    <div class="timeline-scroll">
+    <div class="timeline-scroll" #timelineScroll>
       <div class="timeline-content">
 
-        <!-- HEADER : sticky top, contient aussi les colonnes fixes sticky left -->
+        <!-- HEADER: sticky top, fixed columns sticky left -->
         <div class="header-block">
           <div class="fixed-cols fixed-cols--header">
             <div class="col col--project">Project</div>
@@ -25,12 +30,18 @@
 
           <div class="header-timeline" [style.width.px]="timelineWidth">
             <div class="months-row">
-              <div *ngFor="let month of months" class="month-cell" [style.width.px]="month.width">
+              <div *ngFor="let month of months; trackBy: trackIndex"
+                   class="month-cell"
+                   [style.width.px]="month.width">
                 {{ month.label }}
               </div>
             </div>
             <div class="days-row">
-              <div *ngFor="let day of days" class="day-cell" [style.width.px]="dayWidth" [class.is-weekend]="day.isWeekend">
+              <div *ngFor="let day of days; trackBy: trackIndex"
+                   class="day-cell"
+                   [style.width.px]="dayWidth"
+                   [class.is-weekend]="day.isWeekend"
+                   [class.is-today]="day.isToday">
                 {{ day.label }}
               </div>
             </div>
@@ -56,7 +67,11 @@
 
           <div class="timeline-track" [style.width.px]="timelineWidth">
             <div class="track-grid">
-              <div *ngFor="let day of days" class="grid-day" [style.width.px]="dayWidth" [class.is-weekend]="day.isWeekend"></div>
+              <div *ngFor="let day of days; trackBy: trackIndex"
+                   class="grid-day"
+                   [style.width.px]="dayWidth"
+                   [class.is-weekend]="day.isWeekend"
+                   [class.is-today]="day.isToday"></div>
             </div>
             <span *ngFor="let milestone of milestonesFor(project.id); trackBy: trackMilestone"
                   class="marker"
