@@ -1,0 +1,33 @@
+<div class="settings-container">
+  <div class="header">
+    <h2>L2 Technicians</h2>
+    <p class="subtitle">Level 2 specialists assigned by H24 agents when escalation is needed.</p>
+    <button class="btn-primary">+ Add L2</button>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>NAME</th>
+          <th>SPECIALISATION</th>
+          <th>LEVEL</th>
+          <th>ACTIVE</th>
+          <th>STATUS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users">
+          <td class="font-bold">{{ user.fullName }}</td>
+          <td>{{ user.specialization || 'General' }}</td>
+          <td><span class="badge badge-info">L2</span></td>
+          <td>0</td>
+          <td><span class="badge badge-success">Active</span></td>
+        </tr>
+        <tr *ngIf="users.length === 0">
+          <td colspan="5" class="text-center">No L2 technicians found. (Check the "isL2Technician" flag in database).</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

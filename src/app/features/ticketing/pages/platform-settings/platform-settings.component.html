@@ -1,0 +1,60 @@
+<div class="flex h-screen bg-gray-50">
+  <!-- Sidebar -->
+  <div class="w-64 bg-white border-r shadow-sm">
+    <div class="p-6">
+      <h2 class="text-xl font-bold mb-6 text-gray-800">Platform settings</h2>
+      <nav>
+        <!-- Section USERS -->
+        <div class="mb-6">
+          <h3 class="text-xs font-semibold text-gray-500 uppercase mb-3">USERS</h3>
+          <ul class="space-y-1">
+            <li>
+              <a routerLink="customers" routerLinkActive="bg-blue-50 text-blue-600"
+                 class="block px-3 py-2 rounded-md hover:bg-gray-50 text-sm">
+                Customers
+              </a>
+            </li>
+            <li>
+              <a routerLink="h24-agents" routerLinkActive="bg-blue-50 text-blue-600"
+                 class="block px-3 py-2 rounded-md hover:bg-gray-50 text-sm">
+                H24 Agents
+              </a>
+            </li>
+            <li>
+              <a routerLink="l2-technicians" routerLinkActive="bg-blue-50 text-blue-600"
+                 class="block px-3 py-2 rounded-md hover:bg-gray-50 text-sm">
+                L2 Technicians
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Section TICKETS -->
+        <div class="mb-6">
+          <h3 class="text-xs font-semibold text-gray-500 uppercase mb-3">TICKETS</h3>
+          <ul class="space-y-1">
+            <li>
+              <a routerLink="statuses" routerLinkActive="bg-blue-50 text-blue-600"
+                 class="block px-3 py-2 rounded-md hover:bg-gray-50 text-sm">
+                Statuses
+              </a>
+            </li>
+            <li>
+              <a routerLink="priorities" routerLinkActive="bg-blue-50 text-blue-600"
+                 class="block px-3 py-2 rounded-md hover:bg-gray-50 text-sm">
+                Priorities
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="flex-1 overflow-auto">
+    <div class="p-8">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>

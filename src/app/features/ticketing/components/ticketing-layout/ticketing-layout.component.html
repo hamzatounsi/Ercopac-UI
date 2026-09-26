@@ -1,0 +1,43 @@
+<div class="ticketing-shell">
+  <!-- Sidebar Fixe à Gauche -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <span class="logo-icon">🎫</span>
+        <span class="logo-text">H24 Tix</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a routerLink="/tickets" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">Tickets</span>
+      </a>
+      
+      <a routerLink="/tickets/dashboard" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label">Dashboard</span>
+      </a>
+      
+      <a routerLink="/tickets/settings" routerLinkActive="active" class="nav-item">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-label">Settings</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-profile">
+        <div class="avatar">{{ getUserInitials() }}</div>
+        <div class="user-info">
+          <div class="user-name">{{ getUserName() }}</div>
+          <div class="user-role">{{ auth.getRoles()[0] || 'Membre' }}</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Contenu Principal (Change selon la route) -->
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>
