@@ -1,0 +1,98 @@
+<div class="dashboard-container">
+  <!-- Tabs -->
+  <div class="tabs mb-6">
+    <button [class.active]="activeTab === 'org'" (click)="switchTab('org')" class="tab-btn">Organisation Performance</button>
+    <button [class.active]="activeTab === 'team'" (click)="switchTab('team')" class="tab-btn">Team Performance</button>
+  </div>
+
+  <!-- ORGANISATION TAB -->
+  <div *ngIf="activeTab === 'org' && basicStats">
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <h3>Open Tickets</h3>
+        <p class="value">{{ basicStats.open || 0 }}</p>
+      </div>
+      <div class="kpi-card">
+        <h3>Resolved</h3>
+        <p class="value text-green">{{ basicStats.resolved || 0 }}</p>
+      </div>
+      <div class="kpi-card">
+        <h3>Total Tickets</h3>
+        <p class="value">{{ totalTickets }}</p>
+      </div>
+      <div class="kpi-card">
+        <h3>In Progress</h3>
+        <p class="value">{{ basicStats.inProgress || 0 }}</p>
+      </div>
+    </div>
+
+    <!-- Charts Area (CSS-based) -->
+    <div class="charts-grid mt-6">
+      <div class="chart-card">
+        <h3>Tickets by Status</h3>
+        <div class="bar-chart">
+          <div *ngFor="let item of statusDistribution | keyvalue" class="bar-row">
+            <span class="bar-label">{{ item.key | titlecase }}</span>
+            <div class="bar-track">
+              <!-- 👇 CORRECTION : Utilisation de totalTickets au lieu du pipe sumValues -->
+              <div class="bar-fill" [style.width.%]="totalTickets > 0 ? (item.value / totalTickets * 100) : 0" 
+                   [ngClass]="getStatusColor(item.key)"></div>
+            </div>
+            <span class="bar-value">{{ item.value }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEAM TAB -->
+  <div *ngIf="activeTab === 'team' && teamKpis">
+    <!-- Team KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <h3>Agents Online</h3>
+        <p class="value text-green">{{ teamKpis.agentsOnline }} / {{ teamKpis.totalAgents }}</p>
+      </div>
+      <div class="kpi-card">
+        <h3>Avg Satisfaction</h3>
+        <p class="value">⭐ {{ teamKpis.avgSatisfaction }}</p>
+      </div>
+    </div>
+
+    <!-- Agent Workload Table -->
+    <div class="chart-card mt-6">
+      <h3>Agent Workload</h3>
+      <table class="w-full mt-4">
+        <thead>
+          <tr>
+            <th class="text-left p-3">AGENT</th>
+            <th class="text-left p-3">STATUS</th>
+            <th class="text-left p-3">ACTIVE TICKETS</th>
+            <th class="text-left p-3">CAPACITY</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let agent of agentWorkload">
+            <td class="p-3 font-bold">{{ agent.name }}</td>
+            <td class="p-3">
+              <span class="badge" [ngClass]="agent.status === 'ONLINE' ? 'badge-success' : 'badge-gray'">
+                {{ agent.status }}
+              </span>
+            </td>
+            <td class="p-3">{{ agent.activeTickets }}</td>
+            <td class="p-3">
+              <div class="capacity-bar">
+                <div class="capacity-fill" [style.width.%]="agent.capacity > 0 ? (agent.activeTickets / agent.capacity * 100) : 0"></div>
+              </div>
+              <span class="text-small">{{ agent.activeTickets }} / {{ agent.capacity }}</span>
+            </td>
+          </tr>
+          <tr *ngIf="agentWorkload.length === 0">
+            <td colspan="4" class="text-center p-3">No agent workload data available.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

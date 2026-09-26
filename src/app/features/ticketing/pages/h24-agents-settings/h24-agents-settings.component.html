@@ -1,0 +1,38 @@
+<div class="settings-container">
+  <div class="header">
+    <h2>H24 Agents</h2>
+    <p class="subtitle">First line support technicians.</p>
+    <button class="btn-primary">+ Add agent</button>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>NAME</th>
+          <th>SPECIALISATION</th>
+          <th>ACTIVE TICKETS</th>
+          <th>STATUS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users">
+          <td class="font-bold">
+            {{ user.fullName }}
+            <div class="text-small text-gray">{{ user.email }}</div>
+          </td>
+          <td>{{ user.specialization || 'General Support' }}</td>
+          <td>0</td> <!-- À connecter avec le compteur réel plus tard -->
+          <td>
+            <span class="badge" [ngClass]="getStatusClass(user.agentStatus)">
+              {{ user.agentStatus || 'OFFLINE' }}
+            </span>
+          </td>
+        </tr>
+        <tr *ngIf="users.length === 0">
+          <td colspan="4" class="text-center">No H24 agents found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

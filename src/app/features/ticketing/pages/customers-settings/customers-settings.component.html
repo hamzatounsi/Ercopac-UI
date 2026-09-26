@@ -1,0 +1,34 @@
+<p>customers-settings works!</p>
+<div class="settings-container">
+  <div class="header">
+    <h2>Customers</h2>
+    <p class="subtitle">Manage customer accounts and their equipment.</p>
+    <button class="btn-primary">+ Add customer</button>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>NAME</th>
+          <th>ORGANISATION</th>
+          <th>EMAIL</th>
+          <th>LANGUAGE</th>
+          <th>STATUS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users">
+          <td class="font-bold">{{ user.fullName }}</td>
+          <td>{{ user.organisation?.name || '—' }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.preferredLanguage || 'EN' }}</td>
+          <td><span class="badge badge-success">approved</span></td>
+        </tr>
+        <tr *ngIf="users.length === 0">
+          <td colspan="5" class="text-center">No customers found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

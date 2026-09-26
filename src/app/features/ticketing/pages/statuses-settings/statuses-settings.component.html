@@ -1,0 +1,26 @@
+<div>
+  <h2 class="text-2xl font-bold mb-2 text-gray-800">Ticket statuses</h2>
+  <p class="text-gray-600 mb-6">The lifecycle stages a ticket passes through.</p>
+
+  <div class="bg-white rounded-lg shadow overflow-hidden">
+    <div *ngFor="let status of statuses; let i = index" 
+         class="flex items-center justify-between p-4 border-b last:border-b-0 hover:bg-gray-50">
+      <div class="flex items-center gap-4">
+        <span class="text-gray-400 font-medium w-8">{{ i + 1 }}.</span>
+        <span class="px-3 py-1 rounded-full text-sm font-medium" [ngClass]="getStatusBadgeClass(status.status)">
+          {{ status.label }}
+        </span>
+        <span class="text-gray-600">{{ status.description }}</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="px-3 py-1 rounded-full text-sm"
+              [ngClass]="status.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'">
+          {{ status.active ? 'Active' : 'Inactive' }}
+        </span>
+        <button (click)="editStatus(status)" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+          Edit
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

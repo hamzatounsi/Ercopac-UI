@@ -1,0 +1,41 @@
+<div class="settings-container">
+  <div class="header">
+    <div>
+      <h2>Projects</h2>
+      <p class="subtitle">Manage projects linked to organisations.</p>
+    </div>
+  </div>
+
+  <!-- Formulaire d'ajout rapide -->
+  <div class="add-form mb-4 flex gap-2">
+    <input type="text" [(ngModel)]="newProjectName" placeholder="Project Name (e.g., SAP Migration)" class="input-field flex-1">
+    <input type="text" [(ngModel)]="newProjectCode" placeholder="Code (e.g., SAP-2026)" class="input-field w-48">
+    <button (click)="createProject()" class="btn-primary">+ Add Project</button>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>PROJECT NAME</th>
+          <th>CODE</th>
+          <th>ORGANISATION</th>
+          <th>ACTIONS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let project of projects">
+          <td class="font-bold">{{ project.name }}</td>
+          <td><span class="badge badge-info">{{ project.code || '—' }}</span></td>
+          <td>{{ project.organisation?.name || 'Global' }}</td>
+          <td>
+            <button (click)="deleteProject(project.id)" class="btn-danger text-sm">Delete</button>
+          </td>
+        </tr>
+        <tr *ngIf="projects.length === 0">
+          <td colspan="4" class="text-center">No projects found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

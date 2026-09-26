@@ -1,0 +1,44 @@
+<div class="settings-container">
+  <div class="header">
+    <div>
+      <h2>Equipment Catalogue</h2>
+      <p class="subtitle">Define standard equipment types that can be assigned to customers.</p>
+    </div>
+  </div>
+
+  <!-- Formulaire d'ajout rapide -->
+  <div class="add-form mb-4 flex gap-2">
+    <input type="text" [(ngModel)]="newEqIcon" placeholder="Icon (e.g., 🖥️)" class="input-field w-24 text-center text-xl">
+    <input type="text" [(ngModel)]="newEqName" placeholder="Equipment Name (e.g., Server)" class="input-field flex-1">
+    <input type="text" [(ngModel)]="newEqCode" placeholder="Code (e.g., eq1)" class="input-field w-32">
+    <button (click)="createEquipment()" class="btn-primary">+ Add Equipment</button>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th class="w-16">ICON</th>
+          <th>EQUIPMENT NAME</th>
+          <th>CODE</th>
+          <th>STATUS</th>
+          <th>ACTIONS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let eq of equipmentList">
+          <td class="text-center text-2xl">{{ eq.icon }}</td>
+          <td class="font-bold">{{ eq.name }}</td>
+          <td><span class="badge badge-gray">{{ eq.code || '—' }}</span></td>
+          <td><span class="badge badge-success">Active</span></td>
+          <td>
+            <button (click)="deleteEquipment(eq.id)" class="btn-danger text-sm">Delete</button>
+          </td>
+        </tr>
+        <tr *ngIf="equipmentList.length === 0">
+          <td colspan="5" class="text-center">No equipment types found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
