@@ -34,8 +34,14 @@ export class GmWorkspacesPageComponent implements OnInit {
   get visibleLauncherApps(): WorkspaceModule[] {
     return this.authService.getAccessibleWorkspaceModules();
   }
-
   openApp(app: WorkspaceModule): void {
+    // ✅ AJOUT : Si l'utilisateur clique sur le CRM, on le force à aller au dashboard
+    if (app.name.toLowerCase().includes('crm') || app.route.startsWith('/crm')) {
+      void this.router.navigateByUrl('/crm/dashboard');
+      return;
+    }
+
+    // Comportement normal pour les autres applications
     void this.router.navigateByUrl(app.route);
   }
 
