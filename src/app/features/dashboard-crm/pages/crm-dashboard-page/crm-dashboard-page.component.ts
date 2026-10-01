@@ -89,7 +89,6 @@ export class CrmDashboardPageComponent implements OnInit {
   newOpportunityStageChanged(): void {
     this.oppForm.probability = this.stages.find(stage => stage.id === this.oppForm.stageId)?.probability ?? 0;
   }
-
   saveNewOpp(): void {
     if (!this.oppForm.name.trim()) {
       this.oppError = 'Opportunity name is required.';
@@ -107,7 +106,19 @@ export class CrmDashboardPageComponent implements OnInit {
       this.oppError = 'Discount must be between 0 and 100.';
       return;
     }
-    this.oppForm.value = (Math.round((this.oppForm.materialValue || 0) * 100) + Math.round((this.oppForm.servicesValue || 0) * 100)) / 100;
+
+    // 👇 CORRECTION : Calcul de la valeur Nette (après remise)
+    const materialValue = this.oppForm.materialValue || 0;
+    const servicesValue = this.oppForm.servicesValue || 0;
+    const baseValue = materialValue + servicesValue;
+    
+    // Application de la remise (ex: 10% -> 1 - 0.10 = 0.90)
+    const discountFactor = 1 - (this.oppForm.discount / 100);
+    const netValue = baseValue * discountFactor;
+    
+    // Arrondi à 2 décimales pour éviter les bugs de virgule flottante en JS
+    this.oppForm.value = Math.round(netValue * 100) / 100;
+
     this.savingOpp = true;
     
     this.crmService.createOpportunity(this.orgId, this.oppForm).subscribe({
