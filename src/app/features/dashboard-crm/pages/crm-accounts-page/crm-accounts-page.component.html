@@ -60,6 +60,7 @@
           <th>{{ i18n.t('accounts.industry') }}</th>
           <th>{{ i18n.t('accounts.country') }}</th>
           <th>{{ i18n.t('accounts.city') }}</th>
+          <th>CAP</th> 
           <th>{{ i18n.t('accounts.owner') }}</th>
           <th>{{ i18n.t('accounts.contacts') }}</th>
           <th>{{ i18n.t('accounts.opportunities') }}</th>
@@ -111,9 +112,14 @@
           <option *ngFor="let country of countries.options(form.country)" [value]="country">{{country}}</option>
         </select>
       </div>
-      <div class="field">
+          <div class="field">
         <label>{{ i18n.t('accounts.city') }}</label>
         <input name="city" [(ngModel)]="form.city">
+      </div>
+      <!-- ✅ NOUVEAU : Champ CAP / Code Postal -->
+      <div class="field">
+        <label>CAP / Code Postal</label>
+        <input name="postalCode" [(ngModel)]="form.postalCode">
       </div>
       <div class="field">
         <label>{{ i18n.t('accounts.phone') }}</label>

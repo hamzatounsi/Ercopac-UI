@@ -8,7 +8,7 @@ import { CrmPipelineStage } from '../../models/crm-pipeline-stage.model';
 import { CrmSupplyCategory, CrmUser } from '../../models/crm-detail.model';
 import { CrmPermissionsService } from '../../services/crm-permissions.service';
 import { CrmService } from '../../services/crm.service';
-import { CrmI18nService } from '../../services/crm-i18n.service'; // 👈 IMPORT I18N
+import { CrmI18nService } from '../../services/crm-i18n.service';
 
 @Component({
   selector: 'app-crm-opportunities-page',
@@ -35,7 +35,7 @@ export class CrmOpportunitiesPageComponent implements OnInit {
     private crm: CrmService,
     private router: Router,
     public permissions: CrmPermissionsService,
-    public i18n: CrmI18nService // 👈 INJECT I18N
+    public i18n: CrmI18nService
   ) {}
 
   ngOnInit(): void {
@@ -129,7 +129,10 @@ export class CrmOpportunitiesPageComponent implements OnInit {
       this.error = this.i18n.t('opportunities.error.resaleSplit');
       return;
     }
+    
+    // ✅ The backend will recalculate this anyway, but sending the correct net value from the frontend is best practice
     this.form.value = this.totalValue;
+    
     this.saving = true;
     this.crm.createOpportunity(this.orgId, this.form).subscribe({
       next: v => {
@@ -148,8 +151,17 @@ export class CrmOpportunitiesPageComponent implements OnInit {
     return Math.round((Number(value) || 0) * 100);
   }
 
+  // ✅ CORRECTED: Now applies the discount to match backend logic
   get totalValue(): number {
-    return (this.cents(this.form.materialValue) + this.cents(this.form.servicesValue)) / 100;
+    const material = this.form.materialValue || 0;
+    const services = this.form.servicesValue || 0;
+    const discount = this.form.discount || 0;
+    
+    // La remise s'applique UNIQUEMENT au matériel
+    const discountedMaterial = material * (1 - discount / 100);
+    
+    // Total = Matériel remis + Services (sans remise)
+    return Math.round((discountedMaterial + services) * 100) / 100;
   }
 
   get totalSalesSplit(): number {

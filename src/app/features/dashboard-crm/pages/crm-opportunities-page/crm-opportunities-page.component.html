@@ -42,7 +42,15 @@
               <i [style.background]="opportunity.stageColor||'#64748b'"></i>{{ opportunity.stageName || i18n.t('opportunities.unassigned') }}
             </span>
           </td>
-          <td class="currency">{{ money(opportunity.value, opportunity.currency) }}</td>
+          <!-- ✅ CORRECTED VALUE COLUMN -->
+          <td class="currency">
+            <ng-container *ngIf="opportunity.won; else openValue">
+              <strong>{{ money(opportunity.expectedRevenue, opportunity.currency) }}</strong>
+            </ng-container>
+            <ng-template #openValue>
+              {{ money(opportunity.value, opportunity.currency) }}
+            </ng-template>
+          </td>
           <td>
             <div class="prob"><span><i [style.width.%]="opportunity.probability"></i></span>{{ opportunity.probability }}%</div>
           </td>
@@ -61,7 +69,7 @@
   <form class="modal" (click)="$event.stopPropagation()" (ngSubmit)="save()">
     <div class="modal-header">
       {{ i18n.t('opportunities.modal.title') }}
-      <button type="button" class="icon-btn" style="margin-left:auto" (click)="showForm=false"></button>
+      <button type="button" class="icon-btn" style="margin-left:auto" (click)="showForm=false">✕</button>
     </div>
     <div class="modal-body field-grid">
       <div class="field full">
@@ -112,11 +120,11 @@
       </div>
       <div class="field">
         <label>{{ i18n.t('opportunities.modal.materialValue') }}</label>
-        <input name="material" type="number" min="0" [(ngModel)]="form.materialValue">
+        <input name="material" type="number" min="0" step="0.01" [(ngModel)]="form.materialValue">
       </div>
       <div class="field">
         <label>{{ i18n.t('opportunities.modal.servicesValue') }}</label>
-        <input name="services" type="number" min="0" [(ngModel)]="form.servicesValue">
+        <input name="services" type="number" min="0" step="0.01" [(ngModel)]="form.servicesValue">
       </div>
       <div class="field full">
         <label>{{ i18n.t('opportunities.modal.totalValue') }}</label>
@@ -124,11 +132,11 @@
       </div>
       <div class="field">
         <label>{{ i18n.t('opportunities.modal.ercopacSalesSplit') }}</label>
-        <input name="ercopacMaterial" type="number" min="0" [(ngModel)]="form.ercopacMaterialValue">
+        <input name="ercopacMaterial" type="number" min="0" step="0.01" [(ngModel)]="form.ercopacMaterialValue">
       </div>
       <div class="field">
         <label>{{ i18n.t('opportunities.modal.thirdPartySalesSplit') }}</label>
-        <input name="thirdPartyMaterial" type="number" min="0" [(ngModel)]="form.thirdPartyMaterialValue">
+        <input name="thirdPartyMaterial" type="number" min="0" step="0.01" [(ngModel)]="form.thirdPartyMaterialValue">
       </div>
       <div class="field full">
         <label>{{ i18n.t('opportunities.modal.totalSalesSplit') }}</label>
@@ -136,11 +144,11 @@
       </div>
       <div class="field">
         <label>{{ i18n.t('opportunities.modal.ercopacResaleSplit') }}</label>
-        <input name="ercopacResale" type="number" min="0" [(ngModel)]="form.ercopacResaleValue">
+        <input name="ercopacResale" type="number" min="0" step="0.01" [(ngModel)]="form.ercopacResaleValue">
       </div>
       <div class="field">
         <label>{{ i18n.t('opportunities.modal.resaleSplit') }}</label>
-        <input name="resale" type="number" min="0" [(ngModel)]="form.resaleValue">
+        <input name="resale" type="number" min="0" step="0.01" [(ngModel)]="form.resaleValue">
       </div>
       <div class="field full">
         <label>{{ i18n.t('opportunities.modal.totalResaleSplit') }}</label>

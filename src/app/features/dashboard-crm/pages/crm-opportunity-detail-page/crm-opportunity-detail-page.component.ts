@@ -391,9 +391,21 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
   private fromCents(value: number): number { 
     return value / 100; 
   }
-  
-  get totalValue(): number { 
-    return this.fromCents(this.cents(this.form?.materialValue) + this.cents(this.form?.servicesValue)); 
+   // Valeur brute avant remise (Matériel + Services)
+  get baseValue(): number {
+    const material = this.form?.materialValue || 0;
+    const services = this.form?.servicesValue || 0;
+    return Math.round((material + services) * 100) / 100;
+  }
+
+  // Valeur finale : Matériel AVEC remise + Services SANS remise
+  get totalValue(): number {
+    const material = this.form?.materialValue || 0;
+    const services = this.form?.servicesValue || 0;
+    const discount = Math.max(0, Math.min(100, Number(this.form?.discount) || 0));
+    
+    const discountedMaterial = material * (1 - discount / 100);
+    return Math.round((discountedMaterial + services) * 100) / 100;
   }
   
   get totalSalesSplit(): number { 
@@ -402,16 +414,6 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
   
   get totalResaleSplit(): number { 
     return this.fromCents(this.cents(this.form?.ercopacResaleValue) + this.cents(this.form?.resaleValue)); 
-  }
-  
-  get discountedValue(): number {
-    const discount = Math.max(0, Math.min(100, Number(this.form?.discount) || 0));
-    return this.fromCents(Math.round(this.cents(this.totalValue) * (100 - discount) / 100));
-  }
-  
-  get expectedRevenue(): number {
-    const probability = Math.max(0, Math.min(100, Number(this.form?.probability) || 0));
-    return this.fromCents(Math.round(this.cents(this.discountedValue) * probability / 100));
   }
   
   get hasSalesSplit(): boolean { 
@@ -428,6 +430,17 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
   
   get resaleSplitValid(): boolean { 
     return !this.hasResaleSplit || this.cents(this.totalResaleSplit) === this.cents(this.totalValue); 
+  }
+
+  // Pour la compatibilité avec le template HTML
+  get discountedValue(): number {
+    return this.totalValue;
+  }
+  
+  // Revenu attendu = Valeur totale nette * Probabilité
+  get expectedRevenue(): number {
+    const probability = Math.max(0, Math.min(100, Number(this.form?.probability) || 0));
+    return Math.round(this.totalValue * (probability / 100) * 100) / 100;
   }
   
   private valueValidationError(): string {

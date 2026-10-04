@@ -19,10 +19,11 @@ export interface CrmAccount {
   pipelineValue: number;
   createdAt: string | null;
   updatedAt: string | null;
+    postalCode?: string; // ✅ NOUVEAU
 }
 
 export function emptyAccount(): CrmAccount {
   return { id: null, name: '', industry: '', industryId: null, country: '', city: '', address: '', phone: '', website: '',
     employees: '', annualRevenue: null, currency: 'EUR', ownerId: null, ownerName: null, notes: '',
-    leadCount: 0, opportunityCount: 0, pipelineValue: 0, createdAt: null, updatedAt: null };
-}
+    leadCount: 0, opportunityCount: 0, pipelineValue: 0, createdAt: null, updatedAt: null,    postalCode: '' // ✅ NOUVEAU };
+}}

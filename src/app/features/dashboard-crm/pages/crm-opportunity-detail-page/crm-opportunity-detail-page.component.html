@@ -60,18 +60,18 @@
               <label>Stage</label>
               <strong>{{ opportunity.stageName }}</strong>
             </div>
-            <div class="summary-row discount-row">
+                      <div class="summary-row discount-row">
               <label>Discount</label>
               <div class="discount-control">
                 <span><input type="number" min="0" max="100" step="0.01" [(ngModel)]="form.discount" [disabled]="!permissions.canWriteCrm"> %</span>
-                <small>{{ money(totalValue, form.currency) }} − {{ form.discount || 0 }}% = {{ money(discountedValue, form.currency) }}</small>
+                <small>{{ money(baseValue, form.currency) }} − {{ form.discount || 0 }}% (on material) = {{ money(totalValue, form.currency) }}</small>
               </div>
             </div>
             <div class="summary-row expected-row">
               <label>Expected revenue</label>
               <div>
                 <strong class="currency">{{ money(expectedRevenue, form.currency) }}</strong>
-                <small>{{ money(totalValue, form.currency) }} − {{ form.discount || 0 }}% discount = {{ money(expectedRevenue, form.currency) }}</small>
+                <small>{{ money(totalValue, form.currency) }} × {{ form.probability || 0 }}% probability</small>
               </div>
             </div>
             <div class="summary-row">
