@@ -24,34 +24,54 @@
       <div class="reports-grid">
         <button class="rep-card" *ngFor="let card of opportunityCards" (click)="open(card.id)">
           <span class="rep-ico" [ngClass]="card.tone">{{card.icon}}</span>
-          <strong>{{ i18n.t('reports.cards.' + card.id + '.title') }}</strong><small>{{ i18n.t('reports.cards.' + card.id + '.description') }}</small><em>{{ i18n.t('reports.cards.' + card.id + '.category') }}</em>
+          <strong>{{ i18n.t('reports.cards.' + card.id + '.title') }}</strong>
+          <small>{{ i18n.t('reports.cards.' + card.id + '.description') }}</small>
+          <em>{{ i18n.t('reports.cards.' + card.id + '.category') }}</em>
         </button>
       </div>
       <h2>{{ i18n.t('reports.valueReports') }}</h2>
       <div class="reports-grid">
         <button class="rep-card" *ngFor="let card of valueCards" (click)="open(card.id)">
           <span class="rep-ico" [ngClass]="card.tone">{{card.icon}}</span>
-          <strong>{{ i18n.t('reports.cards.' + card.id + '.title') }}</strong><small>{{ i18n.t('reports.cards.' + card.id + '.description') }}</small><em>{{ i18n.t('reports.cards.' + card.id + '.category') }}</em>
+          <strong>{{ i18n.t('reports.cards.' + card.id + '.title') }}</strong>
+          <small>{{ i18n.t('reports.cards.' + card.id + '.description') }}</small>
+          <em>{{ i18n.t('reports.cards.' + card.id + '.category') }}</em>
         </button>
       </div>
     </section>
 
     <ng-container *ngIf="selected">
       <header class="page-header report-header">
-        <button class="back" (click)="back()">&lsaquo; {{ i18n.t('reports.pageTitle') }}</button><span>/</span>
-        <div><h1 class="page-title">{{ i18n.t('reports.cards.' + selected + '.title') }}</h1><p class="page-sub">{{ i18n.t('reports.cards.' + selected + '.description') }}</p></div>
+        <button class="back" (click)="back()">&lsaquo; {{ i18n.t('reports.pageTitle') }}</button>
+        <span>/</span>
+        <div>
+          <h1 class="page-title">{{ i18n.t('reports.cards.' + selected + '.title') }}</h1>
+          <p class="page-sub">{{ i18n.t('reports.cards.' + selected + '.description') }}</p>
+        </div>
         <div class="report-filters">
           <select *ngIf="showsTypeFilter" [(ngModel)]="type" (ngModelChange)="filtersChanged()">
-            <option value="all">{{ i18n.t('reports.allTypes') }}</option><option value="BP">BP</option><option value="CS">CS</option>
+            <option value="all">{{ i18n.t('reports.allTypes') }}</option>
+            <option value="BP">BP</option>
+            <option value="CS">CS</option>
           </select>
           <select *ngIf="showsStageFilter" [(ngModel)]="stage" (ngModelChange)="filtersChanged()">
-            <option value="all">{{ i18n.t('reports.allStages') }}</option><option *ngFor="let item of stages" [value]="item">{{item}}</option>
+            <option value="all">{{ i18n.t('reports.allStages') }}</option>
+            <option *ngFor="let item of stages" [value]="item">{{item}}</option>
           </select>
           <select *ngIf="showsPeriodFilter" [(ngModel)]="period" (ngModelChange)="filtersChanged()">
-            <option value="all">{{ i18n.t('reports.allTime') }}</option><option value="month">{{ i18n.t('reports.thisMonth') }}</option><option value="quarter">{{ i18n.t('reports.thisQuarter') }}</option><option value="year">{{ i18n.t('reports.thisYear') }}</option>
+            <option value="all">{{ i18n.t('reports.allTime') }}</option>
+            <option value="month">{{ i18n.t('reports.thisMonth') }}</option>
+            <option value="quarter">{{ i18n.t('reports.thisQuarter') }}</option>
+            <option value="year">{{ i18n.t('reports.thisYear') }}</option>
+          </select>
+          <!-- ✅ NOUVEAU : Filtre Owner pour Monthly, CS et BP -->
+          <select *ngIf="showsOwnerFilter" [(ngModel)]="owner" (ngModelChange)="filtersChanged()">
+            <option value="all">All owners</option>
+            <option *ngFor="let o of owners" [value]="o">{{ o }}</option>
           </select>
           <select *ngIf="selected==='monthly'" [(ngModel)]="month">
-            <option value="all">{{ i18n.t('reports.allMonths') }}</option><option *ngFor="let label of expectedMonths; let index=index" [value]="index+1">{{label.key}}</option>
+            <option value="all">{{ i18n.t('reports.allMonths') }}</option>
+            <option *ngFor="let label of expectedMonths; let index=index" [value]="index+1">{{label.key}}</option>
           </select>
           <select *ngIf="selected==='expected'" [(ngModel)]="year">
             <option *ngFor="let item of availableYears" [ngValue]="item">{{item}}</option>
@@ -77,15 +97,55 @@
           <div class="empty card" *ngIf="!equipmentReport?.totals?.length">{{ i18n.t('reports.noEquipmentData') }}</div>
           <article class="card" *ngIf="equipmentReport?.totals?.length">
             <div class="card-header">{{ i18n.t('reports.paretoTitle') }} <small>{{ i18n.t('reports.paretoSubtitle') }}</small></div>
-            <div class="pareto"><div class="pareto-bar" *ngFor="let item of equipmentReport?.totals; let i=index"><i [style.height.%]="item.quantity/maxEquipmentUnits*100" [style.background]="colour(i)"><b>{{item.quantity}}</b></i><em>{{item.equipmentName}}</em><span class="pareto-line" [style.bottom.%]="totalBefore(i)/overviewTotalUnits*100"></span></div></div>
+            <div class="pareto">
+              <div class="pareto-bar" *ngFor="let item of equipmentReport?.totals; let i=index">
+                <i [style.height.%]="item.quantity/maxEquipmentUnits*100" [style.background]="colour(i)"><b>{{item.quantity}}</b></i>
+                <em>{{item.equipmentName}}</em>
+                <span class="pareto-line" [style.bottom.%]="totalBefore(i)/overviewTotalUnits*100"></span>
+              </div>
+            </div>
           </article>
           <article class="card distribution" *ngIf="equipmentReport?.totals?.length">
             <div class="card-header">{{ i18n.t('reports.distributionTitle') }}</div>
-            <div class="distribution-body"><div class="equipment-donut" [style.background]="'conic-gradient('+equipmentDonutGradient()+')'"><span><b>{{overviewTotalUnits}}</b>{{ i18n.t('reports.totalUnitsLabel') }}</span></div><div class="equipment-legend"><div *ngFor="let item of equipmentReport?.totals; let i=index"><i [style.background]="colour(i)"></i><span>{{item.equipmentName}}</span><b>{{item.quantity}} <small>({{item.quantity/overviewTotalUnits*100|number:'1.0-0'}}%)</small></b></div></div></div>
+            <div class="distribution-body">
+              <div class="equipment-donut" [style.background]="'conic-gradient('+equipmentDonutGradient()+')'">
+                <span><b>{{overviewTotalUnits}}</b>{{ i18n.t('reports.totalUnitsLabel') }}</span>
+              </div>
+              <div class="equipment-legend">
+                <div *ngFor="let item of equipmentReport?.totals; let i=index">
+                  <i [style.background]="colour(i)"></i>
+                  <span>{{item.equipmentName}}</span>
+                  <b>{{item.quantity}} <small>({{item.quantity/overviewTotalUnits*100|number:'1.0-0'}}%)</small></b>
+                </div>
+              </div>
+            </div>
           </article>
           <article class="card" *ngIf="equipmentReport?.totals?.length">
             <div class="card-header">{{ i18n.t('reports.equipmentPerOpp') }}</div>
-            <div class="table-wrap"><table class="crm-table"><thead><tr><th>{{ i18n.t('reports.opportunities') }}</th><th>{{ i18n.t('reports.account') }}</th><th>{{ i18n.t('reports.type') }}</th><th>{{ i18n.t('reports.stage') }}</th><th>{{ i18n.t('reports.equipment') }}</th><th>{{ i18n.t('reports.totalUnitsCol') }}</th></tr></thead><tbody><tr *ngFor="let group of overviewOpportunities"><td><strong>{{group[0].opportunity}}</strong></td><td>{{group[0].account||'—'}}</td><td>{{group[0].opportunityType||'—'}}</td><td>{{group[0].stage||'—'}}</td><td>{{equipmentLabel(group)}}</td><td>{{groupTotal(group)}}</td></tr></tbody></table></div>
+            <div class="table-wrap">
+              <table class="crm-table">
+                <thead>
+                  <tr>
+                    <th>{{ i18n.t('reports.opportunities') }}</th>
+                    <th>{{ i18n.t('reports.account') }}</th>
+                    <th>{{ i18n.t('reports.type') }}</th>
+                    <th>{{ i18n.t('reports.stage') }}</th>
+                    <th>{{ i18n.t('reports.equipment') }}</th>
+                    <th>{{ i18n.t('reports.totalUnitsCol') }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let group of overviewOpportunities">
+                    <td><strong>{{group[0].opportunity}}</strong></td>
+                    <td>{{group[0].account||'—'}}</td>
+                    <td>{{group[0].opportunityType||'—'}}</td>
+                    <td>{{group[0].stage||'—'}}</td>
+                    <td>{{equipmentLabel(group)}}</td>
+                    <td>{{groupTotal(group)}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </article>
         </section>
 
@@ -98,29 +158,193 @@
           <div class="empty card" *ngIf="!shipmentDetails.length">{{ i18n.t('reports.noShipmentData') }}</div>
           <article class="card" *ngIf="shipmentDetails.length">
             <div class="card-header">{{ i18n.t('reports.equipmentUnitsByMonth') }} <small>{{ i18n.t('reports.shipmentSubtitle') }}</small></div>
-            <div class="shipment-lines"><div class="shipment-series" *ngFor="let equipmentType of shipmentTypes; let i=index"><strong [style.color]="colour(i)">{{equipmentType}}</strong><div class="month-point" *ngFor="let shipmentMonth of shipmentMonths" [style.height.%]="shipmentQty(equipmentType,shipmentMonth)/maxShipmentQty*100" [style.border-color]="colour(i)"><b *ngIf="shipmentQty(equipmentType,shipmentMonth)">{{shipmentQty(equipmentType,shipmentMonth)}}</b><small>{{monthLabel(shipmentMonth)}}</small></div></div></div>
-            <div class="shipment-legend"><span *ngFor="let equipmentType of shipmentTypes; let i=index"><i [style.background]="colour(i)"></i>{{equipmentType}} <b>{{shipmentTotal(equipmentType)}}</b></span></div>
+            <div class="shipment-lines">
+              <div class="shipment-series" *ngFor="let equipmentType of shipmentTypes; let i=index">
+                <strong [style.color]="colour(i)">{{equipmentType}}</strong>
+                <div class="month-point" *ngFor="let shipmentMonth of shipmentMonths" [style.height.%]="shipmentQty(equipmentType,shipmentMonth)/maxShipmentQty*100" [style.border-color]="colour(i)">
+                  <b *ngIf="shipmentQty(equipmentType,shipmentMonth)">{{shipmentQty(equipmentType,shipmentMonth)}}</b>
+                  <small>{{monthLabel(shipmentMonth)}}</small>
+                </div>
+              </div>
+            </div>
+            <div class="shipment-legend">
+              <span *ngFor="let equipmentType of shipmentTypes; let i=index">
+                <i [style.background]="colour(i)"></i>{{equipmentType}} <b>{{shipmentTotal(equipmentType)}}</b>
+              </span>
+            </div>
           </article>
           <article class="card" *ngIf="shipmentDetails.length">
             <div class="card-header">{{ i18n.t('reports.monthlyShipmentMatrix') }} <small>{{ i18n.t('reports.matrixSubtitle') }}</small></div>
-            <div class="table-wrap"><table class="crm-table shipment-matrix"><thead><tr><th>{{ i18n.t('reports.equipment') }}</th><th *ngFor="let shipmentMonth of shipmentMonths" [class.current]="isCurrentMonth(shipmentMonth)">{{monthLabel(shipmentMonth)}}</th><th>{{ i18n.t('reports.total') }}</th></tr></thead><tbody><tr *ngFor="let equipmentType of shipmentTypes"><td>{{equipmentType}}</td><td *ngFor="let shipmentMonth of shipmentMonths" [class.current]="isCurrentMonth(shipmentMonth)">{{shipmentQty(equipmentType,shipmentMonth)||'—'}}</td><td><strong>{{shipmentTotal(equipmentType)}}</strong></td></tr><tr class="monthly-total"><td>{{ i18n.t('reports.monthlyTotal') }}</td><td *ngFor="let shipmentMonth of shipmentMonths" [class.current]="isCurrentMonth(shipmentMonth)">{{monthlyTotal(shipmentMonth)||'—'}}</td><td>{{shipmentTotalUnits}}</td></tr></tbody></table></div>
+            <div class="table-wrap">
+              <table class="crm-table shipment-matrix">
+                <thead>
+                  <tr>
+                    <th>{{ i18n.t('reports.equipment') }}</th>
+                    <th *ngFor="let shipmentMonth of shipmentMonths" [class.current]="isCurrentMonth(shipmentMonth)">{{monthLabel(shipmentMonth)}}</th>
+                    <th>{{ i18n.t('reports.total') }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let equipmentType of shipmentTypes">
+                    <td>{{equipmentType}}</td>
+                    <td *ngFor="let shipmentMonth of shipmentMonths" [class.current]="isCurrentMonth(shipmentMonth)">{{shipmentQty(equipmentType,shipmentMonth)||'—'}}</td>
+                    <td><strong>{{shipmentTotal(equipmentType)}}</strong></td>
+                  </tr>
+                  <tr class="monthly-total">
+                    <td>{{ i18n.t('reports.monthlyTotal') }}</td>
+                    <td *ngFor="let shipmentMonth of shipmentMonths" [class.current]="isCurrentMonth(shipmentMonth)">{{monthlyTotal(shipmentMonth)||'—'}}</td>
+                    <td>{{shipmentTotalUnits}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </article>
           <article class="card" *ngIf="shipmentDetails.length">
             <div class="card-header">{{ i18n.t('reports.shipmentDetail') }}</div>
-            <div class="table-wrap"><table class="crm-table"><thead><tr><th>{{ i18n.t('reports.opportunities') }}</th><th>{{ i18n.t('reports.account') }}</th><th>{{ i18n.t('reports.stage') }}</th><th>{{ i18n.t('reports.equipment') }}</th><th>{{ i18n.t('reports.qty') }}</th><th>{{ i18n.t('reports.shipmentDate') }}</th></tr></thead><tbody><tr *ngFor="let item of shipmentDetails"><td><strong>{{item.opportunity}}</strong></td><td>{{item.account||'—'}}</td><td>{{item.stage||'—'}}</td><td>{{item.equipmentName}}</td><td>{{item.quantity}}</td><td>{{item.shipmentDate|crmDate}}</td></tr></tbody></table></div>
+            <div class="table-wrap">
+              <table class="crm-table">
+                <thead>
+                  <tr>
+                    <th>{{ i18n.t('reports.opportunities') }}</th>
+                    <th>{{ i18n.t('reports.account') }}</th>
+                    <th>{{ i18n.t('reports.stage') }}</th>
+                    <th>{{ i18n.t('reports.equipment') }}</th>
+                    <th>{{ i18n.t('reports.qty') }}</th>
+                    <th>{{ i18n.t('reports.shipmentDate') }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of shipmentDetails">
+                    <td><strong>{{item.opportunity}}</strong></td>
+                    <td>{{item.account||'—'}}</td>
+                    <td>{{item.stage||'—'}}</td>
+                    <td>{{item.equipmentName}}</td>
+                    <td>{{item.quantity}}</td>
+                    <td>{{item.shipmentDate|crmDate}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </article>
         </section>
 
         <section *ngIf="selected==='map'" class="card map-card">
           <div class="card-header">{{ i18n.t('reports.worldMapTitle') }} <small>{{ i18n.t('reports.mapSubtitle') }}</small></div>
-          <div class="world-map"><canvas #worldCanvas aria-label="World opportunities map"></canvas><span class="map-bubble" *ngFor="let item of mapBubbles" [style.left.%]="item.left" [style.top.%]="item.top" [style.width.px]="26+item.count/maxCountry*30" [style.height.px]="26+item.count/maxCountry*30">{{item.count}}<small>{{item.key}}</small></span><div class="empty map-empty" *ngIf="mapLoading">{{ i18n.t('reports.loadingMap') }}</div><div class="empty map-empty" *ngIf="!mapLoading && mapMessage">{{mapMessage}}</div><div class="empty map-empty" *ngIf="!mapLoading && !mapMessage && !countrySlices.length">{{ i18n.t('reports.noOppsMatchFilters') }}</div></div>
-          <div class="bar-list"><div *ngFor="let item of countrySlices"><span>{{item.key}}</span><i><b [style.width.%]="item.value/maxValue*100" [style.background]="item.color"></b></i><strong>{{item.count}}</strong><small>{{money(item.value)}}</small></div></div>
+          <div class="world-map">
+            <canvas #worldCanvas aria-label="World opportunities map"></canvas>
+            <span class="map-bubble" *ngFor="let item of mapBubbles" [style.left.%]="item.left" [style.top.%]="item.top" [style.width.px]="26+item.count/maxCountry*30" [style.height.px]="26+item.count/maxCountry*30">
+              {{item.count}}<small>{{item.key}}</small>
+            </span>
+            <div class="empty map-empty" *ngIf="mapLoading">{{ i18n.t('reports.loadingMap') }}</div>
+            <div class="empty map-empty" *ngIf="!mapLoading && mapMessage">{{mapMessage}}</div>
+            <div class="empty map-empty" *ngIf="!mapLoading && !mapMessage && !countrySlices.length">{{ i18n.t('reports.noOppsMatchFilters') }}</div>
+          </div>
+          <div class="bar-list">
+            <div *ngFor="let item of countrySlices">
+              <span>{{item.key}}</span>
+              <i><b [style.width.%]="item.value/maxValue*100" [style.background]="item.color"></b></i>
+              <strong>{{item.count}}</strong>
+              <small>{{money(item.value)}}</small>
+            </div>
+          </div>
         </section>
-        <section *ngIf="selected==='country'" class="split-report"><article class="card donut-card"><div class="card-header">Distribution by country</div><div class="donut" [style.background]="'conic-gradient('+donutGradient(countrySlices)+')'"><span><b>{{filtered.length}}</b>opportunities</span></div></article><article class="card legend-card"><div class="card-header">Breakdown by country</div><div *ngFor="let item of countrySlices"><i [style.background]="item.color"></i><span>{{item.key}}</span><b>{{item.count}}</b><strong>{{percent(item.value,countrySlices)|number:'1.0-0'}}%</strong></div><p class="empty" *ngIf="!countrySlices.length">No opportunities match the selected filters.</p></article></section>
-        <section *ngIf="selected==='timeline'" class="card timeline-card"><div class="card-header">Opportunities by opening and closing date</div><div class="timeline-row" *ngFor="let item of filtered"><i></i><div><strong>{{item.name}}</strong><small>{{item.accountName||'—'}} · {{item.stageName||'Unassigned'}}</small></div><span><label>Opened</label>{{item.createdAt|crmDate}}</span><span><label>Closing</label>{{item.closingDate|crmDate}}</span><span><label>Shipment</label>{{item.shipmentDate|crmDate}}</span><b>{{money(item.value||0,item.currency)}}</b></div><p class="empty" *ngIf="!filtered.length">No opportunities match the selected filters.</p></section>
-        <section *ngIf="selected==='value'||selected==='tf'||selected==='resale'" class="split-report"><article class="card donut-card"><div class="card-header">{{selected==='value'?'Material vs Services':selected==='tf'?'Ercopac / TF sales split':'Ercopac / Resale split'}}</div><div class="donut" [style.background]="'conic-gradient('+donutGradient(activeSlices)+')'"><span><b>{{money(activeTotal)}}</b>Total</span></div></article><article class="card legend-card"><div class="card-header">Real opportunity values</div><div *ngFor="let item of activeSlices"><i [style.background]="item.color"></i><span>{{item.key}}</span><b>{{money(item.value)}}</b><strong>{{percent(item.value,activeSlices)|number:'1.0-0'}}%</strong></div></article></section>
-        <section *ngIf="selected==='expected'" class="card expected-card"><div class="card-header">Expected revenue by month <small>{{year}} · total value after discount</small></div><div class="month-chart"><div *ngFor="let item of expectedMonths"><i><b [style.height.%]="item.value/maxExpectedValue*100"></b></i><strong>{{item.key}}</strong><small>{{money(item.value)}}</small></div></div></section>
-        <section *ngIf="selected==='cs'||selected==='bp'||selected==='monthly'" class="card project-table"><div class="card-header">{{selected==='cs'?'CS projects overview':selected==='bp'?'BP projects overview':'Monthly overview'}}</div><div class="table-wrap"><table class="crm-table"><thead><tr><th>Opportunity</th><th>Owner</th><th>Value</th><th>TF value</th><th>Probability</th><th>Closing date</th><th>Shipment date</th></tr></thead><tbody><tr *ngFor="let item of projectRows"><td><strong>{{item.name}}</strong><small>{{item.accountName||'—'}}</small></td><td>{{item.ownerName||'Unassigned'}}</td><td>{{money(item.value||0,item.currency)}}</td><td>{{money(item.thirdPartyMaterialValue||0,item.currency)}}</td><td>{{item.probability}}%</td><td>{{item.closingDate|crmDate}}</td><td>{{item.shipmentDate|crmDate}}</td></tr><tr *ngIf="!projectRows.length"><td colspan="7" class="empty">No opportunities match the selected filters.</td></tr></tbody></table></div></section>
+
+        <section *ngIf="selected==='country'" class="split-report">
+          <article class="card donut-card">
+            <div class="card-header">Distribution by country</div>
+            <div class="donut" [style.background]="'conic-gradient('+donutGradient(countrySlices)+')'">
+              <span><b>{{filtered.length}}</b>opportunities</span>
+            </div>
+          </article>
+          <article class="card legend-card">
+            <div class="card-header">Breakdown by country</div>
+            <div *ngFor="let item of countrySlices">
+              <i [style.background]="item.color"></i>
+              <span>{{item.key}}</span>
+              <b>{{item.count}}</b>
+              <strong>{{percent(item.value,countrySlices)|number:'1.0-0'}}%</strong>
+            </div>
+            <p class="empty" *ngIf="!countrySlices.length">No opportunities match the selected filters.</p>
+          </article>
+        </section>
+
+        <section *ngIf="selected==='timeline'" class="card timeline-card">
+          <div class="card-header">Opportunities by opening and closing date</div>
+          <div class="timeline-row" *ngFor="let item of filtered">
+            <i></i>
+            <div>
+              <strong>{{item.name}}</strong>
+              <small>{{item.accountName||'—'}} · {{item.stageName||'Unassigned'}}</small>
+            </div>
+            <span><label>Opened</label>{{item.createdAt|crmDate}}</span>
+            <span><label>Closing</label>{{item.closingDate|crmDate}}</span>
+            <span><label>Shipment</label>{{item.shipmentDate|crmDate}}</span>
+            <b>{{money(item.value||0,item.currency)}}</b>
+          </div>
+          <p class="empty" *ngIf="!filtered.length">No opportunities match the selected filters.</p>
+        </section>
+
+        <section *ngIf="selected==='value'||selected==='tf'||selected==='resale'" class="split-report">
+          <article class="card donut-card">
+            <div class="card-header">{{selected==='value'?'Material vs Services':selected==='tf'?'Ercopac / TF sales split':'Ercopac / Resale split'}}</div>
+            <div class="donut" [style.background]="'conic-gradient('+donutGradient(activeSlices)+')'">
+              <span><b>{{money(activeTotal)}}</b>Total</span>
+            </div>
+          </article>
+          <article class="card legend-card">
+            <div class="card-header">Real opportunity values</div>
+            <div *ngFor="let item of activeSlices">
+              <i [style.background]="item.color"></i>
+              <span>{{item.key}}</span>
+              <b>{{money(item.value)}}</b>
+              <strong>{{percent(item.value,activeSlices)|number:'1.0-0'}}%</strong>
+            </div>
+          </article>
+        </section>
+
+        <section *ngIf="selected==='expected'" class="card expected-card">
+          <div class="card-header">Expected revenue by month <small>{{year}} · total value after discount</small></div>
+          <div class="month-chart">
+            <div *ngFor="let item of expectedMonths">
+              <i><b [style.height.%]="item.value/maxExpectedValue*100"></b></i>
+              <strong>{{item.key}}</strong>
+              <small>{{money(item.value)}}</small>
+            </div>
+          </div>
+        </section>
+
+        <section *ngIf="selected==='cs'||selected==='bp'||selected==='monthly'" class="card project-table">
+          <div class="card-header">{{selected==='cs'?'CS projects overview':selected==='bp'?'BP projects overview':'Monthly overview'}}</div>
+          <div class="table-wrap">
+            <table class="crm-table">
+              <thead>
+                <tr>
+                  <th>Opportunity</th>
+                  <th>Owner</th>
+                  <th>Value</th>
+                  <th>TF value</th>
+                  <th>Probability</th>
+                  <th>Closing date</th>
+                  <th>Shipment date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of projectRows">
+                  <td><strong>{{item.name}}</strong><small>{{item.accountName||'—'}}</small></td>
+                  <td>{{item.ownerName||'Unassigned'}}</td>
+                  <td>{{money(item.value||0,item.currency)}}</td>
+                  <td>{{money(item.thirdPartyMaterialValue||0,item.currency)}}</td>
+                  <td>{{item.probability}}%</td>
+                  <td>{{item.closingDate|crmDate}}</td>
+                  <td>{{item.shipmentDate|crmDate}}</td>
+                </tr>
+                <tr *ngIf="!projectRows.length">
+                  <td colspan="7" class="empty">No opportunities match the selected filters.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
       </main>
     </ng-container>
   </ng-container>
