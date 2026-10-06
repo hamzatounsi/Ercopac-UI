@@ -398,14 +398,11 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
     return Math.round((material + services) * 100) / 100;
   }
 
-  // Valeur finale : Matériel AVEC remise + Services SANS remise
+   // ✅ TOTAL VALUE = Matériel + Services (SANS AUCUNE REMISE)
   get totalValue(): number {
     const material = this.form?.materialValue || 0;
     const services = this.form?.servicesValue || 0;
-    const discount = Math.max(0, Math.min(100, Number(this.form?.discount) || 0));
-    
-    const discountedMaterial = material * (1 - discount / 100);
-    return Math.round((discountedMaterial + services) * 100) / 100;
+    return Math.round((material + services) * 100) / 100;
   }
   
   get totalSalesSplit(): number { 
@@ -424,6 +421,7 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
     return this.form?.ercopacResaleValue != null || this.form?.resaleValue != null; 
   }
   
+  // ✅ Validation compare avec totalValue (SANS remise)
   get salesSplitValid(): boolean { 
     return !this.hasSalesSplit || this.cents(this.totalSalesSplit) === this.cents(this.totalValue); 
   }
@@ -432,15 +430,28 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
     return !this.hasResaleSplit || this.cents(this.totalResaleSplit) === this.cents(this.totalValue); 
   }
 
-  // Pour la compatibilité avec le template HTML
   get discountedValue(): number {
-    return this.totalValue;
+    // Pour affichage si nécessaire
+    const material = this.form?.materialValue || 0;
+    const services = this.form?.servicesValue || 0;
+    const discount = Math.max(0, Math.min(100, Number(this.form?.discount) || 0));
+    const discountedMaterial = material * (1 - discount / 100);
+    return Math.round((discountedMaterial + services) * 100) / 100;
   }
   
-  // Revenu attendu = Valeur totale nette * Probabilité
+  // ✅ REVENU ATTENDU : C'est le SEUL qui applique la remise (sur matériel) + probabilité
   get expectedRevenue(): number {
+    const material = this.form?.materialValue || 0;
+    const services = this.form?.servicesValue || 0;
+    const discount = Math.max(0, Math.min(100, Number(this.form?.discount) || 0));
     const probability = Math.max(0, Math.min(100, Number(this.form?.probability) || 0));
-    return Math.round(this.totalValue * (probability / 100) * 100) / 100;
+    
+    // Remise uniquement sur le matériel
+    const discountedMaterial = material * (1 - discount / 100);
+    const netValue = discountedMaterial + services;
+    
+    // Application de la probabilité
+    return Math.round(netValue * (probability / 100) * 100) / 100;
   }
   
   private valueValidationError(): string {
