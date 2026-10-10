@@ -54,7 +54,10 @@ export class OrgAdminService {
   updateSecuritySettings(payload: SecuritySettings): Observable<SecuritySettings> {
     return this.http.put<SecuritySettings>(`${this.baseUrl}/settings/security`, payload);
   }
-
+   // ✅ Méthode corrigée sans "this.apiUrl"
+  deleteUser(userId: number): Observable<void> {
+    return this.http.delete<void>(`/api/org-admin/users/${userId}`);
+  }
   getUsers(filters: {
     search?: string;
     departmentId?: number | null;
@@ -63,6 +66,7 @@ export class OrgAdminService {
     page?: number;
     size?: number;
     sort?: string;
+      password?: string;
     direction?: 'asc' | 'desc';
   }): Observable<PageResponse<OrganisationUser>> {
     let params = new HttpParams()
@@ -82,13 +86,26 @@ export class OrgAdminService {
   createUser(payload: SaveOrganisationUser & { password: string }): Observable<OrganisationUser> {
     return this.http.post<OrganisationUser>(`${this.baseUrl}/users`, payload);
   }
-
   updateUser(id: number, payload: SaveOrganisationUser): Observable<OrganisationUser> {
-    const { password: _password, ...request } = payload;
-    return this.http.put<OrganisationUser>(`${this.baseUrl}/users/${id}`, {
-      ...request,
-      role: request.roles[0]
-    });
+    // Construire le payload de base
+    const requestPayload: any = {
+      fullName: payload.fullName,
+      email: payload.email,
+      roles: payload.roles,
+      departmentId: payload.departmentId,
+      resourceTypeId: payload.resourceTypeId,
+      employeeCode: payload.employeeCode,
+      jobTitle: payload.jobTitle,
+      active: payload.active,
+      role: payload.roles && payload.roles.length > 0 ? payload.roles[0] : null
+    };
+
+    // ✅ Inclure le mot de passe UNIQUEMENT s'il est renseigné et non vide
+    if (payload.password && payload.password.trim().length > 0) {
+      requestPayload.password = payload.password.trim();
+    }
+
+    return this.http.put<OrganisationUser>(`${this.baseUrl}/users/${id}`, requestPayload);
   }
 
   updateUserStatus(id: number, active: boolean): Observable<OrganisationUser> {

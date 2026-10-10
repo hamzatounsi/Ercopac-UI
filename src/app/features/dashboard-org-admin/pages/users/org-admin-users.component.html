@@ -24,7 +24,15 @@
           <td data-label="Department"><strong class="department">{{ user.departmentName || 'Unassigned' }}</strong><span class="muted">{{ user.departmentCode || '—' }}</span></td>
           <td data-label="Employee code">{{ user.employeeCode || '—' }}</td>
           <td data-label="Status"><span class="status" [class.inactive]="!user.active"><i aria-hidden="true"></i>{{ user.active ? 'Active' : 'Inactive' }}</span></td>
-          <td data-label="Actions" class="actions"><button type="button" (click)="openEdit(user)" [attr.aria-label]="'Edit ' + user.fullName"><span class="material-symbols-outlined" aria-hidden="true">edit</span></button><button type="button" (click)="requestStatusChange(user)" [disabled]="user.id === currentUserId" [attr.aria-label]="(user.active ? 'Deactivate ' : 'Activate ') + user.fullName"><span class="material-symbols-outlined" aria-hidden="true">{{ user.active ? 'person_off' : 'person_check' }}</span></button></td>
+         
+          <td data-label="Actions" class="actions">
+            <button type="button" (click)="openEdit(user)" [attr.aria-label]="'Edit ' + user.fullName"><span class="material-symbols-outlined" aria-hidden="true">edit</span></button>
+            <button type="button" (click)="requestStatusChange(user)" [disabled]="user.id === currentUserId" [attr.aria-label]="(user.active ? 'Deactivate ' : 'Activate ') + user.fullName"><span class="material-symbols-outlined" aria-hidden="true">{{ user.active ? 'person_off' : 'person_check' }}</span></button>
+            <!-- ✅ Bouton Delete -->
+            <button type="button" class="btn-delete" (click)="requestDelete(user)" [disabled]="user.id === currentUserId" [attr.aria-label]="'Delete ' + user.fullName">
+              <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+            </button>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -38,14 +46,75 @@
   <header><div><span class="eyebrow">Organisation account</span><h2 id="user-dialog-title">{{ editingUser ? 'Edit user' : 'Add user' }}</h2><p>{{ editingUser ? 'Update identity, role, department, and account status.' : 'Create an account inside this organisation.' }}</p></div><button type="button" (click)="closeDrawer()" aria-label="Close user form"><span class="material-symbols-outlined" aria-hidden="true">close</span></button></header>
   <form [formGroup]="userForm" (ngSubmit)="saveUser()" novalidate>
     <div class="form-error" *ngIf="formError" role="alert">{{ formError }}</div>
-    <fieldset><legend>Identity</legend><div class="field"><label for="user-full-name">Full name <b>*</b></label><input id="user-full-name" formControlName="fullName" autocomplete="name" /><small *ngIf="userForm.controls.fullName.touched && userForm.controls.fullName.invalid">Full name is required.</small></div><div class="field"><label for="user-email">Email address <b>*</b></label><input id="user-email" formControlName="email" type="email" autocomplete="email" /><small *ngIf="userForm.controls.email.touched && userForm.controls.email.invalid">Enter a valid email address.</small></div><div class="field" *ngIf="!editingUser"><label for="user-password">Temporary password <b>*</b></label><input id="user-password" formControlName="password" type="password" autocomplete="new-password" /><small *ngIf="userForm.controls.password.touched && userForm.controls.password.invalid">Use at least 8 characters or the configured minimum.</small><span>Share the temporary password through a secure channel.</span></div><div class="field"><label for="employee-code">Employee code</label><input id="employee-code" formControlName="employeeCode" /></div></fieldset>
-    <fieldset><legend>Access & assignment</legend><div class="field-row"><div class="field"><label>Roles <b>*</b></label><div class="role-options"><label *ngFor="let role of roles"><input type="checkbox" [checked]="hasSelectedRole(role.role)" (change)="toggleRole(role.role, $any($event.target).checked)" /> <span>{{ role.label }}</span></label></div><small *ngIf="userForm.controls.roles.touched && userForm.controls.roles.value.length === 0">Select at least one role.</small></div><div class="field" *ngIf="requiresResourceProfile(userForm.controls.roles.value)"><label for="user-department">Department <b>*</b></label><select id="user-department" formControlName="departmentId"><option [ngValue]="null">Select department</option><option *ngFor="let department of departments" [ngValue]="department.id">{{ department.name }}</option></select></div><div class="field" *ngIf="requiresResourceProfile(userForm.controls.roles.value)"><label for="user-resource-type">Resource type <b>*</b></label><select id="user-resource-type" formControlName="resourceTypeId"><option [ngValue]="null">Select resource type</option><option *ngFor="let type of resourceTypes" [ngValue]="type.id" [disabled]="!type.active || !type.assignable">{{ type.label || type.code }}</option></select></div></div><p class="muted" *ngIf="!requiresResourceProfile(userForm.controls.roles.value)">These roles do not participate in internal resource planning.</p><div class="field"><label for="job-title">Job title</label><input id="job-title" formControlName="jobTitle" /></div><label class="switch-row"><span><strong>Active account</strong><small>User can sign in while this setting is enabled.</small></span><input type="checkbox" formControlName="active" /></label></fieldset>
+
+    <fieldset><legend>Identity</legend>
+      <div class="field"><label for="user-full-name">Full name <b>*</b></label><input id="user-full-name" formControlName="fullName" autocomplete="name" /><small *ngIf="userForm.controls.fullName.touched && userForm.controls.fullName.invalid">Full name is required.</small></div>
+      <div class="field"><label for="user-email">Email address <b>*</b></label><input id="user-email" formControlName="email" type="email" autocomplete="email" /><small *ngIf="userForm.controls.email.touched && userForm.controls.email.invalid">Enter a valid email address.</small></div>
+      
+      <!-- Champ mot de passe pour la CRÉATION -->
+      <div class="field" *ngIf="!editingUser">
+        <label for="user-password">Temporary password <b>*</b></label>
+        <div class="password-field">
+          <input id="user-password" formControlName="password" [type]="showPassword ? 'text' : 'password'" autocomplete="new-password" />
+          <button type="button" class="toggle-password" (click)="showPassword = !showPassword" [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
+            <span class="material-symbols-outlined">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+          </button>
+        </div>
+        <small *ngIf="userForm.controls.password.touched && userForm.controls.password.invalid">Use at least 8 characters or the configured minimum.</small>
+        <span>Share the temporary password through a secure channel.</span>
+      </div>
+
+      <!-- ✅ NOUVEAU : Champ mot de passe pour l'ÉDITION -->
+      <div class="field" *ngIf="editingUser">
+        <label for="user-password-edit">New password <small>(leave empty to keep current)</small></label>
+        <div class="password-field">
+          <input id="user-password-edit" formControlName="password" [type]="showPassword ? 'text' : 'password'" autocomplete="new-password" placeholder="Enter new password or leave empty" />
+          <button type="button" class="toggle-password" (click)="showPassword = !showPassword" [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
+            <span class="material-symbols-outlined">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+          </button>
+        </div>
+        <small *ngIf="userForm.controls.password.touched && userForm.controls.password.invalid">Use at least 8 characters or the configured minimum.</small>
+        <span>If you enter a new password, the user will need to use it on their next login.</span>
+      </div>
+
+      <div class="field"><label for="employee-code">Employee code</label><input id="employee-code" formControlName="employeeCode" /></div>
+    </fieldset>
+    
+    
+    <fieldset><legend>Access & assignment</legend>
+      <div class="field-row">
+        <div class="field"><label>Roles <b>*</b></label><div class="role-options"><label *ngFor="let role of roles"><input type="checkbox" [checked]="hasSelectedRole(role.role)" (change)="toggleRole(role.role, $any($event.target).checked)" /> <span>{{ role.label }}</span></label></div><small *ngIf="userForm.controls.roles.touched && userForm.controls.roles.value.length === 0">Select at least one role.</small></div>
+        <div class="field" *ngIf="requiresResourceProfile(userForm.controls.roles.value)"><label for="user-department">Department <b>*</b></label><select id="user-department" formControlName="departmentId"><option [ngValue]="null">Select department</option><option *ngFor="let department of departments" [ngValue]="department.id">{{ department.name }}</option></select></div>
+        <div class="field" *ngIf="requiresResourceProfile(userForm.controls.roles.value)"><label for="user-resource-type">Resource type <b>*</b></label><select id="user-resource-type" formControlName="resourceTypeId"><option [ngValue]="null">Select resource type</option><option *ngFor="let type of resourceTypes" [ngValue]="type.id" [disabled]="!type.active || !type.assignable">{{ type.label || type.code }}</option></select></div>
+      </div>
+      <p class="muted" *ngIf="!requiresResourceProfile(userForm.controls.roles.value)">These roles do not participate in internal resource planning.</p>
+      <div class="field"><label for="job-title">Job title</label><input id="job-title" formControlName="jobTitle" /></div>
+      <label class="switch-row"><span><strong>Active account</strong><small>User can sign in while this setting is enabled.</small></span><input type="checkbox" formControlName="active" /></label>
+    </fieldset>
     <footer><button class="secondary" type="button" (click)="closeDrawer()" [disabled]="saving">Cancel</button><button class="primary" type="submit" [disabled]="saving || userForm.invalid">{{ saving ? 'Saving…' : (editingUser ? 'Save changes' : 'Create user') }}</button></footer>
   </form>
 </aside>
 
 <div class="modal-backdrop" *ngIf="pendingStatusUser as user">
   <section class="confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="status-confirm-title">
-    <span class="confirm-icon material-symbols-outlined" aria-hidden="true">{{ user.active ? 'person_off' : 'person_check' }}</span><h2 id="status-confirm-title">{{ user.active ? 'Deactivate' : 'Activate' }} {{ user.fullName }}?</h2><p>{{ user.active ? 'The user will immediately lose access when their current token is checked again.' : 'The user will be able to sign in again, subject to organisation licence limits.' }}</p><div><button type="button" class="secondary" (click)="pendingStatusUser = null" [disabled]="saving">Cancel</button><button type="button" [class.danger]="user.active" [class.primary]="!user.active" (click)="confirmStatusChange()" [disabled]="saving">{{ saving ? 'Updating…' : (user.active ? 'Deactivate user' : 'Activate user') }}</button></div>
+    <span class="confirm-icon material-symbols-outlined" aria-hidden="true">{{ user.active ? 'person_off' : 'person_check' }}</span>
+    <h2 id="status-confirm-title">{{ user.active ? 'Deactivate' : 'Activate' }} {{ user.fullName }}?</h2>
+    <p>{{ user.active ? 'The user will immediately lose access when their current token is checked again.' : 'The user will be able to sign in again, subject to organisation licence limits.' }}</p>
+    <div><button type="button" class="secondary" (click)="pendingStatusUser = null" [disabled]="saving">Cancel</button><button type="button" [class.danger]="user.active" [class.primary]="!user.active" (click)="confirmStatusChange()" [disabled]="saving">{{ saving ? 'Updating…' : (user.active ? 'Deactivate user' : 'Activate user') }}</button></div>
+  </section>
+</div>
+
+<!-- ✅ MODALE DE CONFIRMATION DE SUPPRESSION -->
+<div class="modal-backdrop" *ngIf="pendingDeleteUser as user">
+  <section class="confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-confirm-title">
+    <span class="confirm-icon material-symbols-outlined danger" aria-hidden="true">delete</span>
+    <h2 id="delete-confirm-title">Delete {{ user.fullName }}?</h2>
+    <p>This action cannot be undone. The user will be permanently removed from the organisation.</p>
+    <div>
+      <button type="button" class="secondary" (click)="pendingDeleteUser = null" [disabled]="saving">Cancel</button>
+      <button type="button" class="danger" (click)="confirmDelete()" [disabled]="saving">
+        {{ saving ? 'Deleting…' : 'Delete user' }}
+      </button>
+    </div>
   </section>
 </div>

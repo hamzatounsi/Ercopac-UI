@@ -22,6 +22,8 @@ export class OrgAdminUsersComponent implements OnInit, OnDestroy {
   loading = true;
   loadingUsers = false;
   saving = false;
+    showPassword = false;
+   pendingDeleteUser: OrganisationUser | null = null;
   errorMessage = '';
   formError = '';
   drawerOpen = false;
@@ -60,7 +62,28 @@ export class OrgAdminUsersComponent implements OnInit, OnDestroy {
     private readonly toast: AdminToastService,
     authService: AuthService
   ) { this.currentUserId = authService.getCurrentUserId(); }
+ requestDelete(user: OrganisationUser): void { 
+    this.pendingDeleteUser = user; 
+  }
 
+  // ✅ NOUVELLE MÉTHODE : Confirmer et exécuter la suppression
+  confirmDelete(): void {
+    const user = this.pendingDeleteUser; 
+    if (!user || this.saving) return;
+    
+    this.saving = true;
+    this.service.deleteUser(user.id).pipe(finalize(() => this.saving = false)).subscribe({
+      next: () => { 
+        this.toast.show('User account deleted successfully.'); 
+        this.pendingDeleteUser = null; 
+        this.loadUsers(); 
+      },
+      error: error => { 
+        this.pendingDeleteUser = null; 
+        this.toast.show(adminErrorMessage(error, 'Could not delete the user account.'), 'error'); 
+      }
+    });
+  }
   ngOnInit(): void {
     this.searchControl.valueChanges.pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$)).subscribe(() => { this.page = 0; this.loadUsers(); });
     this.filterForm.valueChanges.pipe(debounceTime(50), takeUntil(this.destroy$)).subscribe(() => { this.page = 0; this.loadUsers(); });
@@ -109,43 +132,77 @@ export class OrgAdminUsersComponent implements OnInit, OnDestroy {
     this.userForm.controls.password.updateValueAndValidity();
   }
 
-  openEdit(user: OrganisationUser): void {
-    const roles =
-      Array.isArray(user.roles) && user.roles.length
-        ? user.roles
-        : user.role
-          ? [user.role]
-          : [];
-    this.editingUser = user; this.formError = ''; this.drawerOpen = true;
-    this.userForm.reset({ fullName: user.fullName, email: user.email, password: '', roles, departmentId: user.departmentId, resourceTypeId: user.resourceTypeId, employeeCode: user.employeeCode || '', jobTitle: user.jobTitle || '', active: user.active });
-    this.updateResourceProfileValidators();
-    this.userForm.controls.password.clearValidators(); this.userForm.controls.password.updateValueAndValidity();
-  }
+openEdit(user: OrganisationUser): void {
+  const roles =
+    Array.isArray(user.roles) && user.roles.length
+      ? user.roles
+      : user.role
+        ? [user.role]
+        : [];
+  this.editingUser = user; 
+  this.formError = ''; 
+  this.drawerOpen = true;
+  this.showPassword = false; // ✅ Réinitialiser l'affichage du mot de passe
+  
+  this.userForm.reset({ 
+    fullName: user.fullName, 
+    email: user.email, 
+    password: '', // ✅ Mot de passe vide par défaut en édition
+    roles, 
+    departmentId: user.departmentId, 
+    resourceTypeId: user.resourceTypeId, 
+    employeeCode: user.employeeCode || '', 
+    jobTitle: user.jobTitle || '', 
+    active: user.active 
+  });
+  
+  this.updateResourceProfileValidators();
+  this.userForm.controls.password.clearValidators(); 
+  this.userForm.controls.password.updateValueAndValidity();
+}
 
   closeDrawer(): void { if (!this.saving) { this.drawerOpen = false; this.editingUser = null; this.formError = ''; } }
-
-  saveUser(): void {
-    if (this.userForm.invalid || this.saving) { this.userForm.markAllAsTouched(); return; }
-    const value = this.userForm.getRawValue();
-    const payload: SaveOrganisationUser = {
-      fullName: value.fullName.trim(), email: value.email.trim(), roles: value.roles,
-      departmentId: value.departmentId, resourceTypeId: value.resourceTypeId, employeeCode: value.employeeCode.trim() || null,
-      jobTitle: value.jobTitle.trim() || null, active: value.active
-    };
-    this.saving = true; this.formError = '';
-    const request = this.editingUser
-      ? this.service.updateUser(this.editingUser.id, payload)
-      : this.service.createUser({ ...payload, password: value.password });
-    request.pipe(finalize(() => this.saving = false)).subscribe({
-      next: () => {
-        this.toast.show(this.editingUser ? 'User account updated.' : 'User account created.');
-        this.drawerOpen = false;
-        this.editingUser = null;
-        this.loadUsers();
-      },
-      error: error => this.formError = adminErrorMessage(error, 'Could not save the user account.')
-    });
+saveUser(): void {
+  if (this.userForm.invalid || this.saving) { 
+    this.userForm.markAllAsTouched(); 
+    return; 
   }
+  
+  const value = this.userForm.getRawValue();
+  const payload: SaveOrganisationUser = {
+    fullName: value.fullName.trim(), 
+    email: value.email.trim(), 
+    roles: value.roles,
+    departmentId: value.departmentId, 
+    resourceTypeId: value.resourceTypeId, 
+    employeeCode: value.employeeCode.trim() || null,
+    jobTitle: value.jobTitle.trim() || null, 
+    active: value.active
+  };
+  
+  // ✅ Ajouter le mot de passe uniquement s'il est renseigné
+  if (value.password && value.password.trim()) {
+    payload.password = value.password.trim();
+  }
+  
+  this.saving = true; 
+  this.formError = '';
+  
+  const request = this.editingUser
+    ? this.service.updateUser(this.editingUser.id, payload)
+    : this.service.createUser({ ...payload, password: value.password });
+    
+  request.pipe(finalize(() => this.saving = false)).subscribe({
+    next: () => {
+      this.toast.show(this.editingUser ? 'User account updated.' : 'User account created.');
+      this.drawerOpen = false;
+      this.editingUser = null;
+      this.showPassword = false; // ✅ Réinitialiser
+      this.loadUsers();
+    },
+    error: error => this.formError = adminErrorMessage(error, 'Could not save the user account.')
+  });
+}
 
   requestStatusChange(user: OrganisationUser): void { this.pendingStatusUser = user; }
   confirmStatusChange(): void {

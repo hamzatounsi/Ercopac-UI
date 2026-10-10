@@ -136,55 +136,74 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
       }
     });
   }
-  
   save(): void {
-    if (!this.form || !this.permissions.canWriteCrm) return;
-    this.error = this.valueValidationError();
-    if (this.error) return;
-
-    const payload = {
-      name: this.form.name,
-      accountId: this.form.accountId,
-      leadId: this.form.leadId,
-      ownerId: this.form.ownerId,
-      stageId: this.form.stageId,
-      probability: this.form.probability,
-      discount: this.form.discount,
-      supplyCategoryId: this.form.supplyCategoryId,
-      materialValue: this.form.materialValue,
-      servicesValue: this.form.servicesValue,
-      ercopacMaterialValue: this.form.ercopacMaterialValue,
-      thirdPartyMaterialValue: this.form.thirdPartyMaterialValue,
-      ercopacResaleValue: this.form.ercopacResaleValue,
-      resaleValue: this.form.resaleValue,
-      closingDate: this.form.closingDate,
-      shipmentDate: this.form.shipmentDate,
-      quoteRequestedDate: this.form.quoteRequestedDate,
-      quoteSubmittedDate: this.form.quoteSubmittedDate,
-      quoteNumber: this.form.quoteNumber,
-      nextStep: this.form.nextStep,
-      description: this.form.description,
-      opportunityType: this.form.opportunityType,
-      pipeline: this.form.pipeline,
-      currency: this.form.currency,
-      teamMembers: this.form.teamMembers
-    };
-
-    this.saving = true;
-    this.crm.updateOpportunity(this.orgId, this.id, payload as any).subscribe({ 
-      next: (updated) => { 
-        this.saving = false; 
-        this.flash(this.i18n.t('opportunityDetail.toast.saved')); 
-        this.load();
-      }, 
-      error: e => { 
-        console.error(e);
-        this.error = e?.error?.message || this.i18n.t('opportunityDetail.error.save'); 
-        this.saving = false; 
-      } 
-    });
+  console.log('🔵 Save clicked');
+  console.log('Form:', this.form);
+  console.log('Can Write:', this.permissions.canWriteCrm);
+  
+  if (!this.form) {
+    console.error('❌ Form is undefined');
+    this.error = 'Form is not loaded yet.';
+    return;
   }
   
+  if (!this.permissions.canWriteCrm) {
+    console.error('❌ No write permission');
+    this.error = 'You do not have permission to save.';
+    return;
+  }
+  
+  this.error = this.valueValidationError();
+  if (this.error) {
+    console.error('❌ Validation error:', this.error);
+    return;
+  }
+
+  const payload = {
+    name: this.form.name,
+    accountId: this.form.accountId,
+    leadId: this.form.leadId,
+    ownerId: this.form.ownerId,
+    stageId: this.form.stageId,
+    probability: this.form.probability,
+    discount: this.form.discount,
+    supplyCategoryId: this.form.supplyCategoryId,
+    materialValue: this.form.materialValue,
+    servicesValue: this.form.servicesValue,
+    ercopacMaterialValue: this.form.ercopacMaterialValue,
+    thirdPartyMaterialValue: this.form.thirdPartyMaterialValue,
+    ercopacResaleValue: this.form.ercopacResaleValue,
+    resaleValue: this.form.resaleValue,
+    closingDate: this.form.closingDate,
+    shipmentDate: this.form.shipmentDate,
+    quoteRequestedDate: this.form.quoteRequestedDate,
+    quoteSubmittedDate: this.form.quoteSubmittedDate,
+    quoteNumber: this.form.quoteNumber,
+    nextStep: this.form.nextStep,
+    description: this.form.description,
+    opportunityType: this.form.opportunityType,
+    pipeline: this.form.pipeline,
+    currency: this.form.currency,
+    teamMembers: this.form.teamMembers
+  };
+
+  console.log('✅ Sending payload:', payload);
+  this.saving = true;
+  
+  this.crm.updateOpportunity(this.orgId, this.id, payload as any).subscribe({ 
+    next: (updated) => { 
+      console.log('✅ Save successful');
+      this.saving = false; 
+      this.flash(this.i18n.t('opportunityDetail.toast.saved')); 
+      this.load();
+    }, 
+    error: e => { 
+      console.error('❌ Save failed:', e);
+      this.error = e?.error?.message || this.i18n.t('opportunityDetail.error.save'); 
+      this.saving = false; 
+    } 
+  });
+}
   get availableEquipmentTypes(): CrmEquipmentType[] {
     return this.equipmentTypes.filter(type => !this.equipment.some(item => item.equipmentTypeId === type.id));
   }
@@ -398,21 +417,27 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
     return Math.round((material + services) * 100) / 100;
   }
 
-   // ✅ TOTAL VALUE = Matériel + Services (SANS AUCUNE REMISE)
+  // 1. Valeur Totale (Matériel + Services)
   get totalValue(): number {
-    const material = this.form?.materialValue || 0;
-    const services = this.form?.servicesValue || 0;
+    const material = Number(this.form?.materialValue) || 0;
+    const services = Number(this.form?.servicesValue) || 0;
     return Math.round((material + services) * 100) / 100;
   }
-  
+
+  // 2. Total de la répartition des ventes (Ercopac + TF)
   get totalSalesSplit(): number { 
-    return this.fromCents(this.cents(this.form?.ercopacMaterialValue) + this.cents(this.form?.thirdPartyMaterialValue)); 
+    const ercopac = Number(this.form?.ercopacMaterialValue) || 0;
+    const tf = Number(this.form?.thirdPartyMaterialValue) || 0;
+    return Math.round((ercopac + tf) * 100) / 100;
   }
-  
+
+  // 3. Total de la répartition de revente (Ercopac + Resale)
   get totalResaleSplit(): number { 
-    return this.fromCents(this.cents(this.form?.ercopacResaleValue) + this.cents(this.form?.resaleValue)); 
+    const ercopacResale = Number(this.form?.ercopacResaleValue) || 0;
+    const resale = Number(this.form?.resaleValue) || 0;
+    return Math.round((ercopacResale + resale) * 100) / 100;
   }
-  
+
   get hasSalesSplit(): boolean { 
     return this.form?.ercopacMaterialValue != null || this.form?.thirdPartyMaterialValue != null; 
   }
@@ -420,24 +445,19 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
   get hasResaleSplit(): boolean { 
     return this.form?.ercopacResaleValue != null || this.form?.resaleValue != null; 
   }
-  
-  // ✅ Validation compare avec totalValue (SANS remise)
+
+  // 4. Validation infaillible (tolère les micro-différences d'arrondi flottant)
   get salesSplitValid(): boolean { 
-    return !this.hasSalesSplit || this.cents(this.totalSalesSplit) === this.cents(this.totalValue); 
+    if (!this.hasSalesSplit) return true;
+    // Compare la répartition avec la Valeur Totale (2805 === 2805)
+    return Math.abs(this.totalSalesSplit - this.totalValue) < 0.01; 
   }
   
   get resaleSplitValid(): boolean { 
-    return !this.hasResaleSplit || this.cents(this.totalResaleSplit) === this.cents(this.totalValue); 
+    if (!this.hasResaleSplit) return true;
+    return Math.abs(this.totalResaleSplit - this.totalValue) < 0.01; 
   }
 
-  get discountedValue(): number {
-    // Pour affichage si nécessaire
-    const material = this.form?.materialValue || 0;
-    const services = this.form?.servicesValue || 0;
-    const discount = Math.max(0, Math.min(100, Number(this.form?.discount) || 0));
-    const discountedMaterial = material * (1 - discount / 100);
-    return Math.round((discountedMaterial + services) * 100) / 100;
-  }
   
   // ✅ REVENU ATTENDU : C'est le SEUL qui applique la remise (sur matériel) + probabilité
   get expectedRevenue(): number {

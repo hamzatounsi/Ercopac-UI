@@ -1,1 +1,24 @@
 @import '../../crm-shared';.dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px}.stage-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:14px;font-size:11px;font-weight:700}.stage-badge i{width:7px;height:7px;border-radius:50%}.prob{display:flex;align-items:center;gap:7px}.prob>span{width:52px;height:4px;background:#f0f2f7;border-radius:2px;overflow:hidden}.prob i{display:block;height:100%;background:#1a56db}
+.text-center {
+  text-align: center;
+}
+
+.icon-btn {
+  padding: 4px 8px;
+  font-size: 18px;
+  line-height: 1;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+
+  &.danger {
+    color: #dc3545;
+    
+    &:hover {
+      background: #dc3545;
+      color: white;
+    }
+  }
+}
