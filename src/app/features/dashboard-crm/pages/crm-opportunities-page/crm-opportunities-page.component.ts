@@ -108,6 +108,25 @@ export class CrmOpportunitiesPageComponent implements OnInit {
     }
   }
 
+  // ✅ NOUVELLE MÉTHODE : Supprimer une opportunité
+  deleteOpportunity(opportunity: CrmOpportunity): void {
+    // ✅ Ajout : Vérifier que l'ID existe avant d'appeler le service
+    if (!opportunity.id) return; 
+    
+    const confirmMessage = this.i18n.t('opportunities.confirm.delete') || `Delete opportunity "${opportunity.name}"?`;
+    if (confirm(confirmMessage)) {
+      this.crm.deleteOpportunity(this.orgId, opportunity.id).subscribe({
+        next: () => {
+          // Retirer l'élément de la liste locale pour une mise à jour instantanée
+          this.opportunities = this.opportunities.filter(o => o.id !== opportunity.id);
+        },
+        error: e => {
+          this.error = e?.error?.message || this.i18n.t('opportunities.error.delete');
+        }
+      });
+    }
+  }
+
   save(): void {
     if (!this.form.name.trim() || !this.form.accountId) {
       this.error = this.i18n.t('opportunities.error.required');
@@ -130,7 +149,6 @@ export class CrmOpportunitiesPageComponent implements OnInit {
       return;
     }
     
-    // ✅ The backend will recalculate this anyway, but sending the correct net value from the frontend is best practice
     this.form.value = this.totalValue;
     
     this.saving = true;
@@ -151,16 +169,12 @@ export class CrmOpportunitiesPageComponent implements OnInit {
     return Math.round((Number(value) || 0) * 100);
   }
 
-  // ✅ CORRECTED: Now applies the discount to match backend logic
   get totalValue(): number {
     const material = this.form.materialValue || 0;
     const services = this.form.servicesValue || 0;
     const discount = this.form.discount || 0;
     
-    // La remise s'applique UNIQUEMENT au matériel
     const discountedMaterial = material * (1 - discount / 100);
-    
-    // Total = Matériel remis + Services (sans remise)
     return Math.round((discountedMaterial + services) * 100) / 100;
   }
 

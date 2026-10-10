@@ -31,6 +31,8 @@
           <th>{{ i18n.t('opportunities.col.probability') }}</th>
           <th>{{ i18n.t('opportunities.col.closingDate') }}</th>
           <th>{{ i18n.t('opportunities.col.owner') }}</th>
+          <!-- ✅ NOUVELLE COLONNE ACTIONS -->
+          <th *ngIf="permissions.canWriteCrm" style="width: 60px; text-align: center;"></th>
         </tr>
       </thead>
       <tbody>
@@ -42,7 +44,6 @@
               <i [style.background]="opportunity.stageColor||'#64748b'"></i>{{ opportunity.stageName || i18n.t('opportunities.unassigned') }}
             </span>
           </td>
-          <!-- ✅ CORRECTED VALUE COLUMN -->
           <td class="currency">
             <ng-container *ngIf="opportunity.won; else openValue">
               <strong>{{ money(opportunity.expectedRevenue, opportunity.currency) }}</strong>
@@ -56,15 +57,24 @@
           </td>
           <td>{{ opportunity.closingDate | crmDate }}</td>
           <td>{{ opportunity.ownerName || i18n.t('opportunities.unassigned') }}</td>
+          
+          <!-- ✅ BOUTON DE SUPPRESSION -->
+          <td *ngIf="permissions.canWriteCrm" class="text-center" (click)="$event.stopPropagation()">
+            <button class="icon-btn danger" (click)="deleteOpportunity(opportunity)" title="Delete opportunity">
+              ×
+            </button>
+          </td>
         </tr>
         <tr *ngIf="!filtered.length">
-          <td colspan="7" class="empty">{{ i18n.t('opportunities.empty') }}</td>
+          <!-- ✅ colspan mis à jour à 8 -->
+          <td colspan="8" class="empty">{{ i18n.t('opportunities.empty') }}</td>
         </tr>
       </tbody>
     </table>
   </div>
 </div>
 
+<!-- MODAL (inchangée) -->
 <div class="modal-backdrop" *ngIf="showForm" (click)="showForm=false">
   <form class="modal" (click)="$event.stopPropagation()" (ngSubmit)="save()">
     <div class="modal-header">

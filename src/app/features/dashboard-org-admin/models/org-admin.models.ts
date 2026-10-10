@@ -84,6 +84,7 @@ export interface SaveOrganisationUser {
   employeeCode: string | null;
   jobTitle: string | null;
   active: boolean;
+
 }
 
 export interface OrganisationDepartment {

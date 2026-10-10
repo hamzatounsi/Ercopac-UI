@@ -97,8 +97,8 @@
             <div class="deal-name">{{ opp.name }}</div>
             <div class="deal-account" *ngIf="opp.accountName">{{ opp.accountName }}</div>
             <div class="deal-footer">
-              <span class="deal-value" *ngIf="opp.value">{{ formatValue(opp.value) }}</span>
-              <span class="deal-prob" *ngIf="opp.probability">{{ opp.probability }}%</span>
+              <span class="deal-value" *ngIf="opp.expectedRevenue !== undefined">{{ formatValue(opp.expectedRevenue) }}</span>
+              <span class="deal-prob" *ngIf="opp.probability !== undefined">{{ opp.probability }}%</span>
             </div>
           </div>
 
@@ -162,7 +162,7 @@
                 {{ opp.stageName || '—' }}
               </span>
             </td>
-            <td class="value-cell">{{ formatValue(opp.value) }}</td>
+            <td class="value-cell">{{ formatValue(opp.expectedRevenue) }}</td>
             <td class="date-cell">{{ opp.closingDate | crmDate }}</td>
             <td>{{ opp.ownerName ? (opp.ownerName | slice:0:7) + '.': '—' }}</td>
           </tr>
