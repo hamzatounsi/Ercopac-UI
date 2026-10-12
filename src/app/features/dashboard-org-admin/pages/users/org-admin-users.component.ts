@@ -66,7 +66,7 @@ export class OrgAdminUsersComponent implements OnInit, OnDestroy {
     this.pendingDeleteUser = user; 
   }
 
-  // ✅ NOUVELLE MÉTHODE : Confirmer et exécuter la suppression
+    // ✅ NOUVELLE MÉTHODE : Confirmer et exécuter la suppression
   confirmDelete(): void {
     const user = this.pendingDeleteUser; 
     if (!user || this.saving) return;
@@ -74,8 +74,9 @@ export class OrgAdminUsersComponent implements OnInit, OnDestroy {
     this.saving = true;
     this.service.deleteUser(user.id).pipe(finalize(() => this.saving = false)).subscribe({
       next: () => { 
-        this.toast.show('User account deleted successfully.'); 
+        this.toast.show('User account deactivated successfully.'); 
         this.pendingDeleteUser = null; 
+        // ✅ FORCER LE RAFRAÎCHISSEMENT DE LA LISTE
         this.loadUsers(); 
       },
       error: error => { 
@@ -88,6 +89,10 @@ export class OrgAdminUsersComponent implements OnInit, OnDestroy {
     this.searchControl.valueChanges.pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$)).subscribe(() => { this.page = 0; this.loadUsers(); });
     this.filterForm.valueChanges.pipe(debounceTime(50), takeUntil(this.destroy$)).subscribe(() => { this.page = 0; this.loadUsers(); });
     this.userForm.controls.roles.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.updateResourceProfileValidators());
+    
+    // ✅ DÉFINIR LE FILTRE "ACTIVE" PAR DÉFAUT
+    this.filterForm.patchValue({ status: 'active' });
+    
     this.loadMetadata();
   }
 
