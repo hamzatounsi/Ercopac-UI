@@ -1,8 +1,7 @@
+
 name: Build and Deploy Frontend to Staging
 
 on:
-  push:
-    branches: [staging]
   workflow_dispatch:
 
 permissions:
@@ -14,38 +13,69 @@ concurrency:
 
 jobs:
   verify:
+    name: Verify Frontend
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: "18"
           cache: npm
-      - run: npm ci
-      - name: Build production-equivalent Angular bundle
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Angular application
         run: npm run build -- --configuration production
-      - name: Build staging image locally
+
+      - name: Verify Docker image builds
         run: docker build -t projectum-staging-frontend:${{ github.sha }} .
 
   deploy:
+    name: Deploy Frontend to Staging
     needs: verify
     runs-on: ubuntu-latest
     environment: staging
+
     steps:
-      - name: Deploy only the staging frontend
-        uses: appleboy/ssh-action@v1.2.0
+      - name: Configure secure SSH access
         env:
+          STAGING_SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+          STAGING_KNOWN_HOSTS: ${{ secrets.STAGING_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p "$HOME/.ssh"
+
+          printf '%s\n' "$STAGING_SSH_KEY" > "$HOME/.ssh/staging_key"
+          printf '%s\n' "$STAGING_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+
+          chmod 600 "$HOME/.ssh/staging_key"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Deploy only the staging frontend
+        env:
+          STAGING_HOST: ${{ secrets.STAGING_HOST }}
+          STAGING_USER: ${{ secrets.STAGING_USER }}
+          STAGING_SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
           DEPLOYMENT_ID: ${{ github.sha }}
-        with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USER }}
-          key: ${{ secrets.STAGING_SSH_KEY }}
-          port: ${{ secrets.STAGING_SSH_PORT || '22' }}
-          timeout: 30s
-          command_timeout: 30m
-          script_stop: true
-          envs: DEPLOYMENT_ID
-          script: |
-            FRONTEND_DEPLOYMENT_ID="$DEPLOYMENT_ID" bash \
-              /opt/projectum-staging/backend/deploy/staging/scripts/deploy-service.sh \
-              frontend '${{ github.sha }}'
+        run: |
+          set -euo pipefail
+
+          ssh -T \
+            -i "$HOME/.ssh/staging_key" \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o BatchMode=yes \
+            -o ConnectTimeout=30 \
+            -p "${STAGING_SSH_PORT:-22}" \
+            "${STAGING_USER}@${STAGING_HOST}" \
+            "staging-deploy frontend ${DEPLOYMENT_ID}"
+
+      - name: Clean up SSH private key
+        if: always()
+        run: rm -f "$HOME/.ssh/staging_key"
