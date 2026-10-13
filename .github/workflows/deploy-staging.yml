@@ -1,0 +1,51 @@
+name: Build and Deploy Frontend to Staging
+
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: projectum-staging-frontend
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: npm
+      - run: npm ci
+      - name: Build production-equivalent Angular bundle
+        run: npm run build -- --configuration production
+      - name: Build staging image locally
+        run: docker build -t projectum-staging-frontend:${{ github.sha }} .
+
+  deploy:
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Deploy only the staging frontend
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          DEPLOYMENT_ID: ${{ github.sha }}
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          port: ${{ secrets.STAGING_SSH_PORT || '22' }}
+          timeout: 30s
+          command_timeout: 30m
+          script_stop: true
+          envs: DEPLOYMENT_ID
+          script: |
+            FRONTEND_DEPLOYMENT_ID="$DEPLOYMENT_ID" bash \
+              /opt/projectum-staging/backend/deploy/staging/scripts/deploy-service.sh \
+              frontend '${{ github.sha }}'
