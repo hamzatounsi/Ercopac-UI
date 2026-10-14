@@ -21,7 +21,8 @@ readonly mainItems = [
   { label: 'Dashboard', icon: 'dashboard', route: '/crm/dashboard', key: 'nav.dashboard' },
   { label: 'Accounts', icon: 'business_center', route: '/crm/accounts', key: 'nav.accounts' },
   { label: 'Leads', icon: 'person', route: '/crm/leads', key: 'nav.leads' },
-  { label: 'Opportunities', icon: 'letter-O', route: '/crm/opportunities', key: 'nav.opportunities' } // ✅ Changé ici
+  { label: 'Opportunities', icon: 'letter-O', route: '/crm/opportunities', key: 'nav.opportunities' },
+  { label: 'Archived Opportunities', icon: 'archive', route: '/crm/opportunities/archived', key: 'nav.archivedOpportunities' } // ✅ AJOUTÉ
 ];
   readonly insightItems = [
     { label: 'Reports', icon: 'description', route: '/crm/reports', key: 'nav.reports' },

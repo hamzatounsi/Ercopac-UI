@@ -42,6 +42,8 @@ export interface CrmOpportunity {
   notes: string | null;
   createdAt: string | null;
   teamMembers: CrmUser[];
+   archived?: boolean;
+  archivedAt?: string;
 }
  
 export function emptyOpportunity(): CrmOpportunity {

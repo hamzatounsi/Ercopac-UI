@@ -67,11 +67,11 @@
                 <small>{{ money(baseValue, form.currency) }} − {{ form.discount || 0 }}% (on material) = {{ money(totalValue, form.currency) }}</small>
               </div>
             </div>
-            <div class="summary-row expected-row">
+                      <div class="summary-row expected-row">
               <label>Expected revenue</label>
               <div>
                 <strong class="currency">{{ money(expectedRevenue, form.currency) }}</strong>
-                <small>{{ money(totalValue, form.currency) }} × {{ form.probability || 0 }}% probability</small>
+                <small>{{ money(totalValue, form.currency) }} − {{ form.discount || 0 }}% discount (on material)</small>
               </div>
             </div>
             <div class="summary-row">
