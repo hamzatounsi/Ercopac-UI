@@ -1,0 +1,17 @@
+
+name: Build and Deploy Frontend to Staging
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  staging:
+    name: Staging workflow launcher
+    if: github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm staging branch
+        run: echo "Staging branch selected."
