@@ -44,13 +44,8 @@
               <i [style.background]="opportunity.stageColor||'#64748b'"></i>{{ opportunity.stageName || i18n.t('opportunities.unassigned') }}
             </span>
           </td>
-          <td class="currency">
-            <ng-container *ngIf="opportunity.won; else openValue">
-              <strong>{{ money(opportunity.expectedRevenue, opportunity.currency) }}</strong>
-            </ng-container>
-            <ng-template #openValue>
-              {{ money(opportunity.value, opportunity.currency) }}
-            </ng-template>
+         <td class="currency">
+            <strong>{{ money(opportunity.expectedRevenue, opportunity.currency) }}</strong>
           </td>
           <td>
             <div class="prob"><span><i [style.width.%]="opportunity.probability"></i></span>{{ opportunity.probability }}%</div>
@@ -58,6 +53,10 @@
           <td>{{ opportunity.closingDate | crmDate }}</td>
           <td>{{ opportunity.ownerName || i18n.t('opportunities.unassigned') }}</td>
           
+  <!-- ✅ NOUVEAU : Bouton Archive -->
+  <button type="button" class="btn-archive" (click)="archiveOpportunity(opportunity)" [attr.aria-label]="'Archive ' + opportunity.name" title="Archiver">
+    <span class="material-symbols-outlined" aria-hidden="true">archive</span>
+  </button>
           <!-- ✅ BOUTON DE SUPPRESSION -->
           <td *ngIf="permissions.canWriteCrm" class="text-center" (click)="$event.stopPropagation()">
             <button class="icon-btn danger" (click)="deleteOpportunity(opportunity)" title="Delete opportunity">

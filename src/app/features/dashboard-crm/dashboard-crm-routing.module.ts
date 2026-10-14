@@ -20,6 +20,9 @@ import { CrmSettingsPageComponent } from './pages/crm-settings-page/crm-settings
 import { SalesDashboardComponent } from './pages/sales-dashboard/sales-dashboard.component';
 import { CustomerSuccessDashboardComponent } from './pages/customer-success-dashboard/customer-success-dashboard.component';
 
+// ✅ NOUVEAU IMPORT : Page des opportunités archivées
+import { CrmArchivedOpportunitiesPageComponent } from './pages/crm-archived-opportunities-page/crm-archived-opportunities-page.component';
+
 const routes: Routes = [
   { 
     path: '', 
@@ -32,6 +35,10 @@ const routes: Routes = [
       { path: 'accounts', component: CrmAccountsPageComponent },
       { path: 'accounts/:id', component: CrmAccountDetailPageComponent },
       { path: 'opportunities', component: CrmOpportunitiesPageComponent },
+       
+      // ⚠️ TRÈS IMPORTANT : La route spécifique 'archived' DOIT être placée AVANT la route générique ':id'
+      { path: 'opportunities/archived', component: CrmArchivedOpportunitiesPageComponent },
+      
       { path: 'opportunities/:id', component: CrmOpportunityDetailPageComponent },
       { path: 'manager-view', component: CrmManagerViewPageComponent, canActivate: [RoleGuard], data: { roles: ['SALES_MANAGER_LEAD'] } },
       { path: 'reports', component: CrmReportsPageComponent },

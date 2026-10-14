@@ -1,0 +1,42 @@
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.icon-btn {
+  background: transparent;
+  border: 1px solid var(--pm-border, #e2e8f0);
+  border-radius: 6px;
+  padding: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  &:hover { background: #f1f5f9; }
+  
+  &.btn-restore { 
+    color: #059669; 
+    border-color: #059669; 
+    &:hover { background: #d1fae5; } 
+  }
+  
+  &.btn-delete { 
+    color: #dc3545; 
+    border-color: #dc3545; 
+    &:hover { background: #fee2e2; } 
+  }
+}
+
+.empty {
+  text-align: center;
+  padding: 40px;
+  color: var(--pm-text-muted);
+  
+  .material-symbols-outlined {
+    font-size: 48px;
+    margin-bottom: 8px;
+    display: block;
+  }
+}

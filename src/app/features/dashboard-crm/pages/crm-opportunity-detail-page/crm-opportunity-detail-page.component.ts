@@ -459,19 +459,18 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
   }
 
   
-  // ✅ REVENU ATTENDU : C'est le SEUL qui applique la remise (sur matériel) + probabilité
+  // ✅ REVENU ATTENDU : Applique la remise (sur matériel) SANS la probabilité
   get expectedRevenue(): number {
     const material = this.form?.materialValue || 0;
     const services = this.form?.servicesValue || 0;
     const discount = Math.max(0, Math.min(100, Number(this.form?.discount) || 0));
-    const probability = Math.max(0, Math.min(100, Number(this.form?.probability) || 0));
     
     // Remise uniquement sur le matériel
     const discountedMaterial = material * (1 - discount / 100);
     const netValue = discountedMaterial + services;
     
-    // Application de la probabilité
-    return Math.round(netValue * (probability / 100) * 100) / 100;
+    // Plus de multiplication par la probabilité
+    return Math.round(netValue * 100) / 100;
   }
   
   private valueValidationError(): string {

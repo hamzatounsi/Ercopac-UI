@@ -126,7 +126,25 @@ export class CrmOpportunitiesPageComponent implements OnInit {
       });
     }
   }
+  // ✅ NOUVELLE MÉTHODE : Archiver une opportunité
+  archiveOpportunity(opportunity: CrmOpportunity): void {
+    // ✅ 1. Vérifier que l'ID n'est pas null pour éviter l'erreur TS2345
+    if (!opportunity.id) return; 
 
+    if (confirm(`Are you sure you want to archive "${opportunity.name}"? It will be removed from the active list.`)) {
+      this.crm.archiveOpportunity(this.orgId, opportunity.id).subscribe({
+        next: () => {
+          // ✅ 2. Utiliser alert() car le service 'toast' n'est pas injecté dans ce composant
+          // (Tu peux aussi injecter AdminToastService dans le constructeur si tu préfères)
+          window.alert('Opportunity archived successfully.'); 
+          this.load(); // Rafraîchit la liste pour la faire disparaître
+        },
+        error: e => {
+          this.error = e?.error?.message || 'Failed to archive opportunity.';
+        }
+      });
+    }
+  }
   save(): void {
     if (!this.form.name.trim() || !this.form.accountId) {
       this.error = this.i18n.t('opportunities.error.required');
