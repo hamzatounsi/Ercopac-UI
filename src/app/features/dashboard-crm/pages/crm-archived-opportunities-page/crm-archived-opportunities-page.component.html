@@ -1,0 +1,50 @@
+<div class="crm-page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Archived Opportunities</h1>
+      <p class="page-sub">View, restore, or permanently delete archived opportunities.</p>
+    </div>
+    <div class="page-actions">
+      <button class="btn secondary" routerLink="/crm/opportunities">Back to Active Opportunities</button>
+    </div>
+  </header>
+
+  <div *ngIf="loading" class="state">Loading archived opportunities...</div>
+  <div *ngIf="error" class="state error" role="alert">{{ error }}</div>
+
+  <div class="table-wrap" *ngIf="!loading && !error">
+    <table class="crm-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Account</th>
+          <th>Value</th>
+          <th>Archived Date</th>
+          <th class="actions-heading">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let opp of archivedOpportunities">
+          <td>{{ opp.name }}</td>
+          <td>{{ opp.accountName || '—' }}</td>
+          <td class="currency">{{ opp.value | currency:'EUR':'symbol':'1.0-0' }}</td>
+          <td>{{ opp.archivedAt | date:'short' }}</td>
+          <td class="actions">
+            <button class="icon-btn btn-restore" (click)="restore(opp.id)" title="Restore">
+              <span class="material-symbols-outlined">unarchive</span>
+            </button>
+            <button class="icon-btn btn-delete" (click)="deletePermanently(opp.id)" title="Delete Permanently">
+              <span class="material-symbols-outlined">delete_forever</span>
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="archivedOpportunities.length === 0">
+          <td colspan="5" class="empty">
+            <span class="material-symbols-outlined">archive</span>
+            <strong>No archived opportunities found.</strong>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

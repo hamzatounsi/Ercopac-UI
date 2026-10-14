@@ -145,5 +145,19 @@ sendOpportunityNotification(orgId: number, dto: {
   saveTarget(orgId: number, userId: number, year: number, amount: number, currency = 'EUR'): Observable<CrmManagerTeamMember> {
     return this.http.put<CrmManagerTeamMember>(`${this.url(orgId)}/manager/targets/${userId}`, { amount, currency }, { params: { year } });
   }
+   // ✅ Archiver une opportunité
+  archiveOpportunity(orgId: number, id: number): Observable<void> {
+    return this.http.patch<void>(`/api/crm/organisations/${orgId}/opportunities/${id}/archive`, {});
+  }
+
+  // ✅ Récupérer les opportunités archivées
+  getArchivedOpportunities(orgId: number): Observable<CrmOpportunity[]> {
+    return this.http.get<CrmOpportunity[]>(`/api/crm/organisations/${orgId}/opportunities/archived`);
+  }
+
+  // ✅ Restaurer une opportunité archivée
+  restoreOpportunity(orgId: number, id: number): Observable<void> {
+    return this.http.patch<void>(`/api/crm/organisations/${orgId}/opportunities/${id}/restore`, {});
+  }
   
 }
