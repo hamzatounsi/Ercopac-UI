@@ -44,13 +44,8 @@
               <i [style.background]="opportunity.stageColor||'#64748b'"></i>{{ opportunity.stageName || i18n.t('opportunities.unassigned') }}
             </span>
           </td>
-          <td class="currency">
-            <ng-container *ngIf="opportunity.won; else openValue">
-              <strong>{{ money(opportunity.expectedRevenue, opportunity.currency) }}</strong>
-            </ng-container>
-            <ng-template #openValue>
-              {{ money(opportunity.value, opportunity.currency) }}
-            </ng-template>
+         <td class="currency">
+            <strong>{{ money(opportunity.expectedRevenue, opportunity.currency) }}</strong>
           </td>
           <td>
             <div class="prob"><span><i [style.width.%]="opportunity.probability"></i></span>{{ opportunity.probability }}%</div>
