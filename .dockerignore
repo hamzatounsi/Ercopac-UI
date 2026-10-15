@@ -1,0 +1,10 @@
+.git
+.github
+.angular
+.vscode
+node_modules
+dist
+out-tsc
+coverage
+*.log
+witch main
