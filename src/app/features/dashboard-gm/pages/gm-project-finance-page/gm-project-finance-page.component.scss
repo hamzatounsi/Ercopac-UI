@@ -1351,3 +1351,105 @@ body > .settings-overlay * {
   font-size: 14px;
   opacity: 0.6;
 }
+/* ============================================================
+   PAYMENTS MODULE — Styles spécifiques
+   ============================================================ */
+
+.payment-toggle {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 8px;
+}
+
+.payment-toggle-input {
+  display: none;
+}
+
+.payment-toggle-switch {
+  position: relative;
+  width: 48px;
+  height: 24px;
+  background: #9ca3af;
+  border-radius: 999px;
+  transition: background 0.2s;
+}
+
+.payment-toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.payment-toggle-input:checked + .payment-toggle-switch {
+  background: #16a34a;
+}
+
+.payment-toggle-input:checked + .payment-toggle-switch::after {
+  transform: translateX(24px);
+}
+
+.payment-toggle-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.payment-toggle-input:checked ~ .payment-toggle-label {
+  color: #16a34a;
+}
+
+.payment-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+
+.payment-progress-fill {
+  height: 100%;
+  transition: width 0.3s ease, background 0.3s ease;
+  border-radius: 4px;
+}
+
+.payment-progress-fill.complete {
+  background: #2563eb;
+}
+
+.payment-progress-fill.incomplete {
+  background: #f97316;
+}
+
+.payment-alert {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #ef4444;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.payment-value-cell {
+  text-align: right;
+  font-family: "JetBrains Mono", Consolas, monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.payment-value-hint {
+  text-align: right;
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 2px;
+}

@@ -65,6 +65,16 @@ export class GmFinanceService {
     return this.http.post<ApplyFinanceTemplateResult>(`${this.settingsUrl}/apply-template`, {}, { params });
   }
 
+  // ✅ NOUVEAU : Payment Schedule (utilise this.settingsUrl pour la cohérence)
+  getPaymentSchedule(projectId: number): Observable<any> {
+    const params = new HttpParams().set('projectId', projectId.toString());
+    return this.http.get<any>(`${this.settingsUrl}/payments`, { params });
+  }
+
+  savePaymentSchedule(projectId: number, payload: any): Observable<any> {
+    const params = new HttpParams().set('projectId', projectId.toString());
+    return this.http.put<any>(`${this.settingsUrl}/payments`, payload, { params });
+  }
   // ✅ MODIFIÉ : Passe le projectId pour l'import spécifique au projet
   importWbsTemplate(
     rows: FinanceWbsTemplateRow[],
