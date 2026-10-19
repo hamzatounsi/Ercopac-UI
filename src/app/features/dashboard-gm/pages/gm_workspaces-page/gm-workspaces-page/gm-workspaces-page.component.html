@@ -1,45 +1,47 @@
 <div class="launcher-page">
-  <header class="launcher-topbar">
-    <a class="launcher-brand" routerLink="/workspace" aria-label="Projectum workspace home">projectum</a>
+  <section class="landing-hero" aria-label="Projectum workspace">
+    <header class="landing-nav">
+      <a class="landing-logo" routerLink="/workspace" aria-label="Projectum workspace home">
+        <img src="assets/branding/projectum-logo.png" alt="" />
+        <span>projectum</span>
+      </a>
+      <nav class="landing-links" aria-label="Workspace navigation">
+        <a class="active" href="#applications">Applications</a>
+      </nav>
+      <div class="landing-account">
+        <button class="landing-logout" type="button" (click)="logout()">Logout</button>
+        <div class="landing-user" [attr.title]="currentUserName">
+          <span class="landing-user-name">{{ currentUserName }}</span>
+        </div>
+      </div>
+    </header>
 
-    <nav class="launcher-nav" aria-label="Workspace navigation">
-      <a href="#applications">Apps</a>
-      <a routerLink="/workspace">Industries</a>
-      <a routerLink="/workspace">Community</a>
-      <a routerLink="/workspace">Prices</a>
-      <a routerLink="/workspace">Help</a>
-    </nav>
+    <div class="ambient-art" aria-hidden="true">
+      <span class="ambient-grid"></span><span class="ambient-glow glow-one"></span><span class="ambient-glow glow-two"></span>
+      <span class="ambient-ring ring-one"></span><span class="ambient-ring ring-two"></span><span class="ambient-line line-one"></span><span class="ambient-line line-two"></span>
+    </div>
 
-    <div class="launcher-actions">
-      <button class="launcher-action-link" type="button" (click)="logout()">Logout</button>
-      <span class="launcher-status-button" [attr.title]="currentUserName" aria-label="Authenticated user">{{ currentUserName }}</span>
-      <div class="org-identity" [attr.title]="currentOrganisationName">
-        <span class="org-identity-label">{{ organisationLabel }}</span>
-        <span class="org-identity-name">{{ currentOrganisationName }}</span>
+    <div id="applications" class="landing-content workspace-applications" aria-labelledby="applicationsTitle">
+      <div class="workspace-panel">
+        <div class="workspace-heading">
+          <span class="workspace-kicker">Projectum workspace</span>
+          <h1 id="applicationsTitle">Your applications</h1>
+          <p>Welcome back, {{ currentUserName }}. Everything you can access is ready below.</p>
+        </div>
+        <div class="launcher-app-grid">
+          <button
+            *ngFor="let app of visibleLauncherApps"
+            class="launcher-app-card"
+            type="button"
+            (click)="openApp(app)"
+            [attr.aria-label]="'Open ' + app.name">
+            <span class="launcher-icon-tile" aria-hidden="true"><span class="material-symbols-outlined">{{ app.icon }}</span></span>
+            <span class="launcher-app-name">{{ app.name }}</span>
+            <span class="app-open-label">Open workspace <span aria-hidden="true">&rarr;</span></span>
+            <span class="sr-only">Available.</span>
+          </button>
+        </div>
       </div>
     </div>
-  </header>
-
-  <main>
-    <section class="launcher-hero" aria-labelledby="workspaceTitle">
-      <p class="launcher-eyebrow">Projectum workspace</p>
-      <h1 id="workspaceTitle">All around <span class="launcher-title-accent">project</span></h1>
-      <p class="launcher-subtitle">Simple, efficient and enterprise-ready!</p>
-    </section>
-
-    <section id="applications" class="launcher-stage" aria-label="Available workspace applications">
-      <div class="launcher-app-grid">
-        <button
-          *ngFor="let app of visibleLauncherApps"
-          class="launcher-app-card"
-          type="button"
-          (click)="openApp(app)"
-          [attr.aria-label]="'Open ' + app.name">
-          <span class="launcher-icon-tile" aria-hidden="true"><span class="material-symbols-outlined">{{ app.icon }}</span></span>
-          <span class="launcher-app-name">{{ app.name }}</span>
-          <span class="sr-only">Available.</span>
-        </button>
-      </div>
-    </section>
-  </main>
+  </section>
 </div>
