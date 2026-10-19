@@ -11,7 +11,7 @@ import { takeUntil } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { assertSpreadsheetFile, assertSpreadsheetRowLimit, assertValidWorkbook } from 'src/app/core/utils/spreadsheet-import.utils';
 
-type SettingsTab = 'wbs' | 'import';
+type SettingsTab = 'wbs' | 'import' | 'payments';
 
 @Component({
   selector: 'app-gm-project-finance-page',
@@ -75,6 +75,19 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
 
   erpConnecting = false;
   readonly rowTypeOptions: FinanceWbsRowType[] = ['SUMMARY', 'HOUR', 'EXPENSES', 'COST'];
+
+  // ==========================================
+  // ✅ MODULE PAYMENTS
+  // ==========================================
+  paymentSchedule: any = {
+    projectId: 0,
+    projectName: '',
+    salesValue: null,
+    currency: 'EUR',
+    totalPercentage: 0,
+    milestones: []
+  };
+  paymentSaving = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -303,6 +316,7 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
         this.settingsLoading = false;
         this.loadDepartments();
         this.loadResourceTypes();
+        this.loadPaymentSchedule();
       },
       error: (err) => {
         this.settingsLoading = false;
@@ -599,5 +613,121 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     this.erpConnecting = true;
     this.error = null;
     setTimeout(() => { this.erpConnecting = false; this.error = 'ERP connection is not configured yet.'; }, 600);
+  }
+
+  // ==========================================
+  // ✅ MODULE PAYMENTS - MÉTHODES
+  // ==========================================
+
+  loadPaymentSchedule(): void {
+    this.financeService.getPaymentSchedule(this.projectId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (data: any) => {
+        this.paymentSchedule = data;
+      },
+      error: (err: any) => {
+        this.paymentSchedule = {
+          projectId: this.projectId,
+          projectName: this.projectName,
+          salesValue: null,
+          currency: 'EUR',
+          totalPercentage: 0,
+          milestones: []
+        };
+      }
+    });
+  }
+
+  updateTotalPercentage(): void {
+    this.paymentSchedule.totalPercentage = this.paymentSchedule.milestones.reduce(
+      (sum: number, p: any) => sum + (p.percentage || 0), 0
+    );
+  }
+
+  onPercentageChange(index: number, value: number): void {
+    this.paymentSchedule.milestones[index].percentage = value || 0;
+    this.updateTotalPercentage();
+  }
+
+  addPaymentMilestone(): void {
+    this.paymentSchedule.milestones.push({
+      id: null,
+      milestoneOrder: this.paymentSchedule.milestones.length + 1,
+      percentage: 0,
+      dueDate: '',
+      status: 'EXPECTED',
+      calculatedValue: 0
+    });
+    this.updateTotalPercentage();
+  }
+
+  removePaymentMilestone(index: number): void {
+    this.paymentSchedule.milestones.splice(index, 1);
+    this.paymentSchedule.milestones.forEach((p: any, i: number) => (p.milestoneOrder = i + 1));
+    this.updateTotalPercentage();
+  }
+
+  togglePaymentStatus(p: any): void {
+    p.status = p.status === 'PAID' ? 'EXPECTED' : 'PAID';
+  }
+
+  calculatePaymentValue(percentage: number): string {
+    if (!this.paymentSchedule.salesValue || this.paymentSchedule.salesValue <= 0) return '—';
+    const val = (this.paymentSchedule.salesValue * percentage) / 100;
+    return val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  getProgressBarWidth(): number {
+    return Math.min(this.paymentSchedule.totalPercentage, 100);
+  }
+
+  savePaymentSchedule(): void {
+    if (this.paymentSchedule.totalPercentage !== 100) {
+      this.settingsError = 'Payment percentages must sum to exactly 100%.';
+      return;
+    }
+    this.paymentSaving = true;
+    this.settingsError = null;
+
+    const payload = {
+      salesValue: this.paymentSchedule.salesValue,
+      currency: this.paymentSchedule.currency,
+      milestones: this.paymentSchedule.milestones.map((p: any, index: number) => ({
+        ...p,
+        milestoneOrder: index + 1
+      }))
+    };
+
+    this.financeService.savePaymentSchedule(this.projectId, payload).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (data: any) => {
+        this.paymentSchedule = data;
+        this.paymentSaving = false;
+        this.settingsError = null;
+      },
+      error: (err: any) => {
+        this.paymentSaving = false;
+        this.settingsError = err.error?.message || 'Failed to save payment schedule.';
+      }
+    });
+  }
+
+  exportPaymentsCSV(): void {
+    if (!this.paymentSchedule.milestones.length) return;
+    const headers = ['Project', 'Sales Value', 'Currency', 'Payment', 'Percentage', 'Value', 'Date', 'Status'];
+    const rows = this.paymentSchedule.milestones.map((p: any, index: number) => [
+      this.projectName,
+      this.paymentSchedule.salesValue,
+      this.paymentSchedule.currency,
+      `Payment ${index + 1}`,
+      p.percentage + '%',
+      this.calculatePaymentValue(p.percentage),
+      p.dueDate,
+      p.status
+    ]);
+    const csvContent = [headers.join(','), ...rows.map((r: any[]) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `payments-${this.projectName.replace(/\s+/g, '_')}.csv`;
+    link.click();
   }
 }

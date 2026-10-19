@@ -123,6 +123,9 @@
     </aside>
   </section>
 
+  <!-- ========================================== -->
+  <!-- ✅ SETTINGS MODAL -->
+  <!-- ========================================== -->
   <div class="settings-overlay" #settingsOverlayRef *ngIf="settingsOpen">
     <div class="settings-modal">
       <div class="settings-header">
@@ -134,24 +137,27 @@
       </div>
 
       <div class="settings-body">
+        <!-- ✅ SIDEBAR MENU -->
         <aside class="settings-sidebar-menu">
           <button class="settings-tab" [class.active]="activeSettingsTab === 'wbs'" (click)="setSettingsTab('wbs')">📋 WBS Structure</button>
           <button class="settings-tab" [class.active]="activeSettingsTab === 'import'" (click)="setSettingsTab('import')">📥 Import WBS</button>
-          <!-- ✅ L'onglet "Apply to Projects" a été supprimé ici -->
+          <button class="settings-tab" [class.active]="activeSettingsTab === 'payments'" (click)="setSettingsTab('payments')">💳 Payments</button>
         </aside>
 
+        <!-- ✅ CONTENT AREA -->
         <section class="settings-content">
           <div *ngIf="settingsLoading" class="settings-empty">Loading settings...</div>
           <div *ngIf="settingsError && !settingsLoading" class="settings-error">{{ settingsError }}</div>
           
-          <!-- ✅ Message de succès pour l'application au projet actuel -->
           <div *ngIf="applyResultMessage" class="callout" style="margin: 16px; background:#effcf3; border-color:#bfead0; color:#166534; padding: 12px; border-radius: 8px;">
             {{ applyResultMessage }}
           </div>
 
           <ng-container *ngIf="!settingsLoading">
             
-            <!-- ✅ WBS STRUCTURE TAB -->
+            <!-- ========================================== -->
+            <!-- ✅ TAB 1: WBS STRUCTURE -->
+            <!-- ========================================== -->
             <div *ngIf="activeSettingsTab === 'wbs'" class="settings-section">
               <div class="section-top">
                 <div>
@@ -159,7 +165,6 @@
                   <p>Define the WBS structure specific to this project.</p>
                 </div>
                 <div class="section-actions">
-                  <!-- ✅ NOUVEAU BOUTON : Apply to Current Project -->
                   <button class="btn primary" (click)="applyTemplateToCurrentProject()" [disabled]="applyLoading || financeSettings.templateRows.length === 0">
                     {{ applyLoading ? 'Applying...' : '⚡ Apply to Current Project' }}
                   </button>
@@ -227,7 +232,9 @@
               </div>
             </div>
 
-            <!-- ✅ IMPORT TAB -->
+            <!-- ========================================== -->
+            <!-- ✅ TAB 2: IMPORT WBS -->
+            <!-- ========================================== -->
             <div *ngIf="activeSettingsTab === 'import'" class="settings-section">
               <div class="section-top">
                 <div><h2>📥 Import WBS</h2><p>Load a WBS structure from JSON, CSV, or use the built-in template.</p></div>
@@ -238,7 +245,7 @@
               </div>
               <div class="settings-card">
                 <h3>🟢 Load Standard WBS Template</h3>
-                <button class="btn primary" type="button" (click)="loadOdsTemplate()" [disabled]="odsTemplateLoading">📂 {{ odsTemplateLoading ? 'Loading...' : 'Load ODS Template' }}</button>
+                <button class="btn primary" type="button" (click)="loadOdsTemplate()" [disabled]="odsTemplateLoading"> {{ odsTemplateLoading ? 'Loading...' : 'Load ODS Template' }}</button>
               </div>
               <div class="settings-card">
                 <h3>🟠 Import from JSON or CSV</h3>
@@ -263,6 +270,144 @@
                     </tr>
                   </tbody>
                 </table>
+              </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- ✅ TAB 3: PAYMENTS -->
+            <!-- ========================================== -->
+            <div *ngIf="activeSettingsTab === 'payments'" class="settings-section">
+              <div class="section-top">
+                <div>
+                  <h2>💳 Payment Schedule</h2>
+                  <p>Set the sales value and define the payment milestones as a % breakdown for <strong>{{ projectName }}</strong>.</p>
+                </div>
+                <div class="section-actions">
+                  <button class="btn ghost" (click)="addPaymentMilestone()" [disabled]="paymentSaving">＋ Add Payment</button>
+                  <button class="btn primary" (click)="savePaymentSchedule()" [disabled]="paymentSaving">
+                    {{ paymentSaving ? 'Saving...' : '💾 Save' }}
+                  </button>
+                  <button class="btn ghost" (click)="exportPaymentsCSV()" [disabled]="paymentSchedule.milestones.length === 0">↓ CSV</button>
+                </div>
+              </div>
+
+              <!-- Sales Value & Currency -->
+              <div class="settings-card" style="margin-bottom: 24px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                  <div>
+                    <label style="display:block; margin-bottom:8px; font-weight:600; color:#374151;">SALES VALUE (€)</label>
+                    <input type="number" class="tbl-input mono" [(ngModel)]="paymentSchedule.salesValue" placeholder="e.g. 480000" />
+                  </div>
+                  <div>
+                    <label style="display:block; margin-bottom:8px; font-weight:600; color:#374151;">CURRENCY</label>
+                    <select class="tbl-select" [(ngModel)]="paymentSchedule.currency">
+                      <option value="EUR">EUR €</option>
+                      <option value="USD">USD $</option>
+                      <option value="GBP">GBP £</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Total Allocation Bar -->
+              <div *ngIf="paymentSchedule.milestones.length > 0" style="margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 600; color: #374151;">
+                  <span>Total allocation</span>
+                  <span [style.color]="paymentSchedule.totalPercentage === 100 ? '#2563eb' : '#ef4444'">{{ paymentSchedule.totalPercentage }}%</span>
+                </div>
+                <div style="width: 100%; background: #e5e7eb; border-radius: 4px; height: 8px; overflow: hidden;">
+                  <div [style.width.%]="getProgressBarWidth()" 
+                       [style.background]="paymentSchedule.totalPercentage === 100 ? '#2563eb' : '#f97316'" 
+                       style="height: 100%; transition: width 0.3s;"></div>
+                </div>
+                <p *ngIf="paymentSchedule.totalPercentage !== 100" style="color: #ef4444; font-size: 0.75rem; margin-top: 8px; display: flex; align-items: center; gap: 4px;">
+                  <span class="material-symbols-outlined" style="font-size: 16px;">warning</span>
+                  Percentages do not sum to 100%
+                </p>
+              </div>
+
+              <!-- Payments Table -->
+              <div class="settings-table-wrap" *ngIf="paymentSchedule.milestones.length > 0">
+                <table class="settings-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 150px; background: #f9fafb; text-align: left;">FIELD</th>
+                      <th *ngFor="let p of paymentSchedule.milestones; let i = index" style="background: #f9fafb; position: relative; min-width: 180px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                          <span style="font-weight: 600;">Payment {{ i + 1 }}</span>
+                          <button (click)="removePaymentMilestone(i)" style="background: none; border: none; cursor: pointer; color: #ef4444; padding: 4px;">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+                          </button>
+                        </div>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- % Row -->
+                    <tr>
+                      <td style="font-weight: 600;">%</td>
+                      <td *ngFor="let p of paymentSchedule.milestones; let i = index" style="text-align: center;">
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                          <input type="number" 
+                                 [ngModel]="p.percentage" 
+                                 (ngModelChange)="onPercentageChange(i, $event)"
+                                 min="0" max="100"
+                                 style="width: 100px; text-align: right; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-family: monospace; font-size: 0.875rem;" />
+                          <span style="color: #6b7280; font-weight: 500;">%</span>
+                        </div>
+                      </td>
+                    </tr>
+
+                    <!-- Value Row -->
+                    <tr>
+                      <td style="font-weight: 600;">VALUE</td>
+                      <td *ngFor="let p of paymentSchedule.milestones" style="text-align: center;">
+                        <div style="font-family: monospace; font-size: 1.1rem; color: #111827;">
+                          {{ calculatePaymentValue(p.percentage) }}
+                        </div>
+                        <div *ngIf="!paymentSchedule.salesValue" style="font-size: 0.75rem; color: #9ca3af; margin-top: 2px;">set sales value</div>
+                      </td>
+                    </tr>
+
+                    <!-- Date Row -->
+                    <tr>
+                      <td style="font-weight: 600;">DATE</td>
+                      <td *ngFor="let p of paymentSchedule.milestones" style="text-align: center;">
+                        <input type="date" 
+                               [ngModel]="p.dueDate"
+                               (ngModelChange)="p.dueDate = $event"
+                               style="width: 140px; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;" />
+                      </td>
+                    </tr>
+
+                    <!-- Status Row -->
+                    <tr>
+                      <td style="font-weight: 600;">STATUS</td>
+                      <td *ngFor="let p of paymentSchedule.milestones" style="text-align: center;">
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                          <label style="position: relative; display: inline-flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" 
+                                   [checked]="p.status === 'PAID'"
+                                   (change)="togglePaymentStatus(p)"
+                                   style="display: none;" />
+                            <span [style.background]="p.status === 'PAID' ? '#16a34a' : '#9ca3af'"
+                                  style="display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; color: white; min-width: 48px; justify-content: center;">
+                              {{ p.status === 'PAID' ? 'PAID' : 'EXP' }}
+                            </span>
+                          </label>
+                          <span [style.color]="p.status === 'PAID' ? '#16a34a' : '#6b7280'"
+                                style="font-size: 0.75rem;">
+                            {{ p.status === 'PAID' ? 'Paid' : 'Expected' }}
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              
+              <div *ngIf="paymentSchedule.milestones.length === 0" class="settings-empty" style="padding: 40px; text-align: center;">
+                <p style="margin: 0; color: #6b7280;">Click <strong>+ Add Payment</strong> to build the schedule for this project.</p>
               </div>
             </div>
 
