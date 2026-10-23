@@ -92,4 +92,18 @@ export class GmFinanceService {
   loadOdsTemplate(): Observable<FinanceWbsTemplateRow[]> {
     return this.http.get<FinanceWbsTemplateRow[]>(`${this.settingsUrl}/ods-template`);
   }
+  getForecastBaseline(projectId: number): Observable<any> {
+  const params = new HttpParams().set('projectId', projectId.toString());
+  return this.http.get<any>(`${this.settingsUrl}/forecast-baseline`, { params });
+}
+
+setForecastBaseline(projectId: number): Observable<any> {
+  const params = new HttpParams().set('projectId', projectId.toString());
+  return this.http.post<any>(`${this.settingsUrl}/forecast-baseline/set`, {}, { params });
+}
+
+resetForecastBaseline(projectId: number): Observable<any> {
+  const params = new HttpParams().set('projectId', projectId.toString());
+  return this.http.post<any>(`${this.settingsUrl}/forecast-baseline/reset`, {}, { params });
+}
 }

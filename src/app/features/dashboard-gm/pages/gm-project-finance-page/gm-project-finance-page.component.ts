@@ -11,7 +11,7 @@ import { takeUntil } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { assertSpreadsheetFile, assertSpreadsheetRowLimit, assertValidWorkbook } from 'src/app/core/utils/spreadsheet-import.utils';
 
-type SettingsTab = 'wbs' | 'import' | 'payments';
+type SettingsTab = 'wbs' | 'import' | 'payments' | 'forecast';
 
 @Component({
   selector: 'app-gm-project-finance-page',
@@ -22,11 +22,13 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
   @ViewChild('donutChart') donutChartRef!: ElementRef;
   @ViewChild('barChart') barChartRef!: ElementRef;
   @ViewChild('settingsOverlayRef') settingsOverlayRef?: ElementRef<HTMLElement>;
+  @ViewChild('cashFlowChart') cashFlowChartRef!: ElementRef; // ✅ NOUVEAU
   
   private settingsOverlayHomeParent: HTMLElement | null = null;
   private settingsOverlayHomeNextSibling: Node | null = null;
   private donutChart?: Chart;
   private barChart?: Chart;
+  private cashFlowChart?: Chart; // ✅ NOUVEAU
   private chartCreationTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly destroy$ = new Subject<void>();
   private destroyed = false;
@@ -89,6 +91,21 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
   };
   paymentSaving = false;
 
+  // ==========================================
+  // ✅ MODULE FORECAST BASELINE
+  // ==========================================
+  forecastBaseline: any = {
+    projectId: 0,
+    projectName: '',
+    hasBaseline: false,
+    baselineDate: null,
+    totalBaselineForecast: 0,
+    totalCurrentForecast: 0,
+    totalVariance: 0,
+    rows: []
+  };
+  forecastBaselineLoading = false;
+
   constructor(
     private route: ActivatedRoute,
     private financeService: GmFinanceService,
@@ -113,8 +130,10 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     }
     this.donutChart?.destroy();
     this.barChart?.destroy();
+    this.cashFlowChart?.destroy(); // ✅ NOUVEAU
     this.donutChart = undefined;
     this.barChart = undefined;
+    this.cashFlowChart = undefined; // ✅ NOUVEAU
 
     const overlay = this.settingsOverlayRef?.nativeElement;
     if (overlay && overlay.parentElement === document.body) {
@@ -182,7 +201,16 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currency, maximumFractionDigits: 0 }).format(value);
   }
 
-  getVarianceClass(v: number | null | undefined): string { if (!v) return ''; return v > 0 ? 'pos' : 'neg'; }
+  getVarianceClass(v: number | null | undefined): string { 
+    if (!v) return ''; 
+    return v > 0 ? 'pos' : 'neg'; 
+  }
+
+  getForecastVarianceClass(v: number | null | undefined): string { 
+    if (!v) return ''; 
+    return v > 0 ? 'neg' : 'pos'; 
+  }
+
   getCpiClass(cpi: number | null | undefined): string { if (!cpi) return ''; return cpi >= 1 ? 'cpi-good' : 'cpi-bad'; }
   getProgressClass(p: number | null | undefined): string { if (!p) return ''; if (p < 50) return 'good'; if (p < 80) return 'warn'; return 'bad'; }
 
@@ -317,6 +345,7 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
         this.loadDepartments();
         this.loadResourceTypes();
         this.loadPaymentSchedule();
+        this.loadForecastBaseline();
       },
       error: (err) => {
         this.settingsLoading = false;
@@ -623,6 +652,7 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     this.financeService.getPaymentSchedule(this.projectId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (data: any) => {
         this.paymentSchedule = data;
+        setTimeout(() => this.createCashFlowChart(), 100); // ✅ AJOUTÉ
       },
       error: (err: any) => {
         this.paymentSchedule = {
@@ -702,6 +732,7 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
         this.paymentSchedule = data;
         this.paymentSaving = false;
         this.settingsError = null;
+        setTimeout(() => this.createCashFlowChart(), 100); // ✅ AJOUTÉ
       },
       error: (err: any) => {
         this.paymentSaving = false;
@@ -729,5 +760,205 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     link.href = URL.createObjectURL(blob);
     link.download = `payments-${this.projectName.replace(/\s+/g, '_')}.csv`;
     link.click();
+  }
+
+  // ==========================================
+  // ✅ MODULE FORECAST BASELINE - MÉTHODES
+  // ==========================================
+
+  loadForecastBaseline(): void {
+    this.forecastBaselineLoading = true;
+    this.financeService.getForecastBaseline(this.projectId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (data: any) => {
+        this.forecastBaseline = data;
+        this.forecastBaselineLoading = false;
+      },
+      error: (err: any) => {
+        this.forecastBaselineLoading = false;
+        this.settingsError = 'Failed to load forecast baseline.';
+      }
+    });
+  }
+
+  onSetBaseline(): void {
+    if (!confirm('This will capture the current forecast values as the new baseline. Continue?')) return;
+    this.forecastBaselineLoading = true;
+    this.financeService.setForecastBaseline(this.projectId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (data: any) => {
+        this.forecastBaseline = data;
+        this.forecastBaselineLoading = false;
+      },
+      error: (err: any) => {
+        this.forecastBaselineLoading = false;
+        this.settingsError = 'Failed to set baseline.';
+      }
+    });
+  }
+
+  onResetBaseline(): void {
+    if (!confirm('This will delete the current baseline. Continue?')) return;
+    this.forecastBaselineLoading = true;
+    this.financeService.resetForecastBaseline(this.projectId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (data: any) => {
+        this.forecastBaseline = data;
+        this.forecastBaselineLoading = false;
+      },
+      error: (err: any) => {
+        this.forecastBaselineLoading = false;
+        this.settingsError = 'Failed to reset baseline.';
+      }
+    });
+  }
+
+  exportForecastBaselineCSV(): void {
+    if (!this.forecastBaseline.rows.length) return;
+    const headers = ['WBS Code', 'Description', 'Level', 'Baseline Forecast', 'Current Forecast', 'Variance', 'Variance %'];
+    const rows = this.forecastBaseline.rows.map((r: any) => [
+      r.wbsCode,
+      r.description,
+      r.level,
+      r.baselineForecast || 0,
+      r.currentForecast || 0,
+      r.variance || 0,
+      r.variancePercent ? r.variancePercent.toFixed(2) + '%' : '-'
+    ]);
+    const csvContent = [headers.join(','), ...rows.map((r: any[]) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `forecast-baseline-${this.projectName.replace(/\s+/g, '_')}.csv`;
+    link.click();
+  }
+
+  // ==========================================
+  // ✅ CASH FLOW CHART - NOUVELLES MÉTHODES
+  // ==========================================
+  createCashFlowChart(): void {
+    if (!this.cashFlowChartRef?.nativeElement) return;
+    this.cashFlowChart?.destroy();
+
+    const milestones = this.paymentSchedule.milestones;
+    if (!milestones || milestones.length === 0) return;
+
+    const monthlyData = new Map<string, { expected: number; paid: number; date: Date }>();
+    
+    milestones.forEach((m: any) => {
+      if (!m.dueDate) return;
+      const date = new Date(m.dueDate);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      
+      if (!monthlyData.has(monthKey)) {
+        monthlyData.set(monthKey, { expected: 0, paid: 0, date });
+      }
+      
+      const value = this.calculatePaymentValueAsNumber(m.percentage);
+      if (m.status === 'PAID') {
+        monthlyData.get(monthKey)!.paid += value;
+      } else {
+        monthlyData.get(monthKey)!.expected += value;
+      }
+    });
+
+    const sortedMonths = Array.from(monthlyData.entries()).sort((a, b) => 
+      a[1].date.getTime() - b[1].date.getTime()
+    );
+
+    const labels = sortedMonths.map(([key, data]) => {
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
+      return `${months[data.date.getMonth()]} ${data.date.getFullYear()}`;
+    });
+
+    const expectedValues = sortedMonths.map(([, data]) => data.expected);
+    const paidValues = sortedMonths.map(([, data]) => data.paid);
+
+    const cumulativeValues: number[] = [];
+    let cumulative = 0;
+    sortedMonths.forEach(([key, data]) => {
+      cumulative += data.expected + data.paid;
+      cumulativeValues.push(cumulative);
+    });
+
+    this.cashFlowChart = new Chart(this.cashFlowChartRef.nativeElement, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            type: 'bar',
+            label: 'Expected',
+            data: expectedValues,
+            backgroundColor: '#3b82f6',
+            borderRadius: 4,
+            order: 2
+          },
+          {
+            type: 'bar',
+            label: 'Paid',
+            data: paidValues,
+            backgroundColor: '#16a34a',
+            borderRadius: 4,
+            order: 2
+          },
+          {
+            type: 'line',
+            label: 'Cumulative',
+            data: cumulativeValues,
+            borderColor: '#f59e0b',
+            backgroundColor: '#f59e0b',
+            borderWidth: 3,
+            pointBackgroundColor: '#f59e0b',
+            pointRadius: 6,
+            pointHoverRadius: 8,
+            tension: 0.1,
+            order: 1
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            callbacks: {
+              // ✅ CORRECTION 1 : Conversion explicite en number pour éviter l'erreur 'null'
+              label: (context) => `${context.dataset.label}: ${this.formatCurrency(Number(context.parsed.y))}`
+            }
+          }
+        },
+        scales: {
+          x: { 
+            grid: { display: false }, 
+            ticks: { font: { size: 11 }, color: '#6b7280' } 
+          },
+          y: {
+            beginAtZero: true,
+            // ✅ CORRECTION 2 : Suppression de 'drawBorder' qui n'existe plus dans Chart.js v4
+            grid: { color: '#e5e7eb' }, 
+            ticks: { 
+              font: { size: 11 }, 
+              color: '#6b7280', 
+              callback: (value) => this.formatCurrency(Number(value)) 
+            }
+          }
+        }
+      }
+    });
+  }
+
+  calculatePaymentValueAsNumber(percentage: number): number {
+    if (!this.paymentSchedule.salesValue || this.paymentSchedule.salesValue <= 0) return 0;
+    return (this.paymentSchedule.salesValue * percentage) / 100;
+  }
+
+  formatCurrency(value: number): string {
+    if (value >= 1000000) return `€${(value / 1000000).toFixed(1)}M`;
+    if (value >= 1000) return `€${(value / 1000).toFixed(0)}K`;
+    return `€${value.toFixed(0)}`;
   }
 }

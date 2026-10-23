@@ -23,7 +23,27 @@ export interface CrmAccount {
 }
 
 export function emptyAccount(): CrmAccount {
-  return { id: null, name: '', industry: '', industryId: null, country: '', city: '', address: '', phone: '', website: '',
-    employees: '', annualRevenue: null, currency: 'EUR', ownerId: null, ownerName: null, notes: '',
-    leadCount: 0, opportunityCount: 0, pipelineValue: 0, createdAt: null, updatedAt: null,    postalCode: '' // ✅ NOUVEAU };
-}}
+  return { 
+    id: null, 
+    name: '', 
+    industry: null, 
+    industryId: null, 
+    country: null, 
+    city: null, 
+    address: null, 
+    phone: null, 
+    website: null,
+    employees: null, 
+    annualRevenue: null, 
+    currency: 'EUR', 
+    ownerId: null, 
+    ownerName: null, 
+    notes: '',
+    leadCount: 0, 
+    opportunityCount: 0, 
+    pipelineValue: 0, 
+    createdAt: null, 
+    updatedAt: null, 
+    postalCode: '' // ✅ NOUVEAU
+  };
+}

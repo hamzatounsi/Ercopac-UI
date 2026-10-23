@@ -142,6 +142,7 @@
           <button class="settings-tab" [class.active]="activeSettingsTab === 'wbs'" (click)="setSettingsTab('wbs')">📋 WBS Structure</button>
           <button class="settings-tab" [class.active]="activeSettingsTab === 'import'" (click)="setSettingsTab('import')">📥 Import WBS</button>
           <button class="settings-tab" [class.active]="activeSettingsTab === 'payments'" (click)="setSettingsTab('payments')">💳 Payments</button>
+          <button class="settings-tab" [class.active]="activeSettingsTab === 'forecast'" (click)="setSettingsTab('forecast')">📊 Forecast Baseline</button>
         </aside>
 
         <!-- ✅ CONTENT AREA -->
@@ -405,9 +406,135 @@
                   </tbody>
                 </table>
               </div>
+
+              <!-- ========================================== -->
+              <!-- ✅ CASH FLOW CHART (NOUVEAU) -->
+              <!-- ========================================== -->
+              <div *ngIf="paymentSchedule.milestones.length > 0" class="settings-card" style="margin-top: 24px;">
+                <div style="margin-bottom: 16px;">
+                  <h3 style="margin: 0 0 4px; font-size: 16px; font-weight: 800; color: #173b65;">
+                    📈 Cash Flow Chart
+                  </h3>
+                  <p style="margin: 0; font-size: 12px; color: #6b7280;">
+                    Payment tranches over time — bars = individual, line = cumulative
+                  </p>
+                </div>
+                
+                <!-- Legend -->
+                <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px; font-size: 12px;">
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="display: inline-block; width: 12px; height: 12px; background: #3b82f6; border-radius: 2px;"></span>
+                    <span style="color: #374151;">Expected</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="display: inline-block; width: 12px; height: 12px; background: #16a34a; border-radius: 2px;"></span>
+                    <span style="color: #374151;">Paid</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="display: inline-block; width: 20px; height: 3px; background: #f59e0b;"></span>
+                    <span style="color: #374151;">Cumulative</span>
+                  </div>
+                </div>
+
+                <!-- Chart Container -->
+                <div style="position: relative; height: 400px;">
+                  <canvas #cashFlowChart></canvas>
+                </div>
+              </div>
               
               <div *ngIf="paymentSchedule.milestones.length === 0" class="settings-empty" style="padding: 40px; text-align: center;">
                 <p style="margin: 0; color: #6b7280;">Click <strong>+ Add Payment</strong> to build the schedule for this project.</p>
+              </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- ✅ TAB 4: FORECAST BASELINE -->
+            <!-- ========================================== -->
+            <div *ngIf="activeSettingsTab === 'forecast'" class="settings-section">
+              <div class="section-top">
+                <div>
+                  <h2>Forecast Baseline</h2>
+                  <p>Compare current forecast against the baseline for <strong>{{ projectName }}</strong>.</p>
+                </div>
+                <div class="section-actions">
+                  <button class="btn primary" (click)="onSetBaseline()" [disabled]="forecastBaselineLoading">
+                    {{ forecastBaselineLoading ? 'Setting...' : '📸 Set Baseline' }}
+                  </button>
+                  <button class="btn ghost" (click)="onResetBaseline()" [disabled]="!forecastBaseline.hasBaseline || forecastBaselineLoading">
+                    🗑️ Reset
+                  </button>
+                  <button class="btn ghost" (click)="exportForecastBaselineCSV()" [disabled]="forecastBaseline.rows.length === 0">
+                    ↓ CSV
+                  </button>
+                </div>
+              </div>
+
+              <div class="settings-card" *ngIf="forecastBaseline.hasBaseline" style="margin-bottom: 20px; background: #eff6ff; border-color: #bfdbfe;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <span style="font-size: 24px;">📅</span>
+                  <div>
+                    <div style="font-size: 13px; font-weight: 700; color: #1e40af;">Baseline captured on</div>
+                    <div style="font-size: 14px; color: #1e3a5f; font-weight: 600;">{{ forecastBaseline.baselineDate | date:'dd/MM/yyyy HH:mm' }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="!forecastBaseline.hasBaseline" class="settings-empty" style="padding: 40px; text-align: center; margin-bottom: 20px;">
+                <p style="margin: 0 0 12px; color: #6b7280;">No baseline defined yet.</p>
+                <button class="btn primary" (click)="onSetBaseline()" [disabled]="forecastBaselineLoading">
+                  📸 Set your first baseline
+                </button>
+              </div>
+
+              <div *ngIf="forecastBaseline.hasBaseline" class="settings-card" style="margin-bottom: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                <div>
+                  <div style="font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Total Baseline</div>
+                  <div style="font-size: 18px; font-weight: 800; color: #1e3a5f; font-family: monospace;">{{ forecastBaseline.totalBaselineForecast | number:'1.2-2' }}</div>
+                </div>
+                <div>
+                  <div style="font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Total Current</div>
+                  <div style="font-size: 18px; font-weight: 800; color: #1e3a5f; font-family: monospace;">{{ forecastBaseline.totalCurrentForecast | number:'1.2-2' }}</div>
+                </div>
+                <div>
+                  <div style="font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Total Variance</div>
+                  <div [style.color]="forecastBaseline.totalVariance > 0 ? '#dc2626' : '#16a34a'" 
+                       style="font-size: 18px; font-weight: 800; font-family: monospace;">
+                    {{ forecastBaseline.totalVariance > 0 ? '+' : '' }}{{ forecastBaseline.totalVariance | number:'1.2-2' }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="settings-table-wrap" *ngIf="forecastBaseline.rows.length > 0">
+                <table class="settings-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 140px;">WBS Code</th>
+                      <th style="width: 220px;">Description</th>
+                      <th style="width: 60px;">Lvl</th>
+                      <th style="text-align: right;">Baseline Forecast</th>
+                      <th style="text-align: right;">Current Forecast</th>
+                      <th style="text-align: right;">Variance</th>
+                      <th style="text-align: right;">Variance %</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let row of forecastBaseline.rows" [ngClass]="'row-l' + row.level">
+                      <td style="font-family: monospace; font-size: 12px; color: #244b74;">{{ row.wbsCode }}</td>
+                      <td [style.paddingLeft.px]="row.level > 1 ? (row.level - 1) * 18 + 14 : 14" style="font-weight: 600;">
+                        {{ row.description }}
+                      </td>
+                      <td style="text-align: center; color: #7990a6; font-weight: 700;">L{{ row.level }}</td>
+                      <td style="text-align: right; font-family: monospace;">{{ row.baselineForecast | number:'1.2-2' }}</td>
+                      <td style="text-align: right; font-family: monospace; font-weight: 600;">{{ row.currentForecast | number:'1.2-2' }}</td>
+                      <td [ngClass]="getForecastVarianceClass(row.variance)" style="text-align: right; font-family: monospace; font-weight: 700;">
+                        {{ row.variance > 0 ? '+' : '' }}{{ row.variance | number:'1.2-2' }}
+                      </td>
+                      <td [ngClass]="getForecastVarianceClass(row.variance)" style="text-align: right; font-family: monospace; font-weight: 700;">
+                        {{ row.variancePercent ? (row.variancePercent > 0 ? '+' : '') + (row.variancePercent | number:'1.2-2') + '%' : '-' }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
 

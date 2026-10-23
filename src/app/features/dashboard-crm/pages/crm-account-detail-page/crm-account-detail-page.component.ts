@@ -42,26 +42,29 @@ export class CrmAccountDetailPageComponent implements OnInit {
     this.crm.getIndustries(this.orgId).subscribe(v => this.industries = v);
   }
 
-  load(): void {
-    this.loading = true;
-    forkJoin({
-      account: this.crm.getAccount(this.orgId, this.id),
-      leads: this.crm.getLeads(this.orgId, undefined, undefined, this.id),
-      opps: this.crm.getOpportunities(this.orgId, { accountId: this.id })
-    }).subscribe({
-      next: r => {
-        this.account = r.account;
-        this.form = { ...r.account };
-        this.leads = r.leads;
-        this.opportunities = r.opps;
-        this.loading = false;
-      },
-      error: e => {
-        this.error = e?.error?.message || 'Account not found.';
-        this.loading = false;
-      }
-    });
-  }
+ load(): void {
+  this.loading = true;
+  forkJoin({
+    account: this.crm.getAccount(this.orgId, this.id),
+    leads: this.crm.getLeads(this.orgId, undefined, undefined, this.id),
+    opps: this.crm.getOpportunities(this.orgId, { accountId: this.id })
+  }).subscribe({
+    next: r => {
+      console.log(' Account data received:', r.account);
+      console.log('💰 Annual Revenue:', r.account.annualRevenue);
+      
+      this.account = r.account;
+      this.form = { ...r.account };
+      this.leads = r.leads;
+      this.opportunities = r.opps;
+      this.loading = false;
+    },
+    error: e => {
+      this.error = e?.error?.message || 'Account not found.';
+      this.loading = false;
+    }
+  });
+}
 
   save(): void {
     if (!this.form) return;
@@ -94,7 +97,10 @@ export class CrmAccountDetailPageComponent implements OnInit {
   }
 
   money(v: number | null | undefined, c = 'EUR'): string {
-    return v ? new Intl.NumberFormat('en', { style: 'currency', currency: c, maximumFractionDigits: 0 }).format(v) : '—';
+    // ✅ Vérifie explicitement null/undefined pour que 0 s'affiche correctement (ex: €0)
+    return (v !== null && v !== undefined) 
+      ? new Intl.NumberFormat('en', { style: 'currency', currency: c, maximumFractionDigits: 0 }).format(v) 
+      : '—';
   }
 
   initials(): string {

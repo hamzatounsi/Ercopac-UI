@@ -34,7 +34,8 @@
           <div><label>Phone</label><strong>{{ account.phone || '-' }}</strong></div>
           <div><label>Website</label><strong>{{ account.website || '-' }}</strong></div>
           <div><label>Employees</label><strong>{{ account.employees || '-' }}</strong></div>
-          <div><label>Annual revenue</label><strong>{{ money(account.annualRevenue, account.currency) }}</strong></div>
+          
+         <div><label>Annual revenue</label><strong>€ {{ account.annualRevenue !== null && account.annualRevenue !== undefined ? (account.annualRevenue | number:'1.0-0') : '0' }}</strong></div>
           <div><label>Owner</label><strong>{{ account.ownerName || 'Unassigned' }}</strong></div>
           <div class="wide"><label>Address</label><strong>{{ account.address || '-' }}</strong></div>
         </div>
