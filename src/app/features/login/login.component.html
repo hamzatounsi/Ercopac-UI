@@ -1,29 +1,41 @@
 <div class="launcher-page">
-  <header class="launcher-topbar">
-    <a class="launcher-brand" routerLink="/" aria-label="Projectum home">projectum</a>
+  <section class="landing-hero" aria-labelledby="workspaceTitle">
+    <header class="landing-nav">
+      <a class="landing-logo" routerLink="/" aria-label="Projectum home">
+        <img src="assets/branding/projectum-logo.png" alt="" />
+        <span>projectum</span>
+      </a>
+      <nav class="landing-links" aria-label="Primary navigation">
+        <a href="#applications">Apps</a><a href="#industries">Industries</a><a href="#community">Community</a><a href="#prices">Prices</a><a href="#help">Help</a>
+      </nav>
+      <div class="landing-actions">
+        <button class="landing-register" type="button" (click)="selectedApp = 'Register'">Register</button>
+        <button class="landing-login" type="button" (click)="selectApp('Projectum')">Login</button>
+      </div>
+    </header>
 
-    <nav class="launcher-nav" aria-label="Primary navigation">
-      <a href="#applications">Apps</a>
-      <a routerLink="/">Industries</a>
-      <a routerLink="/">Community</a>
-      <a routerLink="/">Prices</a>
-      <a routerLink="/">Help</a>
-    </nav>
-
-    <div class="launcher-actions">
-      <button class="launcher-action-link" type="button" (click)="selectedApp = 'Register'">Register</button>
-      <button class="launcher-login-button" type="button" (click)="selectedApp = 'Projectum'">Login</button>
+    <div class="ambient-art" aria-hidden="true">
+      <span class="ambient-grid"></span><span class="ambient-glow glow-one"></span><span class="ambient-glow glow-two"></span>
+      <span class="ambient-ring ring-one"></span><span class="ambient-ring ring-two"></span><span class="ambient-line line-one"></span><span class="ambient-line line-two"></span>
     </div>
-  </header>
+
+    <div class="landing-content">
+      <p class="landing-eyebrow">Projectum Workspace</p>
+      <h1 id="workspaceTitle"><span class="landing-all">All</span> around <span class="landing-project">project</span></h1>
+      <p class="landing-subtitle">Simple, efficient and enterprise-ready!</p>
+      <div class="landing-cta">
+        <button class="landing-primary" type="button" (click)="selectApp('Projectum')">Enter Projectum workspace <span aria-hidden="true">&rarr;</span></button>
+        <a class="landing-secondary" href="#applications">Learn more</a>
+      </div>
+    </div>
+    <a class="landing-scroll-cue" href="#applications" aria-label="Scroll to Projectum applications"><span class="material-symbols-outlined" aria-hidden="true">keyboard_arrow_down</span></a>
+  </section>
 
   <main>
-    <section class="launcher-hero" aria-labelledby="workspaceTitle">
-      <p class="launcher-eyebrow">Projectum workspace</p>
-      <h1 id="workspaceTitle">All around <span class="launcher-title-accent">project</span></h1>
-      <p class="launcher-subtitle">Simple, efficient and enterprise-ready!</p>
-    </section>
-
-    <section id="applications" class="launcher-stage" aria-label="Projectum application preview">
+    <section id="applications" class="launcher-stage" aria-labelledby="applicationsTitle">
+      <div class="applications-heading">
+        <p>Projectum ecosystem</p><h2 id="applicationsTitle">Explore our applications</h2><span>Select an application to sign in.</span>
+      </div>
       <div class="launcher-app-grid" *ngIf="landingPreviewApps.length; else noApps">
         <button
           class="launcher-app-card"
@@ -48,6 +60,57 @@
         </div>
       </ng-template>
     </section>
+
+    <section id="industries" class="info-section industries-section" aria-labelledby="industriesTitle">
+      <div class="section-copy">
+        <span class="section-kicker">Built for complex delivery</span>
+        <h2 id="industriesTitle">One workspace, across every industry</h2>
+        <p>Projectum gives teams a shared operational view—from planning and resources to customer delivery and support.</p>
+      </div>
+      <div class="industry-grid">
+        <article><span class="material-symbols-outlined">precision_manufacturing</span><h3>Manufacturing</h3><p>Coordinate programs, capacity, milestones, risks, and customer commitments.</p></article>
+        <article><span class="material-symbols-outlined">engineering</span><h3>Engineering</h3><p>Connect schedules, technical teams, actions, and project financials.</p></article>
+        <article><span class="material-symbols-outlined">corporate_fare</span><h3>Professional services</h3><p>Deliver client projects with clear ownership, forecasting, and governance.</p></article>
+      </div>
+    </section>
+
+    <section id="community" class="info-section community-section" aria-labelledby="communityTitle">
+      <div class="community-panel">
+        <div class="section-copy">
+          <span class="section-kicker">Work better together</span>
+          <h2 id="communityTitle">A connected project community</h2>
+          <p>Give managers, departments, employees, sales teams, and customers the right context while keeping every workspace securely separated.</p>
+        </div>
+        <div class="community-points">
+          <div><strong>Shared clarity</strong><span>One reliable source of project information.</span></div>
+          <div><strong>Role-aware access</strong><span>Every person sees only what they need.</span></div>
+          <div><strong>Better handoffs</strong><span>Keep commercial, delivery, and support teams aligned.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="prices" class="info-section pricing-section" aria-labelledby="pricesTitle">
+      <div class="section-copy centered">
+        <span class="section-kicker">Flexible by design</span>
+        <h2 id="pricesTitle">A plan that grows with your organisation</h2>
+        <p>Start with the workspaces your teams need today and expand as your operations mature.</p>
+      </div>
+      <div class="pricing-grid">
+        <article><span class="plan-label">Team</span><h3>Focused collaboration</h3><p>Core project execution for growing teams.</p><ul><li>Project workspace</li><li>Team assignments</li><li>Operational visibility</li></ul><button type="button" (click)="selectedApp = 'Register'">Request access</button></article>
+        <article class="featured"><span class="popular">Recommended</span><span class="plan-label">Business</span><h3>Connected operations</h3><p>Cross-functional planning and management.</p><ul><li>All team capabilities</li><li>Department and CRM workspaces</li><li>Advanced governance</li></ul><button type="button" (click)="selectedApp = 'Register'">Talk to us</button></article>
+        <article><span class="plan-label">Enterprise</span><h3>Organisation-wide control</h3><p>Secure scale for complex environments.</p><ul><li>Multi-tenant administration</li><li>Role-based permissions</li><li>Tailored deployment</li></ul><button type="button" (click)="selectedApp = 'Register'">Contact sales</button></article>
+      </div>
+    </section>
+
+    <section id="help" class="info-section help-section" aria-labelledby="helpTitle">
+      <div class="help-panel">
+        <div class="section-copy"><span class="section-kicker">Here when you need us</span><h2 id="helpTitle">Help your teams move forward</h2><p>Get guidance on workspace access, account setup, project workflows, and platform administration.</p></div>
+        <div class="help-actions">
+          <button type="button" (click)="selectApp('Projectum')"><span class="material-symbols-outlined">login</span><span><strong>Sign in</strong><small>Access your organisation workspace</small></span></button>
+          <button type="button" (click)="selectedApp = 'Register'"><span class="material-symbols-outlined">support_agent</span><span><strong>Request support</strong><small>Contact your platform administrator</small></span></button>
+        </div>
+      </div>
+    </section>
   </main>
 
   <div class="login-overlay" *ngIf="selectedApp">
@@ -56,7 +119,8 @@
         <span class="material-symbols-outlined">close</span>
       </button>
 
-      <h2>{{ selectedApp === 'Register' ? 'Request access' : 'Sign in' }}</h2>
+      <div class="login-brand-mark"><img src="assets/branding/projectum-logo.png" alt="" /><span>Secure workspace access</span></div>
+      <h2>{{ selectedApp === 'Register' ? 'Request access' : 'Welcome back' }}</h2>
 
       <p class="hint">
         <ng-container *ngIf="selectedApp === 'Register'; else loginHint">
