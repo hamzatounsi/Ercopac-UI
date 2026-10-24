@@ -1,17 +1,36 @@
-
 name: Build and Deploy Frontend to Staging
 
 on:
+  push:
+    branches:
+      - staging
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: frontend-staging
+  cancel-in-progress: true
+
 jobs:
   staging:
-    name: Staging workflow launcher
+    name: Build Frontend for Staging
     if: github.ref == 'refs/heads/staging'
     runs-on: ubuntu-latest
+
     steps:
-      - name: Confirm staging branch
-        run: echo "Staging branch selected."
+      - name: Checkout staging
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Angular frontend
+        run: npm run build -- --configuration staging
