@@ -1,7 +1,8 @@
 <div class="projectum-shell">
 
   <app-projectum-workspace-header
-    title="Projectum Portfolio"
+    title="Portfolio"
+    [showBack]="false"
     subtitle="Live delivery, schedule and financial visibility across your active portfolio."
     [showProjectModules]="false">
     <div projectumHeaderActions class="portfolio-actions">
@@ -166,10 +167,15 @@
 
   <!-- CONTENT -->
   <div class="content">
+    <div class="sec-head">
+      <h2>Projects</h2>
+      <span class="count-badge">{{ filteredProjects.length }} projects</span>
+    </div>
     <div class="filters-row">
       <input
         class="fi-inp"
         type="text"
+        aria-label="Search projects by name, code or customer"
         [(ngModel)]="searchTerm"
         (input)="onSearch()"
         placeholder="🔍 Search project, code, customer…"
@@ -208,14 +214,9 @@
       <div class="row-count">{{ filteredProjects.length }} of {{ projects.length }}</div>
     </div>
 
-    <div class="sec-head">
-      <div><span class="eyebrow">Portfolio register</span><h2>Projects</h2></div>
-      <span class="count-badge">{{ filteredProjects.length }} projects</span>
-    </div>
-
     <div *ngIf="error" class="page-error">{{ error }}</div>
 
-    <div class="table-card">
+    <div class="table-card" role="region" aria-label="Project portfolio" tabindex="0">
       <table class="proj-table">
         <thead>
           <tr>
@@ -242,12 +243,16 @@
 
           <tr
             *ngFor="let project of filteredProjects"
+            tabindex="0"
+            [attr.aria-label]="'Select ' + project.name + ' to filter KPIs'"
+            (keydown.enter)="$event.target === $event.currentTarget && selectProject(project)"
             [class.selected-row]="selectedProjectId === project.id"
             (click)="selectProject(project)">
             <td class="mono">{{ project.code || '—' }}</td>
 
             <td>
-              <div class="project-name">{{ project.name || '—' }}</div>
+              <button type="button" class="project-name" [title]="project.name || ''"
+                (click)="$event.stopPropagation(); openProject(project.id)">{{ project.name || '—' }}</button>
             </td>
 
             <td>{{ project.customer || '—' }}</td>

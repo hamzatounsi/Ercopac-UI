@@ -10,9 +10,16 @@
   --pm-text: #172033;
   --pm-text-muted: #64748b;
   --pm-text-soft: #94a3b8;
-  --pm-primary: #285f93;
-  --pm-primary-strong: #174b7c;
-  --pm-primary-soft: #e8f1fb;
+  /* Source palette from the /workspace launcher header. */
+  --workspace-primary: #1a56db;
+  --workspace-accent: #6366f1;
+  --workspace-header-bg: rgba(248, 250, 255, .72);
+  --workspace-header-border: rgba(49, 57, 117, .09);
+  --workspace-active: #315bd4;
+  --pm-primary: var(--workspace-primary);
+  --pm-primary-strong: var(--workspace-active);
+  --pm-primary-soft: #eef3ff;
+  --pm-primary-gradient: linear-gradient(135deg, var(--workspace-primary), var(--workspace-accent));
   --pm-success: #16803c;
   --pm-success-soft: #e9f8ef;
   --pm-warning: #b7791f;
@@ -1435,18 +1442,18 @@ textarea) {
   width: max-content;
 }
 
-.col-id,
-.col-wbs {
+.pm-shell .col-id,
+.pm-shell .col-wbs {
   position: sticky;
   z-index: 8;
   background: inherit;
 }
 
-.col-id {
+.pm-shell .col-id {
   left: 0;
 }
 
-.col-wbs {
+.pm-shell .col-wbs {
   left: 52px;
 }
 
@@ -4484,7 +4491,7 @@ textarea) {
 }
 
 /* Shared Projectum enterprise shell */
-:where(.finance-shell, .forecast-shell, .risk-shell, .cr-shell, .actions-shell, .projectum-shell, .project-details-shell) {
+:where(.finance-shell, .forecast-shell, .risk-shell, .cr-shell, .actions-shell, .projectum-shell, .project-details-shell, .milestone-page) {
   min-height: 100vh;
   padding: 16px 18px 24px;
   display: flex;
@@ -4495,11 +4502,11 @@ textarea) {
   font-family: var(--pm-font-sans);
 }
 
-:where(.finance-shell, .forecast-shell, .risk-shell, .cr-shell, .actions-shell, .projectum-shell, .project-details-shell) :where(app-projectum-project-header, app-gm-project-side-panel) {
+:where(.finance-shell, .forecast-shell, .risk-shell, .cr-shell, .actions-shell, .projectum-shell, .project-details-shell, .milestone-page) :where(app-projectum-project-header, app-gm-project-side-panel) {
   flex-shrink: 0;
 }
 
-:where(.finance-shell, .forecast-shell, .risk-shell, .cr-shell, .actions-shell, .projectum-shell, .project-details-shell) :where(
+:where(.finance-shell, .forecast-shell, .risk-shell, .cr-shell, .actions-shell, .projectum-shell, .project-details-shell, .milestone-page) :where(
   .finance-hero,
   .erp-toolbar,
   #toolbar,
@@ -4547,7 +4554,7 @@ textarea) {
   box-shadow: var(--pm-shadow-sm);
 }
 
-:where(.finance-shell, .forecast-shell, .risk-shell, .cr-shell, .actions-shell, .projectum-shell, .project-details-shell) :where(
+:where(.finance-shell, .forecast-shell, .risk-shell, .cr-shell, .actions-shell, .projectum-shell, .project-details-shell, .milestone-page) :where(
   .finance-hero,
   .project-bar,
   .project-strip,
@@ -4567,7 +4574,7 @@ textarea) {
   padding: 14px 16px;
 }
 
-:where(.finance-shell, .forecast-shell, .risk-shell, .cr-shell, .actions-shell, .projectum-shell, .project-details-shell) :where(
+:where(.finance-shell, .forecast-shell, .risk-shell, .cr-shell, .actions-shell, .projectum-shell, .project-details-shell, .milestone-page) :where(
   table.finance-table,
   table.list-table,
   table#risk-tbl,
@@ -4581,7 +4588,7 @@ textarea) {
   background: var(--pm-surface);
 }
 
-:where(.finance-shell, .forecast-shell, .risk-shell, .cr-shell, .actions-shell, .projectum-shell, .project-details-shell) :where(
+:where(.finance-shell, .forecast-shell, .risk-shell, .cr-shell, .actions-shell, .projectum-shell, .project-details-shell, .milestone-page) :where(
   table.finance-table thead th,
   table.list-table thead th,
   table#risk-tbl thead th,
@@ -4597,7 +4604,7 @@ textarea) {
   border-bottom: 1px solid var(--pm-border);
 }
 
-:where(.finance-shell, .forecast-shell, .risk-shell, .cr-shell, .actions-shell, .projectum-shell, .project-details-shell) :where(
+:where(.finance-shell, .forecast-shell, .risk-shell, .cr-shell, .actions-shell, .projectum-shell, .project-details-shell, .milestone-page) :where(
   table.finance-table tbody tr:hover td,
   table.list-table tbody tr:hover td,
   table#risk-tbl tbody tr:hover td,
@@ -4608,7 +4615,7 @@ textarea) {
   background: #f8fbff;
 }
 
-:where(.finance-shell, .forecast-shell, .risk-shell, .cr-shell, .actions-shell, .projectum-shell, .project-details-shell) :where(
+:where(.finance-shell, .forecast-shell, .risk-shell, .cr-shell, .actions-shell, .projectum-shell, .project-details-shell, .milestone-page) :where(
   .tb-btn,
   .hero-btn,
   .view-btn,
@@ -4645,7 +4652,7 @@ textarea) {
   letter-spacing: 0;
 }
 
-:where(.finance-shell, .forecast-shell, .risk-shell, .cr-shell, .actions-shell, .projectum-shell, .project-details-shell) :where(
+:where(.finance-shell, .forecast-shell, .risk-shell, .cr-shell, .actions-shell, .projectum-shell, .project-details-shell, .milestone-page) :where(
   .loading-box,
   .loading-card,
   .state-box,
@@ -4748,3 +4755,50 @@ html {
   opacity: 1;
 }
 
+
+/* Coordinated Projectum palette; preserve each module's layout and status colours. */
+:is(.pm-shell, .finance-shell, .forecast-shell, .risk-shell, .cr-shell, .actions-shell, .projectum-shell, .project-details-shell, .milestone-page, .tasks-page, .schedule-init-page):not(.mycs-schedule) {
+  font-family: var(--pm-font-sans);
+  color: var(--pm-text);
+  background-color: var(--pm-bg);
+  scrollbar-color: #94a3b8 var(--pm-surface-muted);
+  button, input, select, textarea { font-family: inherit; }
+  :is(button, a, input, select, textarea):focus-visible {
+    outline: 2px solid var(--pm-primary);
+    outline-offset: 2px;
+  }
+  :is(.tb-btn, .hero-btn, .view-btn, .toolbar-main-btn, .tb-sel, .tb-search) {
+    border-radius: 6px;
+    transition: background-color .15s, border-color .15s;
+  }
+  :is(table thead th, .section-head) {
+    background-color: var(--pm-surface-muted);
+    color: var(--pm-text-muted);
+    border-color: var(--pm-border);
+  }
+  :is(.btn-primary, .primary-btn, .primary-action-btn, .add-btn, .tb-btn.on, .view-btn.on, .mode-btn.active, .zoom-chip.active) {
+    background: var(--pm-primary-gradient);
+    border-color: var(--pm-primary);
+    color: #fff;
+  }
+  :is(.refresh-btn, .export-header-btn, .icon-header-btn, .secondary-btn, .btn-secondary) {
+    background: var(--pm-surface);
+    border-color: var(--pm-border-strong);
+    color: var(--pm-primary-strong);
+  }
+  :is(.refresh-btn, .export-header-btn, .icon-header-btn, .secondary-btn, .btn-secondary):hover:not(:disabled) {
+    background: var(--pm-primary-soft);
+    border-color: var(--pm-primary);
+  }
+}
+.pm-shell:not(.mycs-schedule) :is(.left-header, .left-header .col-id, .left-header .col-wbs,
+  .gantt-header-top, .month-header-scroll, .month-row, .month-cell, .timeline-header-scroll,
+  .timeline-week-cell, .timeline-day-cell, .gh) {
+  background: var(--pm-surface-muted);
+  border-color: var(--pm-border);
+  color: var(--pm-text-muted);
+}
+.pm-shell:not(.mycs-schedule) :is(.timeline-week-code, .timeline-week-start) { color: var(--pm-text-muted); }
+.pm-shell:not(.mycs-schedule) .timeline-day-cell.non-working-day { background: #e8eef5; }
+.pm-shell:not(.mycs-schedule) .gantt-bar { background: var(--pm-primary); }
+.pm-shell:not(.mycs-schedule) .gantt-bar-progress { background: var(--pm-primary-gradient); }

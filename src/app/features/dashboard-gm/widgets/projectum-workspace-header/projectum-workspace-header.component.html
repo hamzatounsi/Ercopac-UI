@@ -1,24 +1,22 @@
 <section class="projectum-workspace-header" aria-label="Projectum page context">
   <div class="context-row">
     <div class="context-copy">
-      <a *ngIf="showBack" class="back-link" routerLink="/gm/projectum" aria-label="Back to Projectum portfolio">
+      <a *ngIf="hasProjectContext || showBack; else workspaceBack" class="back-button" routerLink="/gm/projectum">
         <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
-        <span>Portfolio</span>
+        Back to Portfolio
       </a>
-
-      <div class="eyebrow">Projectum</div>
-      <div class="title-row">
-        <h1>{{ title }}</h1>
-        <span *ngIf="hasProjectContext" class="project-context" [title]="projectContextLabel">
-          <span class="material-symbols-outlined" aria-hidden="true">folder_managed</span>
-          {{ projectContextLabel }}
-        </span>
-      </div>
-      <p *ngIf="subtitle">{{ subtitle }}</p>
+      <ng-template #workspaceBack>
+        <a class="back-button" routerLink="/workspace">
+          <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+          Back to Workspace
+        </a>
+      </ng-template>
+      <h1>{{ title }}</h1>
     </div>
 
     <div class="context-actions">
       <ng-content select="[projectumHeaderActions]"></ng-content>
+      <app-projectum-notifications></app-projectum-notifications>
     </div>
   </div>
 
@@ -28,6 +26,7 @@
       class="module-link"
       [routerLink]="projectRoute(module)"
       routerLinkActive="is-active"
+      ariaCurrentWhenActive="page"
       [routerLinkActiveOptions]="{ exact: module.exact !== false }"
       [attr.title]="module.label">
       <span class="material-symbols-outlined" aria-hidden="true">{{ module.icon }}</span>

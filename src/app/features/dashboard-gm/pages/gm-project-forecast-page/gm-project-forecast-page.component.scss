@@ -4,21 +4,22 @@
 }
 
 .forecast-shell {
-  --bg: #f5f8fc;
-  --surface: #ffffff;
-  --surface-2: #f8fafc;
-  --border: #d9e1ea;
-  --border2: #c6d0dc;
-  --txt: #24324a;
-  --txt2: #64748b;
-  --txt3: #94a3b8;
-  --accent: #1664c0;
-  --accent-dark: #1150a3;
+  --bg: var(--pm-bg);
+  --surface: var(--pm-surface);
+  --surface-2: var(--pm-surface-muted);
+  --border: var(--pm-border);
+  --border2: var(--pm-border-strong);
+  --txt: var(--pm-text);
+  --txt2: var(--pm-text-muted);
+  --txt3: var(--pm-text-soft);
+  --accent: var(--pm-primary);
+  --accent-dark: var(--pm-primary-strong);
   --green: #16a34a;
   --red: #dc2626;
-  --blue-strip: #0d57a5;
+  --blue-strip: var(--pm-primary-strong);
 
-  min-height: 100vh;
+  height: 100dvh;
+  min-height: 0;
   background: var(--bg);
   color: var(--txt);
   display: flex;
@@ -88,9 +89,9 @@
 }
 
 .nav-pill.active {
-  background: #1565c0;
+  background: var(--pm-primary);
   color: white;
-  border-color: #1565c0;
+  border-color: var(--pm-primary);
 }
 
 #toolbar {
@@ -273,7 +274,7 @@
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: 820px 1fr;
+  grid-template-columns: minmax(0, 58fr) minmax(0, 42fr);
   gap: 0;
   padding: 0 16px;
   overflow: hidden;
@@ -320,7 +321,8 @@
 /* ✅ Ligne des headers de colonnes (alignée avec cal-hdr-top) */
 .wbs-hdr-row {
   display: grid;
-  grid-template-columns: 140px 36px 1fr 70px 100px 100px 110px 140px;
+  grid-template-columns: 140px 90px 280px 200px 120px 120px 120px 160px;
+  width: 1230px;
   align-items: center;
   height: 43px;
   flex-shrink: 0;
@@ -337,7 +339,8 @@
 /* ✅ LIGNES WBS - Hauteur fixe 43px */
 .wbs-row {
   display: grid;
-  grid-template-columns: 140px 36px 1fr 70px 100px 100px 110px 140px;
+  grid-template-columns: 140px 90px 280px 200px 120px 120px 120px 160px;
+  width: 1230px;
   align-items: center;
   height: 43px;
   border-bottom: 1px solid #e7edf4;
@@ -680,30 +683,6 @@
   color: #dc2626;
 }
 
-/* Responsive */
-@media (max-width: 1500px) {
-  #main-wrap {
-    grid-template-columns: 780px 1fr;
-  }
-
-  .wbs-hdr-row,
-  .wbs-row {
-    grid-template-columns: 130px 32px 1fr 60px 90px 90px 100px 130px;
-  }
-}
-
-@media (max-width: 1200px) {
-  #main-wrap {
-    grid-template-columns: 1fr;
-    padding-bottom: 0;
-  }
-
-  #wbs-panel {
-    border-right: 1px solid var(--border);
-    border-bottom: none;
-  }
- 
-}
  /* ✅ Dropdown pour la liaison WBS Schedule */
 .linked-wbs-select {
   padding: 2px 4px;
@@ -722,5 +701,24 @@
   white-space: nowrap;
   
   &:hover { border-color: #3b82f6; }
-  &:focus { outline: none; border-color: #1664c0; }
+  &:focus { outline: none; border-color: var(--pm-primary); }
 }
+// Keep the same viewport and row geometry, including scrollbar space.
+#wbs-panel, #cal-panel { min-width: 0; }
+#wbs-panel-hdr, #cal-hdr { overflow: hidden; scrollbar-gutter: stable; }
+#wbs-panel-hdr { border-bottom: 0; }
+.wbs-hdr-row { border-bottom: 1px solid var(--border); }
+#wbs-list-body, #cal-body-wrap {
+  min-height: 0;
+  overflow: scroll;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+  scroll-behavior: auto;
+}
+.wbs-row > div, .hdr-cell { min-width: 0; overflow: hidden; }
+.hdr-cell { letter-spacing: 0; }
+.col-wbs { text-overflow: ellipsis; white-space: nowrap; }
+.desc-main { min-width: 0; }
+.linked-wbs-select { max-width: none; font-size: 12px; }
+#cal-hdr-top { width: max-content; }
+.wbs-year-spacer { min-width: 1230px; }

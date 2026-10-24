@@ -4,9 +4,9 @@
 }
 
 .cr-shell {
-  --bg:#f5f8fc; --surface:#fff; --border:#e2e8f0; --border2:#cbd5e1;
-  --txt:#1e293b; --txt2:#64748b; --txt3:#94a3b8;
-  --accent:#1565c0; --green:#16a34a; --red:#dc2626; --amber:#d97706;
+  --bg:var(--pm-bg); --surface:var(--pm-surface); --border:var(--pm-border); --border2:var(--pm-border-strong);
+  --txt:var(--pm-text); --txt2:var(--pm-text-muted); --txt3:var(--pm-text-soft);
+  --accent:var(--pm-primary); --green:#16a34a; --red:#dc2626; --amber:#d97706;
   min-height: 100vh;
   background: var(--bg);
   color: var(--txt);

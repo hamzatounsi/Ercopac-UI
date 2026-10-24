@@ -29,7 +29,7 @@ export class ProjectumWorkspaceHeaderComponent {
     { label: 'Schedule', icon: 'timeline', path: 'schedule', exact: true },
     { label: 'Finance', icon: 'payments', path: 'finance', exact: true },
     { label: 'Forecast', icon: 'trending_up', path: 'forecast', exact: true },
-    { label: 'Milestone', icon: 'flag', path: 'milestones', exact: true }, // ✅ ADDED HERE
+    { label: 'Milestones', icon: 'flag', path: 'milestones', exact: true },
     { label: 'Risks', icon: 'warning', path: 'risks', exact: true },
     { label: 'Change Requests', icon: 'contract_edit', path: 'change-requests', exact: true },
     { label: 'Actions', icon: 'assignment_turned_in', path: 'actions', exact: true }
@@ -43,7 +43,4 @@ export class ProjectumWorkspaceHeaderComponent {
     return ['/gm', 'projects', Number(this.projectId), module.path];
   }
 
-  get projectContextLabel(): string {
-    return this.projectName || `Project #${this.projectId}`;
-  }
 }

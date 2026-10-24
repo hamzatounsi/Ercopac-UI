@@ -131,12 +131,11 @@
 
 .scroll-shortcut-btn:hover {
   background: #eff6ff;
-  color: #2563eb;
+  color: var(--pm-primary);
   transform: translateY(-1px);
 }
 
 /* ── Performance rendering ────────────────────────────────── */
-.gantt-row,
 .task-row,
 .project-row,
 .timeline-row,
@@ -190,4 +189,105 @@ tr.gantt-row {
   .material-symbols-outlined {
     font-size: 20px;
   }
+}
+
+/* Shared geometry: the table, timeline and dependency coordinates use rowHeight. */
+.pm-shell {
+  --schedule-month-height: 20px;
+  --schedule-day-height: 22px;
+  --schedule-header-height: calc(var(--schedule-month-height) + var(--schedule-day-height));
+
+  .left-header, .gantt-header-top {
+    height: calc(var(--schedule-header-height) + 2px);
+    min-height: calc(var(--schedule-header-height) + 2px) !important;
+    flex: 0 0 calc(var(--schedule-header-height) + 2px);
+  }
+  .group-header-row, .gh {
+    height: var(--schedule-header-height) !important;
+    min-height: var(--schedule-header-height) !important;
+  }
+  .month-row { height: var(--schedule-month-height); min-height: var(--schedule-month-height); }
+  .day-number-header { height: var(--schedule-day-height); min-height: var(--schedule-day-height); }
+  .table-row, .gantt-row {
+    height: var(--schedule-row-height);
+    min-height: var(--schedule-row-height);
+    max-height: var(--schedule-row-height);
+    border-left: 0 !important;
+    content-visibility: visible;
+  }
+  .table-row.summary-row .cell:first-child { box-shadow: inset 3px 0 #93b4da; }
+  .table-row.selected-row .cell:first-child { box-shadow: inset 3px 0 var(--pm-primary); }
+  .col-wbs { left: var(--wbs-left); }
+  .cell, .gh { min-width: 0; line-height: 1.2; }
+  .gh { font-size: 10px; }
+  .cell { font-size: 11px; }
+  .task-name-wrap { width: 100%; overflow: hidden; }
+  .task-name-wrap select { min-width: 0; max-width: 100%; }
+  .grid-input, .cell select { max-height: calc(var(--schedule-row-height) - 4px); }
+  // Reserve the same scrollbar space even when one pane fits horizontally.
+  .left-body, .gantt-body-scroll { overflow: scroll; overscroll-behavior: contain; scroll-behavior: auto; }
+  .gantt-wrapper { min-height: 0; }
+  .gantt-grid-line { height: 100%; }
+  .empty-state-line, .gantt-empty { margin: 0; padding: 24px 8px; min-height: 72px; }
+}
+
+.activity-name-button {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  padding: 3px 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: text;
+  &:hover, &:focus-visible { border-color: #93b4da; background: #fff; }
+}
+
+.activity-name-editor {
+  width: min(640px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  color: #1e293b;
+  box-shadow: 0 16px 48px #0f172a26;
+  &::backdrop { background: #0f172a33; }
+  h2 { margin: 0 0 12px; font-size: 16px; }
+  textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 10px 12px;
+    resize: vertical;
+    font-size: 14px;
+    line-height: 1.5;
+    font-family: inherit;
+    border: 1px solid #94a3b8;
+    border-radius: 6px;
+  }
+  textarea:focus { outline: 2px solid var(--pm-primary); outline-offset: 2px; }
+  p { font-size: 12px; color: #64748b; }
+  .name-editor-actions { display: flex; justify-content: flex-end; gap: 8px; }
+  button { padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 6px; cursor: pointer; background: #fff; }
+  .name-save { background: var(--pm-primary); border-color: var(--pm-primary); color: #fff; }
+}
+
+.pm-shell {
+  height: 100dvh;
+  .left-header, .month-header-scroll, .timeline-header-scroll {
+    overflow: hidden;
+    scrollbar-gutter: stable;
+    scrollbar-width: auto;
+  }
+}
+
+.pm-shell :is(.left-header, .month-header-scroll, .timeline-header-scroll)::-webkit-scrollbar {
+  display: block;
+  width: 12px;
+  height: 0;
 }

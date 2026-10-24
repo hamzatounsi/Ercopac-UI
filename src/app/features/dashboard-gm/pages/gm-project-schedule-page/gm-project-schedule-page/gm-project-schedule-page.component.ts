@@ -104,6 +104,8 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   @ViewChild('leftHeaderScroll') leftHeaderScroll!: ElementRef<HTMLDivElement>;
   @ViewChild('monthHeaderScroll') monthHeaderScroll!: ElementRef<HTMLDivElement>;
   @ViewChild('plannerMain') plannerMain?: ElementRef<HTMLElement>;
+  @ViewChild('nameEditor') nameEditor?: ElementRef<HTMLDialogElement>;
+  nameEditorTask: GmProjectScheduleTask | null = null;
 
   projectId!: number;
   loading = false;
@@ -125,16 +127,14 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   resourceSearchTerm = '';
   filteredResourceOptions: { id: number; fullName: string; departmentCode: string; resourceType: string }[] = [];
   readonly rowHeight = 28;
-  readonly activityBarTop = 9;
   readonly activityBarHeight = 12;
-  readonly summaryBarTop = 14;
+  readonly activityBarTop = (this.rowHeight - this.activityBarHeight) / 2;
   readonly summaryBarHeight = 4;
-  readonly milestoneTop = 10;
+  readonly summaryBarTop = (this.rowHeight - this.summaryBarHeight) / 2;
   readonly milestoneSize = 12;
-  activeMode: 'baseline' | 'actual' = 'baseline';
+  readonly milestoneTop = (this.rowHeight - this.milestoneSize) / 2;
+  activeMode: 'baseline' | 'actual' = 'actual';
   activeZoom: '2W' | '1M' | '2M' | 'Day' = '1M';
-  private syncingVertical = false;
-  private syncingHorizontal = false;
 
   stats = {
     total: 0,
@@ -360,6 +360,8 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   }
 
   private restoreGanttDisplayPreferences(): void {
+    // A reused route must not inherit the previous project's display mode.
+    this.activeMode = 'actual';
     const key = this.getGanttDisplayPreferencesKey();
     if (!key) return;
     try {
@@ -1136,6 +1138,31 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   }
 
   // ---------------- Inline edit ----------------
+  openNameEditor(task: GmProjectScheduleTask): void {
+    this.nameEditorTask = task;
+    this.beginInlineNameEdit(task);
+    this.changeDetector.detectChanges();
+    this.nameEditor?.nativeElement.showModal();
+  }
+
+  onNameEditorBackdrop(event: MouseEvent): void {
+    const dialog = this.nameEditor?.nativeElement;
+    if (!dialog || event.target !== dialog) return;
+    const bounds = dialog.getBoundingClientRect();
+    if (event.clientX < bounds.left || event.clientX > bounds.right ||
+        event.clientY < bounds.top || event.clientY > bounds.bottom) this.closeNameEditor(true);
+  }
+
+  closeNameEditor(save: boolean, event?: Event): void {
+    event?.preventDefault();
+    const task = this.nameEditorTask;
+    if (!task) return;
+    if (save) this.commitInlineNameEdit(task);
+    else this.inlineNameEdits.delete(task.id);
+    this.nameEditor?.nativeElement.close();
+    this.nameEditorTask = null;
+  }
+
   getInlineNameValue(task: GmProjectScheduleTask): string {
     return this.inlineNameEdits.get(task.id)?.value ?? task.name ?? '';
   }
@@ -1399,10 +1426,11 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   async importScheduleFile(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    if (!file) return;
+    if (!file || this.saving) return;
+    this.saving = true;
     try {
       const rows = await this.readImportRows(file);
-      const payload = rows.map((row, index) => this.toImportedTaskPayload(row, index));
+      const payload = this.prepareImportedTasks(rows);
       if (!payload.length) throw new Error('The file does not contain any task rows.');
       this.saving = true;
       this.importStatus = 'Importing schedule...';
@@ -1434,10 +1462,11 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   async importTemplateFile(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    if (!file) return;
+    if (!file || this.saving) return;
+    this.saving = true;
     try {
       const rows = await this.readImportRows(file);
-      const payload = rows.map((row, index) => this.toImportedTaskPayload(row, index));
+      const payload = this.prepareImportedTasks(rows);
       if (!payload.length) throw new Error('The file does not contain any task rows.');
  
       // Réutilise la structure de tâche déjà attendue par le composant
@@ -1467,11 +1496,11 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
         resourceType: p.resourceType,
         priority: 500,
         active: true,
-        outlineLevel: 1,
+        outlineLevel: p.outlineLevel ?? 1,
         displayOrder: index + 1
       }));
  
-      const fileName = file.name.replace(/\.(json|xlsx)$/i, '');
+      const fileName = file.name.replace(/\.(json|xlsx|xls)$/i, '');
       this.templateImportStatus = 'Importing template...';
       this.templateService.createTemplate(this.projectId, {
         name: fileName || 'Imported Template',
@@ -1480,16 +1509,19 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
         snapshotJson: JSON.stringify(tasksForSnapshot)
       }).subscribe({
         next: () => {
+          this.saving = false;
           this.templateImportStatus = `Template imported: ${payload.length} task(s).`;
           this.loadTemplates();
         },
         error: (err) => {
+          this.saving = false;
           this.templateImportStatus = '';
           console.error('Failed to import template', err);
           alert(err?.error?.message || 'Failed to import template.');
         }
       });
     } catch (error) {
+      this.saving = false;
       this.templateImportStatus = '';
       alert(error instanceof Error ? error.message : 'Invalid import file.');
     } finally {
@@ -1504,6 +1536,10 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
       const parsed = JSON.parse(await file.text());
       const rows = Array.isArray(parsed) ? parsed : parsed?.tasks;
       if (!Array.isArray(rows)) throw new Error('JSON must contain a task array or a { tasks: [] } object.');
+      assertSpreadsheetRowLimit(rows);
+      if (rows.some(row => !row || typeof row !== 'object' || Array.isArray(row))) {
+        throw new Error('Each task must be a JSON object.');
+      }
       return rows as Record<string, unknown>[];
     }
     if (filename.endsWith('.xlsx') || filename.endsWith('.xls')) {
@@ -1514,7 +1550,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
       // parser cannot read these and throws an unhelpful internal error.
       // Sniff the first bytes and parse as HTML when detected.
       const sniff = new TextDecoder('utf-8').decode(buffer.slice(0, 512)).trim().toLowerCase();
-      if (sniff.startsWith('<html') || sniff.startsWith('<!doctype') || sniff.startsWith('<table') || sniff.startsWith('<?xml')) {
+      if (sniff.startsWith('<html') || sniff.startsWith('<!doctype') || sniff.startsWith('<table')) {
         return this.parseHtmlTableRows(new TextDecoder('utf-8').decode(buffer));
       }
  
@@ -1573,6 +1609,20 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
     return rows;
   }
 
+  private prepareImportedTasks(rows: Record<string, unknown>[]): GmUpdateProjectTaskRequest[] {
+    const tasks = rows.map((row, index) => this.toImportedTaskPayload(row, index));
+    const seen = new Set<string>();
+    tasks.forEach((task, index) => {
+      const wbs = task.wbsCode;
+      if (!wbs) return;
+      if (seen.has(wbs)) throw new Error(`Import row ${index + 1}: duplicate WBS '${wbs}'.`);
+      const parent = wbs.includes('.') ? wbs.slice(0, wbs.lastIndexOf('.')) : null;
+      if (parent && !seen.has(parent)) throw new Error(`Import row ${index + 1}: parent WBS '${parent}' must appear before the child.`);
+      seen.add(wbs);
+    });
+    return tasks;
+  }
+
   private toImportedTaskPayload(row: Record<string, unknown>, index: number): GmUpdateProjectTaskRequest {
     const rowNumber = index + 1;
     const value = (...headers: string[]): unknown => {
@@ -1628,6 +1678,11 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
     this.clearNonActivityAssignments(task);
     if (task.durationDays !== undefined && (task.durationDays < 0 || (taskType === 'ACTIVITY' && task.durationDays === 0))) {
       throw new Error(`Import row ${rowNumber}: duration is invalid for this task type.`);
+    }
+    if (this.hasInvalidDateRange(task.baselineStart, task.baselineEnd) ||
+        this.hasInvalidDateRange(task.plannedStart, task.plannedEnd) ||
+        this.hasInvalidDateRange(task.actualStart, task.actualEnd)) {
+      throw new Error(`Import row ${rowNumber}: an end date cannot be before its start date.`);
     }
     this.normalizeImportedTaskDates(task);
     const importedChange = task.durationDays !== undefined
@@ -1690,7 +1745,13 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
       if (parsed) date = new Date(parsed.y, parsed.m - 1, parsed.d);
     } else {
       const source = String(value).trim();
-      if (/^\d{4}-\d{2}-\d{2}$/.test(source)) return source;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(source)) {
+        const parsed = new Date(source + 'T00:00:00');
+        if (Number.isNaN(parsed.getTime()) || this.dateToString(parsed) !== source) {
+          throw new Error(`Import row ${row}: date is invalid.`);
+        }
+        return source;
+      }
       const parsed = new Date(source);
       if (!Number.isNaN(parsed.getTime())) date = parsed;
     }
@@ -2453,28 +2514,24 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
 
   // ---------------- Scroll sync ----------------
   private syncScroll(source: HTMLElement, target: HTMLElement, axis: 'vertical' | 'horizontal'): void {
-    if (axis === 'vertical') target.scrollTop = source.scrollTop;
-    else target.scrollLeft = source.scrollLeft;
+    const key = axis === 'vertical' ? 'scrollTop' : 'scrollLeft';
+    if (target[key] !== source[key]) target[key] = source[key];
   }
 
   onTableScroll(): void {
     if (!this.tableBodyScroll) return;
-    const tableBodyEl = this.tableBodyScroll.nativeElement;
-    if (this.ganttBodyScroll && !this.syncingVertical) { this.syncingVertical = true; this.syncScroll(tableBodyEl, this.ganttBodyScroll.nativeElement, 'vertical'); requestAnimationFrame(() => { this.syncingVertical = false; }); }
-    if (this.leftHeaderScroll && !this.syncingHorizontal) { this.syncingHorizontal = true; this.syncScroll(tableBodyEl, this.leftHeaderScroll.nativeElement, 'horizontal'); requestAnimationFrame(() => { this.syncingHorizontal = false; }); }
+    const source = this.tableBodyScroll.nativeElement;
+    if (this.ganttBodyScroll) this.syncScroll(source, this.ganttBodyScroll.nativeElement, 'vertical');
+    if (this.leftHeaderScroll) this.syncScroll(source, this.leftHeaderScroll.nativeElement, 'horizontal');
     if (this.contextMenuOpen) this.closeContextMenu();
   }
 
   onGanttScroll(): void {
     if (!this.ganttBodyScroll) return;
-    const ganttBodyEl = this.ganttBodyScroll.nativeElement;
-    if (this.tableBodyScroll && !this.syncingVertical) { this.syncingVertical = true; this.syncScroll(ganttBodyEl, this.tableBodyScroll.nativeElement, 'vertical'); requestAnimationFrame(() => { this.syncingVertical = false; }); }
-    if (!this.syncingHorizontal) {
-      this.syncingHorizontal = true;
-      if (this.monthHeaderScroll) this.syncScroll(ganttBodyEl, this.monthHeaderScroll.nativeElement, 'horizontal');
-      if (this.timelineHeaderScroll) this.syncScroll(ganttBodyEl, this.timelineHeaderScroll.nativeElement, 'horizontal');
-      requestAnimationFrame(() => { this.syncingHorizontal = false; });
-    }
+    const source = this.ganttBodyScroll.nativeElement;
+    if (this.tableBodyScroll) this.syncScroll(source, this.tableBodyScroll.nativeElement, 'vertical');
+    if (this.monthHeaderScroll) this.syncScroll(source, this.monthHeaderScroll.nativeElement, 'horizontal');
+    if (this.timelineHeaderScroll) this.syncScroll(source, this.timelineHeaderScroll.nativeElement, 'horizontal');
     if (this.contextMenuOpen) this.closeContextMenu();
   }
   private resetScroll(): void {
@@ -2486,14 +2543,11 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   }
     scrollToTop(): void {
     this.tableBodyScroll?.nativeElement.scrollTo({ top: 0, behavior: 'smooth' });
-    this.ganttBodyScroll?.nativeElement.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   scrollToBottom(): void {
     const tableEl = this.tableBodyScroll?.nativeElement;
-    const ganttEl = this.ganttBodyScroll?.nativeElement;
     if (tableEl) tableEl.scrollTo({ top: tableEl.scrollHeight, behavior: 'smooth' });
-    if (ganttEl) ganttEl.scrollTo({ top: ganttEl.scrollHeight, behavior: 'smooth' });
   }
   // ---------------- Column sizing ----------------
   get visibleColumnTemplate(): string {
@@ -2501,7 +2555,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
     if (this.columnVisibility.id) cols.push('52px');
     if (this.columnVisibility.wbs) cols.push('70px');
     if (this.columnVisibility.customer) cols.push('56px');
-    if (this.columnVisibility.name) cols.push('minmax(260px, 1.6fr)');
+    if (this.columnVisibility.name) cols.push('320px');
     if (this.columnVisibility.type) cols.push('82px');
     if (this.columnVisibility.resourceType) cols.push('95px');
     if (this.columnVisibility.department) cols.push('110px');
@@ -2521,7 +2575,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
     if (this.columnVisibility.id) total += 52;
     if (this.columnVisibility.wbs) total += 70;
     if (this.columnVisibility.customer) total += 56;
-    if (this.columnVisibility.name) total += 260;
+    if (this.columnVisibility.name) total += 320;
     if (this.columnVisibility.type) total += 82;
     if (this.columnVisibility.resourceType) total += 95;
     if (this.columnVisibility.department) total += 110;

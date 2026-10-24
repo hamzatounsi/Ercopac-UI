@@ -98,7 +98,7 @@
   input:focus,
   select:focus,
   textarea:focus {
-    border-color: #2563eb;
+    border-color: var(--pm-primary);
     box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
     background: #ffffff;
   }
@@ -135,7 +135,7 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: linear-gradient(135deg, var(--pm-primary), #1d4ed8);
   color: #ffffff;
   box-shadow: 0 10px 20px rgba(37, 99, 235, 0.18);
 }
