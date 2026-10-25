@@ -274,7 +274,7 @@
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 58fr) minmax(0, 42fr);
+  grid-template-columns: minmax(0, 64fr) minmax(0, 36fr);
   gap: 0;
   padding: 0 16px;
   overflow: hidden;
@@ -321,8 +321,8 @@
 /* ✅ Ligne des headers de colonnes (alignée avec cal-hdr-top) */
 .wbs-hdr-row {
   display: grid;
-  grid-template-columns: 140px 90px 280px 200px 120px 120px 120px 160px;
-  width: 1230px;
+  grid-template-columns: 120px 80px 240px 160px 160px 120px 120px 120px;
+  width: 1120px;
   align-items: center;
   height: 43px;
   flex-shrink: 0;
@@ -339,8 +339,8 @@
 /* ✅ LIGNES WBS - Hauteur fixe 43px */
 .wbs-row {
   display: grid;
-  grid-template-columns: 140px 90px 280px 200px 120px 120px 120px 160px;
-  width: 1230px;
+  grid-template-columns: 120px 80px 240px 160px 160px 120px 120px 120px;
+  width: 1120px;
   align-items: center;
   height: 43px;
   border-bottom: 1px solid #e7edf4;
@@ -491,6 +491,7 @@
   color: #888;
   font-weight: 500;
 }
+.wbs-row:not([data-row-type="HOUR"]) .remaining-schedule-hint { display: none; }
 
 /* ✅ HEADER CALENDRIER - 2 niveaux (year-strip + cal-hdr-top) */
 #cal-hdr {
@@ -716,9 +717,16 @@
   scroll-behavior: auto;
 }
 .wbs-row > div, .hdr-cell { min-width: 0; overflow: hidden; }
+.wbs-row > .col-budget, .wbs-row > .col-actual, .wbs-row > .col-remaining,
+.wbs-hdr-row > .col-budget, .wbs-hdr-row > .col-actual, .wbs-hdr-row > .col-remaining { order: 1; }
 .hdr-cell { letter-spacing: 0; }
 .col-wbs { text-overflow: ellipsis; white-space: nowrap; }
 .desc-main { min-width: 0; }
 .linked-wbs-select { max-width: none; font-size: 12px; }
 #cal-hdr-top { width: max-content; }
-.wbs-year-spacer { min-width: 1230px; }
+.wbs-year-spacer { min-width: 1120px; }
+
+/* Delete forecast entry (trash) inside the description cell */
+.type-cell { display: flex; align-items: center; }
+.row-delete-btn { height: 26px; padding: 0 4px; flex-shrink: 0; color: #dc2626; border-radius: 6px; }
+.row-delete-btn .material-symbols-outlined { font-size: 18px; }

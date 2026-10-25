@@ -5,6 +5,7 @@ import { ForecastRow } from '../../models/forecast-row.model';
 import { ForecastSummary } from '../../models/forecast-summary.model';
 import { GmDashboardService } from '../../services/gm-dashboard.service';
 import { HttpClient } from '@angular/common/http';
+import { PermissionService } from 'src/app/core/services/PermissionService';
 
 @Component({
   selector: 'app-gm-project-forecast-page',
@@ -35,6 +36,7 @@ export class GmProjectForecastPageComponent implements OnInit {
 
   savingCellKey: string | null = null;
   savingFieldKey: string | null = null;
+  canWriteForecast = false;
   @ViewChild('wbsHeader') wbsHeader!: ElementRef<HTMLElement>;
   @ViewChild('calHeader') calHeader!: ElementRef<HTMLElement>;
 
@@ -43,13 +45,18 @@ export class GmProjectForecastPageComponent implements OnInit {
     private router: Router,
     private forecastService: GmForecastService,
     private dashboardService: GmDashboardService,
-    private http: HttpClient
+    private http: HttpClient,
+    private permissionService: PermissionService
   ) {}
 
   ngOnInit(): void {
     this.projectId = Number(this.route.snapshot.paramMap.get('id'));
     this.loadProjectName();
     this.loadData();
+    this.permissionService.permissions$.subscribe(() => {
+      this.canWriteForecast = this.permissionService.canWrite('FORECAST');
+    });
+    this.permissionService.loadPermissions();
   }
 
   loadProjectName(): void {
@@ -116,12 +123,12 @@ export class GmProjectForecastPageComponent implements OnInit {
   }
 
   isEditableRow(row: ForecastRow): boolean {
-    return this.getRowType(row) !== 'SUMMARY';
+    return row.leaf ?? !this.rows.some(candidate => candidate.parentId === row.financeEntryId);
   }
 
   getRemainingPercent(row: ForecastRow): number {
     const budget = row.budget || 0;
-    const remaining = this.getRemaining(row);
+    const remaining = row.remainingForecastCost || 0;
     if (!budget || budget <= 0) return 0;
     return Math.max(0, Math.min(100, (remaining / budget) * 100));
   }
@@ -134,63 +141,21 @@ export class GmProjectForecastPageComponent implements OnInit {
     return this.getRowType(row) === 'HOUR' ? this.formatHours(row.actualCost) : this.formatMoney(row.actualCost);
   }
 
-  // ✅ CORRECTION FINALE : Remaining TOUJOURS en €
+  // Remaining forecast cost is calculated by the backend (HOUR leaves already converted with their rate)
   formatRemainingOrHours(row: ForecastRow): string {
-    const remainingAmount = this.getRemaining(row);
-    return this.formatMoney(remainingAmount);
+    return this.formatMoney(row.remainingForecastCost ?? 0);
   }
-    // ✅ Affichage de la colonne "Remaining Schedule" (calculé par le backend en €)
+
+  // Remaining Schedule (outstanding Gantt hours x rate) is calculated by the backend in €
   formatRemainingSchedule(row: ForecastRow): string {
-    const cost = (row as any).remainingCost;
-    if (cost != null && cost > 0) {
-      return this.formatMoney(cost);
-    }
-    // Fallback visuel si le backend n'a pas encore calculé
-    const hours = row.remainingHours || 0;
-    const rate = this.getHourlyRate(row);
-    return this.formatMoney(hours * rate);
+    const hasSchedule = !!row.linkedScheduleWbs || this.rows.some(child => child.parentId === row.financeEntryId && child.remainingHours);
+    if (!hasSchedule) return '—';
+    return this.formatMoney(row.remainingCost ?? 0);
   }
 
-   getRemaining(row: ForecastRow): number {
-    const type = this.getRowType(row);
-    const totalForecast = (row.periods || []).reduce((sum, p) => sum + (p.amount || 0), 0);
-    const rate = this.getHourlyRate(row);
-
-    // Pour les lignes SUMMARY ou Level 1 : SOMME des Remaining de tous les enfants
-    if (type === 'SUMMARY' || row.level === 1) {
-      if (row.level === 1) {
-        // Level 1 = Total Projet : sommer TOUTES les lignes sauf elle-même
-        return this.filteredRows
-          .filter(r => r.financeEntryId !== row.financeEntryId)
-          .reduce((sum, child) => sum + this.getRemaining(child), 0);
-      } else {
-        // Summary intermédiaire : sommer les enfants par préfixe WBS
-        const children = this.filteredRows.filter(r => 
-          r.level > row.level && 
-          (r.wbsCode.startsWith(row.wbsCode + '.') || 
-           r.wbsCode.startsWith(row.wbsCode + '-'))
-        );
-        return children.reduce((sum, child) => sum + this.getRemaining(child), 0);
-      }
-    }
-
-    if (type === 'HOUR') {
-      // HOUR : Somme forecast * Taux horaire
-      return totalForecast * rate;
-    }
-    
-    // COST : Somme forecast directement (déjà en €)
-    return totalForecast;
-  }
-
-  // Helper pour le taux (à ajuster si ton backend envoie le taux dans le DTO)
-  private getHourlyRate(row: ForecastRow): number {
-    // Si ton modèle ForecastRow a un champ hourRate, utilise-le : return row.hourRate || 65;
-    return 65; 
-  }
-
+  // HOUR leaves are forecast in hours; every parent total is a cost
   formatTotalForecast(row: ForecastRow): string {
-    return this.getRowType(row) === 'HOUR' ? this.formatHours(row.totalForecast) : this.formatMoney(row.totalForecast);
+    return this.getRowType(row) === 'HOUR' && this.isEditableRow(row) ? this.formatHours(row.totalForecast) : this.formatMoney(row.totalForecast);
   }
 
   formatHours(value: number | null | undefined): string {
@@ -236,7 +201,7 @@ export class GmProjectForecastPageComponent implements OnInit {
   }
 
   private cellKey(row: ForecastRow, periodKey: string): string {
-    return `${row.wbsCode}__${periodKey}`;
+    return `${row.financeEntryId}__${periodKey}`;
   }
 
   isCellSaving(row: ForecastRow, periodKey: string): boolean {
@@ -244,6 +209,10 @@ export class GmProjectForecastPageComponent implements OnInit {
   }
 
   onCellChange(row: ForecastRow, periodKey: string, rawValue: string): void {
+    if (!this.isEditableRow(row)) {
+      this.error = 'Select a leaf Finance WBS row to enter a forecast amount.';
+      return;
+    }
     const amount = Number(rawValue || 0);
     if (Number.isNaN(amount) || amount < 0) {
       this.error = 'Invalid value entered.';
@@ -258,13 +227,13 @@ export class GmProjectForecastPageComponent implements OnInit {
     } else {
       row.periods.push({ periodKey, amount } as any);
     }
-    row.totalForecast = (row.periods || []).reduce((sum, p) => sum + (p.amount || 0), 0);
 
     this.saving = true;
     this.savingCellKey = this.cellKey(row, periodKey);
     this.error = null;
 
     this.forecastService.updateForecastCell(this.projectId, {
+      financeEntryId: row.financeEntryId,
       wbsCode: row.wbsCode,
       periodKey,
       amount
@@ -276,24 +245,41 @@ export class GmProjectForecastPageComponent implements OnInit {
       },
       error: (err) => {
         console.error(err);
-        this.error = 'Failed to update forecast value.';
+        this.error = err?.error?.message || 'Failed to update forecast value.';
         this.saving = false;
         this.savingCellKey = null;
-        if (cell) {
-          cell.amount = previousAmount;
-          row.totalForecast = (row.periods || []).reduce((sum, p) => sum + (p.amount || 0), 0);
-        }
+        if (cell) cell.amount = previousAmount;
       }
     });
   }
 
-  updateLevel(row: ForecastRow): void {
-    this.forecastService.updateWbsLevel(this.projectId, row.financeEntryId, row.level).subscribe({
-      next: () => {},
+  canDeleteForecastEntry(row: ForecastRow): boolean {
+    return this.canWriteForecast && this.isEditableRow(row) && !!row.totalForecast;
+  }
+
+  deleteForecastEntry(row: ForecastRow): void {
+    if (!this.canDeleteForecastEntry(row)) return;
+    const confirmed = confirm(
+      `Delete forecast entry
+
+${row.wbsCode} – ${row.description}
+
+` +
+      'All forecast values of this row are removed and the parent totals are recalculated. ' +
+      'The WBS node itself stays in Finance and Forecast.'
+    );
+    if (!confirmed) return;
+    this.saving = true;
+    this.error = null;
+    this.forecastService.deleteForecastEntry(this.projectId, row.financeEntryId).subscribe({
+      next: () => {
+        this.saving = false;
+        this.loadData();
+      },
       error: (err) => {
         console.error(err);
-        this.error = 'Failed to update level.';
-        this.loadData();
+        this.error = err?.error?.message || 'Failed to delete forecast entry.';
+        this.saving = false;
       }
     });
   }
@@ -342,6 +328,7 @@ export class GmProjectForecastPageComponent implements OnInit {
   }
 
   onLinkedWbsChange(row: ForecastRow): void {
+    if (this.getRowType(row) !== 'HOUR') return;
     this.saving = true;
     this.forecastService.updateLinkedScheduleWbs(this.projectId, row.financeEntryId, row.linkedScheduleWbs || null).subscribe({
       next: () => {

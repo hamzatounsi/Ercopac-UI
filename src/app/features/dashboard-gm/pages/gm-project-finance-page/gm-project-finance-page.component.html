@@ -53,6 +53,8 @@
 
       <div *ngIf="loading" class="state-box">Loading finance data...</div>
       <div *ngIf="error" class="state-box error">{{ error }}</div>
+      <div *ngIf="actionError" class="state-box error">{{ actionError }}</div>
+      <div *ngIf="actionMessage" class="state-box">{{ actionMessage }}</div>
 
       <div class="table-card" *ngIf="!loading && !error">
         <table class="finance-table">
@@ -71,10 +73,11 @@
               <th (click)="sortBy('cpi')">CPI</th>
               <th (click)="sortBy('percentAc')">% AC</th>
               <th (click)="sortBy('owner')">Owner</th>
+              <th *ngIf="canWriteFinance"></th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngIf="filteredRows.length === 0"><td colspan="13" class="empty-row">No finance rows found.</td></tr>
+            <tr *ngIf="filteredRows.length === 0"><td [attr.colspan]="canWriteFinance ? 14 : 13" class="empty-row">No finance rows found.</td></tr>
             <tr *ngFor="let row of filteredRows" [ngClass]="'row-l' + row.level">
               <td class="wbs-code">{{ row.wbsCode }}</td>
               <td class="desc-cell" [style.paddingLeft.px]="row.level > 1 ? (row.level - 1) * 18 + 14 : 14">{{ row.description }}</td>
@@ -84,7 +87,7 @@
               <td>{{ row.commitment ? formatMoney(row.commitment) : '0' }}</td>
               <td>{{ row.actualCost ? formatMoney(row.actualCost) : '0' }}</td>
               <td>
-                <input type="number" class="forecast-input" [ngModel]="row.forecast" (change)="updateForecast(row, $any($event.target).value)" min="0" [disabled]="row.level === 1" title="Edit forecast value" />
+                  <input type="number" class="forecast-input" [ngModel]="row.forecast" (change)="updateForecast(row, $any($event.target).value)" min="0" [disabled]="!isForecastEditable(row)" [title]="row.rowType === 'HOUR' ? 'Hour forecasts are entered on the Forecast page' : 'Edit forecast value'" />
               </td>
               <td>{{ row.eac ? formatMoney(row.eac) : '—' }}</td>
               <td [ngClass]="getVarianceClass(row.variance)">{{ row.variance ? formatMoney(row.variance) : '—' }}</td>
@@ -96,6 +99,11 @@
                 </div>
               </td>
               <td class="owner-cell">{{ row.owner || '—' }}</td>
+              <td *ngIf="canWriteFinance">
+                <button class="delete-btn" type="button" (click)="deleteWbsNode(row)" title="Delete WBS node">
+                  <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
+                </button>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -195,7 +203,7 @@
                   </thead>
                   <tbody>
                     <tr *ngFor="let row of financeSettings.templateRows; let i = index; trackBy: trackByIndex">
-                      <td><span class="lvl-badge">{{ row.level }}</span></td>
+                       <td><input type="number" min="1" max="10" [(ngModel)]="row.level" class="tbl-input" aria-label="WBS level" /></td>
                       <td><input [(ngModel)]="row.codeTemplate" class="tbl-input mono" /></td>
                       <td><input [(ngModel)]="row.description" class="tbl-input" /></td>
                       <td>
@@ -223,7 +231,7 @@
                           </option>
                         </select>
                       </td>
-                      <td><button class="delete-btn" (click)="removeTemplateRow(i)">✕</button></td>
+                       <td><button class="delete-btn" (click)="moveTemplateRow(i, -1)" [disabled]="i === 0" title="Move up">↑</button><button class="delete-btn" (click)="moveTemplateRow(i, 1)" [disabled]="i === financeSettings.templateRows.length - 1" title="Move down">↓</button><button *ngIf="canWriteFinance" class="delete-btn" (click)="removeTemplateRow(i)" title="Delete WBS node"><span class="material-symbols-outlined" style="font-size: 16px;">delete</span></button></td>
                     </tr>
                     <tr *ngIf="financeSettings.templateRows.length === 0">
                       <td colspan="8" class="empty-row">No WBS template rows defined. Click "Add Row" to create one.</td>
@@ -240,7 +248,7 @@
               <div class="section-top">
                 <div><h2>📥 Import WBS</h2><p>Load a WBS structure from JSON, CSV, or use the built-in template.</p></div>
                 <div class="section-actions">
-                  <label class="form-row" style="margin: 0;"><input type="checkbox" [(ngModel)]="importReplaceExisting" /> Replace existing</label>
+                  <label class="form-row" style="margin: 0;" title="Replacement is blocked if removed WBS rows have financial or forecast data"><input type="checkbox" [(ngModel)]="importReplaceExisting" /> Replace existing</label>
                   <button class="btn primary" type="button" (click)="confirmImportWbsTemplate()" [disabled]="importLoading || importPreviewRows.length === 0">{{ importLoading ? 'Importing...' : 'Import Template' }}</button>
                 </div>
               </div>
