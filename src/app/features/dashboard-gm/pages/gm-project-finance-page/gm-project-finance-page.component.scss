@@ -8,14 +8,14 @@
 }
 
 .finance-shell {
-  --bg: #f5f8fc;
-  --surface: #ffffff;
-  --border: #dbe3ed;
-  --border2: #c8d4e3;
-  --text: #1e293b;
-  --text2: #64748b;
-  --text3: #94a3b8;
-  --blue: #1565c0;
+  --bg: var(--pm-bg);
+  --surface: var(--pm-surface);
+  --border: var(--pm-border);
+  --border2: var(--pm-border-strong);
+  --text: var(--pm-text);
+  --text2: var(--pm-text-muted);
+  --text3: var(--pm-text-soft);
+  --blue: var(--pm-primary);
   --blue2: #2196f3;
   --green: #16a34a;
   --purple: #7c3aed;
@@ -384,10 +384,10 @@
 .ac-fill {
   height: 100%;
   border-radius: 999px;
-  background: #1565c0;
+  background: var(--pm-primary);
 }
 
-.ac-fill.good { background: #1565c0; }
+.ac-fill.good { background: var(--pm-primary); }
 .ac-fill.warn { background: #d97706; }
 .ac-fill.bad { background: #dc2626; }
 
@@ -395,7 +395,7 @@
   min-width: 36px;
   text-align: right;
   font-weight: 800;
-  color: #1565c0;
+  color: var(--pm-primary);
 }
 
 .pos {
@@ -581,8 +581,8 @@ body > .settings-overlay * {
 
 .settings-tab.active {
   background: #eff6ff;
-  color: #1565c0;
-  border-left: 4px solid #1565c0;
+  color: var(--pm-primary);
+  border-left: 4px solid var(--pm-primary);
   padding-left: 18px;
 }
 
@@ -701,7 +701,7 @@ body > .settings-overlay * {
   align-items: center;
   justify-content: center;
   background: #dbeafe;
-  color: #1565c0;
+  color: var(--pm-primary);
   font-weight: 800;
   font-size: 12px;
 }
@@ -812,9 +812,9 @@ body > .settings-overlay * {
 }
 
 .btn.primary {
-  background: #1565c0;
+  background: var(--pm-primary);
   color: #fff;
-  border-color: #1565c0;
+  border-color: var(--pm-primary);
 }
 
 .btn.ghost {
@@ -903,7 +903,7 @@ body > .settings-overlay * {
 
 .tb-search:focus,
 .tb-sel:focus {
-  border-color: #2563eb;
+  border-color: var(--pm-primary);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
   outline: none;
 }
@@ -1015,7 +1015,7 @@ body > .settings-overlay * {
 
 .hero-btn.primary {
   background: #ffffff;
-  color: #1565c0;
+  color: var(--pm-primary);
 }
 
 .hero-btn.ghost {
@@ -1042,7 +1042,7 @@ body > .settings-overlay * {
   background: #ffffff;
   min-height: 92px;
   padding: 14px 16px;
-  border-left: 4px solid #1565c0;
+  border-left: 4px solid var(--pm-primary);
 }
 
 .kpi-card span {
@@ -1118,7 +1118,7 @@ body > .settings-overlay * {
   border-radius: 9px;
   border: 1px solid var(--border2);
   background: #ffffff;
-  color: #1565c0;
+  color: var(--pm-primary);
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1266,7 +1266,7 @@ body > .settings-overlay * {
 }
 
 .forecast-input:focus {
-  border-color: #2563eb;
+  border-color: var(--pm-primary);
   box-shadow: 0 0 0 2px rgba(37, 99, 235, .12);
   outline: none;
 }
@@ -1292,7 +1292,7 @@ body > .settings-overlay * {
 }
 
 .import-dropzone.drag-over {
-  border-color: #2563eb;
+  border-color: var(--pm-primary);
   background: #eff6ff;
 }
 
@@ -1337,7 +1337,7 @@ body > .settings-overlay * {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #1565c0;
+  color: var(--pm-primary);
   font-weight: 700;
   text-decoration: none;
   cursor: pointer;
@@ -1422,7 +1422,7 @@ body > .settings-overlay * {
 }
 
 .payment-progress-fill.complete {
-  background: #2563eb;
+  background: var(--pm-primary);
 }
 
 .payment-progress-fill.incomplete {

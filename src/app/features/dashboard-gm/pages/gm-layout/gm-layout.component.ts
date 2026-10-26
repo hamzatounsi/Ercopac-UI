@@ -47,7 +47,8 @@ export class GmLayoutComponent implements OnInit, OnDestroy {
 
   private updateHeaderVisibility(url: string): void {
     const path = url.split('?')[0].replace(/\/$/, '');
-    // The workspace launcher has its own authenticated account header.
-    this.showSharedHeader = path !== '/gm';
+    // Projectum pages own a Workspace header including account actions.
+    const hasWorkspaceHeader = /^\/gm\/(projectum(?:\/|$)|projects\/|milestones$)/.test(path);
+    this.showSharedHeader = path !== '/gm' && !hasWorkspaceHeader;
   }
 }

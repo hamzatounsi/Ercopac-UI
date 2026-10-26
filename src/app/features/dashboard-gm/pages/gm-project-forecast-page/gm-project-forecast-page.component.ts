@@ -30,12 +30,13 @@ export class GmProjectForecastPageComponent implements OnInit {
 
   periods = 12;
   searchTerm = '';
-  viewMode: 'week' | 'month' = 'month';
-  periodType = 'month';
+  viewMode: 'week' | 'month' = 'week';
+  periodType = 'week';
 
   savingCellKey: string | null = null;
   savingFieldKey: string | null = null;
-  private isScrolling = false;
+  @ViewChild('wbsHeader') wbsHeader!: ElementRef<HTMLElement>;
+  @ViewChild('calHeader') calHeader!: ElementRef<HTMLElement>;
 
   constructor(
     private route: ActivatedRoute,
@@ -327,21 +328,17 @@ export class GmProjectForecastPageComponent implements OnInit {
   }
 
   onWbsScroll(event: Event): void {
-    if (this.isScrolling) return;
-    this.isScrolling = true;
-    const wbsBody = this.wbsBody.nativeElement;
-    const calBody = this.calBody.nativeElement;
-    calBody.scrollTop = wbsBody.scrollTop;
-    requestAnimationFrame(() => { this.isScrolling = false; });
+    const source = this.wbsBody.nativeElement;
+    const target = this.calBody.nativeElement;
+    if (target.scrollTop !== source.scrollTop) target.scrollTop = source.scrollTop;
+    this.wbsHeader.nativeElement.scrollLeft = source.scrollLeft;
   }
 
   onCalScroll(event: Event): void {
-    if (this.isScrolling) return;
-    this.isScrolling = true;
-    const wbsBody = this.wbsBody.nativeElement;
-    const calBody = this.calBody.nativeElement;
-    wbsBody.scrollTop = calBody.scrollTop;
-    requestAnimationFrame(() => { this.isScrolling = false; });
+    const source = this.calBody.nativeElement;
+    const target = this.wbsBody.nativeElement;
+    if (target.scrollTop !== source.scrollTop) target.scrollTop = source.scrollTop;
+    this.calHeader.nativeElement.scrollLeft = source.scrollLeft;
   }
 
   onLinkedWbsChange(row: ForecastRow): void {

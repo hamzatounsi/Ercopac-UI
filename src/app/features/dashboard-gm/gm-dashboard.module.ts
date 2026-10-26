@@ -19,6 +19,7 @@ import { GmProjectChangeRequestsPageComponent } from './pages/gm-project-change-
 import { GmProjectActionsPageComponent } from './pages/gm-project-actions-page/gm-project-actions-page.component';
 import { ProjectumProjectHeaderComponent } from './widgets/projectum-project-header/projectum-project-header.component';
 import { ProjectumWorkspaceHeaderComponent } from './widgets/projectum-workspace-header/projectum-workspace-header.component';
+import { ProjectumNotificationsComponent } from './widgets/projectum-notifications/projectum-notifications.component';
 import { GmResourceManagementPageComponent } from './pages/gm-resource-management-page/gm-resource-management-page.component';
 import { HttpClientModule } from '@angular/common/http';
 import { GmAdminSettingsPageComponent } from './pages/gm-admin-settings-page/gm-admin-settings-page.component';
@@ -53,6 +54,7 @@ import { MilestoneDashboardComponent } from './pages/milestone-dashboard/milesto
     GmProjectActionsPageComponent,
     ProjectumProjectHeaderComponent,
     ProjectumWorkspaceHeaderComponent,
+    ProjectumNotificationsComponent,
     GmResourceManagementPageComponent,
     GmAdminSettingsPageComponent,
     CategoriesTabComponent,

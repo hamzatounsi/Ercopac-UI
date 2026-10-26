@@ -47,7 +47,7 @@
 .gantt-date-picker-day { height: 27px; border: 0; border-radius: 3px; background: transparent; color: #263c53; font-size: 11px; cursor: pointer; }
 .gantt-date-picker-day:hover:not(:disabled) { background: #e6f1fa; color: #0d578e; }
 .gantt-date-picker-day.today { box-shadow: inset 0 0 0 1px #5c93bc; }
-.gantt-date-picker-day.selected { background: #1565c0; color: #fff; }
+.gantt-date-picker-day.selected { background: var(--pm-primary); color: #fff; }
 .gantt-date-picker-day.non-working,
 .gantt-date-picker-day:disabled { background: #f0f3f6; color: #a3afba; cursor: not-allowed; opacity: 1; }
 .gantt-date-picker-day.outside-month { background: transparent; color: #c7d0d8; }

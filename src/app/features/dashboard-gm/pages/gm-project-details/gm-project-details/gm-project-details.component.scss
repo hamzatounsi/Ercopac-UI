@@ -81,7 +81,7 @@
   font-size: 11px;
   line-height: 1.1;
   font-weight: 800;
-  color: #1565c0;
+  color: var(--pm-primary);
   white-space: nowrap;
 }
 
@@ -122,7 +122,7 @@
 }
 
 .context-dot.blue {
-  background: #1565c0;
+  background: var(--pm-primary);
 }
 
 .context-dot.green {
@@ -174,7 +174,7 @@
   height: 32px;
   border-radius: 8px;
   background: #dbeafe;
-  color: #1565c0;
+  color: var(--pm-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -220,7 +220,7 @@
 .project-code {
   font-size: 10px;
   font-weight: 800;
-  color: #1565c0;
+  color: var(--pm-primary);
   margin-bottom: 6px;
 }
 
@@ -248,7 +248,7 @@
   padding: 6px 10px;
   border-radius: 999px;
   background: #dbeafe;
-  color: #1565c0;
+  color: var(--pm-primary);
   font-size: 10px;
   font-weight: 800;
   white-space: nowrap;
@@ -445,7 +445,7 @@
   border: 0;
   border-radius: 999px;
   padding: 9px 14px;
-  background: #1565c0;
+  background: var(--pm-primary);
   color: #ffffff;
   font-size: 11px;
   font-weight: 800;

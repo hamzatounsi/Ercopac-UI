@@ -4,15 +4,15 @@
 }
 
 .actions-shell {
-  --bg:#f5f8fc;
-  --surface:#fff;
-  --surface-2:#f8fafc;
-  --border:#e2e8f0;
-  --border2:#cbd5e1;
-  --txt:#1e293b;
-  --txt2:#64748b;
-  --txt3:#94a3b8;
-  --accent:#1565c0;
+  --bg:var(--pm-bg);
+  --surface:var(--pm-surface);
+  --surface-2:var(--pm-surface-muted);
+  --border:var(--pm-border);
+  --border2:var(--pm-border-strong);
+  --txt:var(--pm-text);
+  --txt2:var(--pm-text-muted);
+  --txt3:var(--pm-text-soft);
+  --accent:var(--pm-primary);
   --green:#16a34a;
   --red:#dc2626;
   --amber:#d97706;
@@ -55,7 +55,7 @@
 }
 
 .stat-pill.blue span,
-.stat-pill.blue { color: #1565c0; }
+.stat-pill.blue { color: var(--pm-primary); }
 
 .stat-pill.red span,
 .stat-pill.red { color: #dc2626; }
@@ -204,8 +204,8 @@
 
 .chip[data-type="action"].on {
   background: #dbeafe;
-  color: #1565c0;
-  border-color: #1565c0;
+  color: var(--pm-primary);
+  border-color: var(--pm-primary);
 }
 
 .chip[data-type="issue"].on {
@@ -222,7 +222,7 @@
   margin-right: 4px;
 }
 
-.sq.blue { background: #1565c0; }
+.sq.blue { background: var(--pm-primary); }
 .sq.red { background: #dc2626; }
 
 .flt-sel,
@@ -363,7 +363,7 @@
   border-radius: 13px;
   border: 1.5px solid var(--border);
   background: #eff6ff;
-  color: #1565c0;
+  color: var(--pm-primary);
   font-size: 10.5px;
   font-weight: 600;
   cursor: pointer;
@@ -501,7 +501,7 @@
 .pr-low { background: #f0fdf4; color: var(--green); }
 
 .st-todo { background: #f1f5f9; color: #475569; }
-.st-doing { background: #dbeafe; color: #1565c0; }
+.st-doing { background: #dbeafe; color: var(--pm-primary); }
 .st-review { background: #ede9fe; color: #6d28d9; }
 .st-blocked { background: #fee2e2; color: #dc2626; }
 .st-done { background: #dcfce7; color: #15803d; }

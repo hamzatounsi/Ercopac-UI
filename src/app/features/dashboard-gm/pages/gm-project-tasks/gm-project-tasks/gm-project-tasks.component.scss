@@ -20,7 +20,7 @@
   .page-kicker {
     font-size: 10px;
     font-weight: 900;
-    color: #1565c0;
+    color: var(--pm-primary);
     text-transform: uppercase;
     letter-spacing: 0.12em;
     margin-bottom: 8px;
@@ -108,7 +108,7 @@
   input:focus,
   select:focus,
   textarea:focus {
-    border-color: #2563eb;
+    border-color: var(--pm-primary);
     box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
     background: #ffffff;
   }
@@ -147,7 +147,7 @@
 }
 
 .primary-btn {
-  background: #1565c0;
+  background: var(--pm-primary);
   color: #ffffff;
   box-shadow: 0 10px 20px rgba(21, 101, 192, 0.2);
 }

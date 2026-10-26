@@ -1,8 +1,8 @@
-$border: #e4e9f1;
+$border: var(--pm-border);
 $border-light: #edf0f5;
-$text-muted: #697386;
-$text: #172033;
-$accent: #214bb7;
+$text-muted: var(--pm-text-muted);
+$text: var(--pm-text);
+$accent: var(--pm-primary);
 $weekend-bg: #f7f9fc;
 $fixed-width: 320px;
 $col-stat: 70px;

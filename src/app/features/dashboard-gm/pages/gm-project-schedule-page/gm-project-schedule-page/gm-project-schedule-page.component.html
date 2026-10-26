@@ -1,4 +1,4 @@
-<div class="pm-shell" [class.mycs-schedule]="isMyCsSchedule">
+<div class="pm-shell" [class.mycs-schedule]="isMyCsSchedule" [style.--schedule-row-height]="rowHeight + 'px'" [style.--wbs-left]="columnVisibility.id ? '52px' : '0px'">
   <!-- Projectum uses the shared project header; My CS retains its existing header. -->
   <app-projectum-workspace-header
     *ngIf="!isMyCsSchedule; else myCsScheduleHeader"
@@ -46,7 +46,7 @@
           <span>Export</span>
         </button>
         <div class="import-menu">
-          <button type="button" class="toolbar-main-btn import-btn" (click)="importMenuOpen = !importMenuOpen" [attr.aria-expanded]="importMenuOpen">
+          <button type="button" class="toolbar-main-btn import-btn" [disabled]="saving" (click)="importMenuOpen = !importMenuOpen" [attr.aria-expanded]="importMenuOpen">
             <span class="material-symbols-outlined">upload</span>
             <span>Import</span>
           </button>
@@ -55,7 +55,7 @@
             <button type="button" (click)="openImportPicker(excelImportInput)">Excel</button>
           </div>
           <input #jsonImportInput type="file" hidden accept=".json,application/json" (change)="importScheduleFile($event)" />
-          <input #excelImportInput type="file" hidden accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" (change)="importScheduleFile($event)" />
+          <input #excelImportInput type="file" hidden accept=".xlsx,.xls,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" (change)="importScheduleFile($event)" />
         </div>
         <span class="import-status" *ngIf="importStatus">{{ importStatus }}</span>
         <button type="button" class="toolbar-main-btn" (click)="undo()" [disabled]="history.length === 0">
@@ -246,15 +246,9 @@
 
               <!-- ✅ Sinon, afficher le champ texte normal -->
               <ng-template #normalActivityInput>
-                <input
-                  class="grid-input text-input"
-                  [value]="getInlineNameValue(task)"
-                  (focus)="beginInlineNameEdit(task)"
-                  (input)="updateInlineNameDraft(task, $any($event.target).value)"
-                  (keydown.enter)="handleInlineNameEnter(task, $event)"
-                  (keydown.escape)="cancelInlineNameEdit(task, $event)"
-                  (blur)="commitInlineNameEdit(task)"
-                />
+                <button type="button" class="activity-name-button"
+                  [title]="task.name" [attr.aria-label]="'Edit activity name: ' + task.name"
+                  (click)="openNameEditor(task)">{{ task.name }}</button>
               </ng-template>
             </div>
           </div>
@@ -463,6 +457,8 @@
               [class.dragging]="dragState?.taskId === task.id"
               [class.draggable]="canDragTask(task)"
               [class.proc-bar]="(task.departmentCode || '').toUpperCase() === 'PRC'"
+              [style.top.px]="isSummary(task) ? summaryBarTop : activityBarTop"
+              [style.height.px]="isSummary(task) ? summaryBarHeight : activityBarHeight"
               [style.left.px]="getBarLeft(task)"
               [style.width.px]="getBarWidth(task)"
               (mousedown)="startBarDrag($event, task)"
@@ -471,11 +467,11 @@
               <span class="gantt-label" *ngIf="!isSummary(task)">{{ getTaskLabel(task) }}</span>
             </div>
 
-            <div *ngIf="isMilestone(task)" class="gantt-milestone" [class.customer]="isCustomerMilestone(task)" [style.left.px]="getMilestoneLeft(task)" [style.background-color]="milestoneColor(task)" (contextmenu)="openContextMenu($event, task)"></div>
+            <div *ngIf="isMilestone(task)" class="gantt-milestone" [class.customer]="isCustomerMilestone(task)" [style.top.px]="milestoneTop" [style.width.px]="milestoneSize" [style.height.px]="milestoneSize" [style.left.px]="getMilestoneLeft(task)" [style.background-color]="milestoneColor(task)" (contextmenu)="openContextMenu($event, task)"></div>
             <div *ngIf="isMilestone(task)" class="gantt-milestone-label" [style.left.px]="getMilestoneLeft(task) + 16">{{ task.name }}</div>
           </div>
 
-          <div *ngIf="tasks.length === 0" class="gantt-empty">No timeline to display.</div>
+          <div *ngIf="visibleTasks.length === 0" class="gantt-empty">No timeline to display.</div>
         </div>
       </div>
     </div>
@@ -490,6 +486,23 @@
       </button>
     </div>
   </section>
+
+  <dialog #nameEditor class="activity-name-editor" aria-labelledby="name-editor-title"
+    (cancel)="closeNameEditor(false, $event)"
+    (click)="onNameEditorBackdrop($event)">
+    <ng-container *ngIf="nameEditorTask as task">
+      <h2 id="name-editor-title">Edit activity name</h2>
+      <textarea autofocus rows="4" aria-label="Activity name" aria-describedby="name-editor-help"
+        [value]="getInlineNameValue(task)"
+        (input)="updateInlineNameDraft(task, $any($event.target).value)"
+        (keydown.enter)="closeNameEditor(true, $event)"></textarea>
+      <p id="name-editor-help">Enter to save · Escape to cancel</p>
+      <div class="name-editor-actions">
+        <button type="button" (click)="closeNameEditor(false)">Cancel</button>
+        <button type="button" class="name-save" (click)="closeNameEditor(true)">Save name</button>
+      </div>
+    </ng-container>
+  </dialog>
 
   <div class="loading-card" *ngIf="loading">Loading project schedule...</div>
 
