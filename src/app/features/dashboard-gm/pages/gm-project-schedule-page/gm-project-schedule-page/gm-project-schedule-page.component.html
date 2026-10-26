@@ -1232,6 +1232,63 @@
   </div>
 
   <!-- EXPORT MODAL -->
+  <div class="export-overlay" *ngIf="importPreview as preview">
+    <div class="export-modal">
+      <div class="export-modal-header">
+        <div class="export-modal-title-wrap">
+          <span class="material-symbols-outlined export-modal-icon">warning</span>
+          <div class="export-modal-title">Import Schedule</div>
+        </div>
+        <button type="button" class="export-close-btn" (click)="cancelScheduleImport()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="export-modal-body" style="max-height: 60vh; overflow-y: auto;">
+        <div class="export-help-text">This file does not match the expected structure. Do you want to import it anyway?</div>
+        <div class="export-note">{{ preview.tasks.length }} row(s) will be imported. Missing or unreadable values will be left empty.</div>
+        <div class="export-note" *ngIf="preview.replacedTaskCount">
+          The import replaces the current schedule: all {{ preview.replacedTaskCount }} existing task(s) of this project, with their dependencies and resource assignments, will be deleted.
+        </div>
+        <div class="export-help-text">Recognised columns</div>
+        <ul><li *ngFor="let column of preview.recognised">{{ column }}</li></ul>
+        <ng-container *ngIf="preview.missing.length">
+          <div class="export-help-text">Missing expected columns</div>
+          <ul><li *ngFor="let column of preview.missing">{{ column }}</li></ul>
+        </ng-container>
+        <ng-container *ngIf="preview.notes.length">
+          <div class="export-help-text">Values left empty or skipped</div>
+          <ul><li *ngFor="let note of importNotesSummary(preview.notes)">{{ note }}</li></ul>
+        </ng-container>
+        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+          <button type="button" class="btn-cancel" (click)="cancelScheduleImport()">Cancel</button>
+          <button type="button" class="btn-primary" (click)="confirmScheduleImport()">Import anyway</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="export-overlay" *ngIf="importResult as result">
+    <div class="export-modal">
+      <div class="export-modal-header">
+        <div class="export-modal-title-wrap">
+          <span class="material-symbols-outlined export-modal-icon">task_alt</span>
+          <div class="export-modal-title">Import Finished</div>
+        </div>
+        <button type="button" class="export-close-btn" (click)="importResult = null">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="export-modal-body" style="max-height: 60vh; overflow-y: auto;">
+        <div class="export-help-text">{{ result.count }} task(s) imported.</div>
+        <div class="export-help-text">Left empty or skipped</div>
+        <ul><li *ngFor="let note of importNotesSummary(result.notes)">{{ note }}</li></ul>
+        <div style="display: flex; justify-content: flex-end;">
+          <button type="button" class="btn-primary" (click)="importResult = null">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="export-overlay" *ngIf="exportModalOpen" (click)="closeExportModalOnBackdrop($event)">
     <div class="export-modal">
       <div class="export-modal-header">
