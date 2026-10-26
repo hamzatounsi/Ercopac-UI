@@ -14,10 +14,15 @@ interface EmployeeTask {
   departmentCode?: string; customerMilestone?: boolean; color?: string;
 }
 
+interface ActionAttachment {
+  id: number; fileName: string; contentType?: string; fileSize?: number; uploadedById?: number | null; uploadedBy?: string | null;
+}
+
 interface EmployeeAction {
   id: number; title: string; description?: string; actionType: string; departmentCode?: string;
   priority: string; status: ActionStatus; dueDate?: string | null; insertedDate?: string | null;
   projectId: number; projectCode?: string; projectName?: string; assignees: string[];
+  attachments?: ActionAttachment[];
 }
 
 interface EmployeeProject {
@@ -65,6 +70,7 @@ export class DashboardEmployeeComponent implements OnInit {
   actionProject = '';
   selectedTask: EmployeeTask | null = null;
   selectedAction: EmployeeAction | null = null;
+  attachmentError = '';
   selectedProject: EmployeeProject | null = null;
   draggedAction: EmployeeAction | null = null;
   dragOverStatus: ActionStatus | null = null;
@@ -190,6 +196,43 @@ export class DashboardEmployeeComponent implements OnInit {
   navigate(route: string): void { this.router.navigateByUrl(route); }
   logout(): void { this.auth.logout(); this.router.navigate(['/login']); }
   closeDetails(): void { this.selectedTask = null; this.selectedAction = null; this.selectedProject = null; }
+  uploadAttachments(action: EmployeeAction, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files || []);
+    input.value = '';
+    if (!files.length) return;
+    const formData = new FormData();
+    files.forEach(file => formData.append('files', file));
+    this.attachmentError = '';
+    this.http.post<ActionAttachment[]>(`${API_BASE_URL}/employee/actions/${action.id}/attachments`, formData)
+      .subscribe({ next: attachments => action.attachments = attachments,
+        error: err => this.attachmentError = err?.error?.message || 'Attachment could not be uploaded.' });
+  }
+
+  downloadAttachment(action: EmployeeAction, attachment: ActionAttachment): void {
+    this.http.get(`${API_BASE_URL}/employee/actions/${action.id}/attachments/${attachment.id}/download`, { responseType: 'blob' })
+      .subscribe({ next: blob => {
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = attachment.fileName;
+          link.click();
+          window.URL.revokeObjectURL(url);
+        },
+        error: () => this.attachmentError = 'Attachment could not be downloaded.' });
+  }
+
+  canDeleteAttachment(attachment: ActionAttachment): boolean {
+    return !!attachment.uploadedById && attachment.uploadedById === this.auth.getCurrentUserId();
+  }
+
+  deleteAttachment(action: EmployeeAction, attachment: ActionAttachment): void {
+    if (!confirm(`Delete ${attachment.fileName}?`)) return;
+    this.http.delete<void>(`${API_BASE_URL}/employee/actions/${action.id}/attachments/${attachment.id}`)
+      .subscribe({ next: () => action.attachments = (action.attachments || []).filter(a => a.id !== attachment.id),
+        error: err => this.attachmentError = err?.error?.message || 'Attachment could not be deleted.' });
+  }
+
   taskStatusLabel(status?: string): string { return (status || 'Not started').replace(/_/g, ' '); }
   actionStatusLabel(status: string): string { return ({ todo: 'To Do', doing: 'In Progress', review: 'In Review', blocked: 'Blocked', done: 'Done' } as any)[status] || status; }
   priorityLabel(priority?: string | number): string { return priority === null || priority === undefined || priority === '' ? 'Normal' : String(priority); }
