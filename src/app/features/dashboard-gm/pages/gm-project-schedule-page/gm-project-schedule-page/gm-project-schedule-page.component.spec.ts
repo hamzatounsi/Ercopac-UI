@@ -100,7 +100,7 @@ describe('Gantt display and name editing regressions', () => {
 
   it('rejects impossible dates and reversed ranges before normalization', () => {
     expect(() => component['importDate']('2026-02-30', 1)).toThrowError(/date is invalid/);
-    expect(() => component['toImportedTaskPayload']({ Name: 'Task', Start: '2026-10-23', End: '2026-10-20' }, 0))
+    expect(() => component['toImportedTaskPayload']({ Name: 'Task', WBS: '1', Start: '2026-10-23', End: '2026-10-20' }, 0))
       .toThrowError(/end date cannot be before/);
     expect(component['importDate']('2024-02-29', 1)).toBe('2024-02-29');
   });
@@ -122,6 +122,26 @@ describe('Gantt display and name editing regressions', () => {
     const data = XLSX.write(book, { type: 'array', bookType: 'xlsx' });
     const excelRows = await component['readImportRows'](new File([data], 'tasks.xlsx'));
     expect(excelRows[0]['Task']).toBe('Build');
+  });
+
+  it('exports an importable Excel workbook with hierarchy, dates, type and progress', async () => {
+    component.exportScope = 'ALL';
+    component.tasks = [
+      { id: 1, wbsCode: '1', name: 'Summary', taskType: 'SUMMARY', plannedStart: '2026-10-20', plannedEnd: '2026-10-23' },
+      { id: 2, wbsCode: '1.1', name: 'Design', taskType: 'ACTIVITY', plannedStart: '2026-10-20',
+        plannedEnd: '2026-10-22', baselineStart: '2026-10-19', baselineEnd: '2026-10-23', percentComplete: 40 }
+    ] as GmProjectScheduleTask[];
+    const download = spyOn<any>(component, 'downloadBlob');
+    component.exportAsExcelCsv();
+    expect(download.calls.mostRecent().args[1]).toMatch(/\.xlsx$/);
+    const blob = download.calls.mostRecent().args[0] as Blob;
+    const rows = await component['readImportRows'](new File([blob], 'schedule.xlsx'));
+    expect(rows.map(row => row['WBS'])).toEqual(['1', '1.1']);
+    expect(rows[1]['Task Name']).toBe('Design');
+    expect(rows[1]['Type']).toBe('ACTIVITY');
+    expect(rows[1]['Start Date']).toBe('2026-10-20');
+    expect(rows[1]['Baseline Start']).toBe('2026-10-19');
+    expect(rows[1]['Progress']).toBe(40);
   });
 
   it('rejects duplicate WBS codes before sending an import', () => {

@@ -2098,6 +2098,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
     const actualStart = date('Actual Start', 'Actual Start Date');
     const actualEnd = date('Actual End', 'Actual End Date');
     const wbsCode = text('WBS', 'WBS Code');
+    if (!wbsCode) throw new Error(`Import row ${rowNumber}: WBS is required.`);
     const task: GmProjectScheduleTask = {
       id: 0,
       name,
@@ -3608,10 +3609,29 @@ onMilestoneTypeSelect(task: GmProjectScheduleTask, code: string | null): void {
 
   exportAsExcelCsv(): void {
     const exportTasks = this.getExportTasks();
-    const headers = ['ID', 'WBS', 'Name', 'Type', 'Department', 'Resource Type', 'Customer Milestone', 'Baseline Start', 'Baseline End', 'Actual Start', 'Actual End', 'Duration', 'Percent Complete', 'Priority', 'Status', 'Schedule Mode'];
-    const rows = exportTasks.map(task => [task.id ?? '', task.wbsCode ?? '', task.name ?? '', task.taskType ?? '', task.departmentCode ?? '', task.resourceType ?? '', task.customerMilestone ? 'Yes' : 'No', task.baselineStart ?? task.plannedStart ?? '', task.baselineEnd ?? task.plannedEnd ?? '', task.actualStart ?? '', task.actualEnd ?? '', task.durationDays ?? '', task.percentComplete ?? '', task.priority ?? '', task.status ?? '', task.scheduleMode ?? '']);
-    const csv = [headers, ...rows].map(row => row.map(value => `"${String(value ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
-    this.downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), `project-${this.projectId}-schedule.csv`);
+    const rows = exportTasks.map(task => ({
+      WBS: task.wbsCode ?? '',
+      'Task Name': task.name ?? '',
+      Type: task.taskType ?? 'ACTIVITY',
+      'Start Date': task.plannedStart ?? '',
+      'End Date': task.plannedEnd ?? '',
+      'Baseline Start': task.baselineStart ?? '',
+      'Baseline End': task.baselineEnd ?? '',
+      Progress: task.percentComplete ?? 0,
+      Department: task.departmentCode ?? '',
+      'Resource Type': task.resourceType ?? '',
+      Predecessors: (task.dependencies ?? [])
+        .map(dep => this.tasks.find(candidate => candidate.id === dep.predecessorTaskId)?.wbsCode)
+        .filter(Boolean).join(', ')
+    }));
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(rows, { header: [
+      'WBS', 'Task Name', 'Type', 'Start Date', 'End Date', 'Baseline Start',
+      'Baseline End', 'Progress', 'Department', 'Resource Type', 'Predecessors'
+    ] }), 'Schedule');
+    this.downloadBlob(new Blob([XLSX.write(workbook, { type: 'array', bookType: 'xlsx' })],
+      { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+      `project-${this.projectId}-schedule.xlsx`);
     this.closeExportModal();
   }
 

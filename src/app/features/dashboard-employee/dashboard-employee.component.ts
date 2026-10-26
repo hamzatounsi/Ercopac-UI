@@ -23,6 +23,11 @@ interface EmployeeAction {
   priority: string; status: ActionStatus; dueDate?: string | null; insertedDate?: string | null;
   projectId: number; projectCode?: string; projectName?: string; assignees: string[];
   attachments?: ActionAttachment[];
+  comments: Array<{ id: number; text: string; author: string; createdAt: string }>;
+}
+
+interface TaskComment {
+  id: number; newValue: string; changedByName: string; changedAt: string;
 }
 
 interface EmployeeProject {
@@ -72,6 +77,10 @@ export class DashboardEmployeeComponent implements OnInit {
   selectedAction: EmployeeAction | null = null;
   attachmentError = '';
   selectedProject: EmployeeProject | null = null;
+  taskComments: TaskComment[] = [];
+  commentText = '';
+  commentError = '';
+  commentSaving = false;
   draggedAction: EmployeeAction | null = null;
   dragOverStatus: ActionStatus | null = null;
   weekStart = this.startOfWeek(new Date());
@@ -195,7 +204,43 @@ export class DashboardEmployeeComponent implements OnInit {
 
   navigate(route: string): void { this.router.navigateByUrl(route); }
   logout(): void { this.auth.logout(); this.router.navigate(['/login']); }
-  closeDetails(): void { this.selectedTask = null; this.selectedAction = null; this.selectedProject = null; }
+  openTask(task: EmployeeTask): void {
+    this.selectedTask = task;
+    this.selectedAction = null;
+    this.commentText = '';
+    this.commentError = '';
+    this.taskComments = [];
+    this.http.get<TaskComment[]>(`${API_BASE_URL}/employee/projects/${task.projectId}/tasks/${task.id}/comments`)
+      .subscribe({ next: comments => this.taskComments = comments,
+        error: () => this.commentError = 'Unable to load comments.' });
+  }
+
+  openAction(action: EmployeeAction): void {
+    this.selectedAction = action;
+    this.selectedTask = null;
+    this.commentText = '';
+    this.commentError = '';
+  }
+
+  postComment(): void {
+    const text = this.commentText.trim();
+    if (!text || this.commentSaving) return;
+    this.commentSaving = true;
+    this.commentError = '';
+    if (this.selectedAction) {
+      const action = this.selectedAction;
+      this.http.post<EmployeeAction['comments'][number]>(`${API_BASE_URL}/employee/actions/${action.id}/comments`, { text })
+        .subscribe({ next: comment => { action.comments = [...(action.comments || []), comment]; this.commentText = ''; this.commentSaving = false; },
+          error: err => { this.commentError = err?.error?.message || 'Comment could not be saved.'; this.commentSaving = false; } });
+    } else if (this.selectedTask) {
+      const task = this.selectedTask;
+      this.http.post<TaskComment>(`${API_BASE_URL}/employee/projects/${task.projectId}/tasks/${task.id}/comments`, { text })
+        .subscribe({ next: comment => { this.taskComments = [comment, ...this.taskComments]; this.commentText = ''; this.commentSaving = false; },
+          error: err => { this.commentError = err?.error?.message || 'Comment could not be saved.'; this.commentSaving = false; } });
+    } else this.commentSaving = false;
+  }
+
+  closeDetails(): void { this.selectedTask = null; this.selectedAction = null; this.selectedProject = null; this.commentText = ''; }
   uploadAttachments(action: EmployeeAction, event: Event): void {
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files || []);

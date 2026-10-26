@@ -423,7 +423,7 @@
               <div class="comment-item" *ngFor="let c of selectedAction.comments; trackBy: trackComment">
                 <div class="comment-author">{{ c.author }}</div>
                 <div class="comment-text">{{ c.text }}</div>
-                <div class="comment-meta">{{ c.createdAt }}</div>
+                <div class="comment-meta">{{ c.createdAt | date:'medium' }}</div>
               </div>
 
               <div class="empty-mini" *ngIf="selectedAction.comments.length === 0">
