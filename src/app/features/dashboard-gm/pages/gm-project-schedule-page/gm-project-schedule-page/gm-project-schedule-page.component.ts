@@ -37,6 +37,42 @@ import { ResourceConfigService } from '../../../services/resource-config.service
 import * as XLSX from 'xlsx';
 import { assertSpreadsheetFile, assertSpreadsheetRowLimit, assertValidWorkbook } from 'src/app/core/utils/spreadsheet-import.utils';
 
+type ScheduleImportField = 'name' | 'wbs' | 'ref' | 'level' | 'type' | 'baselineStart' | 'baselineEnd' | 'actualStart'
+  | 'actualEnd' | 'start' | 'end' | 'duration' | 'progress' | 'predecessors' | 'resource' | 'department'
+  | 'description' | 'status';
+
+interface ScheduleImportAnalysis {
+  tasks: GmUpdateProjectTaskRequest[];
+  compatible: boolean;
+  recognised: string[];
+  missing: string[];
+  notes: string[];
+  replacedTaskCount: number;
+}
+
+// Column names are compared after removing case, accents, spaces and punctuation ("% Complete" -> "complete").
+// More specific fields come first so that e.g. "Baseline Start" is not taken as "Start".
+const SCHEDULE_IMPORT_FIELDS: { field: ScheduleImportField; label: string; synonyms: string[] }[] = [
+  { field: 'name', label: 'Task name', synonyms: ['name', 'taskname', 'task', 'tasks', 'title', 'subject', 'activity', 'tache', 'taches', 'nomdelatache', 'nomtache', 'nom', 'titre', 'libelle', 'intitule', 'designation', 'activite', 'aufgabe', 'aufgabenname', 'vorgang', 'vorgangsname', 'bezeichnung', 'titel'] },
+  { field: 'wbs', label: 'WBS code', synonyms: ['wbs', 'wbscode', 'outlinenumber', 'edt', 'codeedt', 'psp', 'pspcode', 'code', 'gliederungsnummer'] },
+  { field: 'ref', label: 'ID / number', synonyms: ['id', 'uniqueid', 'n', 'no', 'nr', 'num', 'numero', 'number', 'nummer'] },
+  { field: 'level', label: 'Outline level', synonyms: ['outlinelevel', 'level', 'niveau', 'niveauhierarchique', 'ebene', 'gliederungsebene'] },
+  { field: 'type', label: 'Task type', synonyms: ['type', 'tasktype', 'typedetache', 'typetache', 'typ', 'vorgangstyp', 'aufgabentyp'] },
+  { field: 'baselineStart', label: 'Baseline start', synonyms: ['baselinestart', 'baselinestartdate', 'bstart', 'debutreference', 'debutdereference', 'debutplanifie', 'geplanteranfang', 'basisplananfang'] },
+  { field: 'baselineEnd', label: 'Baseline end', synonyms: ['baselineend', 'baselinefinish', 'baselineenddate', 'bend', 'finreference', 'findereference', 'finplanifiee', 'geplantesende', 'basisplanende'] },
+  { field: 'actualStart', label: 'Actual start', synonyms: ['actualstart', 'actualstartdate', 'debutreel', 'debutreelle', 'istanfang', 'aktuelleranfang', 'tatsachlicheranfang'] },
+  { field: 'actualEnd', label: 'Actual end', synonyms: ['actualend', 'actualfinish', 'actualenddate', 'finreelle', 'finreel', 'istende', 'aktuellesende', 'tatsachlichesende'] },
+  { field: 'start', label: 'Start date', synonyms: ['start', 'startdate', 'plannedstart', 'pstart', 'begin', 'debut', 'datedebut', 'datededebut', 'commencement', 'beginn', 'anfang', 'startdatum', 'anfangsdatum', 'starttermin'] },
+  { field: 'end', label: 'End date', synonyms: ['end', 'enddate', 'finish', 'finishdate', 'plannedend', 'plannedfinish', 'pend', 'due', 'duedate', 'deadline', 'fin', 'datefin', 'datedefin', 'echeance', 'dateecheance', 'ende', 'enddatum', 'endtermin', 'falligkeit', 'falligkeitsdatum'] },
+  { field: 'duration', label: 'Duration', synonyms: ['duration', 'durationdays', 'days', 'baselineduration', 'duree', 'dureejours', 'jours', 'dauer', 'tage'] },
+  { field: 'progress', label: 'Progress', synonyms: ['progress', 'percentcomplete', 'complete', 'percentdone', 'done', 'pctcomplete', 'percent', 'avancement', 'achevement', 'acheve', 'pourcentage', 'pourcentageacheve', 'fortschritt', 'fertigstellung', 'abgeschlossen'] },
+  { field: 'predecessors', label: 'Predecessors', synonyms: ['predecessors', 'predecessor', 'predecessorwbs', 'dependencies', 'dependency', 'dependson', 'predecesseurs', 'predecesseur', 'dependances', 'dependance', 'antecedents', 'vorganger', 'abhangigkeiten', 'abhangigkeit'] },
+  { field: 'resource', label: 'Resource', synonyms: ['resource', 'resources', 'resourcetype', 'resourcename', 'resourcenames', 'assignedto', 'assignee', 'owner', 'ressource', 'ressources', 'nomsressources', 'responsable', 'ressourcen', 'ressourcennamen', 'zugewiesenan', 'verantwortlich'] },
+  { field: 'department', label: 'Department', synonyms: ['department', 'departmentcode', 'dept', 'departement', 'service', 'abteilung'] },
+  { field: 'description', label: 'Notes / description', synonyms: ['description', 'notes', 'note', 'comment', 'comments', 'commentaire', 'commentaires', 'remarque', 'remarques', 'notizen', 'notiz', 'bemerkung', 'bemerkungen', 'beschreibung', 'kommentar'] },
+  { field: 'status', label: 'Status', synonyms: ['status', 'statut'] }
+];
+
 export interface TimelineDay {
   label: string;
   date: Date;
@@ -260,6 +296,8 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   activeBaselineId: number | null = null;
   private activeBaselineTasks = new Map<number, ProjectBaselineTaskSnapshot>();
   private scheduleLoadInFlight = false;
+  // Only the first load of a project shows the loading state and resets scroll; reloads after saves keep the view.
+  private loadedScheduleProjectId: number | null = null;
   private readonly destroy$ = new Subject<void>();
   isMyCsSchedule = false;
 
@@ -414,7 +452,8 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   loadSchedule(): void {
     if (this.scheduleLoadInFlight || !Number.isSafeInteger(this.projectId) || this.projectId <= 0) return;
     this.scheduleLoadInFlight = true;
-    this.loading = true;
+    const firstLoad = this.loadedScheduleProjectId !== this.projectId;
+    this.loading = firstLoad;
     this.service.getProjectSchedule(this.projectId).pipe(
       takeUntil(this.destroy$),
       finalize(() => this.scheduleLoadInFlight = false)
@@ -445,10 +484,11 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
               this.taskResources = [];
             }
           }
+          this.loadedScheduleProjectId = this.projectId;
           console.log('Tasks with milestoneTypeId:', this.tasks.filter(t => this.isMilestone(t)).map(t => ({ id: t.id, name: t.name, milestoneTypeId: t.milestoneTypeId })));
           setTimeout(() => {
             this.clampLeftPaneWidth();
-            this.resetScroll();
+            if (firstLoad) this.resetScroll();
           }, 0);
         } catch (err) {
           console.error('Failed to initialize project schedule', err);
@@ -1423,38 +1463,446 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
     input.click();
   }
 
+  importPreview: ScheduleImportAnalysis | null = null;
+  importResult: { count: number; notes: string[] } | null = null;
+
   async importScheduleFile(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file || this.saving) return;
     this.saving = true;
     try {
-      const rows = await this.readImportRows(file);
-      const payload = this.prepareImportedTasks(rows);
-      if (!payload.length) throw new Error('The file does not contain any task rows.');
-      this.saving = true;
-      this.importStatus = 'Importing schedule...';
-      this.service.importSchedule(this.projectId, payload).subscribe({
-        next: imported => {
-          this.saving = false;
-          this.importStatus = `${imported.length} task${imported.length === 1 ? '' : 's'} imported.`;
-          this.loadSchedule();
-        },
-        error: err => {
-          this.saving = false;
-          this.importStatus = '';
-          const message = err?.error?.message || err?.error?.detail || 'Import failed. No changes were saved.';
-          console.error('Import failed', err);
-          alert(message);
-        }
-      });
+      const { grid, rowOffset } = await this.readImportGrid(file);
+      const analysis = this.analyzeScheduleImport(grid, rowOffset);
+      this.saving = false;
+      // A file that matches the expected structure imports directly; anything else asks first.
+      if (analysis.compatible) this.sendScheduleImport(analysis);
+      else this.importPreview = analysis;
     } catch (error) {
       this.saving = false;
       this.importStatus = '';
-      alert(error instanceof Error ? error.message : 'Invalid import file.');
+      alert(error instanceof Error ? error.message : 'Invalid import file. Nothing was imported.');
     } finally {
       input.value = '';
     }
+  }
+
+  confirmScheduleImport(): void {
+    const analysis = this.importPreview;
+    this.importPreview = null;
+    if (analysis) this.sendScheduleImport(analysis);
+  }
+
+  cancelScheduleImport(): void {
+    this.importPreview = null;
+  }
+
+  importNotesSummary(notes: string[]): string[] {
+    return notes.length > 10 ? [...notes.slice(0, 10), `and ${notes.length - 10} more`] : notes;
+  }
+
+  private sendScheduleImport(analysis: ScheduleImportAnalysis): void {
+    this.saving = true;
+    this.importStatus = 'Importing schedule...';
+    this.service.importSchedule(this.projectId, analysis.tasks).subscribe({
+      next: imported => {
+        this.saving = false;
+        this.importStatus = `${imported.length} task${imported.length === 1 ? '' : 's'} imported.`;
+        if (analysis.notes.length) this.importResult = { count: imported.length, notes: analysis.notes };
+        this.loadSchedule();
+      },
+      error: err => {
+        this.saving = false;
+        this.importStatus = '';
+        const message = err?.error?.message || err?.error?.detail || 'Unexpected error.';
+        console.error('Import failed', err);
+        alert(`Import failed. Nothing was imported. ${message}`);
+      }
+    });
+  }
+
+  /** Reads the first sheet (or JSON / HTML-table export) as raw rows of cells. */
+  private async readImportGrid(file: File): Promise<{ grid: unknown[][]; rowOffset: number }> {
+    const filename = file.name.toLowerCase();
+    if (filename.endsWith('.json')) {
+      const rows = await this.readImportRows(file);
+      const headers = [...new Set(rows.flatMap(row => Object.keys(row)))];
+      const cellValue = (value: unknown) => value !== null && typeof value === 'object' ? null : value;
+      return { grid: [headers, ...rows.map(row => headers.map(header => cellValue(row[header])))], rowOffset: 0 };
+    }
+    assertSpreadsheetFile(file, ['.json', '.xlsx', '.xls']);
+    if (!filename.endsWith('.xlsx') && !filename.endsWith('.xls')) throw new Error('Choose a JSON, .xlsx, or .xls schedule file.');
+    const buffer = await file.arrayBuffer();
+    const sniff = new TextDecoder('utf-8').decode(buffer.slice(0, 512)).trim().toLowerCase();
+    if (sniff.startsWith('<html') || sniff.startsWith('<!doctype') || sniff.startsWith('<table')) {
+      const doc = new DOMParser().parseFromString(new TextDecoder('utf-8').decode(buffer), 'text/html');
+      const grid = Array.from(doc.querySelectorAll('table tr'))
+        .map(tr => Array.from(tr.querySelectorAll('th,td')).map(cell => cell.textContent ?? ''));
+      assertSpreadsheetRowLimit(grid);
+      return { grid, rowOffset: 0 };
+    }
+    let workbook: XLSX.WorkBook;
+    try {
+      workbook = XLSX.read(buffer, { type: 'array' });
+    } catch {
+      throw new Error('This file could not be opened as a spreadsheet. Nothing was imported.');
+    }
+    const firstSheet = assertValidWorkbook(workbook);
+    const sheet = workbook.Sheets[firstSheet];
+    const grid = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: null, raw: true, blankrows: true });
+    assertSpreadsheetRowLimit(grid);
+    return { grid, rowOffset: sheet['!ref'] ? XLSX.utils.decode_range(sheet['!ref']).s.r : 0 };
+  }
+
+  /**
+   * Maps any table onto the schedule structure. Unreadable values are left empty and
+   * reported as notes (with the sheet row number) instead of failing the import.
+   */
+  private analyzeScheduleImport(grid: unknown[][], rowOffset: number): ScheduleImportAnalysis {
+    const isBlank = (value: unknown) => value === null || value === undefined || String(value).trim() === '';
+    const shown = (value: unknown) => { const s = String(value).trim(); return s.length > 30 ? s.slice(0, 30) + '…' : s; };
+    const rows = grid.map((cells, index) => ({ cells: cells ?? [], rowNumber: index + 1 + rowOffset }))
+      .filter(row => row.cells.some(cell => !isBlank(cell)));
+    if (!rows.length) throw new Error('The file is empty: no rows could be read. Nothing was imported.');
+
+    // Header row: the row (among the first 30) with the most recognised column names.
+    let headerIndex = -1;
+    let columns = new Map<ScheduleImportField, number>();
+    rows.slice(0, 30).forEach((row, index) => {
+      const candidate = this.matchImportColumns(row.cells);
+      if (candidate.size > columns.size) { headerIndex = index; columns = candidate; }
+    });
+    const headers = headerIndex >= 0 ? rows[headerIndex].cells.map(cell => isBlank(cell) ? '' : String(cell).trim()) : [];
+    const dataRows = rows.slice(headerIndex + 1);
+    if (!dataRows.length) throw new Error('No task rows were found below the header row. Nothing was imported.');
+    const columnLabel = (index: number) => headers[index] ? `"${headers[index]}"` : `column ${XLSX.utils.encode_col(index)}`;
+
+    // Without a recognisable name column, the first column that contains text is the task name.
+    const nameFromHeader = columns.has('name');
+    if (!nameFromHeader) {
+      const used = new Set(columns.values());
+      const width = Math.max(0, ...dataRows.map(row => row.cells.length));
+      for (let index = 0; index < width; index++) {
+        if (!used.has(index) && dataRows.some(row => typeof row.cells[index] === 'string' && /[^\d\s.,:\/\-]/.test(String(row.cells[index])))) {
+          columns.set('name', index);
+          break;
+        }
+      }
+    }
+    const cell = (row: { cells: unknown[] }, field: ScheduleImportField) => {
+      const index = columns.get(field);
+      return index === undefined ? undefined : row.cells[index];
+    };
+    const text = (row: { cells: unknown[] }, field: ScheduleImportField) => {
+      const value = cell(row, field);
+      return isBlank(value) ? undefined : String(value).trim();
+    };
+    const notes: string[] = [];
+    const mappedColumns = [...columns.values()];
+    const progressIsFraction = dataRows.every(row => {
+      const parsed = isBlank(cell(row, 'progress')) ? null : this.parseLooseNumber(cell(row, 'progress'));
+      return !parsed || parsed.percent || parsed.value <= 1;
+    });
+
+    const parsedRows: {
+      rowNumber: number; name: string; indent: number; wbsRaw?: string; refRaw?: string; level?: number;
+      typeText?: string; start?: string; end?: string; baselineStart?: string; baselineEnd?: string;
+      actualStart?: string; actualEnd?: string; durationDays?: number; percentComplete?: number;
+      predecessors?: string; resourceType?: string; assignedUserId?: number; departmentCode?: string;
+      description?: string; status?: string;
+    }[] = [];
+    for (const row of dataRows) {
+      const rowNumber = row.rowNumber;
+      if (mappedColumns.every(index => isBlank(row.cells[index]))) {
+        notes.push(`Row ${rowNumber}: skipped, no usable values`);
+        continue;
+      }
+      const rawName = cell(row, 'name');
+      let name = isBlank(rawName) ? '' : String(rawName).trim();
+      if (!name) {
+        name = `Task ${rowNumber}`;
+        notes.push(`Row ${rowNumber}: no task name, named "${name}"`);
+      }
+      const indent = typeof rawName === 'string' ? (rawName.match(/^[\s ]*/)?.[0] ?? '').replace(/\t/g, '    ').length : 0;
+      const date = (field: ScheduleImportField, label: string) => {
+        const value = cell(row, field);
+        if (isBlank(value)) return undefined;
+        const parsed = this.parseLooseDate(value);
+        if (!parsed) notes.push(`Row ${rowNumber}: ${label} "${shown(value)}" could not be read, left empty`);
+        return parsed ?? undefined;
+      };
+      const wholeNumber = (field: ScheduleImportField, label: string) => {
+        const value = cell(row, field);
+        if (isBlank(value)) return undefined;
+        const parsed = this.parseLooseNumber(value);
+        if (parsed && parsed.value >= 0) return Math.round(parsed.value);
+        notes.push(`Row ${rowNumber}: ${label} "${shown(value)}" could not be read, left empty`);
+        return undefined;
+      };
+
+      let percentComplete: number | undefined;
+      const progressValue = cell(row, 'progress');
+      if (!isBlank(progressValue)) {
+        const parsed = this.parseLooseNumber(progressValue);
+        let percent = parsed?.value;
+        if (parsed && !parsed.percent && (progressIsFraction || (parsed.value > 0 && parsed.value < 1))) percent = parsed.value * 100;
+        if (percent !== undefined && percent >= 0 && percent <= 100) percentComplete = Math.round(percent);
+        else notes.push(`Row ${rowNumber}: progress "${shown(progressValue)}" could not be read, left empty`);
+      }
+
+      let resourceType: string | undefined;
+      let assignedUserId: number | undefined;
+      for (const resource of (text(row, 'resource') ?? '').split(/[,;]/).map(r => r.replace(/\[.*?\]/g, '').trim()).filter(Boolean)) {
+        const key = this.normalizeLooseHeader(resource);
+        const type = this.resourceTypes.find(candidate => this.normalizeLooseHeader(candidate) === key);
+        const user = this.resourceOptions.find(candidate => this.normalizeLooseHeader(candidate.fullName) === key);
+        if (type && !resourceType) resourceType = type;
+        else if (user && !assignedUserId) assignedUserId = user.id;
+        else notes.push(`Row ${rowNumber}: resource "${shown(resource)}" not found, left empty`);
+      }
+      const departmentText = text(row, 'department');
+      const departmentCode = departmentText
+        ? this.departmentCodes.find(code => this.normalizeLooseHeader(code) === this.normalizeLooseHeader(departmentText))
+        : undefined;
+      if (departmentText && !departmentCode) notes.push(`Row ${rowNumber}: department "${shown(departmentText)}" not found, left empty`);
+
+      const wbsValue = cell(row, 'wbs');
+      const refValue = cell(row, 'ref');
+      parsedRows.push({
+        rowNumber, name, indent,
+        wbsRaw: isBlank(wbsValue) ? undefined : String(wbsValue).trim().replace(/\.$/, ''),
+        refRaw: isBlank(refValue) ? undefined : String(refValue).trim().replace(/\.$/, ''),
+        level: wholeNumber('level', 'outline level'),
+        typeText: text(row, 'type'),
+        start: date('start', 'start date'), end: date('end', 'end date'),
+        baselineStart: date('baselineStart', 'baseline start'), baselineEnd: date('baselineEnd', 'baseline end'),
+        actualStart: date('actualStart', 'actual start'), actualEnd: date('actualEnd', 'actual end'),
+        durationDays: wholeNumber('duration', 'duration'), percentComplete,
+        predecessors: text(row, 'predecessors'), resourceType, assignedUserId, departmentCode,
+        description: text(row, 'description'), status: text(row, 'status')
+      });
+    }
+    if (!parsedRows.length) throw new Error('No usable task rows were found in this file. Nothing was imported.');
+
+    // Hierarchy: WBS codes, else outline level, else indentation, else dotted IDs, else a flat list.
+    const isWbs = (code?: string) => !!code && /^\d+(\.\d+)*$/.test(code);
+    const usableCodes = (codes: (string | undefined)[]) => {
+      const seen = new Set<string>();
+      return codes.every(code => {
+        if (!code || !isWbs(code) || seen.has(code)) return false;
+        const parent = code.includes('.') ? code.slice(0, code.lastIndexOf('.')) : null;
+        if (parent && !seen.has(parent)) return false;
+        seen.add(code);
+        return true;
+      });
+    };
+    const codesFromLevels = (levels: number[]) => {
+      const counters: number[] = [];
+      return levels.map(level => {
+        const depth = Math.min(Math.max(1, level), counters.length + 1);
+        counters.length = depth;
+        counters[depth - 1] = (counters[depth - 1] ?? 0) + 1;
+        return counters.join('.');
+      });
+    };
+    const indents = [...new Set(parsedRows.map(row => row.indent))].sort((a, b) => a - b);
+    let hierarchySource: string;
+    let codes: string[];
+    if (columns.has('wbs') && usableCodes(parsedRows.map(row => row.wbsRaw))) {
+      hierarchySource = 'WBS codes';
+      codes = parsedRows.map(row => row.wbsRaw!);
+    } else if (columns.has('level')) {
+      hierarchySource = 'outline level';
+      let previous = 1;
+      codes = codesFromLevels(parsedRows.map(row => previous = row.level ?? previous));
+    } else if (indents.length > 1) {
+      hierarchySource = 'indentation of the task names';
+      codes = codesFromLevels(parsedRows.map(row => indents.indexOf(row.indent) + 1));
+    } else if (columns.has('ref') && parsedRows.some(row => row.refRaw?.includes('.')) && usableCodes(parsedRows.map(row => row.refRaw))) {
+      hierarchySource = 'dotted IDs';
+      codes = parsedRows.map(row => row.refRaw!);
+    } else {
+      hierarchySource = 'none (flat list)';
+      codes = parsedRows.map((_, index) => String(index + 1));
+    }
+    if (columns.has('wbs') && hierarchySource !== 'WBS codes') {
+      notes.push(`WBS codes are missing, duplicated or out of order; hierarchy taken from ${hierarchySource}`);
+    }
+
+    // Predecessors may reference an ID column, the original WBS codes or the final codes.
+    const keyToCode = new Map<string, string>();
+    (['refRaw', 'wbsRaw'] as const).forEach(key => parsedRows.forEach((row, index) => {
+      if (row[key] && !keyToCode.has(row[key]!)) keyToCode.set(row[key]!, codes[index]);
+    }));
+    codes.forEach(code => { if (!keyToCode.has(code)) keyToCode.set(code, code); });
+    const predecessorsByCode = new Map<string, string[]>();
+    const dependsOn = (from: string, target: string, seen = new Set<string>()): boolean => {
+      if (from === target) return true;
+      if (seen.has(from)) return false;
+      seen.add(from);
+      return (predecessorsByCode.get(from) ?? []).some(predecessor => dependsOn(predecessor, target, seen));
+    };
+
+    const tasks = parsedRows.map((row, index) => {
+      const code = codes[index];
+      const hasChildren = codes.some(other => other.startsWith(code + '.'));
+      let taskType = row.typeText ? this.importTaskType(row.typeText) : undefined;
+      if (row.typeText && !taskType) notes.push(`Row ${row.rowNumber}: type "${shown(row.typeText)}" not recognised, imported as an activity`);
+      taskType ??= row.typeText ? 'ACTIVITY' : hasChildren ? 'SUMMARY' : row.durationDays === 0 ? 'MILESTONE' : 'ACTIVITY';
+      let durationDays = row.durationDays;
+      if (taskType === 'ACTIVITY' && durationDays === 0) {
+        notes.push(`Row ${row.rowNumber}: duration 0 is not valid for an activity, left empty`);
+        durationDays = undefined;
+      }
+      const task: GmProjectScheduleTask = {
+        id: 0,
+        name: row.name,
+        taskType,
+        wbsCode: code,
+        outlineLevel: code.split('.').length,
+        displayOrder: index + 1,
+        description: row.description,
+        baselineStart: row.baselineStart ?? row.start,
+        baselineEnd: row.baselineEnd ?? row.end,
+        plannedStart: row.start ?? row.baselineStart,
+        plannedEnd: row.end ?? row.baselineEnd,
+        actualStart: row.actualStart,
+        actualEnd: row.actualEnd,
+        durationDays,
+        percentComplete: row.percentComplete ?? 0,
+        departmentCode: row.departmentCode,
+        resourceType: row.resourceType,
+        assignedUserId: row.assignedUserId,
+        active: true,
+        scheduleMode: 'AUTO',
+        status: row.status ?? 'NOT_STARTED'
+      };
+      if (this.hasInvalidDateRange(task.baselineStart, task.baselineEnd) || this.hasInvalidDateRange(task.plannedStart, task.plannedEnd)) {
+        notes.push(`Row ${row.rowNumber}: end date is before start date, end date left empty`);
+        task.baselineEnd = undefined;
+        task.plannedEnd = undefined;
+      }
+      if (this.hasInvalidDateRange(task.actualStart, task.actualEnd)) {
+        notes.push(`Row ${row.rowNumber}: actual end is before actual start, actual end left empty`);
+        task.actualEnd = undefined;
+      }
+      this.clearNonActivityAssignments(task);
+      // Tasks without any date keep no dates and are not scheduled.
+      if (task.baselineStart || task.baselineEnd || task.actualStart || task.actualEnd) {
+        this.normalizeImportedTaskDates(task);
+        const importedChange = task.durationDays !== undefined
+          ? (task.baselineStart ? 'baselineStart' : task.actualStart ? 'actualStart' : 'duration')
+          : (task.baselineEnd ? 'baselineEnd' : task.actualEnd ? 'actualEnd' : 'duration');
+        this.synchronizeTaskDates(task, importedChange);
+      } else if (this.isMilestone(task)) {
+        task.durationDays = 0;
+      }
+
+      const predecessors: string[] = [];
+      for (const token of (row.predecessors ?? '').split(/[,;]/).map(t => t.trim()).filter(Boolean)) {
+        const match = token.match(/^(.+?)\s*(FS|SS|FF|SF|FD|DD|DF|EA|AA|EE|AE)?\s*([+-]\s*\d.*)?$/i);
+        const key = keyToCode.has(token) ? token : match?.[1];
+        const predecessor = key ? keyToCode.get(key) : undefined;
+        if (!predecessor) {
+          notes.push(`Row ${row.rowNumber}: predecessor "${shown(token)}" not found, skipped`);
+        } else if (predecessor === code || dependsOn(predecessor, code)) {
+          notes.push(`Row ${row.rowNumber}: predecessor "${shown(token)}" would create a loop, skipped`);
+        } else if (!predecessors.includes(predecessor)) {
+          if (!keyToCode.has(token) && ((match?.[2] && !/^(FS|FD|EA)$/i.test(match[2])) || match?.[3])) {
+            notes.push(`Row ${row.rowNumber}: predecessor "${shown(token)}" imported as finish-to-start without lag`);
+          }
+          predecessors.push(predecessor);
+          predecessorsByCode.set(code, predecessors);
+        }
+      }
+      return { ...this.buildTaskUpdatePayload(task), durationDays: task.durationDays, predecessors: predecessors.join(',') };
+    });
+
+    const recognised = SCHEDULE_IMPORT_FIELDS
+      .filter(({ field }) => columns.has(field))
+      .map(({ field, label }) => `${columnLabel(columns.get(field)!)} → ${label}${field === 'name' && !nameFromHeader ? ' (first text column)' : ''}`);
+    const ignored = headers.map((header, index) => header && !mappedColumns.includes(index) ? `"${header}"` : '').filter(Boolean);
+    if (ignored.length) recognised.push(`Not used: ${ignored.join(', ')}`);
+    recognised.push(`Hierarchy: ${hierarchySource}`);
+    const has = (...fields: ScheduleImportField[]) => fields.some(field => columns.has(field));
+    const missing = [
+      !nameFromHeader && 'Task name', !has('wbs', 'ref', 'level') && 'WBS code / outline level', !has('start', 'baselineStart') && 'Start date',
+      !has('end', 'baselineEnd') && 'End date', !has('duration') && 'Duration', !has('progress') && 'Progress',
+      !has('predecessors') && 'Predecessors', !has('resource') && 'Resource'
+    ].filter((label): label is string => !!label);
+
+    return {
+      tasks,
+      compatible: headerIndex === 0 && nameFromHeader && hierarchySource === 'WBS codes' && !notes.length,
+      recognised,
+      missing,
+      notes,
+      replacedTaskCount: this.tasks.length
+    };
+  }
+
+  private matchImportColumns(cells: unknown[]): Map<ScheduleImportField, number> {
+    const normalized = cells.map(cell => this.normalizeLooseHeader(cell));
+    const columns = new Map<ScheduleImportField, number>();
+    const used = new Set<number>();
+    for (const { field, synonyms } of SCHEDULE_IMPORT_FIELDS) {
+      for (const synonym of synonyms) {
+        const index = normalized.findIndex((header, i) => header === synonym && !used.has(i));
+        if (index >= 0) {
+          columns.set(field, index);
+          used.add(index);
+          break;
+        }
+      }
+    }
+    return columns;
+  }
+
+  private normalizeLooseHeader(value: unknown): string {
+    if (value === null || value === undefined) return '';
+    return String(value).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
+  private importTaskType(value: string): string | undefined {
+    const type = this.normalizeLooseHeader(value);
+    if (['activity', 'task', 'normal', 'tache', 'activite', 'aufgabe', 'vorgang'].includes(type)) return 'ACTIVITY';
+    if (['summary', 'summarytask', 'phase', 'recapitulatif', 'tacherecapitulative', 'sammelvorgang'].includes(type)) return 'SUMMARY';
+    if (['milestone', 'jalon', 'meilenstein'].includes(type)) return 'MILESTONE';
+    return undefined;
+  }
+
+  /** Excel serial numbers, ISO, dd/MM/yyyy, dd.MM.yyyy and MM/dd/yyyy when unambiguous; null when unreadable. */
+  private parseLooseDate(value: unknown): string | null {
+    const valid = (year: number, month: number, day: number): string | null => {
+      const date = new Date(year, month - 1, day);
+      return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day ? this.dateToString(date) : null;
+    };
+    if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : this.dateToString(value);
+    if (typeof value === 'number' || /^\d{5}(\.\d+)?$/.test(String(value).trim())) {
+      const serial = Number(value);
+      const parsed = serial > 0 && serial < 2958466 ? XLSX.SSF.parse_date_code(serial) : null;
+      return parsed ? valid(parsed.y, parsed.m, parsed.d) : null;
+    }
+    // Drop a leading weekday such as "Mon 15/01/24", "lun. 15/01/24" or "Mo 15.01.24".
+    const source = String(value).trim().replace(/^[^\d\s]{2,12}\.?,?\s+(?=\d)/, '');
+    let match = source.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})(?:$|[T\s])/);
+    if (match) return valid(+match[1], +match[2], +match[3]);
+    match = source.match(/^(\d{1,2})([-\/.])(\d{1,2})\2(\d{4}|\d{2})(?:$|[T\s])/);
+    if (!match) return null;
+    let day = +match[1];
+    let month = +match[3];
+    const year = match[4].length === 2 ? 2000 + +match[4] : +match[4];
+    if (match[2] !== '.' && day <= 12 && month > 12) [day, month] = [month, day];
+    return valid(year, month, day);
+  }
+
+  /** Accepts 50, "50%", "0.5", "5,5", "5 days", "5 j", "5 Tage". */
+  private parseLooseNumber(value: unknown): { value: number; percent: boolean } | null {
+    if (typeof value === 'number') return Number.isFinite(value) ? { value, percent: false } : null;
+    let source = String(value).trim().toLowerCase().replace(/[\s ]/g, '').replace(/\?$/, '');
+    const percent = source.endsWith('%');
+    source = source.replace(/%$/, '').replace(/(days?|jours?|tage?|d|j|t)$/, '').replace(',', '.');
+    return /^-?\d+(\.\d+)?$/.test(source) ? { value: Number(source), percent } : null;
   }
 
   templateImportStatus = '';
@@ -1650,6 +2098,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
     const actualStart = date('Actual Start', 'Actual Start Date');
     const actualEnd = date('Actual End', 'Actual End Date');
     const wbsCode = text('WBS', 'WBS Code');
+    if (!wbsCode) throw new Error(`Import row ${rowNumber}: WBS is required.`);
     const task: GmProjectScheduleTask = {
       id: 0,
       name,
@@ -1691,7 +2140,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
     if (!this.synchronizeTaskDates(task, importedChange)) {
       throw new Error(`Import row ${rowNumber}: an end date cannot be before its start date.`);
     }
-    return this.buildTaskUpdatePayload(task);
+    return { ...this.buildTaskUpdatePayload(task), predecessors: text('Predecessors', 'Predecessor', 'Predecessor WBS') };
   }
 
   private normalizeImportedTaskDates(task: GmProjectScheduleTask): void {
@@ -2117,6 +2566,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   }
 
   trackTimelineDay(index: number): number { return index; }
+  trackTaskById(_: number, task: GmProjectScheduleTask): number { return task.id; }
   getTimelineDayLabel(day: TimelineDay): string { return String(day.date.getDate()).padStart(2, '0'); }
   isNonWorkingDay(day: TimelineDay): boolean { return !this.isWorkingDate(day.date); }
   getTodayLineLeft(): number { return this.getLeftFromDate(this.getTodayDateString()); }
@@ -3159,10 +3609,29 @@ onMilestoneTypeSelect(task: GmProjectScheduleTask, code: string | null): void {
 
   exportAsExcelCsv(): void {
     const exportTasks = this.getExportTasks();
-    const headers = ['ID', 'WBS', 'Name', 'Type', 'Department', 'Resource Type', 'Customer Milestone', 'Baseline Start', 'Baseline End', 'Actual Start', 'Actual End', 'Duration', 'Percent Complete', 'Priority', 'Status', 'Schedule Mode'];
-    const rows = exportTasks.map(task => [task.id ?? '', task.wbsCode ?? '', task.name ?? '', task.taskType ?? '', task.departmentCode ?? '', task.resourceType ?? '', task.customerMilestone ? 'Yes' : 'No', task.baselineStart ?? task.plannedStart ?? '', task.baselineEnd ?? task.plannedEnd ?? '', task.actualStart ?? '', task.actualEnd ?? '', task.durationDays ?? '', task.percentComplete ?? '', task.priority ?? '', task.status ?? '', task.scheduleMode ?? '']);
-    const csv = [headers, ...rows].map(row => row.map(value => `"${String(value ?? '').replace(/"/g, '""')}"`).join(',')).join('\n');
-    this.downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), `project-${this.projectId}-schedule.csv`);
+    const rows = exportTasks.map(task => ({
+      WBS: task.wbsCode ?? '',
+      'Task Name': task.name ?? '',
+      Type: task.taskType ?? 'ACTIVITY',
+      'Start Date': task.plannedStart ?? '',
+      'End Date': task.plannedEnd ?? '',
+      'Baseline Start': task.baselineStart ?? '',
+      'Baseline End': task.baselineEnd ?? '',
+      Progress: task.percentComplete ?? 0,
+      Department: task.departmentCode ?? '',
+      'Resource Type': task.resourceType ?? '',
+      Predecessors: (task.dependencies ?? [])
+        .map(dep => this.tasks.find(candidate => candidate.id === dep.predecessorTaskId)?.wbsCode)
+        .filter(Boolean).join(', ')
+    }));
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(rows, { header: [
+      'WBS', 'Task Name', 'Type', 'Start Date', 'End Date', 'Baseline Start',
+      'Baseline End', 'Progress', 'Department', 'Resource Type', 'Predecessors'
+    ] }), 'Schedule');
+    this.downloadBlob(new Blob([XLSX.write(workbook, { type: 'array', bookType: 'xlsx' })],
+      { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+      `project-${this.projectId}-schedule.xlsx`);
     this.closeExportModal();
   }
 

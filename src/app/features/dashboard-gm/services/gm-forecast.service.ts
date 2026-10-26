@@ -26,6 +26,7 @@ export class GmForecastService {
   }
 
   updateForecastCell(projectId: number, payload: {
+    financeEntryId: number;
     wbsCode: string;
     periodKey: string;
     amount: number;
@@ -33,16 +34,9 @@ export class GmForecastService {
     return this.http.put<void>(`${this.baseUrl}/${projectId}/forecast`, payload);
   }
 
-  updateForecastRow(projectId: number, payload: {
-    wbsCode: string;
-    field: 'description' | 'budget' | 'actualCost';
-    value: string | number;
-  }): Observable<void> {
-    return this.http.put<void>(`${this.baseUrl}/${projectId}/forecast/row`, payload);
-  }
-
-  updateWbsLevel(projectId: number, financeEntryId: number, level: number): Observable<any> {
-    return this.http.patch(`${this.baseUrl}/${projectId}/forecast/level`, { financeEntryId, level });
+  /** Deletes every forecast value of one WBS row; the Finance WBS node is kept. */
+  deleteForecastEntry(projectId: number, financeEntryId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${projectId}/forecast/${financeEntryId}`);
   }
 
   // ✅ NOUVELLE MÉTHODE : Mettre à jour le lien WBS Schedule

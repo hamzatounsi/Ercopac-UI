@@ -25,4 +25,5 @@ export interface GmUpdateProjectTaskRequest {
   color?: string;
   assignedUserId?: number;
   milestoneTypeId?: number | null; // ✅ ADD THIS LINE
+  predecessors?: string; // import only: comma-separated predecessor WBS codes
 }

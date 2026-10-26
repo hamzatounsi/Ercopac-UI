@@ -9,6 +9,7 @@ export interface ScheduleTaskOption {
 
 export interface ForecastRow {
   financeEntryId: number;
+  parentId?: number | null;
   wbsCode: string;
   description: string;
   level: number;
@@ -26,4 +27,9 @@ export interface ForecastRow {
   availableScheduleTasks?: ScheduleTaskOption[];
   
   periods: ForecastGridCell[];
+
+  // Calculated by the backend: leaf flag, cost rate of HOUR leaves and remaining forecast cost in money
+  leaf?: boolean;
+  hourRate?: number | null;
+  remainingForecastCost?: number;
 }

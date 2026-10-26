@@ -1,6 +1,7 @@
 export interface ActionComment {
   id: number;
   author: string;
+  authorId?: number | null;
   text: string;
   createdAt: string;
 }
