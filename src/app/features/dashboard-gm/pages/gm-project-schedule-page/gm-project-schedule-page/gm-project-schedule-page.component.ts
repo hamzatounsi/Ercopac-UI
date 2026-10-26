@@ -1691,7 +1691,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
     if (!this.synchronizeTaskDates(task, importedChange)) {
       throw new Error(`Import row ${rowNumber}: an end date cannot be before its start date.`);
     }
-    return this.buildTaskUpdatePayload(task);
+    return { ...this.buildTaskUpdatePayload(task), predecessors: text('Predecessors', 'Predecessor', 'Predecessor WBS') };
   }
 
   private normalizeImportedTaskDates(task: GmProjectScheduleTask): void {
