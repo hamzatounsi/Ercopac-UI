@@ -44,6 +44,8 @@ export interface CrmOpportunity {
   teamMembers: CrmUser[];
    archived?: boolean;
   archivedAt?: string;
+   lostReasonId?: number | string | null;  // ✅ Allow both number IDs and 'other' string
+  lostReasonOther?: string | null;
 }
  
 export function emptyOpportunity(): CrmOpportunity {

@@ -159,5 +159,16 @@ sendOpportunityNotification(orgId: number, dto: {
   restoreOpportunity(orgId: number, id: number): Observable<void> {
     return this.http.patch<void>(`/api/crm/organisations/${orgId}/opportunities/${id}/restore`, {});
   }
-  
+   getLostReasons(orgId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.url(orgId)}/lost-reasons`);
+  }
+  createLostReason(orgId: number, dto: any): Observable<any> {
+    return this.http.post(`${this.url(orgId)}/lost-reasons`, dto);
+  }
+  updateLostReason(orgId: number, id: number, dto: any): Observable<any> {
+    return this.http.put(`${this.url(orgId)}/lost-reasons/${id}`, dto);
+  }
+  deleteLostReason(orgId: number, id: number): Observable<void> {
+    return this.http.delete<void>(`${this.url(orgId)}/lost-reasons/${id}`);
+  }
 }
