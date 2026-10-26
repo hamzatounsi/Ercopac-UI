@@ -197,7 +197,7 @@
 
       <div class="left-body" #tableBodyScroll (scroll)="onTableScroll()">
         <div
-          *ngFor="let task of visibleTasks; let i = index"
+          *ngFor="let task of visibleTasks; let i = index; trackBy: trackTaskById"
           class="table-row schedule-grid"
           [style.grid-template-columns]="visibleColumnTemplate"
           [style.min-width.px]="visibleColumnMinWidth"
@@ -429,7 +429,7 @@
           </ng-container>
 
           <div
-            *ngFor="let task of visibleTasks; let i = index"
+            *ngFor="let task of visibleTasks; let i = index; trackBy: trackTaskById"
             class="gantt-row"
             [class.even]="i % 2 === 0"
             [class.odd]="i % 2 !== 0"

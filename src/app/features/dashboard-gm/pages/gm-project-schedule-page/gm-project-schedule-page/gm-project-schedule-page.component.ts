@@ -260,6 +260,8 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   activeBaselineId: number | null = null;
   private activeBaselineTasks = new Map<number, ProjectBaselineTaskSnapshot>();
   private scheduleLoadInFlight = false;
+  // Only the first load of a project shows the loading state and resets scroll; reloads after saves keep the view.
+  private loadedScheduleProjectId: number | null = null;
   private readonly destroy$ = new Subject<void>();
   isMyCsSchedule = false;
 
@@ -414,7 +416,8 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   loadSchedule(): void {
     if (this.scheduleLoadInFlight || !Number.isSafeInteger(this.projectId) || this.projectId <= 0) return;
     this.scheduleLoadInFlight = true;
-    this.loading = true;
+    const firstLoad = this.loadedScheduleProjectId !== this.projectId;
+    this.loading = firstLoad;
     this.service.getProjectSchedule(this.projectId).pipe(
       takeUntil(this.destroy$),
       finalize(() => this.scheduleLoadInFlight = false)
@@ -445,10 +448,11 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
               this.taskResources = [];
             }
           }
+          this.loadedScheduleProjectId = this.projectId;
           console.log('Tasks with milestoneTypeId:', this.tasks.filter(t => this.isMilestone(t)).map(t => ({ id: t.id, name: t.name, milestoneTypeId: t.milestoneTypeId })));
           setTimeout(() => {
             this.clampLeftPaneWidth();
-            this.resetScroll();
+            if (firstLoad) this.resetScroll();
           }, 0);
         } catch (err) {
           console.error('Failed to initialize project schedule', err);
@@ -2117,6 +2121,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   }
 
   trackTimelineDay(index: number): number { return index; }
+  trackTaskById(_: number, task: GmProjectScheduleTask): number { return task.id; }
   getTimelineDayLabel(day: TimelineDay): string { return String(day.date.getDate()).padStart(2, '0'); }
   isNonWorkingDay(day: TimelineDay): boolean { return !this.isWorkingDate(day.date); }
   getTodayLineLeft(): number { return this.getLeftFromDate(this.getTodayDateString()); }
