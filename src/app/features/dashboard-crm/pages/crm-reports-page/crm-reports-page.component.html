@@ -135,9 +135,9 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let group of overviewOpportunities">
-                    <td><strong>{{group[0].opportunity}}</strong></td>
-                    <td>{{group[0].account||'—'}}</td>
+  <tr *ngFor="let group of overviewOpportunities" [routerLink]="['/crm/opportunities', group[0].opportunityId]" style="cursor: pointer;">
+    <td><strong>{{group[0].opportunity}}</strong></td>
+    <td>{{group[0].account||'—'}}</td>
                     <td>{{group[0].opportunityType||'—'}}</td>
                     <td>{{group[0].stage||'—'}}</td>
                     <td>{{equipmentLabel(group)}}</td>
@@ -214,9 +214,9 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let item of shipmentDetails">
-                    <td><strong>{{item.opportunity}}</strong></td>
-                    <td>{{item.account||'—'}}</td>
+  <tr *ngFor="let item of shipmentDetails" [routerLink]="['/crm/opportunities', item.opportunityId]" style="cursor: pointer;">
+    <td><strong>{{item.opportunity}}</strong></td>
+    <td>{{item.account||'—'}}</td>
                     <td>{{item.stage||'—'}}</td>
                     <td>{{item.equipmentName}}</td>
                     <td>{{item.quantity}}</td>
@@ -267,15 +267,14 @@
             <p class="empty" *ngIf="!countrySlices.length">No opportunities match the selected filters.</p>
           </article>
         </section>
-
-        <section *ngIf="selected==='timeline'" class="card timeline-card">
-          <div class="card-header">Opportunities by opening and closing date</div>
-          <div class="timeline-row" *ngFor="let item of filtered">
-            <i></i>
-            <div>
-              <strong>{{item.name}}</strong>
-              <small>{{item.accountName||'—'}} · {{item.stageName||'Unassigned'}}</small>
-            </div>
+<section *ngIf="selected==='timeline'" class="card timeline-card">
+  <div class="card-header">Opportunities by opening and closing date</div>
+  <div class="timeline-row" *ngFor="let item of filtered" [routerLink]="['/crm/opportunities', item.id]" style="cursor: pointer;">
+    <i></i>
+    <div>
+      <strong>{{item.name}}</strong>
+      <small>{{item.accountName||'—'}} · {{item.stageName||'Unassigned'}}</small>
+    </div>
             <span><label>Opened</label>{{item.createdAt|crmDate}}</span>
             <span><label>Closing</label>{{item.closingDate|crmDate}}</span>
             <span><label>Shipment</label>{{item.shipmentDate|crmDate}}</span>
@@ -312,25 +311,24 @@
             </div>
           </div>
         </section>
-
-        <section *ngIf="selected==='cs'||selected==='bp'||selected==='monthly'" class="card project-table">
-          <div class="card-header">{{selected==='cs'?'CS projects overview':selected==='bp'?'BP projects overview':'Monthly overview'}}</div>
-          <div class="table-wrap">
-            <table class="crm-table">
-              <thead>
-                <tr>
-                  <th>Opportunity</th>
-                  <th>Owner</th>
-                  <th>Value</th>
-                  <th>TF value</th>
-                  <th>Probability</th>
-                  <th>Closing date</th>
-                  <th>Shipment date</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let item of projectRows">
-                  <td><strong>{{item.name}}</strong><small>{{item.accountName||'—'}}</small></td>
+<section *ngIf="selected==='cs'||selected==='bp'||selected==='monthly'" class="card project-table">
+  <div class="card-header">{{selected==='cs'?'CS projects overview':selected==='bp'?'BP projects overview':'Monthly overview'}}</div>
+  <div class="table-wrap">
+    <table class="crm-table">
+      <thead>
+        <tr>
+          <th>Opportunity</th>
+          <th>Owner</th>
+          <th>Value</th>
+          <th>TF value</th>
+          <th>Probability</th>
+          <th>Closing date</th>
+          <th>Shipment date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of projectRows" [routerLink]="['/crm/opportunities', item.id]" style="cursor: pointer;">
+          <td><strong>{{item.name}}</strong><small>{{item.accountName||'—'}}</small></td>
                   <td>{{item.ownerName||'Unassigned'}}</td>
                   <td>{{money(item.value||0,item.currency)}}</td>
                   <td>{{money(item.thirdPartyMaterialValue||0,item.currency)}}</td>
