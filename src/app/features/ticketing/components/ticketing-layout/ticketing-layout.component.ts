@@ -13,7 +13,7 @@ interface NavItem { label: string; icon: string; route: string; exact: boolean; 
 export class TicketingLayoutComponent {
   private readonly items: NavItem[] = [
     { label: 'Tickets', icon: 'confirmation_number', route: '/tickets', exact: true, staffOnly: false },
-    { label: 'Live chat', icon: 'forum', route: '/tickets/chat', exact: false, staffOnly: true },
+    { label: 'Live chat', icon: 'forum', route: '/tickets/chat', exact: false, staffOnly: false },
     { label: 'Performance', icon: 'monitoring', route: '/tickets/dashboard', exact: false, staffOnly: true }
   ];
 

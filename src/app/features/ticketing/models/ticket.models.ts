@@ -5,7 +5,12 @@ export interface UserSummary { id:number; fullName:string; email:string; role:st
 export interface Ticket { id:number; ticketNumber:string; subject:string; organisationId:number; organisationName:string; status:TicketStatus; priority:TicketPriority; category:TicketCategory; site?:string; client?:UserSummary; assignee?:UserSummary; createdAt:string; updatedAt:string; lastMessageAt?:string; unreadCount:number; }
 export interface TicketMessage { id:number; message:string; messageType:string; internalNote:boolean; sender:UserSummary; createdAt:string; }
 export interface TicketActivity { id:number; activityType:string; description:string; previousValue?:string; newValue?:string; actor?:UserSummary; createdAt:string; }
-export interface Attachment { id:number; originalFileName:string; contentType:string; fileSize:number; uploadedBy:UserSummary; uploadedAt:string; }
+export interface Attachment { id:number; originalFileName:string; contentType:string; fileSize:number; uploadedBy?:UserSummary; uploadedAt:string; }
 export interface TicketDetails { ticket:Ticket; description:string; origin:string; escalationLevel:number; resolvedAt?:string; closedAt?:string; version:number; messages:TicketMessage[]; activities:TicketActivity[]; attachments:Attachment[]; canManage:boolean; canClose:boolean; }
 export interface TicketStats { open:number; inProgress:number; escalated:number; resolved:number; closed:number; createdToday:number; overdue:number; averageResolutionHours:number; }
 export interface Page<T> { content:T[]; totalElements:number; totalPages:number; number:number; }
+
+// Live chat (one-to-one conversations, not linked to a ticket)
+export interface ChatContact { id:number; fullName:string; email:string; kind:'SUPPORT'|'CLIENT'; staff:boolean; }
+export interface ChatConversation { contact:ChatContact; lastMessage:string; lastMessageAt:string; lastFromMe:boolean; unread:number; }
+export interface ChatMessage { id:number; senderId:number; recipientId:number; message:string; createdAt:string; readAt?:string; }

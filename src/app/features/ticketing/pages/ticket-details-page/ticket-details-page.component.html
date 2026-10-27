@@ -1,1 +1,203 @@
-<main class="ticket-shell" *ngIf="details as d"><button class="ghost back" routerLink="/tickets">← Back to tickets</button><p class="error" *ngIf="error">{{error}}</p><header class="ticket-head"><div><p class="eyebrow">{{d.ticket.ticketNumber}}</p><h1>{{d.ticket.subject}}</h1><p>{{d.ticket.organisationName}} · {{d.ticket.site || 'No site specified'}}</p></div><div class="head-actions"><span class="badge" [class]="'s-'+d.ticket.status.toLowerCase()">{{label(d.ticket.status)}}</span><span class="priority" [class]="'p-'+d.ticket.priority.toLowerCase()">{{d.ticket.priority}}</span><button *ngIf="d.canClose&&d.ticket.status==='RESOLVED'" class="primary" (click)="close()">Close ticket</button><button *ngIf="d.ticket.status==='RESOLVED'||d.ticket.status==='CLOSED'" class="ghost" (click)="reopen()">Reopen</button></div></header><section class="detail-card"><div class="stepper"><span *ngFor="let step of steps" [class.done]="active(step)">{{label(step)}}</span></div></section><section class="detail-grid"><div><article class="detail-card"><div class="detail-title"><h2>Conversation</h2><label *ngIf="d.canManage"><input type="checkbox" [(ngModel)]="internal"> Internal note</label></div><div class="message-list"><div class="message" *ngFor="let m of d.messages" [class.mine]="m.sender.id===d.ticket.client?.id" [class.internal]="m.internalNote"><header><b>{{m.sender.fullName}} <em *ngIf="m.internalNote">Internal</em></b><time>{{m.createdAt|date:'short'}}</time></header><p>{{m.message}}</p></div></div><div class="composer"><textarea [(ngModel)]="message" rows="3" placeholder="Write a reply…"></textarea><button class="primary" (click)="send()">Send</button></div></article><article class="detail-card"><h2>Activity history</h2><div class="activity" *ngFor="let a of d.activities"><strong>{{a.description}}</strong><small>{{a.actor?.fullName || 'System'}} · {{a.createdAt|date:'medium'}}</small></div></article></div><aside><article class="detail-card"><h2>Ticket information</h2><dl><dt>Client</dt><dd>{{d.ticket.client?.fullName || 'Not specified'}}</dd><dt>Email</dt><dd>{{d.ticket.client?.email || '—'}}</dd><dt>Category</dt><dd>{{label(d.ticket.category)}}</dd><dt>Origin</dt><dd>{{d.origin}}</dd><dt>Assigned agent</dt><dd *ngIf="!d.canManage">{{d.ticket.assignee?.fullName || 'Unassigned'}}</dd><dd *ngIf="d.canManage"><select class="inline-select" [ngModel]="d.ticket.assignee?.id ?? null" (ngModelChange)="assignTo($event)" aria-label="Assigned agent"><option [ngValue]="null">Unassigned</option><option *ngFor="let a of agents" [ngValue]="a.id">{{a.fullName}}</option></select></dd><dt>Priority</dt><dd *ngIf="!d.canManage">{{d.ticket.priority}}</dd><dd *ngIf="d.canManage"><select class="inline-select" [ngModel]="d.ticket.priority" (ngModelChange)="setPriority($event)" aria-label="Priority"><option *ngFor="let p of priorities" [ngValue]="p">{{p}}</option></select></dd><dt>Created</dt><dd>{{d.ticket.createdAt|date:'medium'}}</dd><dt>Escalation</dt><dd>Level {{d.escalationLevel}}</dd></dl><p>{{d.description}}</p></article><article class="detail-card"><h2>Attachments</h2><label class="ghost">Upload file<input type="file" hidden (change)="file($event)"></label><ul><li *ngFor="let a of d.attachments"><a [href]="api.attachmentUrl(d.ticket.id,a.id)">{{a.originalFileName}}</a><small>{{a.fileSize/1024|number:'1.0-0'}} KB</small></li></ul></article><article class="detail-card" *ngIf="d.canManage"><h2>Lifecycle actions</h2><div class="form-actions"><button class="ghost" *ngIf="d.ticket.status==='OPEN'||d.ticket.status==='REOPENED'" (click)="change('IN_PROGRESS')">Start work</button><button class="ghost" *ngIf="d.ticket.status==='OPEN'||d.ticket.status==='IN_PROGRESS'" (click)="change('ESCALATED')">Escalate</button><button class="primary" *ngIf="d.ticket.status==='IN_PROGRESS'||d.ticket.status==='ESCALATED'" (click)="change('RESOLVED')">Resolve</button><button class="ghost" *ngIf="d.ticket.status==='ESCALATED'" (click)="change('IN_PROGRESS')">Back to in progress</button></div></article></aside></section></main><main class="ticket-shell" *ngIf="busy&&!details">Loading ticket…</main>
+<div class="state-page" *ngIf="busy && !details">Loading ticket…</div>
+<div class="state-page error" *ngIf="!busy && !details && error">{{ error }}</div>
+
+<div class="tk-page" *ngIf="details as d">
+  <!-- Header -->
+  <header class="tk-header">
+    <div class="tk-id">
+      <span class="material-symbols-outlined">assignment</span>
+      <div><small>Ticket</small><strong>{{ d.ticket.ticketNumber }}</strong></div>
+    </div>
+    <h1 [title]="d.ticket.subject">{{ d.ticket.subject }}</h1>
+    <div class="tk-badges">
+      <span class="badge" [class]="'badge s-' + d.ticket.status.toLowerCase()">{{ label(d.ticket.status) }}</span>
+      <span class="priority" [class]="'priority p-' + d.ticket.priority.toLowerCase()">{{ label(d.ticket.priority) }}</span>
+      <span class="chip">{{ label(d.origin) }}</span>
+      <span class="chip locked" *ngIf="closed"><span class="material-symbols-outlined">lock</span>{{ label(d.ticket.status) }}</span>
+    </div>
+    <div class="tk-actions">
+      <button type="button" class="ghost" routerLink="/tickets">← Back</button>
+      <button type="button" class="primary" *ngIf="d.canManage && nextStatuses.includes('RESOLVED')" (click)="changeStatus('RESOLVED')">✓ Resolve</button>
+      <button type="button" class="ghost" *ngIf="d.canManage && nextStatuses.includes('REOPENED')" (click)="changeStatus('REOPENED')">Reopen</button>
+    </div>
+  </header>
+
+  <!-- Status pipeline -->
+  <div class="pipeline-wrap">
+    <div class="pipeline">
+      <ng-container *ngFor="let step of pipeline; let i = index; let last = last">
+        <button type="button" class="step" [ngClass]="step.state" [class.allowed]="step.allowed"
+                [disabled]="!step.allowed" (click)="changeStatus(step.status)"
+                [title]="step.state === 'active' ? 'Current status' : step.allowed ? 'Move to ' + step.label : 'Not available from ' + label(d.ticket.status)">
+          <span class="node">{{ step.state === 'past' ? '✓' : i + 1 }}</span>
+          <span class="step-label">{{ step.label }}</span>
+        </button>
+        <span class="line" *ngIf="!last" [class.past]="step.state === 'past'"></span>
+      </ng-container>
+    </div>
+    <p class="hint" *ngIf="d.canManage && !closed">Click a highlighted step to change the status.</p>
+  </div>
+
+  <p class="error banner" *ngIf="error">{{ error }}</p>
+
+  <!-- 3-column body -->
+  <div class="tk-body">
+    <!-- Left: ticket details and contact -->
+    <aside class="col-left">
+      <section class="card">
+        <button type="button" class="card-head" (click)="toggle('info')">
+          <span><span class="material-symbols-outlined">description</span>Ticket details</span><span class="chev">{{ collapsed['info'] ? '▸' : '▾' }}</span>
+        </button>
+        <div class="card-body" *ngIf="!collapsed['info']">
+          <div class="field"><label>Case #</label><div class="mono">{{ d.ticket.ticketNumber }}</div></div>
+          <div class="field"><label>Customer</label><div class="link">{{ d.ticket.organisationName }}</div></div>
+          <div class="field"><label>Site</label><div>{{ d.ticket.site || '—' }}</div></div>
+          <div class="field"><label>Status</label>
+            <div>
+              <span class="badge" [class]="'badge s-' + d.ticket.status.toLowerCase()">{{ label(d.ticket.status) }}</span>
+              <select *ngIf="d.canManage && nextStatuses.length" class="inline-select" [ngModel]="null" (ngModelChange)="$event && changeStatus($event)" aria-label="Change status">
+                <option [ngValue]="null">Change status…</option>
+                <option *ngFor="let s of nextStatuses" [ngValue]="s">{{ label(s) }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="field"><label>Priority</label>
+            <div>
+              <span class="priority" [class]="'priority p-' + d.ticket.priority.toLowerCase()">{{ label(d.ticket.priority) }}</span>
+              <select *ngIf="editable" class="inline-select" [ngModel]="d.ticket.priority" (ngModelChange)="setPriority($event)" aria-label="Priority">
+                <option *ngFor="let p of priorities" [ngValue]="p">{{ label(p) }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="field"><label>Origin</label><div>{{ label(d.origin) }}</div></div>
+          <div class="field"><label>Category</label><div>{{ label(d.ticket.category) }}</div></div>
+          <div class="field"><label>Escalation</label><div>Level {{ d.escalationLevel }}</div></div>
+          <div class="field"><label>Created</label><div class="muted">{{ d.ticket.createdAt | date:'medium' }}</div></div>
+          <div class="field"><label>Last updated</label><div class="muted">{{ d.ticket.updatedAt | date:'medium' }}</div></div>
+          <div class="field" *ngIf="d.resolvedAt"><label>Resolved</label><div class="muted">{{ d.resolvedAt | date:'medium' }}</div></div>
+          <div class="field" *ngIf="d.closedAt"><label>Closed</label><div class="muted">{{ d.closedAt | date:'medium' }}</div></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <button type="button" class="card-head" (click)="toggle('contact')">
+          <span><span class="material-symbols-outlined">person</span>Contact</span><span class="chev">{{ collapsed['contact'] ? '▸' : '▾' }}</span>
+        </button>
+        <div class="card-body" *ngIf="!collapsed['contact']">
+          <ng-container *ngIf="d.ticket.client as c; else noContact">
+            <div class="person">
+              <span class="avatar client">{{ initials(c.fullName) }}</span>
+              <div><strong>{{ c.fullName }}</strong><small>{{ d.ticket.organisationName }}</small></div>
+            </div>
+            <div class="field"><label>Email</label><div class="link">{{ c.email }}</div></div>
+            <div class="field"><label>Customer</label><div>{{ d.ticket.organisationName }}</div></div>
+          </ng-container>
+          <ng-template #noContact><p class="muted">No contact linked.</p></ng-template>
+        </div>
+      </section>
+    </aside>
+
+    <!-- Centre: problem statement and the ticket thread -->
+    <section class="col-centre">
+      <div class="problem">
+        <button type="button" class="problem-head" (click)="toggle('problem')">
+          <span>Problem statement</span><span class="chev">{{ collapsed['problem'] ? '▸' : '▾' }}</span>
+        </button>
+        <p class="problem-text" *ngIf="!collapsed['problem']">{{ d.description || 'No description provided.' }}</p>
+      </div>
+
+      <div class="conv-head">
+        <div>
+          <strong>Ticket thread</strong>
+          <small>{{ publicMessages }} message{{ publicMessages === 1 ? '' : 's' }}<ng-container *ngIf="d.ticket.client"> · with {{ d.ticket.client.fullName }}</ng-container></small>
+        </div>
+        <button type="button" class="ghost small" (click)="load(false)" title="Refresh the thread">Refresh</button>
+      </div>
+
+      <div class="conv-msgs">
+        <div class="state" *ngIf="!d.messages.length">No messages on this ticket yet.</div>
+        <article class="msg" *ngFor="let m of d.messages" [class.client]="isClientMessage(m)" [class.internal]="m.internalNote">
+          <span class="avatar" [class.client]="isClientMessage(m)">{{ initials(m.sender.fullName) }}</span>
+          <div class="msg-body">
+            <div class="msg-meta">
+              <b>{{ m.sender.fullName }}</b>
+              <em *ngIf="m.internalNote"><span class="material-symbols-outlined">lock</span>Internal note</em>
+              <time>{{ m.createdAt | date:'short' }}</time>
+            </div>
+            <p>{{ m.message }}</p>
+          </div>
+        </article>
+      </div>
+
+      <div class="compose" *ngIf="!closed; else closedNote">
+        <div class="tabs">
+          <button type="button" [class.active]="!internal" (click)="internal = false">Reply</button>
+          <button type="button" *ngIf="d.canManage" [class.active]="internal" (click)="internal = true">
+            <span class="material-symbols-outlined">lock</span>Internal note
+          </button>
+        </div>
+        <textarea [(ngModel)]="message" rows="3" (keydown)="onKeydown($event)" [class.internal]="internal"
+                  [placeholder]="internal ? 'Internal note, only visible to the support team…' : 'Write a reply to the client…'"></textarea>
+        <div class="compose-foot">
+          <span class="muted">Enter ↵ to send · Shift+Enter for a new line</span>
+          <button type="button" class="primary" (click)="send()" [disabled]="sending || !message.trim()">
+            {{ sending ? 'Sending…' : (internal ? 'Add note' : 'Send') }}
+          </button>
+        </div>
+      </div>
+      <ng-template #closedNote><div class="closed-note">Ticket {{ label(d.ticket.status).toLowerCase() }}: replies are disabled.</div></ng-template>
+    </section>
+
+    <!-- Right: assignment, history, files -->
+    <aside class="col-right">
+      <section class="card">
+        <button type="button" class="card-head" (click)="toggle('assign')">
+          <span><span class="material-symbols-outlined">group</span>Assignment</span><span class="chev">{{ collapsed['assign'] ? '▸' : '▾' }}</span>
+        </button>
+        <div class="card-body" *ngIf="!collapsed['assign']">
+          <label class="label">Support agent</label>
+          <div class="person" *ngIf="d.ticket.assignee as a; else unassigned">
+            <span class="avatar">{{ initials(a.fullName) }}</span>
+            <div><strong>{{ a.fullName }}</strong><small>{{ a.email }}</small></div>
+          </div>
+          <ng-template #unassigned><p class="danger">Unassigned</p></ng-template>
+          <select *ngIf="editable" class="inline-select" [ngModel]="d.ticket.assignee?.id ?? null" (ngModelChange)="assignTo($event)" aria-label="Support agent">
+            <option [ngValue]="null">Unassigned</option>
+            <option *ngFor="let a of agents" [ngValue]="a.id">{{ a.fullName }}</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="card">
+        <button type="button" class="card-head" (click)="toggle('history')">
+          <span><span class="material-symbols-outlined">history</span>History ({{ d.activities.length }})</span><span class="chev">{{ collapsed['history'] ? '▸' : '▾' }}</span>
+        </button>
+        <div class="card-body history" *ngIf="!collapsed['history']">
+          <p class="muted" *ngIf="!d.activities.length">No history yet.</p>
+          <div class="hist-row" *ngFor="let a of d.activities">
+            <span class="dot"></span>
+            <div>
+              <div>{{ a.description }}</div>
+              <small>{{ a.actor?.fullName || 'System' }} · {{ a.createdAt | date:'short' }}</small>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <button type="button" class="card-head" (click)="toggle('files')">
+          <span><span class="material-symbols-outlined">attach_file</span>Files ({{ d.attachments.length }})</span><span class="chev">{{ collapsed['files'] ? '▸' : '▾' }}</span>
+        </button>
+        <div class="card-body" *ngIf="!collapsed['files']">
+          <ul class="files" *ngIf="d.attachments.length">
+            <li *ngFor="let a of d.attachments">
+              <a [href]="api.attachmentUrl(d.ticket.id, a.id)">{{ a.originalFileName }}</a>
+              <small>{{ a.fileSize / 1024 | number:'1.0-0' }} KB · {{ a.uploadedBy?.fullName }}</small>
+            </li>
+          </ul>
+          <label class="ghost upload" *ngIf="!closed">Attach file<input type="file" hidden (change)="file($event)"></label>
+        </div>
+      </section>
+    </aside>
+  </div>
+</div>

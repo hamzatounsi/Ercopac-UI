@@ -31,7 +31,7 @@ const routes: Routes = [
     children: [
       { path: '', component: TicketDashboardPageComponent },
       { path: 'dashboard', component: PerformanceDashboardComponent, ...staffOnly },
-      { path: 'chat', component: LiveChatComponent, ...staffOnly },
+      { path: 'chat', component: LiveChatComponent },
       { path: ':id', component: TicketDetailsPageComponent },
       {
         path: 'settings',

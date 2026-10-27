@@ -1,13 +1,11 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
 import { interval, Subscription } from 'rxjs';
 import { AuthService } from 'src/app/core/auth/auth.service';
-import { Ticket, TicketDetails, TicketMessage } from '../../models/ticket.models';
-import { TicketChatService } from '../../services/ticket-chat.service';
-import { TicketService } from '../../services/ticket.service';
+import { ChatContact, ChatConversation, ChatMessage } from '../../models/ticket.models';
+import { DirectChatService } from '../../services/direct-chat.service';
 
-// Live chat on ticket conversations: messages arrive through the /ws/tickets websocket,
-// with polling as a fallback when the socket is down.
+// Live chat: one-to-one conversations between the current user and another user.
+// New messages arrive through the /ws/tickets websocket, with polling as a fallback.
 @Component({
   selector: 'app-live-chat',
   templateUrl: './live-chat.component.html',
@@ -16,85 +14,85 @@ import { TicketService } from '../../services/ticket.service';
 export class LiveChatComponent implements OnInit, OnDestroy {
   @ViewChild('thread') thread?: ElementRef<HTMLDivElement>;
 
-  conversations: Ticket[] = [];
-  selected?: TicketDetails;
+  conversations: ChatConversation[] = [];
+  contacts: ChatContact[] = [];
+  partner?: ChatContact;
+  messages: ChatMessage[] = [];
   search = '';
-  showClosed = false;
+  picking = false;
+  contactSearch = '';
   message = '';
-  internal = false;
   sending = false;
   loading = true;
   error = '';
 
-  private readonly currentUserId = this.auth.getCurrentUserId();
-  private listPoll?: Subscription;
-  private threadPoll?: Subscription;
-  private chatSub?: Subscription;
+  readonly currentUserId = this.auth.getCurrentUserId();
+  readonly isStaff = this.auth.hasAnyRole(['SALES_MANAGER_LEAD', 'H24', 'H24_LEAD']);
+  private poll?: Subscription;
+  private incomingSub?: Subscription;
 
-  constructor(private api: TicketService, private chat: TicketChatService, private auth: AuthService, private router: Router) {}
+  constructor(private chat: DirectChatService, private auth: AuthService) {}
 
   ngOnInit(): void {
     this.loadConversations();
-    this.listPoll = interval(15000).subscribe(() => this.loadConversations(false));
-    this.chatSub = this.chat.updates.subscribe(event => {
-      if (event?.type === 'message' && this.selected && event.ticketId === this.selected.ticket.id) {
-        this.appendMessage(event.message as TicketMessage);
-      }
-    });
+    this.chat.contacts().subscribe({ next: c => this.contacts = c, error: () => this.contacts = [] });
+    this.chat.connect();
+    this.incomingSub = this.chat.incoming.subscribe(m => this.onIncoming(m));
+    this.poll = interval(15000).subscribe(() => { this.loadConversations(false); this.refreshThread(); });
   }
 
   ngOnDestroy(): void {
-    this.listPoll?.unsubscribe();
-    this.threadPoll?.unsubscribe();
-    this.chatSub?.unsubscribe();
+    this.poll?.unsubscribe();
+    this.incomingSub?.unsubscribe();
     this.chat.disconnect();
   }
 
-  get filteredConversations(): Ticket[] {
+  get filteredConversations(): ChatConversation[] {
     const term = this.search.trim().toLowerCase();
-    return this.conversations
-      .filter(t => this.showClosed || !['CLOSED', 'CANCELLED'].includes(t.status))
-      .filter(t => !term || [t.ticketNumber, t.subject, t.client?.fullName, t.organisationName]
-        .some(v => (v || '').toLowerCase().includes(term)));
+    return this.conversations.filter(c => !term || c.contact.fullName.toLowerCase().includes(term));
+  }
+
+  get filteredContacts(): ChatContact[] {
+    const term = this.contactSearch.trim().toLowerCase();
+    return this.contacts.filter(c => !term || `${c.fullName} ${c.email}`.toLowerCase().includes(term));
   }
 
   loadConversations(show = true): void {
     if (show) this.loading = true;
-    this.api.list({ page: 0, size: 100, sort: 'updatedAt,desc' }).subscribe({
-      next: page => {
-        this.conversations = [...page.content].sort((a, b) =>
-          (b.lastMessageAt || b.updatedAt).localeCompare(a.lastMessageAt || a.updatedAt));
+    this.chat.conversations().subscribe({
+      next: list => {
+        this.conversations = list.map(c => c.contact.id === this.partner?.id ? { ...c, unread: 0 } : c);
         this.loading = false;
-        if (!this.selected && this.filteredConversations.length) this.open(this.filteredConversations[0]);
       },
       error: e => { this.error = e.error?.message || 'Conversations could not be loaded.'; this.loading = false; }
     });
   }
 
-  open(ticket: Ticket): void {
-    if (this.selected?.ticket.id === ticket.id) return;
-    this.error = '';
+  startChat(contact: ChatContact): void {
+    this.picking = false;
+    this.contactSearch = '';
+    this.open(contact);
+  }
+
+  open(contact: ChatContact): void {
+    this.partner = contact;
+    this.messages = [];
     this.message = '';
-    this.internal = false;
-    this.threadPoll?.unsubscribe();
-    this.api.get(ticket.id).subscribe({
-      next: details => {
-        this.selected = details;
-        ticket.unreadCount = 0;
-        this.chat.connect(ticket.id);
-        this.threadPoll = interval(10000).subscribe(() => this.refreshThread());
-        this.scrollToBottom();
-      },
+    this.error = '';
+    const conv = this.conversations.find(c => c.contact.id === contact.id);
+    if (conv) conv.unread = 0;
+    this.chat.messages(contact.id).subscribe({
+      next: list => { if (this.partner?.id === contact.id) { this.messages = list; this.scrollToBottom(); } },
       error: e => this.error = e.error?.message || 'Conversation could not be loaded.'
     });
   }
 
   send(): void {
     const text = this.message.trim();
-    if (!text || !this.selected || this.sending) return;
+    if (!text || !this.partner || this.sending) return;
     this.sending = true;
-    this.api.message(this.selected.ticket.id, text, this.internal).subscribe({
-      next: m => { this.appendMessage(m); this.message = ''; this.sending = false; },
+    this.chat.send(this.partner.id, text).subscribe({
+      next: m => { this.message = ''; this.sending = false; this.onIncoming(m); },
       error: e => { this.error = e.error?.message || 'Message could not be sent.'; this.sending = false; }
     });
   }
@@ -106,35 +104,43 @@ export class LiveChatComponent implements OnInit, OnDestroy {
     }
   }
 
-  openTicket(): void {
-    if (this.selected) void this.router.navigate(['/tickets', this.selected.ticket.id]);
+  isMine(m: ChatMessage): boolean { return m.senderId === this.currentUserId; }
+  initials(name?: string): string { return (name || '?').split(/\s+/).slice(0, 2).map(v => v[0]).join('').toUpperCase(); }
+  trackById(_: number, item: { id: number }): number { return item.id; }
+  trackByContact(_: number, item: ChatConversation): number { return item.contact.id; }
+
+  private onIncoming(m: ChatMessage): void {
+    const partnerId = m.senderId === this.currentUserId ? m.recipientId : m.senderId;
+    const openHere = this.partner?.id === partnerId;
+    if (openHere && !this.messages.some(x => x.id === m.id)) {
+      this.messages.push(m);
+      this.scrollToBottom();
+    }
+    const existing = this.conversations.find(c => c.contact.id === partnerId);
+    if (existing) {
+      if (existing.lastMessageAt === m.createdAt && existing.lastMessage === m.message) return;
+      const updated = { ...existing, lastMessage: m.message, lastMessageAt: m.createdAt, lastFromMe: m.senderId === this.currentUserId,
+        unread: openHere || m.senderId === this.currentUserId ? 0 : existing.unread + 1 };
+      this.conversations = [updated, ...this.conversations.filter(c => c !== existing)];
+    } else {
+      // First message with this user: reload the list to get the contact details
+      this.loadConversations(false);
+    }
+    // Keep the read state on the server when the conversation is open
+    if (openHere && m.senderId !== this.currentUserId) this.refreshThread();
   }
 
-  isMine(m: TicketMessage): boolean { return m.sender?.id === this.currentUserId; }
-  isClient(m: TicketMessage): boolean { return !!this.selected && m.sender?.id === this.selected.ticket.client?.id; }
-  initials(name?: string): string { return (name || '?').split(/\s+/).slice(0, 2).map(v => v[0]).join('').toUpperCase(); }
-  label(v: string): string { return v.replace(/_/g, ' '); }
-  trackById(_: number, item: { id: number }): number { return item.id; }
-
   private refreshThread(): void {
-    if (!this.selected) return;
-    const id = this.selected.ticket.id;
-    this.api.get(id).subscribe({
-      next: details => {
-        if (this.selected?.ticket.id !== id) return;
-        const grew = details.messages.length > this.selected.messages.length;
-        this.selected = details;
+    const id = this.partner?.id;
+    if (!id) return;
+    this.chat.messages(id).subscribe({
+      next: list => {
+        if (this.partner?.id !== id) return;
+        const grew = list.length > this.messages.length;
+        this.messages = list;
         if (grew) this.scrollToBottom();
       }
     });
-  }
-
-  private appendMessage(m: TicketMessage): void {
-    if (!this.selected || !m || this.selected.messages.some(x => x.id === m.id)) return;
-    this.selected.messages.push(m);
-    const conv = this.conversations.find(t => t.id === this.selected?.ticket.id);
-    if (conv) conv.lastMessageAt = m.createdAt;
-    this.scrollToBottom();
   }
 
   private scrollToBottom(): void {
