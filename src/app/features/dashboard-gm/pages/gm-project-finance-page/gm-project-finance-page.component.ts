@@ -400,7 +400,7 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
         };
         this.settingsSaving = false;
       },
-      error: () => { this.settingsSaving = false; this.settingsError = 'Failed to save finance settings.'; }
+      error: (err) => { this.settingsSaving = false; this.settingsError = err.error?.message || 'Failed to save finance settings.'; }
     });
   }
 
@@ -419,9 +419,9 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
         this.applyResultMessage = `✅ WBS applied successfully to "${this.projectName}" - ${result?.rowsGenerated ?? 0} rows generated.`;
         this.loadData();
       },
-      error: () => {
+      error: (err) => {
         this.applyLoading = false;
-        this.settingsError = 'Failed to apply finance template to current project.';
+        this.settingsError = err.error?.message || 'Failed to apply finance template to current project.';
       }
     });
   }
@@ -634,7 +634,7 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
         this.applyFilters();
         this.financeService.getFinanceSummary(this.projectId).subscribe({ next: (summary) => { this.summary = summary; this.createCharts(); } });
       },
-      error: () => { row.forecast = previous; this.error = 'Failed to update forecast.'; }
+      error: (err) => { row.forecast = previous; this.error = err.error?.message || 'Failed to update forecast.'; }
     });
   }
 

@@ -26,4 +26,9 @@ export interface ForecastRow {
   availableScheduleTasks?: ScheduleTaskOption[];
   
   periods: ForecastGridCell[];
+
+  // Hierarchy and money values computed by the backend (parents are rolled up from leaves)
+  parentId?: number | null;
+  leaf?: boolean;
+  remainingForecastCost?: number;
 }

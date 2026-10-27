@@ -57,7 +57,7 @@
 
            <div id="wbs-list-body" #wbsBody (scroll)="onWbsScroll($event)">
         <div class="wbs-row" *ngFor="let row of filteredRows; trackBy: trackByRow">
-          <div class="col-wbs mono indentable" [title]="row.wbsCode">{{ row.wbsCode }}</div>
+          <div class="col-wbs mono indentable" [title]="row.wbsCode" [style.padding-left.px]="8 + ((row.level || 1) - 1) * 12" [style.font-weight]="row.leaf === false ? 600 : null">{{ row.wbsCode }}</div>
           <div class="col-icon icon-cell">
             <span class="type-badge" [ngClass]="getTypeBadgeClass(row)">{{ getTypeLabel(row) }}</span>
           </div>

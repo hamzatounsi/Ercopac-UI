@@ -84,14 +84,14 @@ export class GmProjectForecastPageComponent implements OnInit {
           },
           error: (err) => {
             console.error(err);
-            this.error = 'Failed to load forecast summary.';
+            this.error = err?.error?.message || 'Failed to load forecast summary.';
             this.loading = false;
           }
         });
       },
       error: (err) => {
         console.error(err);
-        this.error = 'Failed to load forecast data.';
+        this.error = err?.error?.message || 'Failed to load forecast data.';
         this.loading = false;
       }
     });
@@ -116,7 +116,7 @@ export class GmProjectForecastPageComponent implements OnInit {
   }
 
   isEditableRow(row: ForecastRow): boolean {
-    return this.getRowType(row) !== 'SUMMARY';
+    return this.getRowType(row) !== 'SUMMARY' && row.leaf !== false;
   }
 
   getRemainingPercent(row: ForecastRow): number {
@@ -127,11 +127,11 @@ export class GmProjectForecastPageComponent implements OnInit {
   }
 
   formatBudgetOrHours(row: ForecastRow): string {
-    return this.getRowType(row) === 'HOUR' ? this.formatHours(row.budget) : this.formatMoney(row.budget);
+    return this.formatMoney(row.budget);
   }
 
   formatActualOrHours(row: ForecastRow): string {
-    return this.getRowType(row) === 'HOUR' ? this.formatHours(row.actualCost) : this.formatMoney(row.actualCost);
+    return this.formatMoney(row.actualCost);
   }
 
   // ✅ CORRECTION FINALE : Remaining TOUJOURS en €
@@ -152,6 +152,8 @@ export class GmProjectForecastPageComponent implements OnInit {
   }
 
    getRemaining(row: ForecastRow): number {
+    // Backend value: money for every row, parents rolled up from their leaves
+    if (row.remainingForecastCost != null) return row.remainingForecastCost;
     const type = this.getRowType(row);
     const totalForecast = (row.periods || []).reduce((sum, p) => sum + (p.amount || 0), 0);
     const rate = this.getHourlyRate(row);
@@ -190,7 +192,8 @@ export class GmProjectForecastPageComponent implements OnInit {
   }
 
   formatTotalForecast(row: ForecastRow): string {
-    return this.getRowType(row) === 'HOUR' ? this.formatHours(row.totalForecast) : this.formatMoney(row.totalForecast);
+    // Only HOUR leaves are in hours; parent totals are money roll-ups
+    return this.getRowType(row) === 'HOUR' && row.leaf !== false ? this.formatHours(row.totalForecast) : this.formatMoney(row.totalForecast);
   }
 
   formatHours(value: number | null | undefined): string {
@@ -276,7 +279,7 @@ export class GmProjectForecastPageComponent implements OnInit {
       },
       error: (err) => {
         console.error(err);
-        this.error = 'Failed to update forecast value.';
+        this.error = err?.error?.message || 'Failed to update forecast value.';
         this.saving = false;
         this.savingCellKey = null;
         if (cell) {

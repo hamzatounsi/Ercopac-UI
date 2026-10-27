@@ -74,4 +74,6 @@ export interface FinanceEntry {
   owner?: string;
   cpi?: number;
   percentAc?: number;
+  rowType?: string;
+  leaf?: boolean;
 }
