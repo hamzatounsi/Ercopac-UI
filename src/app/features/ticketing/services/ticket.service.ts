@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from 'src/app/core/config/api.config';
-import { Attachment, Page, Ticket, TicketDetails, TicketMessage, TicketPriority, TicketStats, TicketStatus } from '../models/ticket.models';
+import { Attachment, Page, Ticket, TicketDetails, TicketMessage, TicketPriority, TicketStats, TicketStatus, UserSummary } from '../models/ticket.models';
 
 // =========================================================
 // 👇 NOUVEAU : Interfaces pour le Dashboard Performance (Phase 5)
@@ -44,6 +44,11 @@ export class TicketService {
     });
     
     return this.http.get<Page<Ticket>>(this.base, { params: p });
+  }
+
+  /** Support staff of the organisation that a ticket can be assigned to. */
+  agents(): Observable<UserSummary[]> {
+    return this.http.get<UserSummary[]>(`${this.base}/agents`);
   }
 
   stats(): Observable<TicketStats> {
