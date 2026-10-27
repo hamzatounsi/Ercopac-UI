@@ -1,63 +1,124 @@
 import { Component, OnInit } from '@angular/core';
-import { TicketService, TeamKpis, AgentWorkload } from '../../services/ticket.service';
+import { forkJoin, of } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
+import { Ticket, TicketActivity, TicketMessage, TicketStatus } from '../../models/ticket.models';
+import { TicketService } from '../../services/ticket.service';
 
+interface TicketTimes { ticket: Ticket; firstResponseHours: number | null; resolutionHours: number | null; }
+interface StatusBar { status: TicketStatus; count: number; percent: number; }
+interface AgentRow { name: string; active: number; resolved: number; total: number; avgFirstResponse: number | null; }
+
+const ACTIVE: TicketStatus[] = ['OPEN', 'IN_PROGRESS', 'REOPENED'];
+const DONE: TicketStatus[] = ['RESOLVED', 'CLOSED'];
+const STATUS_ORDER: TicketStatus[] = ['OPEN', 'IN_PROGRESS', 'REOPENED', 'ESCALATED', 'RESOLVED', 'CLOSED', 'CANCELLED'];
+const HOUR = 3_600_000;
+
+// All figures are computed in the browser from the ticket list, the messages and the activity history:
+// first response = first public reply from someone other than the client,
+// resolution = first change to RESOLVED (from the activity history).
 @Component({
   selector: 'app-performance-dashboard',
   templateUrl: './performance-dashboard.component.html',
   styleUrls: ['./performance-dashboard.component.scss']
 })
 export class PerformanceDashboardComponent implements OnInit {
-  activeTab: 'org' | 'team' = 'org';
-  
-  basicStats: any;
-  teamKpis?: TeamKpis;
-  agentWorkload: AgentWorkload[] = [];
-  totalTickets: number = 0;
-  statusDistribution: Record<string, number> = {};
+  loading = true;
+  error = '';
+  period: 'all' | '30' | '7' = 'all';
 
-  constructor(private ticketService: TicketService) {}
+  private times: TicketTimes[] = [];
 
-  ngOnInit() {
-    this.loadData();
+  open = 0;
+  resolved = 0;
+  escalated = 0;
+  total = 0;
+  avgFirstResponse: number | null = null;
+  avgResolution: number | null = null;
+  statusBars: StatusBar[] = [];
+  agents: AgentRow[] = [];
+  maxAgentTotal = 1;
+
+  constructor(private api: TicketService) {}
+
+  ngOnInit(): void { this.load(); }
+
+  load(): void {
+    this.loading = true;
+    this.error = '';
+    this.api.list({ page: 0, size: 500, sort: 'createdAt,desc' }).pipe(
+      switchMap(page => page.content.length
+        ? forkJoin(page.content.map(t => forkJoin({
+            messages: this.api.messages(t.id).pipe(catchError(() => of([] as TicketMessage[]))),
+            activities: this.api.activities(t.id).pipe(catchError(() => of([] as TicketActivity[])))
+          }).pipe(map(r => this.measure(t, r.messages, r.activities)))))
+        : of([] as TicketTimes[]))
+    ).subscribe({
+      next: times => { this.times = times; this.compute(); this.loading = false; },
+      error: e => { this.error = e.error?.message || 'Performance data could not be loaded.'; this.loading = false; }
+    });
   }
 
-  loadData() {
-    if (this.activeTab === 'org') {
-      this.ticketService.stats().subscribe((data: any) => {
-        this.basicStats = data;
-        this.statusDistribution = {
-          'OPEN': data.open || 0,
-          'IN_PROGRESS': data.inProgress || 0,
-          'ESCALATED': data.escalated || 0,
-          'RESOLVED': data.resolved || 0,
-          'CLOSED': data.closed || 0
-        };
-        // Calcul du total pour les pourcentages des barres
-        this.totalTickets = Object.values(this.statusDistribution).reduce((a: number, b: number) => a + b, 0);
-      });
-    } else {
-      this.ticketService.getTeamKpis().subscribe((data: TeamKpis) => {
-        this.teamKpis = data;
-      });
-      this.ticketService.getAgentWorkload().subscribe((data: AgentWorkload[]) => {
-        this.agentWorkload = data;
-      });
-    }
+  setPeriod(period: 'all' | '30' | '7'): void {
+    this.period = period;
+    this.compute();
   }
 
-  switchTab(tab: 'org' | 'team') {
-    this.activeTab = tab;
-    this.loadData();
+  formatHours(hours: number | null): string {
+    if (hours == null) return '—';
+    if (hours < 1) return `${Math.round(hours * 60)} min`;
+    if (hours < 48) return `${hours.toFixed(1)} h`;
+    return `${(hours / 24).toFixed(1)} d`;
   }
 
-  getStatusColor(status: string): string {
-    const colors: Record<string, string> = {
-      'OPEN': 'bg-blue-500',
-      'IN_PROGRESS': 'bg-orange-500',
-      'ESCALATED': 'bg-red-500',
-      'RESOLVED': 'bg-green-500',
-      'CLOSED': 'bg-gray-500'
+  label(v: string): string { return v.replace(/_/g, ' '); }
+
+  private measure(ticket: Ticket, messages: TicketMessage[], activities: TicketActivity[]): TicketTimes {
+    const created = Date.parse(ticket.createdAt);
+    const reply = messages.find(m => !m.internalNote && m.sender?.id !== ticket.client?.id);
+    const resolvedAt = activities.find(a => a.newValue === 'RESOLVED');
+    return {
+      ticket,
+      firstResponseHours: reply ? Math.max(0, Date.parse(reply.createdAt) - created) / HOUR : null,
+      resolutionHours: resolvedAt ? Math.max(0, Date.parse(resolvedAt.createdAt) - created) / HOUR : null
     };
-    return colors[status] || 'bg-gray-400';
+  }
+
+  private compute(): void {
+    const since = this.period === 'all' ? 0 : Date.now() - Number(this.period) * 24 * HOUR;
+    const rows = this.times.filter(r => Date.parse(r.ticket.createdAt) >= since);
+    const tickets = rows.map(r => r.ticket);
+
+    this.total = tickets.length;
+    this.open = tickets.filter(t => ACTIVE.includes(t.status)).length;
+    this.resolved = tickets.filter(t => DONE.includes(t.status)).length;
+    this.escalated = tickets.filter(t => t.status === 'ESCALATED').length;
+    this.avgFirstResponse = this.average(rows.map(r => r.firstResponseHours));
+    this.avgResolution = this.average(rows.map(r => r.resolutionHours));
+
+    this.statusBars = STATUS_ORDER
+      .map(status => ({ status, count: tickets.filter(t => t.status === status).length, percent: 0 }))
+      .filter(bar => bar.count > 0 || bar.status !== 'CANCELLED')
+      .map(bar => ({ ...bar, percent: this.total ? (bar.count / this.total) * 100 : 0 }));
+
+    const byAgent = new Map<string, TicketTimes[]>();
+    rows.forEach(r => {
+      const name = r.ticket.assignee?.fullName || 'Unassigned';
+      byAgent.set(name, [...(byAgent.get(name) || []), r]);
+    });
+    this.agents = [...byAgent.entries()]
+      .map(([name, list]) => ({
+        name,
+        active: list.filter(r => r.ticket.status !== 'CANCELLED' && !DONE.includes(r.ticket.status)).length,
+        resolved: list.filter(r => DONE.includes(r.ticket.status)).length,
+        total: list.length,
+        avgFirstResponse: this.average(list.map(r => r.firstResponseHours))
+      }))
+      .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name));
+    this.maxAgentTotal = Math.max(1, ...this.agents.map(a => a.total));
+  }
+
+  private average(values: (number | null)[]): number | null {
+    const known = values.filter((v): v is number => v != null);
+    return known.length ? known.reduce((sum, v) => sum + v, 0) / known.length : null;
   }
 }

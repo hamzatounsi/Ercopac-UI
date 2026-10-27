@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from 'src/app/core/config/api.config';
-import { Attachment, Page, Ticket, TicketDetails, TicketMessage, TicketPriority, TicketStats, TicketStatus, UserSummary } from '../models/ticket.models';
+import { Attachment, Page, Ticket, TicketActivity, TicketDetails, TicketMessage, TicketPriority, TicketStats, TicketStatus, UserSummary } from '../models/ticket.models';
 
 // =========================================================
 // 👇 NOUVEAU : Interfaces pour le Dashboard Performance (Phase 5)
@@ -49,6 +49,15 @@ export class TicketService {
   /** Support staff of the organisation that a ticket can be assigned to. */
   agents(): Observable<UserSummary[]> {
     return this.http.get<UserSummary[]>(`${this.base}/agents`);
+  }
+
+  /** Messages of a ticket; unlike get() this does not mark the ticket as read. */
+  messages(id: number): Observable<TicketMessage[]> {
+    return this.http.get<TicketMessage[]>(`${this.base}/${id}/messages`);
+  }
+
+  activities(id: number): Observable<TicketActivity[]> {
+    return this.http.get<TicketActivity[]>(`${this.base}/${id}/activities`);
   }
 
   stats(): Observable<TicketStats> {

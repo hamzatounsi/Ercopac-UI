@@ -1,98 +1,97 @@
-<div class="dashboard-container">
-  <!-- Tabs -->
-  <div class="tabs mb-6">
-    <button [class.active]="activeTab === 'org'" (click)="switchTab('org')" class="tab-btn">Organisation Performance</button>
-    <button [class.active]="activeTab === 'team'" (click)="switchTab('team')" class="tab-btn">Team Performance</button>
-  </div>
-
-  <!-- ORGANISATION TAB -->
-  <div *ngIf="activeTab === 'org' && basicStats">
-    <!-- KPI Cards -->
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <h3>Open Tickets</h3>
-        <p class="value">{{ basicStats.open || 0 }}</p>
-      </div>
-      <div class="kpi-card">
-        <h3>Resolved</h3>
-        <p class="value text-green">{{ basicStats.resolved || 0 }}</p>
-      </div>
-      <div class="kpi-card">
-        <h3>Total Tickets</h3>
-        <p class="value">{{ totalTickets }}</p>
-      </div>
-      <div class="kpi-card">
-        <h3>In Progress</h3>
-        <p class="value">{{ basicStats.inProgress || 0 }}</p>
-      </div>
+<main class="ticket-shell">
+  <header class="ticket-head">
+    <div>
+      <p class="eyebrow">Support team</p>
+      <h1>Performance dashboard</h1>
+      <p>Ticket volume, response and resolution times of the support team.</p>
     </div>
+    <div class="head-actions">
+      <div class="segmented" role="group" aria-label="Period">
+        <button type="button" [class.active]="period === '7'" (click)="setPeriod('7')">7 days</button>
+        <button type="button" [class.active]="period === '30'" (click)="setPeriod('30')">30 days</button>
+        <button type="button" [class.active]="period === 'all'" (click)="setPeriod('all')">All time</button>
+      </div>
+      <button type="button" class="ghost" (click)="load()" [disabled]="loading">Refresh</button>
+    </div>
+  </header>
 
-    <!-- Charts Area (CSS-based) -->
-    <div class="charts-grid mt-6">
-      <div class="chart-card">
-        <h3>Tickets by Status</h3>
-        <div class="bar-chart">
-          <div *ngFor="let item of statusDistribution | keyvalue" class="bar-row">
-            <span class="bar-label">{{ item.key | titlecase }}</span>
-            <div class="bar-track">
-              <!-- 👇 CORRECTION : Utilisation de totalTickets au lieu du pipe sumValues -->
-              <div class="bar-fill" [style.width.%]="totalTickets > 0 ? (item.value / totalTickets * 100) : 0" 
-                   [ngClass]="getStatusColor(item.key)"></div>
-            </div>
-            <span class="bar-value">{{ item.value }}</span>
-          </div>
+  <p class="error" *ngIf="error">{{ error }}</p>
+  <div class="state panel" *ngIf="loading">Loading performance data…</div>
+
+  <ng-container *ngIf="!loading && !error">
+    <section class="kpis">
+      <article class="kpi">
+        <span class="kpi-label">Open</span>
+        <b>{{ open }}</b>
+        <small>Open, in progress or reopened</small>
+      </article>
+      <article class="kpi">
+        <span class="kpi-label">Resolved</span>
+        <b>{{ resolved }}</b>
+        <small>Resolved or closed</small>
+      </article>
+      <article class="kpi warn">
+        <span class="kpi-label">Escalated</span>
+        <b>{{ escalated }}</b>
+        <small>Waiting for level 2</small>
+      </article>
+      <article class="kpi">
+        <span class="kpi-label">Avg. first response</span>
+        <b>{{ formatHours(avgFirstResponse) }}</b>
+        <small>First public reply to the client</small>
+      </article>
+      <article class="kpi">
+        <span class="kpi-label">Avg. resolution time</span>
+        <b>{{ formatHours(avgResolution) }}</b>
+        <small>From creation to resolved</small>
+      </article>
+    </section>
+
+    <section class="charts">
+      <article class="panel chart">
+        <h2>Tickets by status</h2>
+        <p class="sub">{{ total }} ticket{{ total === 1 ? '' : 's' }} in this period</p>
+        <div class="state" *ngIf="!total">No tickets in this period.</div>
+        <div class="bar-row" *ngFor="let bar of statusBars">
+          <span class="bar-label">{{ label(bar.status) }}</span>
+          <div class="bar-track"><div class="bar-fill" [class]="'bar-fill f-' + bar.status.toLowerCase()" [style.width.%]="bar.percent"></div></div>
+          <span class="bar-value">{{ bar.count }}</span>
         </div>
-      </div>
-    </div>
-  </div>
+      </article>
 
-  <!-- TEAM TAB -->
-  <div *ngIf="activeTab === 'team' && teamKpis">
-    <!-- Team KPI Cards -->
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <h3>Agents Online</h3>
-        <p class="value text-green">{{ teamKpis.agentsOnline }} / {{ teamKpis.totalAgents }}</p>
-      </div>
-      <div class="kpi-card">
-        <h3>Avg Satisfaction</h3>
-        <p class="value">⭐ {{ teamKpis.avgSatisfaction }}</p>
-      </div>
-    </div>
+      <article class="panel chart">
+        <h2>Tickets by agent</h2>
+        <p class="sub">
+          <span class="legend active"></span>Active
+          <span class="legend resolved"></span>Resolved / closed
+        </p>
+        <div class="state" *ngIf="!agents.length">No tickets in this period.</div>
+        <div class="bar-row agent" *ngFor="let a of agents">
+          <span class="bar-label" [title]="a.name">{{ a.name }}</span>
+          <div class="bar-track">
+            <div class="bar-fill seg-active" [style.width.%]="(a.active / maxAgentTotal) * 100"></div>
+            <div class="bar-fill seg-resolved" [style.width.%]="(a.resolved / maxAgentTotal) * 100"></div>
+          </div>
+          <span class="bar-value">{{ a.total }}</span>
+        </div>
+      </article>
+    </section>
 
-    <!-- Agent Workload Table -->
-    <div class="chart-card mt-6">
-      <h3>Agent Workload</h3>
-      <table class="w-full mt-4">
-        <thead>
-          <tr>
-            <th class="text-left p-3">AGENT</th>
-            <th class="text-left p-3">STATUS</th>
-            <th class="text-left p-3">ACTIVE TICKETS</th>
-            <th class="text-left p-3">CAPACITY</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let agent of agentWorkload">
-            <td class="p-3 font-bold">{{ agent.name }}</td>
-            <td class="p-3">
-              <span class="badge" [ngClass]="agent.status === 'ONLINE' ? 'badge-success' : 'badge-gray'">
-                {{ agent.status }}
-              </span>
-            </td>
-            <td class="p-3">{{ agent.activeTickets }}</td>
-            <td class="p-3">
-              <div class="capacity-bar">
-                <div class="capacity-fill" [style.width.%]="agent.capacity > 0 ? (agent.activeTickets / agent.capacity * 100) : 0"></div>
-              </div>
-              <span class="text-small">{{ agent.activeTickets }} / {{ agent.capacity }}</span>
-            </td>
-          </tr>
-          <tr *ngIf="agentWorkload.length === 0">
-            <td colspan="4" class="text-center p-3">No agent workload data available.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
+    <section class="panel">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Agent</th><th>Active</th><th>Resolved / closed</th><th>Total</th><th>Avg. first response</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let a of agents">
+              <td><strong>{{ a.name }}</strong></td>
+              <td>{{ a.active }}</td>
+              <td>{{ a.resolved }}</td>
+              <td>{{ a.total }}</td>
+              <td>{{ formatHours(a.avgFirstResponse) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </ng-container>
+</main>
