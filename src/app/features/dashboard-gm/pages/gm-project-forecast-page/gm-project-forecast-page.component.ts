@@ -91,14 +91,14 @@ export class GmProjectForecastPageComponent implements OnInit {
           },
           error: (err) => {
             console.error(err);
-            this.error = 'Failed to load forecast summary.';
+            this.error = err?.error?.message || 'Failed to load forecast summary.';
             this.loading = false;
           }
         });
       },
       error: (err) => {
         console.error(err);
-        this.error = 'Failed to load forecast data.';
+        this.error = err?.error?.message || 'Failed to load forecast data.';
         this.loading = false;
       }
     });
@@ -123,7 +123,7 @@ export class GmProjectForecastPageComponent implements OnInit {
   }
 
   isEditableRow(row: ForecastRow): boolean {
-    return row.leaf ?? !this.rows.some(candidate => candidate.parentId === row.financeEntryId);
+    return this.getRowType(row) !== 'SUMMARY' && row.leaf !== false;
   }
 
   getRemainingPercent(row: ForecastRow): number {
@@ -134,28 +134,74 @@ export class GmProjectForecastPageComponent implements OnInit {
   }
 
   formatBudgetOrHours(row: ForecastRow): string {
-    return this.getRowType(row) === 'HOUR' ? this.formatHours(row.budget) : this.formatMoney(row.budget);
+    return this.formatMoney(row.budget);
   }
 
   formatActualOrHours(row: ForecastRow): string {
-    return this.getRowType(row) === 'HOUR' ? this.formatHours(row.actualCost) : this.formatMoney(row.actualCost);
+    return this.formatMoney(row.actualCost);
   }
 
   // Remaining forecast cost is calculated by the backend (HOUR leaves already converted with their rate)
   formatRemainingOrHours(row: ForecastRow): string {
-    return this.formatMoney(row.remainingForecastCost ?? 0);
+    const remainingAmount = this.getRemaining(row);
+    return this.formatMoney(remainingAmount);
+  }
+    // ✅ Affichage de la colonne "Remaining Schedule" (calculé par le backend en €)
+  formatRemainingSchedule(row: ForecastRow): string {
+    const cost = (row as any).remainingCost;
+    if (cost != null && cost > 0) {
+      return this.formatMoney(cost);
+    }
+    // Fallback visuel si le backend n'a pas encore calculé
+    const hours = row.remainingHours || 0;
+    const rate = this.getHourlyRate(row);
+    return this.formatMoney(hours * rate);
   }
 
-  // Remaining Schedule (outstanding Gantt hours x rate) is calculated by the backend in €
-  formatRemainingSchedule(row: ForecastRow): string {
-    const hasSchedule = !!row.linkedScheduleWbs || this.rows.some(child => child.parentId === row.financeEntryId && child.remainingHours);
-    if (!hasSchedule) return '—';
-    return this.formatMoney(row.remainingCost ?? 0);
+   getRemaining(row: ForecastRow): number {
+    // Backend value: money for every row, parents rolled up from their leaves
+    if (row.remainingForecastCost != null) return row.remainingForecastCost;
+    const type = this.getRowType(row);
+    const totalForecast = (row.periods || []).reduce((sum, p) => sum + (p.amount || 0), 0);
+    const rate = this.getHourlyRate(row);
+
+    // Pour les lignes SUMMARY ou Level 1 : SOMME des Remaining de tous les enfants
+    if (type === 'SUMMARY' || row.level === 1) {
+      if (row.level === 1) {
+        // Level 1 = Total Projet : sommer TOUTES les lignes sauf elle-même
+        return this.filteredRows
+          .filter(r => r.financeEntryId !== row.financeEntryId)
+          .reduce((sum, child) => sum + this.getRemaining(child), 0);
+      } else {
+        // Summary intermédiaire : sommer les enfants par préfixe WBS
+        const children = this.filteredRows.filter(r => 
+          r.level > row.level && 
+          (r.wbsCode.startsWith(row.wbsCode + '.') || 
+           r.wbsCode.startsWith(row.wbsCode + '-'))
+        );
+        return children.reduce((sum, child) => sum + this.getRemaining(child), 0);
+      }
+    }
+
+    if (type === 'HOUR') {
+      // HOUR : Somme forecast * Taux horaire
+      return totalForecast * rate;
+    }
+    
+    // COST : Somme forecast directement (déjà en €)
+    return totalForecast;
+  }
+
+  // Helper pour le taux (à ajuster si ton backend envoie le taux dans le DTO)
+  getHourlyRate(row: ForecastRow): number {
+    // Rate of the row as resolved by the backend (row rate, resource type rate or default rate)
+    return row.hourRate || 65;
   }
 
   // HOUR leaves are forecast in hours; every parent total is a cost
   formatTotalForecast(row: ForecastRow): string {
-    return this.getRowType(row) === 'HOUR' && this.isEditableRow(row) ? this.formatHours(row.totalForecast) : this.formatMoney(row.totalForecast);
+    // Only HOUR leaves are in hours; parent totals are money roll-ups
+    return this.getRowType(row) === 'HOUR' && row.leaf !== false ? this.formatHours(row.totalForecast) : this.formatMoney(row.totalForecast);
   }
 
   formatHours(value: number | null | undefined): string {

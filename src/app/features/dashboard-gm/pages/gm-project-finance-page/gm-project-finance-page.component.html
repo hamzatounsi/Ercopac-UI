@@ -87,7 +87,7 @@
               <td>{{ row.commitment ? formatMoney(row.commitment) : '0' }}</td>
               <td>{{ row.actualCost ? formatMoney(row.actualCost) : '0' }}</td>
               <td>
-                  <input type="number" class="forecast-input" [ngModel]="row.forecast" (change)="updateForecast(row, $any($event.target).value)" min="0" [disabled]="!isForecastEditable(row)" [title]="row.rowType === 'HOUR' ? 'Hour forecasts are entered on the Forecast page' : 'Edit forecast value'" />
+                <input type="number" class="forecast-input" [ngModel]="row.forecast" (change)="updateForecast(row, $any($event.target).value)" min="0" [disabled]="row.leaf === false || row.rowType === 'HOUR'" [title]="row.rowType === 'HOUR' ? 'HOUR rows are forecast in hours on the Forecast page' : (row.leaf === false ? 'Parent rows are the sum of their children' : 'Edit forecast value')" />
               </td>
               <td>{{ row.eac ? formatMoney(row.eac) : '—' }}</td>
               <td [ngClass]="getVarianceClass(row.variance)">{{ row.variance ? formatMoney(row.variance) : '—' }}</td>

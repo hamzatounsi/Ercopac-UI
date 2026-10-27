@@ -56,8 +56,8 @@
       </div>
 
            <div id="wbs-list-body" #wbsBody (scroll)="onWbsScroll($event)">
-        <div class="wbs-row" *ngFor="let row of filteredRows; trackBy: trackByRow" [attr.data-row-type]="getRowType(row)">
-          <div class="col-wbs mono indentable" [title]="row.wbsCode">{{ row.wbsCode }}</div>
+        <div class="wbs-row" *ngFor="let row of filteredRows; trackBy: trackByRow">
+          <div class="col-wbs mono indentable" [title]="row.wbsCode" [style.padding-left.px]="8 + ((row.level || 1) - 1) * 12" [style.font-weight]="row.leaf === false ? 600 : null">{{ row.wbsCode }}</div>
           <div class="col-icon icon-cell">
             <span class="type-badge" [ngClass]="getTypeBadgeClass(row)">{{ getTypeLabel(row) }}</span>
           </div>
@@ -90,7 +90,8 @@
           <div class="col-remaining-schedule money remaining-schedule-cell">
             <div class="remaining-schedule-wrap">
               <strong class="remaining-schedule-cost">{{ formatRemainingSchedule(row) }}</strong>
-              <small class="remaining-schedule-hint">{{ row.remainingHours || 0 }}h × Rate</small>
+              <small class="remaining-schedule-hint" *ngIf="getRowType(row) === 'HOUR'">{{ (row.remainingHours || 0) | number:'1.0-2' }} h × {{ formatMoney(getHourlyRate(row)) }}</small>
+              <small class="remaining-schedule-hint" *ngIf="getRowType(row) !== 'HOUR'">{{ (row.remainingHours || 0) | number:'1.0-2' }} h</small>
               
             </div>
           </div>

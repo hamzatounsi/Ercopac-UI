@@ -431,7 +431,7 @@ Overwrite these existing values?`)) {
         this.settingsSaving = false;
         this.loadData();
       },
-      error: (err) => { this.settingsSaving = false; this.settingsError = err?.error?.message || 'Failed to save finance settings.'; }
+      error: (err) => { this.settingsSaving = false; this.settingsError = err.error?.message || 'Failed to save finance settings.'; }
     });
   }
 
@@ -452,7 +452,7 @@ Overwrite these existing values?`)) {
       },
       error: (err) => {
         this.applyLoading = false;
-        this.settingsError = err?.error?.message || 'Failed to apply finance template to current project.';
+        this.settingsError = err.error?.message || 'Failed to apply finance template to current project.';
       }
     });
   }
@@ -683,36 +683,7 @@ ${row?.codeTemplate ?? ''} – ${row?.description ?? ''}
       next: () => {
         this.loadData();
       },
-      error: (err) => { row.forecast = previous; this.actionError = err?.error?.message || 'Failed to update forecast.'; }
-    });
-  }
-
-  isFinanceLeaf(row: FinanceEntry): boolean {
-    return row.leaf ?? !this.rows.some(candidate => candidate.parentId === row.id);
-  }
-
-  // HOUR rows are forecast in hours on the Forecast page; parents are calculated
-  isForecastEditable(row: FinanceEntry): boolean {
-    return this.canWriteFinance && this.isFinanceLeaf(row) && row.rowType !== 'HOUR';
-  }
-
-  deleteWbsNode(row: FinanceEntry): void {
-    if (!this.canWriteFinance) return;
-    const confirmed = confirm(
-      `Delete WBS node
-
-${row.wbsCode} – ${row.description}
-
-` +
-      'The node is removed from Finance Settings, Finance and Forecast. ' +
-      'Only an empty leaf can be deleted: nodes with child nodes or with budget, actual, committed or forecast data are kept.'
-    );
-    if (!confirmed) return;
-    this.actionError = null;
-    this.actionMessage = null;
-    this.financeService.deleteWbsNode(this.projectId, row.id).subscribe({
-      next: () => this.loadData(),
-      error: (err) => { this.actionError = err?.error?.message || 'Failed to delete WBS node.'; }
+      error: (err) => { row.forecast = previous; this.error = err.error?.message || 'Failed to update forecast.'; }
     });
   }
 

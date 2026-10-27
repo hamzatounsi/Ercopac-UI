@@ -20,6 +20,7 @@ export interface ForecastRow {
   
   resourceTypeCode?: string;
   remainingHours?: number;
+  hourRate?: number | null;
   remainingCost?: number;
 
   // ✅ NOUVEAUX CHAMPS pour la liaison manuelle Schedule
@@ -28,8 +29,8 @@ export interface ForecastRow {
   
   periods: ForecastGridCell[];
 
-  // Calculated by the backend: leaf flag, cost rate of HOUR leaves and remaining forecast cost in money
+  // Calculated by the backend: leaf flag and remaining forecast cost in money
+  // (parents are rolled up from their leaves)
   leaf?: boolean;
-  hourRate?: number | null;
   remainingForecastCost?: number;
 }
