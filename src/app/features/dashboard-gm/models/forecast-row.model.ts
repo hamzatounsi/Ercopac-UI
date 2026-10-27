@@ -19,6 +19,7 @@ export interface ForecastRow {
   
   resourceTypeCode?: string;
   remainingHours?: number;
+  hourRate?: number | null;
   remainingCost?: number;
 
   // ✅ NOUVEAUX CHAMPS pour la liaison manuelle Schedule

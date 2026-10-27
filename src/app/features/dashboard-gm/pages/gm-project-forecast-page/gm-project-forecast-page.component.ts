@@ -186,9 +186,9 @@ export class GmProjectForecastPageComponent implements OnInit {
   }
 
   // Helper pour le taux (à ajuster si ton backend envoie le taux dans le DTO)
-  private getHourlyRate(row: ForecastRow): number {
-    // Si ton modèle ForecastRow a un champ hourRate, utilise-le : return row.hourRate || 65;
-    return 65; 
+  getHourlyRate(row: ForecastRow): number {
+    // Rate of the row as resolved by the backend (row rate, resource type rate or default rate)
+    return row.hourRate || 65;
   }
 
   formatTotalForecast(row: ForecastRow): string {
