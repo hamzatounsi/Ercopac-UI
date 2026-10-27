@@ -50,7 +50,7 @@ export function accessibleWorkspaceModules(roles: readonly AppRole[]): Workspace
   
   // ✅ MISE À JOUR : Ajout de H24 et H24_LEAD dans la liste des rôles ayant accès au ticketing
   const hasTicketingAccess = roles.some(role => 
-    ['CLIENT', 'SALES_MANAGER', 'SALES_MANAGER_LEAD', 'PLATFORM_OWNER', 'ORG_ADMIN', 'H24', 'H24_LEAD'].includes(role)
+    ['CLIENT', 'SALES_MANAGER_LEAD', 'H24', 'H24_LEAD'].includes(role)
   );
   
   if (hasTicketingAccess && !keys.includes('TICKETING')) {

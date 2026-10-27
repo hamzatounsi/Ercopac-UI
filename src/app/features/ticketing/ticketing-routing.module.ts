@@ -16,11 +16,11 @@ import { PrioritiesSettingsComponent } from './pages/priorities-settings/priorit
 import { CustomersSettingsComponent } from './pages/customers-settings/customers-settings.component';
 import { H24AgentsSettingsComponent } from './pages/h24-agents-settings/h24-agents-settings.component';
 import { L2TechniciansSettingsComponent } from './pages/l2-technicians-settings/l2-technicians-settings.component';
+import { LiveChatComponent } from './pages/live-chat/live-chat.component';
+import { TICKETING_ROLES, TICKETING_STAFF_ROLES } from './ticketing-roles';
 
-const roles = [
-  'CLIENT', 'SALES_MANAGER', 'SALES_MANAGER_LEAD', 'PLATFORM_OWNER', 
-  'ORG_ADMIN', 'MANAGER', 'H24', 'H24_LEAD'
-];
+const roles = TICKETING_ROLES;
+const staffOnly = { canActivate: [RoleGuard], data: { roles: TICKETING_STAFF_ROLES } };
 
 const routes: Routes = [
   {
@@ -30,7 +30,8 @@ const routes: Routes = [
     data: { roles },
     children: [
       { path: '', component: TicketDashboardPageComponent },
-      { path: 'dashboard', component: PerformanceDashboardComponent },
+      { path: 'dashboard', component: PerformanceDashboardComponent, ...staffOnly },
+      { path: 'chat', component: LiveChatComponent, ...staffOnly },
       { path: ':id', component: TicketDetailsPageComponent },
       {
         path: 'settings',

@@ -1,43 +1,44 @@
-<div class="ticketing-shell">
-  <!-- Sidebar Fixe à Gauche -->
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="logo">
-        <span class="logo-icon">🎫</span>
-        <span class="logo-text">H24 Tix</span>
+<div class="tk-shell">
+  <header class="tk-header">
+    <a class="tk-logo" routerLink="/tickets">
+      <span class="logo-mark material-symbols-outlined">support_agent</span>Projectum Ticketing
+    </a>
+
+    <button class="workspace-link" type="button" (click)="handleWorkspaceNavigation()">
+      <span class="material-symbols-outlined">{{ showLogoutInsteadOfWorkspace ? 'logout' : 'apps' }}</span>
+      {{ showLogoutInsteadOfWorkspace ? 'Logout' : 'Workspaces' }}
+    </button>
+
+    <div class="header-user">
+      <div class="avatar">{{ initials }}</div>
+      <div>
+        <strong>{{ userName }}</strong>
+        <small>{{ organisation }}</small>
       </div>
     </div>
+  </header>
 
-    <nav class="sidebar-nav">
-      <a routerLink="/tickets" routerLinkActive="active" class="nav-item">
-        <span class="nav-icon">📋</span>
-        <span class="nav-label">Tickets</span>
-      </a>
-      
-      <a routerLink="/tickets/dashboard" routerLinkActive="active" class="nav-item">
-        <span class="nav-icon">📊</span>
-        <span class="nav-label">Dashboard</span>
-      </a>
-      
-      <a routerLink="/tickets/settings" routerLinkActive="active" class="nav-item">
-        <span class="nav-icon">⚙️</span>
-        <span class="nav-label">Settings</span>
-      </a>
-    </nav>
+  <div class="tk-body">
+    <aside class="tk-sidebar">
+      <section>
+        <label>{{ isStaff ? 'Support' : 'Client portal' }}</label>
+        <a *ngFor="let item of navItems" [routerLink]="item.route" routerLinkActive="active"
+           [routerLinkActiveOptions]="{ exact: item.exact }">
+          <span class="material-symbols-outlined">{{ item.icon }}</span>{{ item.label }}
+        </a>
+      </section>
 
-    <div class="sidebar-footer">
-      <div class="user-profile">
-        <div class="avatar">{{ getUserInitials() }}</div>
-        <div class="user-info">
-          <div class="user-name">{{ getUserName() }}</div>
-          <div class="user-role">{{ auth.getRoles()[0] || 'Membre' }}</div>
+      <div class="org-card">
+        <div class="org-logo">{{ organisation.charAt(0) }}</div>
+        <div>
+          <strong>{{ organisation }}</strong>
+          <small>{{ roleLabel }}</small>
         </div>
       </div>
-    </div>
-  </aside>
+    </aside>
 
-  <!-- Contenu Principal (Change selon la route) -->
-  <main class="main-content">
-    <router-outlet></router-outlet>
-  </main>
+    <main class="tk-main">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
 </div>

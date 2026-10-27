@@ -1,5 +1,9 @@
 import { Component } from '@angular/core';
-import { AuthService } from 'src/app/core/auth/auth.service'; // Vérifie que ce chemin est bon
+import { Router } from '@angular/router';
+import { AuthService } from 'src/app/core/auth/auth.service';
+import { TICKETING_STAFF_ROLES } from '../../ticketing-roles';
+
+interface NavItem { label: string; icon: string; route: string; exact: boolean; staffOnly: boolean; }
 
 @Component({
   selector: 'app-ticketing-layout',
@@ -7,17 +11,29 @@ import { AuthService } from 'src/app/core/auth/auth.service'; // Vérifie que ce
   styleUrls: ['./ticketing-layout.component.scss']
 })
 export class TicketingLayoutComponent {
-  constructor(public auth: AuthService) {}
+  private readonly items: NavItem[] = [
+    { label: 'Tickets', icon: 'confirmation_number', route: '/tickets', exact: true, staffOnly: false },
+    { label: 'Live chat', icon: 'forum', route: '/tickets/chat', exact: false, staffOnly: true },
+    { label: 'Performance', icon: 'monitoring', route: '/tickets/dashboard', exact: false, staffOnly: true }
+  ];
 
-  // Méthode sécurisée pour obtenir le nom (à adapter si ton AuthService a une propriété différente)
-  getUserName(): string {
-    // 👇 ADAPTE ICI si ton service utilise un autre nom, ex: this.auth.user?.fullName
-    // Pour l'instant, on met une valeur par défaut pour que ça compile.
-    return 'Utilisateur'; 
-  }
+  constructor(public auth: AuthService, private router: Router) {}
 
-  getUserInitials(): string {
-    const name = this.getUserName();
-    return name.charAt(0).toUpperCase();
+  // CLIENT users keep the client portal: they only see their own tickets
+  get isStaff(): boolean { return this.auth.hasAnyRole(TICKETING_STAFF_ROLES); }
+  get navItems(): NavItem[] { return this.items.filter(item => this.isStaff || !item.staffOnly); }
+  get userName(): string { return this.auth.getCurrentUsername() || 'User'; }
+  get initials(): string { return this.userName.split(/\s+/).slice(0, 2).map(v => v[0]).join('').toUpperCase(); }
+  get organisation(): string { return this.auth.getOrganisationName() || 'Organisation'; }
+  get roleLabel(): string { return this.auth.getRoles().join(', ').replace(/_/g, ' ').toLowerCase(); }
+  get showLogoutInsteadOfWorkspace(): boolean { return this.auth.getAccessibleWorkspaceModules().length <= 1; }
+
+  handleWorkspaceNavigation(): void {
+    if (this.showLogoutInsteadOfWorkspace) {
+      this.auth.logout();
+      void this.router.navigate(['/']);
+      return;
+    }
+    void this.router.navigate(['/workspace']);
   }
 }

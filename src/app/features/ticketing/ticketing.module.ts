@@ -19,6 +19,7 @@ import { ProjectsSettingsComponent } from './pages/projects-settings/projects-se
 import { EquipmentCatalogueSettingsComponent } from './pages/equipment-catalogue-settings/equipment-catalogue-settings.component';
 import { PerformanceDashboardComponent } from './pages/performance-dashboard/performance-dashboard.component';
 import { TicketingLayoutComponent } from './components/ticketing-layout/ticketing-layout.component';
+import { LiveChatComponent } from './pages/live-chat/live-chat.component';
 
 @NgModule({
   declarations: [
@@ -34,7 +35,8 @@ import { TicketingLayoutComponent } from './components/ticketing-layout/ticketin
     ProjectsSettingsComponent,
     EquipmentCatalogueSettingsComponent,
     PerformanceDashboardComponent,
-    TicketingLayoutComponent
+    TicketingLayoutComponent,
+    LiveChatComponent
   ],
   imports: [
     CommonModule,
