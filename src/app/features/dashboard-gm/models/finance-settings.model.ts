@@ -78,7 +78,6 @@ export interface FinanceEntry {
   rowType?: string;
   leaf?: boolean;
 }
-}
 
 export interface FinanceImportResult {
   updatedRows: number;
