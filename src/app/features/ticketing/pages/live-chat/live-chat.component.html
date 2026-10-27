@@ -1,1 +1,75 @@
-<p>live-chat works!</p>
+<div class="chat-page">
+  <aside class="conv-panel">
+    <div class="conv-head">
+      <h1>Live chat</h1>
+      <input [(ngModel)]="search" placeholder="Search ticket, client or subject" aria-label="Search conversations">
+      <label class="toggle"><input type="checkbox" [(ngModel)]="showClosed"> Show closed</label>
+    </div>
+
+    <div class="state" *ngIf="loading">Loading conversations…</div>
+    <div class="state" *ngIf="!loading && !filteredConversations.length">No conversations.</div>
+
+    <button type="button" class="conv" *ngFor="let t of filteredConversations; trackBy: trackById"
+            [class.active]="selected?.ticket?.id === t.id" (click)="open(t)">
+      <span class="avatar">{{ initials(t.client?.fullName || t.organisationName) }}</span>
+      <span class="conv-body">
+        <span class="conv-top">
+          <strong>{{ t.client?.fullName || t.organisationName }}</strong>
+          <time>{{ (t.lastMessageAt || t.updatedAt) | date:'short' }}</time>
+        </span>
+        <span class="conv-subject">{{ t.ticketNumber }} · {{ t.subject }}</span>
+        <span class="conv-meta">
+          <span class="badge" [class]="'badge s-' + t.status.toLowerCase()">{{ label(t.status) }}</span>
+          <span class="assignee">{{ t.assignee?.fullName || 'Unassigned' }}</span>
+          <span class="unread" *ngIf="t.unreadCount">{{ t.unreadCount }}</span>
+        </span>
+      </span>
+    </button>
+  </aside>
+
+  <section class="thread-panel">
+    <ng-container *ngIf="selected as d; else empty">
+      <header class="thread-head">
+        <div>
+          <strong>{{ d.ticket.client?.fullName || d.ticket.organisationName }}</strong>
+          <small>{{ d.ticket.ticketNumber }} · {{ d.ticket.subject }}</small>
+        </div>
+        <div class="thread-actions">
+          <span class="badge" [class]="'badge s-' + d.ticket.status.toLowerCase()">{{ label(d.ticket.status) }}</span>
+          <span class="priority" [class]="'priority p-' + d.ticket.priority.toLowerCase()">{{ d.ticket.priority }}</span>
+          <button type="button" class="ghost" (click)="openTicket()">Open ticket</button>
+        </div>
+      </header>
+
+      <p class="error" *ngIf="error">{{ error }}</p>
+
+      <div class="thread" #thread>
+        <div class="state" *ngIf="!d.messages.length">No messages yet. Start the conversation below.</div>
+        <div class="msg" *ngFor="let m of d.messages; trackBy: trackById"
+             [class.mine]="isMine(m)" [class.client]="isClient(m)" [class.internal]="m.internalNote">
+          <div class="msg-meta">
+            <b>{{ m.sender.fullName }}</b>
+            <em *ngIf="m.internalNote">Internal note</em>
+            <time>{{ m.createdAt | date:'short' }}</time>
+          </div>
+          <p>{{ m.message }}</p>
+        </div>
+      </div>
+
+      <footer class="composer">
+        <textarea [(ngModel)]="message" rows="2" (keydown)="onKeydown($event)"
+                  [placeholder]="internal ? 'Internal note (not visible to the client)…' : 'Reply to the client… (Enter to send)'"></textarea>
+        <div class="composer-actions">
+          <label class="toggle" *ngIf="d.canManage"><input type="checkbox" [(ngModel)]="internal"> Internal note</label>
+          <button type="button" class="primary" (click)="send()" [disabled]="sending || !message.trim()">
+            {{ sending ? 'Sending…' : 'Send' }}
+          </button>
+        </div>
+      </footer>
+    </ng-container>
+
+    <ng-template #empty>
+      <div class="state empty">Select a conversation to start chatting.</div>
+    </ng-template>
+  </section>
+</div>
