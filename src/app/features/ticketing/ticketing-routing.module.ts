@@ -17,6 +17,7 @@ import { CustomersSettingsComponent } from './pages/customers-settings/customers
 import { H24AgentsSettingsComponent } from './pages/h24-agents-settings/h24-agents-settings.component';
 import { L2TechniciansSettingsComponent } from './pages/l2-technicians-settings/l2-technicians-settings.component';
 import { LiveChatComponent } from './pages/live-chat/live-chat.component';
+import { TicketCreatePageComponent } from './pages/ticket-create-page/ticket-create-page.component';
 import { TICKETING_ROLES, TICKETING_STAFF_ROLES } from './ticketing-roles';
 
 const roles = TICKETING_ROLES;
@@ -32,6 +33,7 @@ const routes: Routes = [
       { path: '', component: TicketDashboardPageComponent },
       { path: 'dashboard', component: PerformanceDashboardComponent, ...staffOnly },
       { path: 'chat', component: LiveChatComponent },
+      { path: 'new', component: TicketCreatePageComponent },
       { path: ':id', component: TicketDetailsPageComponent },
       {
         path: 'settings',

@@ -1,0 +1,10 @@
+@import '../../ticketing.shared';
+
+.back { margin-bottom:16px; }
+.form-panel { padding:22px; max-width:900px; }
+.form-panel > .error { margin:0 0 14px; }
+.form-grid .full { grid-column:1 / -1; }
+.form-grid label { color:#3b4660; }
+.form-grid input, .form-grid select, .form-grid textarea { font-weight:400; font-size:13.5px; }
+.form-actions { margin-top:4px; }
+.primary:disabled { opacity:.55; cursor:default; }

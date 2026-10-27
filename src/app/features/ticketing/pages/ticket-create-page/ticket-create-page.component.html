@@ -1,1 +1,60 @@
-<p>ticket-create-page works!</p>
+<main class="ticket-shell">
+  <button type="button" class="ghost back" (click)="cancel()">← Back to tickets</button>
+
+  <header class="ticket-head">
+    <div>
+      <p class="eyebrow">{{ isStaff ? 'Support desk' : 'Client portal' }}</p>
+      <h1>New ticket</h1>
+      <p>{{ isStaff ? 'Log a request on behalf of a client.' : 'Describe your problem and our support team will get back to you.' }}</p>
+    </div>
+  </header>
+
+  <section class="panel form-panel">
+    <p class="error" *ngIf="error">{{ error }}</p>
+
+    <form class="form-grid" (ngSubmit)="submit()">
+      <label class="full">Subject *
+        <input name="subject" [(ngModel)]="form.subject" maxlength="250" required placeholder="Short summary of the problem">
+      </label>
+
+      <label *ngIf="isStaff">Client
+        <select name="client" [(ngModel)]="form.clientUserId">
+          <option [ngValue]="null">No client (internal ticket)</option>
+          <option *ngFor="let c of clients" [ngValue]="c.id">{{ c.fullName }} · {{ c.email }}</option>
+        </select>
+      </label>
+
+      <label *ngIf="isStaff">Origin
+        <select name="origin" [(ngModel)]="form.origin">
+          <option *ngFor="let o of origins" [ngValue]="o">{{ label(o) }}</option>
+        </select>
+      </label>
+
+      <label>Category
+        <select name="category" [(ngModel)]="form.category">
+          <option *ngFor="let c of categories" [ngValue]="c">{{ label(c) }}</option>
+        </select>
+      </label>
+
+      <label>Priority
+        <select name="priority" [(ngModel)]="form.priority">
+          <option *ngFor="let p of priorities" [ngValue]="p">{{ label(p) }}</option>
+        </select>
+      </label>
+
+      <label class="full">Site
+        <input name="site" [(ngModel)]="form.site" maxlength="160" placeholder="Plant, line or location (optional)">
+      </label>
+
+      <label class="full">Problem description *
+        <textarea name="description" [(ngModel)]="form.description" maxlength="8000" required
+                  placeholder="What happened, when, on which equipment, and what you already tried"></textarea>
+      </label>
+
+      <div class="form-actions full">
+        <button type="button" class="ghost" (click)="cancel()">Cancel</button>
+        <button type="submit" class="primary" [disabled]="!valid || saving">{{ saving ? 'Creating…' : 'Create ticket' }}</button>
+      </div>
+    </form>
+  </section>
+</main>
