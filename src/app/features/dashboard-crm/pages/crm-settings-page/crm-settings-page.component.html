@@ -5,6 +5,7 @@
     <button [class.active]="active==='industry'" (click)="active='industry'">{{ i18n.t('settings.industry') }}</button>
     <button *ngIf="permissions.canAccessManagerView" [class.active]="active==='schedule'" (click)="active='schedule'">{{ i18n.t('settings.reportSchedule') }}</button>
     <button [class.active]="active==='notifications'" (click)="active='notifications'">{{ i18n.t('settings.notifications') }}</button>
+    <button [class.active]="active==='lost-reasons'" (click)="active='lost-reasons'">Lost Reasons</button>
   </nav>
 
   <div class="loading" *ngIf="loading">{{ i18n.t('settings.loading') }}</div>
@@ -76,6 +77,37 @@
       <label><span class="notification-icon">↗</span><span class="notification-copy"><strong>{{ i18n.t('settings.stageChangeAlerts') }}</strong><small>{{ i18n.t('settings.stageChangeAlertsDesc') }}</small></span><i class="toggle"><input type="checkbox" [(ngModel)]="preferences.stageChangeAlerts" (change)="savePreferences()"><b></b></i></label>
       <label><span class="notification-icon">◷</span><span class="notification-copy"><strong>{{ i18n.t('settings.closingDateReminders') }}</strong><small>{{ i18n.t('settings.closingDateRemindersDesc') }}</small></span><i class="toggle"><input type="checkbox" [(ngModel)]="preferences.closingDateReminders" (change)="savePreferences()"><b></b></i></label>
     </div></article>
+  </section>
+
+  <!-- ✅ NEW LOST REASONS PANEL -->
+  <section class="settings-panel catalogue-panel" *ngIf="!loading && active==='lost-reasons'">
+    <div class="settings-intro">
+      <div><h2>Lost Reasons</h2><p>Define the reasons why opportunities are marked as lost.</p></div>
+      <button class="btn primary compact" *ngIf="permissions.canWriteCrm" (click)="startLostReason()" [disabled]="addingLostReason">+ Add reason</button>
+    </div>
+    <article class="settings-card">
+      <div class="simple-heading"><span>Reason Name</span><span>Description</span><span>{{ i18n.t('settings.actions') }}</span></div>
+      <div class="simple-list">
+        <div class="simple-row" *ngFor="let reason of lostReasons">
+          <input [(ngModel)]="reason.name" (blur)="saveLostReason(reason)" [disabled]="!permissions.canWriteCrm" placeholder="e.g., Price too high">
+          <input [(ngModel)]="reason.description" (blur)="saveLostReason(reason)" [disabled]="!permissions.canWriteCrm" placeholder="Optional details...">
+          <button class="remove" *ngIf="permissions.canWriteCrm" (click)="deleteLostReason(reason)" title="Remove">×</button>
+        </div>
+        <div class="simple-row new" *ngIf="addingLostReason">
+          <input [(ngModel)]="newLostReason.name" placeholder="Reason name *" (keyup.enter)="addLostReason()">
+          <input [(ngModel)]="newLostReason.description" placeholder="Description" (keyup.enter)="addLostReason()">
+          <div class="new-actions">
+            <button class="mini-action primary-action" (click)="addLostReason()">{{ i18n.t('settings.add') }}</button>
+            <button class="mini-action" (click)="addingLostReason=false">{{ i18n.t('settings.cancel') }}</button>
+          </div>
+        </div>
+        <div class="catalogue-empty" *ngIf="!lostReasons.length && !addingLostReason">
+          <span class="empty-icon">⚠</span>
+          <strong>No lost reasons configured</strong>
+          <small>Add your first reason to make it available when closing opportunities as lost.</small>
+        </div>
+      </div>
+    </article>
   </section>
 
   <div class="form-error" *ngIf="error">{{error}}</div>

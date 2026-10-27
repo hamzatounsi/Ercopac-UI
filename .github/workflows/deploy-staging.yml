@@ -1,17 +1,50 @@
 
-name: Build and Deploy Frontend to Staging
+name: Deploy Frontend to Staging
 
 on:
+  push:
+    branches: [staging]
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: projectum-frontend-staging
+  cancel-in-progress: false
+
 jobs:
-  staging:
-    name: Staging workflow launcher
+  deploy:
+    name: Deploy Frontend
     if: github.ref == 'refs/heads/staging'
     runs-on: ubuntu-latest
+    environment: staging
+
     steps:
-      - name: Confirm staging branch
-        run: echo "Staging branch selected."
+      - name: Configure staging SSH
+        env:
+          SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.STAGING_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/staging_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/staging_key
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Deploy frontend
+        env:
+          HOST: ${{ secrets.STAGING_HOST }}
+          USER: ${{ secrets.STAGING_USER }}
+          PORT: ${{ secrets.STAGING_SSH_PORT }}
+        run: |
+          ssh -i ~/.ssh/staging_key \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -p "$PORT" \
+            "$USER@$HOST" \
+            "bash /opt/projectum-staging/backend/deploy/staging/scripts/deploy-service.sh frontend $GITHUB_SHA"
+
+      - name: Deployment summary
+        run: echo "Frontend deployed commit $GITHUB_SHA"

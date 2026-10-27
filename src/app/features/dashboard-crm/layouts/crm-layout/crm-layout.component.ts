@@ -22,12 +22,16 @@ readonly mainItems = [
   { label: 'Accounts', icon: 'business_center', route: '/crm/accounts', key: 'nav.accounts' },
   { label: 'Leads', icon: 'person', route: '/crm/leads', key: 'nav.leads' },
   { label: 'Opportunities', icon: 'letter-O', route: '/crm/opportunities', key: 'nav.opportunities' },
-  { label: 'Archived Opportunities', icon: 'archive', route: '/crm/opportunities/archived', key: 'nav.archivedOpportunities' } // ✅ AJOUTÉ
+  
 ];
   readonly insightItems = [
     { label: 'Reports', icon: 'description', route: '/crm/reports', key: 'nav.reports' },
     { label: 'Analytics', icon: 'analytics', route: '/crm/analytics', key: 'nav.analytics' }
   ];
+  readonly configItems = [
+  { label: 'Settings', icon: 'settings', route: '/crm/settings', key: 'nav.settings' },
+  { label: 'Archived Opportunities', icon: 'archive', route: '/crm/opportunities/archived', key: 'nav.archivedOpportunities' }
+];
   readonly languages: { code: CrmLang; label: string }[] = [
     { code: 'en', label: 'EN' },
     { code: 'fr', label: 'FR' },

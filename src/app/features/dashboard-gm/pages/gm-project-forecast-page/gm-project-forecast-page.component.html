@@ -63,11 +63,15 @@
           </div>
           <div class="col-type type-cell">
             <div class="desc-main" [title]="row.description">{{ row.description }}</div>
+            <button *ngIf="canDeleteForecastEntry(row)" type="button" class="tb-icon-btn row-delete-btn"
+                    [disabled]="saving" (click)="deleteForecastEntry(row)" title="Delete forecast entry (the WBS node is kept)">
+              <span class="material-symbols-outlined">delete</span>
+            </button>
           </div>
           
           <!-- ✅ INPUT EDITABLE : Sélection d'une tâche Schedule -->
           <div class="col-level level-cell">
-            <select [(ngModel)]="row.linkedScheduleWbs" (change)="onLinkedWbsChange(row)" class="linked-wbs-select" [title]="row.linkedScheduleWbs || 'Select schedule task'">
+            <select *ngIf="getRowType(row) === 'HOUR'" [(ngModel)]="row.linkedScheduleWbs" (change)="onLinkedWbsChange(row)" class="linked-wbs-select" [title]="row.linkedScheduleWbs || 'Select schedule task'">
               <option [ngValue]="null">-- Select Task --</option>
               <option *ngFor="let task of row.availableScheduleTasks" [ngValue]="task.wbsCode">
                 {{ task.wbsCode }} - {{ task.name }} (L{{ task.outlineLevel }})

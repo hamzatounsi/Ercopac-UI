@@ -61,6 +61,7 @@ export interface FinanceSummary {
 
 export interface FinanceEntry {
   id: number;
+  parentId?: number | null;
   wbsCode: string;
   description: string;
   level: number;
@@ -76,4 +77,11 @@ export interface FinanceEntry {
   percentAc?: number;
   rowType?: string;
   leaf?: boolean;
+}
+}
+
+export interface FinanceImportResult {
+  updatedRows: number;
+  unchangedRows: number;
+  messages: string[];
 }

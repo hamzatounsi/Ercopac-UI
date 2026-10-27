@@ -4,7 +4,8 @@ import { Chart } from 'chart.js/auto';
 import * as XLSX from 'xlsx';
 import { GmDashboardService } from '../../services/gm-dashboard.service';
 import { GmFinanceService } from '../../services/gm-finance.service';
-import { FinanceEntry, FinanceSummary, FinanceSettings, FinanceWbsTemplateRow, FinanceWbsRowType, Department, AppUser } from '../../models/finance-settings.model';
+import { FinanceEntry, FinanceImportResult, FinanceSummary, FinanceSettings, FinanceWbsTemplateRow, FinanceWbsRowType, Department, AppUser } from '../../models/finance-settings.model';
+import { PermissionService } from 'src/app/core/services/PermissionService';
 import { HttpClient } from '@angular/common/http';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -37,6 +38,9 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
   loading = false;
   saving = false;
   error: string | null = null;
+  actionError: string | null = null;
+  actionMessage: string | null = null;
+  canWriteFinance = false;
 
   rows: FinanceEntry[] = [];
   filteredRows: FinanceEntry[] = [];
@@ -64,7 +68,7 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
   };
 
   importLoading = false;
-  importReplaceExisting = true;
+  importReplaceExisting = false;
   importPreviewRows: FinanceWbsTemplateRow[] = [];
   importMessage: string | null = null;
   importDragOver = false;
@@ -111,13 +115,18 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     private financeService: GmFinanceService,
     private dashboardService: GmDashboardService,
     private renderer: Renderer2,
-    private http: HttpClient
+    private http: HttpClient,
+    private permissionService: PermissionService
   ) {}
 
   ngOnInit(): void {
     this.projectId = Number(this.route.snapshot.paramMap.get('id'));
     this.loadProjectName();
     this.loadData();
+    this.permissionService.permissions$.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      this.canWriteFinance = this.permissionService.canWrite('FINANCE');
+    });
+    this.permissionService.loadPermissions();
   }
 
   ngOnDestroy(): void {
@@ -310,9 +319,30 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
       if (!wbsCode || !description || !Number.isInteger(level) || level < 1) throw new Error(`Finance row ${index + 1} is invalid.`);
       return { wbsCode, description, level, sales: safeNumber(getValue(r, ['Sales', 'sales'])), budget: safeNumber(getValue(r, ['Budget', 'budget', 'Budjet', 'budjet'])), costReserve: safeNumber(getValue(r, ['CR', 'cr', 'Cost Reserve'])), updatedBudget: safeNumber(getValue(r, ['Updated budget', 'Updated budjet', 'updatedBudget', 'updated_budget'])), commitment: safeNumber(getValue(r, ['Commitment', 'commitment', 'COMMITMENT'])), actualCost: safeNumber(getValue(r, ['Actual', 'actual', 'ACTUAL', 'Actual Cost'])), forecast: safeNumber(getValue(r, ['Forecast', 'Forcast', 'forecast', 'FORECAST'])), ownerName: getStr(r, ['Owner', 'ownerName', 'OWNER']) };
     });
-    this.financeService.importFinance(this.projectId, mapped).subscribe({
-      next: () => { this.loadData(); this.error = null; },
-      error: () => { this.error = 'Failed to import finance file.'; }
+    this.sendFinanceImport(mapped, false);
+  }
+
+  // Existing values are never replaced silently: the backend answers 409 with the list and the user decides.
+  private sendFinanceImport(rows: any[], overwrite: boolean): void {
+    this.actionError = null;
+    this.actionMessage = null;
+    this.financeService.importFinance(this.projectId, rows, overwrite).subscribe({
+      next: (result: FinanceImportResult) => {
+        this.error = null;
+        this.actionMessage = [`Import completed: ${result?.updatedRows ?? 0} row(s) updated, ${result?.unchangedRows ?? 0} unchanged.`,
+          ...(result?.messages ?? [])].join(' ');
+        this.loadData();
+      },
+      error: (err) => {
+        const message = err?.error?.message || 'Failed to import finance file.';
+        if (err?.status === 409 && !overwrite && confirm(`${message}
+
+Overwrite these existing values?`)) {
+          this.sendFinanceImport(rows, true);
+          return;
+        }
+        this.actionError = message;
+      }
     });
   }
 
@@ -399,6 +429,7 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
           templateRows: [...(saved.templateRows ?? [])].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
         };
         this.settingsSaving = false;
+        this.loadData();
       },
       error: (err) => { this.settingsSaving = false; this.settingsError = err.error?.message || 'Failed to save finance settings.'; }
     });
@@ -439,7 +470,26 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
   }
 
   removeTemplateRow(index: number): void {
+    const row = this.financeSettings.templateRows[index];
+    const confirmed = confirm(
+      `Delete WBS node
+
+${row?.codeTemplate ?? ''} – ${row?.description ?? ''}
+
+` +
+      'The node is removed from Finance and Forecast when you click Save. ' +
+      'Saving is refused if the node has child nodes or holds budget, actual, committed or forecast data.'
+    );
+    if (!confirmed) return;
     this.financeSettings.templateRows.splice(index, 1);
+    this.normalizeTemplateSortOrder();
+  }
+
+  moveTemplateRow(index: number, direction: -1 | 1): void {
+    const target = index + direction;
+    if (target < 0 || target >= this.financeSettings.templateRows.length) return;
+    const rows = this.financeSettings.templateRows;
+    [rows[index], rows[target]] = [rows[target], rows[index]];
     this.normalizeTemplateSortOrder();
   }
 
@@ -617,22 +667,21 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
         this.importLoading = false;
         this.importMessage = `Imported ${this.financeSettings.templateRows.length} WBS template rows successfully.`;
         this.activeSettingsTab = 'wbs';
+        this.loadData();
       },
-      error: () => { this.importLoading = false; this.settingsError = 'Failed to import WBS template.'; }
+      error: (err) => { this.importLoading = false; this.settingsError = err?.error?.message || 'Failed to import WBS template.'; }
     });
   }
 
   updateForecast(row: FinanceEntry, newValue: string | number): void {
+    if (!this.isForecastEditable(row)) return;
     const parsed = Number(newValue);
     if (Number.isNaN(parsed) || parsed < 0 || parsed === row.forecast) return;
     const previous = row.forecast;
     row.forecast = parsed;
     this.financeService.updateForecastValue(this.projectId, row.id, parsed).subscribe({
-      next: (updated) => {
-        const idx = this.rows.findIndex(r => r.id === updated.id);
-        if (idx !== -1) this.rows[idx] = updated;
-        this.applyFilters();
-        this.financeService.getFinanceSummary(this.projectId).subscribe({ next: (summary) => { this.summary = summary; this.createCharts(); } });
+      next: () => {
+        this.loadData();
       },
       error: (err) => { row.forecast = previous; this.error = err.error?.message || 'Failed to update forecast.'; }
     });

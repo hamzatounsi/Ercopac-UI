@@ -45,7 +45,7 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
   newEquipmentQuantity = 1; 
   showEquipmentAdd = false;
   contactedDate: string | null = null;
-
+  lostReasons: any[] = []; 
   constructor(
     private crm: CrmService, 
     private route: ActivatedRoute, 
@@ -61,6 +61,8 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
   
   load(): void {
     this.loading = true;
+    this.crm.getLostReasons(this.orgId).subscribe(reasons => this.lostReasons = reasons);
+
     forkJoin({ 
       opportunity: this.crm.getOpportunity(this.orgId, this.id), 
       stages: this.crm.getStages(this.orgId), 
@@ -184,7 +186,9 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
     opportunityType: this.form.opportunityType,
     pipeline: this.form.pipeline,
     currency: this.form.currency,
-    teamMembers: this.form.teamMembers
+    teamMembers: this.form.teamMembers,
+    lostReasonId: this.form.lostReasonId,
+    lostReasonOther: this.form.lostReasonOther
   };
 
   console.log('✅ Sending payload:', payload);

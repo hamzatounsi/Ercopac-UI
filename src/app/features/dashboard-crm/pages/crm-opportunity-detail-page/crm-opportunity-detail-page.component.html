@@ -56,10 +56,29 @@
                 <option *ngFor="let user of users" [ngValue]="user.id">{{ user.name }}</option>
               </select>
             </div>
-            <div class="summary-row">
+                        <div class="summary-row">
               <label>Stage</label>
               <strong>{{ opportunity.stageName }}</strong>
             </div>
+
+            <!-- ✅ NEW: Lost Reason Dropdown (Only shows when stage is "Closed lost") -->
+            <div class="summary-row" *ngIf="opportunity.stageName === 'Closed lost' || form.stageName === 'Closed lost'">
+              <label>Lost reason</label>
+              <select [(ngModel)]="form.lostReasonId" [disabled]="!permissions.canWriteCrm">
+                <option [ngValue]="null">Select a reason</option>
+                <option *ngFor="let reason of lostReasons" [ngValue]="reason.id">{{reason.name}}</option>
+                <option [ngValue]="'other'">Other (specify below)</option>
+              </select>
+              
+              <!-- Other reason text field -->
+              <input *ngIf="form.lostReasonId === 'other'" 
+                     [(ngModel)]="form.lostReasonOther" 
+                     placeholder="Please specify the reason..."
+                     [disabled]="!permissions.canWriteCrm"
+                     style="margin-top: 8px; width: 100%;">
+            </div>
+            <!-- ✅ END NEW BLOCK -->
+
             <div class="summary-row discount-row">
               <label>Discount</label>
               <div class="discount-control">

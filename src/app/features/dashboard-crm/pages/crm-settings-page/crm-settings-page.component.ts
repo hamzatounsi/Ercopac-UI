@@ -7,11 +7,43 @@ import { CrmPermissionsService } from '../../services/crm-permissions.service';
 import { CrmService } from '../../services/crm.service';
 import { CrmI18nService } from '../../services/crm-i18n.service';
 
+export interface LostReason {
+  id: number | null;
+  name: string;
+  description: string | null;
+  active: boolean;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
 @Component({ selector: 'app-crm-settings-page', templateUrl: './crm-settings-page.component.html', styleUrls: ['./crm-settings-page.component.scss'] })
 export class CrmSettingsPageComponent implements OnInit {
-  orgId = this.crm.getOrgIdFromToken(); active: 'pipeline' | 'industry' | 'equipment' | 'schedule' | 'notifications' = 'pipeline'; stages: CrmPipelineStage[] = []; industries: CrmIndustry[] = []; equipmentTypes: CrmEquipmentType[]=[]; schedules: CrmReportSchedule[]=[]; newEquipment: CrmEquipmentType={id:null,code:'',name:'',active:true}; newStage = emptyStage(); newIndustry: CrmIndustry = { id: null, name: '', active: true };
+  orgId = this.crm.getOrgIdFromToken(); 
+  active: 'pipeline' | 'industry' | 'equipment' | 'schedule' | 'notifications' | 'lost-reasons' = 'pipeline'; 
+  
+  stages: CrmPipelineStage[] = []; 
+  industries: CrmIndustry[] = []; 
+  equipmentTypes: CrmEquipmentType[] = []; 
+  schedules: CrmReportSchedule[] = []; 
+  lostReasons: LostReason[] = []; 
+  
+  newEquipment: CrmEquipmentType = {id:null, code:'', name:'', active:true}; 
+  newStage = emptyStage(); 
+  newIndustry: CrmIndustry = { id: null, name: '', active: true };
+  newLostReason: LostReason = { id: null, name: '', description: '', active: true, createdAt: null, updatedAt: null };
+
   preferences: CrmNotificationPreference = { emailNotifications: true, stageChangeAlerts: true, closingDateReminders: false };
-  addingStage = false; addingIndustry = false; addingEquipment=false; loading = true; savingPreferences = false; error = ''; toast = '';
+  
+  addingStage = false; 
+  addingIndustry = false; 
+  addingEquipment = false; 
+  addingLostReason = false; 
+  
+  loading = true; 
+  savingPreferences = false; 
+  error = ''; 
+  toast = '';
+
   readonly reportOptions = [
     { id: 'WORLD_MAP', label: 'settings.reports.WORLD_MAP' }, { id: 'BY_COUNTRY', label: 'settings.reports.BY_COUNTRY' },
     { id: 'TIMELINE', label: 'settings.reports.TIMELINE' }, { id: 'VALUE_SPLIT', label: 'settings.reports.VALUE_SPLIT' },
@@ -20,11 +52,35 @@ export class CrmSettingsPageComponent implements OnInit {
     { id: 'BP_PROJECTS', label: 'settings.reports.BP_PROJECTS' }, { id: 'EXPECTED_REVENUE', label: 'settings.reports.EXPECTED_REVENUE' },
     { id: 'EQUIPMENT_OVERVIEW', label: 'settings.reports.EQUIPMENT_OVERVIEW' }, { id: 'EQUIPMENT_SHIPMENT_ON_TIME', label: 'settings.reports.EQUIPMENT_SHIPMENT_ON_TIME' }
   ];
+
   constructor(private crm: CrmService, public permissions: CrmPermissionsService, public i18n: CrmI18nService) {}
   
   ngOnInit(): void { this.load(); }
   
-  load(): void { forkJoin({ stages: this.crm.getStages(this.orgId), industries: this.crm.getIndustries(this.orgId, true), equipment:this.crm.getEquipmentTypes(this.orgId,true), schedules:this.permissions.canAccessManagerView?this.crm.getReportSchedules(this.orgId):of([] as CrmReportSchedule[]), preferences: this.crm.getNotificationPreferences(this.orgId) }).subscribe({ next: result => { this.stages = result.stages; this.industries = result.industries; this.equipmentTypes=result.equipment;this.schedules=result.schedules; this.preferences = result.preferences; this.loading = false; }, error: error => { this.error = error?.error?.message || this.i18n.t('settings.error.load'); this.loading = false; } }); }
+  load(): void { 
+    forkJoin({ 
+      stages: this.crm.getStages(this.orgId), 
+      industries: this.crm.getIndustries(this.orgId, true), 
+      equipment: this.crm.getEquipmentTypes(this.orgId, true), 
+      schedules: this.permissions.canAccessManagerView ? this.crm.getReportSchedules(this.orgId) : of([] as CrmReportSchedule[]), 
+      preferences: this.crm.getNotificationPreferences(this.orgId),
+      lostReasons: this.crm.getLostReasons(this.orgId)
+    }).subscribe({ 
+      next: result => { 
+        this.stages = result.stages; 
+        this.industries = result.industries; 
+        this.equipmentTypes = result.equipment;
+        this.schedules = result.schedules; 
+        this.preferences = result.preferences; 
+        this.lostReasons = result.lostReasons; 
+        this.loading = false; 
+      }, 
+      error: error => { 
+        this.error = error?.error?.message || this.i18n.t('settings.error.load'); 
+        this.loading = false; 
+      } 
+    }); 
+  }
   
   saveEquipment(item:CrmEquipmentType):void {if(!item.id)return;this.crm.updateEquipmentType(this.orgId,item.id,item).subscribe({next:v=>{Object.assign(item,v);this.flash(this.i18n.t('settings.toast.equipmentSaved'));},error:e=>this.error=e?.error?.message||this.i18n.t('settings.error.saveEquipment')});}
   addEquipment():void {if(!this.newEquipment.code.trim()||!this.newEquipment.name.trim())return;this.crm.createEquipmentType(this.orgId,this.newEquipment).subscribe({next:v=>{this.equipmentTypes=[...this.equipmentTypes,v];this.newEquipment={id:null,code:'',name:'',active:true};this.addingEquipment=false;this.flash(this.i18n.t('settings.toast.equipmentAdded'));},error:e=>this.error=e?.error?.message||this.i18n.t('settings.error.addEquipment')});}
@@ -45,5 +101,11 @@ export class CrmSettingsPageComponent implements OnInit {
   addIndustry(): void { if (!this.newIndustry.name.trim()) return; this.crm.createIndustry(this.orgId, this.newIndustry).subscribe({ next: value => { this.industries = [...this.industries, value].sort((a, b) => a.name.localeCompare(b.name)); this.newIndustry = { id: null, name: '', active: true }; this.addingIndustry = false; this.flash(this.i18n.t('settings.toast.industryAdded')); }, error: error => this.error = error?.error?.message || this.i18n.t('settings.error.addIndustry') }); }
   deleteIndustry(industry: CrmIndustry): void { if (!industry.id || !confirm(this.i18n.t('settings.confirm.deleteIndustry'))) return; this.crm.deleteIndustry(this.orgId, industry.id).subscribe({ next: () => { this.industries = this.industries.filter(value => value.id !== industry.id); this.flash(this.i18n.t('settings.toast.industryDeleted')); }, error: error => this.error = error?.error?.message || this.i18n.t('settings.error.deleteIndustry') }); }
   savePreferences(): void { if (this.savingPreferences) return; this.savingPreferences = true; this.crm.saveNotificationPreferences(this.orgId, this.preferences).subscribe({ next: value => { this.preferences = value; this.savingPreferences = false; this.flash(this.i18n.t('settings.toast.preferencesSaved')); }, error: error => { this.error = error?.error?.message || this.i18n.t('settings.error.savePreferences'); this.savingPreferences = false; } }); }
+
+  startLostReason(): void { this.newLostReason = { id: null, name: '', description: '', active: true, createdAt: null, updatedAt: null }; this.addingLostReason = true; }
+  addLostReason(): void { if (!this.newLostReason.name.trim()) return; this.crm.createLostReason(this.orgId, this.newLostReason).subscribe({ next: v => { this.lostReasons = [...this.lostReasons, v]; this.newLostReason = { id: null, name: '', description: '', active: true, createdAt: null, updatedAt: null }; this.addingLostReason = false; this.flash('Lost reason added'); }, error: e => this.error = e?.error?.message || 'Unable to add lost reason' }); }
+  saveLostReason(item: LostReason): void { if (!item.id) return; this.crm.updateLostReason(this.orgId, item.id, item).subscribe({ next: v => { Object.assign(item, v); this.flash('Lost reason saved'); }, error: e => this.error = e?.error?.message || 'Unable to save lost reason' }); }
+  deleteLostReason(item: LostReason): void { if (!item.id || !confirm('Delete this lost reason?')) return; this.crm.deleteLostReason(this.orgId, item.id).subscribe({ next: () => { this.lostReasons = this.lostReasons.filter(value => value.id !== item.id); this.flash('Lost reason deleted'); }, error: e => this.error = e?.error?.message || 'Unable to delete lost reason' }); }
+
   private flash(value: string): void { this.toast = value; setTimeout(() => this.toast = '', 2000); }
 }

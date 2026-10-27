@@ -9,6 +9,7 @@ export interface ScheduleTaskOption {
 
 export interface ForecastRow {
   financeEntryId: number;
+  parentId?: number | null;
   wbsCode: string;
   description: string;
   level: number;
@@ -28,8 +29,8 @@ export interface ForecastRow {
   
   periods: ForecastGridCell[];
 
-  // Hierarchy and money values computed by the backend (parents are rolled up from leaves)
-  parentId?: number | null;
+  // Calculated by the backend: leaf flag and remaining forecast cost in money
+  // (parents are rolled up from their leaves)
   leaf?: boolean;
   remainingForecastCost?: number;
 }

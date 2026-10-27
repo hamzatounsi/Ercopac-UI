@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { FinanceEntry } from '../models/finance-entry.model';
 import { FinanceSummary } from '../models/finance-summary.model';
 import {
+  FinanceImportResult,
   FinanceSettings,
   ApplyFinanceTemplateResult,
   FinanceWbsTemplateRow
@@ -32,8 +33,15 @@ export class GmFinanceService {
     return this.http.get<FinanceSummary>(`${this.baseUrl}/${projectId}/finance/summary`);
   }
 
-  importFinance(projectId: number, rows: any[]): Observable<any> {
-    return this.http.post(`${this.baseUrl}/${projectId}/finance/import`, rows);
+  /** Without overwrite the backend answers 409 listing existing values the import would replace. */
+  importFinance(projectId: number, rows: any[], overwrite = false): Observable<FinanceImportResult> {
+    const params = new HttpParams().set('overwrite', String(overwrite));
+    return this.http.post<FinanceImportResult>(`${this.baseUrl}/${projectId}/finance/import`, rows, { params });
+  }
+
+  /** Deletes an empty leaf WBS node; the backend refuses nodes with children or financial/forecast data. */
+  deleteWbsNode(projectId: number, rowId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${projectId}/finance/${rowId}`);
   }
 
   recalculateLabour(projectId: number): Observable<any> {
