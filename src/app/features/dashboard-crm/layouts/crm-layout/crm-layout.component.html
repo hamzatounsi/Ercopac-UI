@@ -43,10 +43,7 @@
       </button>
     </div>
 
-    <button class="workspace-link" (click)="handleWorkspaceNavigation()">
-      <span class="material-symbols-outlined">{{ showLogoutInsteadOfWorkspace ? 'logout' : 'apps' }}</span>
-      {{ showLogoutInsteadOfWorkspace ? 'Logout' : i18n.t('header.workspaces') }}
-    </button>
+    <app-nav-buttons class="workspace-link" [homes]="['/crm/opportunities', '/crm/dashboard']"></app-nav-buttons>
     
     <div class="header-user">
       <div class="avatar">{{ initials }}</div>

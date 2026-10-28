@@ -222,10 +222,12 @@
             </div>
           </section>
 
-          <section class="ai-insights-card">
+          <button type="button" class="ai-launcher" (click)="aiOpen = true" aria-label="Open Projectum AI assistant"><span class="material-symbols-outlined">auto_awesome</span> Ask AI</button>
+          <div class="ai-backdrop" *ngIf="aiOpen" (click)="aiOpen = false"></div>
+          <section class="ai-insights-card" *ngIf="aiOpen" role="dialog" aria-modal="true" aria-label="Projectum AI assistant">
             <div class="ai-header">
               <div><h2>AI Project Assistant</h2><p>Project context: <strong>{{ project.code }}</strong> · Status, schedule, finance and actions.</p></div>
-              <span class="ai-status" [class.busy]="aiLoading">{{ aiLoading ? 'Working' : 'Ready' }}</span>
+              <button type="button" class="ai-close" (click)="aiOpen = false" aria-label="Close AI assistant">&times;</button>
             </div>
 
             <div class="ai-quick-actions">
@@ -238,22 +240,25 @@
             <textarea
               [(ngModel)]="aiQuestion"
               placeholder="Ask something about this project..."
-              rows="4" maxlength="1000" aria-label="Question for the project AI assistant" (keydown)="onAiKeydown($event)">
+              rows="4" maxlength="500" aria-label="Question for the project AI assistant" (keydown)="onAiKeydown($event)">
             </textarea>
 
-            <div class="ai-input-meta"><span>{{ aiQuestion.length }}/1000</span><span>Enter to ask · Shift+Enter for a new line</span></div>
+            <div class="ai-input-meta"><span>{{ aiQuestion.length }}/500</span><span>Enter to ask · Shift+Enter for a new line</span></div>
+
+            <label class="ai-pdf-option"><input type="checkbox" [(ngModel)]="aiGeneratePdf"> Download PDF when the answer is ready</label>
 
             <button class="ai-submit-btn" type="button" (click)="askAi()" [disabled]="aiLoading">
               {{ aiLoading ? 'Analyzing…' : 'Ask AI' }}
             </button>
 
+            <div class="ai-streaming" *ngIf="aiLoading"><span class="ai-pulse"></span> {{ aiAnswer ? 'Writing answer...' : 'Reading project data...' }}</div>
             <div class="ai-error" *ngIf="aiError">
               <span>{{ aiError }}</span><button type="button" (click)="retryAi()" *ngIf="aiLastQuestion && !aiLoading">Retry</button>
             </div>
 
             <div class="ai-answer" *ngIf="aiAnswer">
-              <div class="ai-answer-head"><h3>AI Answer</h3><div><small *ngIf="aiUpdatedAt">Updated {{ aiUpdatedAt | date:'shortTime' }}</small><button type="button" (click)="copyAiAnswer()" aria-label="Copy AI answer">Copy</button><button type="button" (click)="clearAi()">Clear</button></div></div>
-              <pre>{{ aiAnswer }}</pre>
+              <div class="ai-answer-head"><h3>AI Answer</h3><div><small *ngIf="aiUpdatedAt">Updated {{ aiUpdatedAt | date:'shortTime' }}</small><button type="button" (click)="downloadAiPdf()" [disabled]="aiLoading">PDF</button><button type="button" (click)="copyAiAnswer()" aria-label="Copy AI answer">Copy</button><button type="button" (click)="clearAi()">Clear</button></div></div>
+              <app-ai-answer [text]="aiAnswer" [streaming]="aiLoading"></app-ai-answer>
             </div>
           </section>
         </div>

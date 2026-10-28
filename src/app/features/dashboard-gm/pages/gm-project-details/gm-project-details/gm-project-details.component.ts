@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { GmDashboardService } from '../../../services/gm-dashboard.service';
 import { ProjectDetails } from '../../../models/project-details.model';
 import { GmAiAssistantService } from '../../../services/gm-ai-assistant.service';
+import { AiPdfExportService } from '../../../services/ai-pdf-export.service';
 
 @Component({
   selector: 'app-gm-project-details',
@@ -19,12 +20,15 @@ export class GmProjectDetailsComponent implements OnInit {
   aiError = '';
   aiLastQuestion = '';
   aiUpdatedAt: Date | null = null;
+  aiOpen = false;
+  aiGeneratePdf = false;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private gmService: GmDashboardService,
-    private aiService: GmAiAssistantService
+    private aiService: GmAiAssistantService,
+    private aiPdf: AiPdfExportService
   ) {}
 
   ngOnInit(): void {
@@ -65,23 +69,19 @@ export class GmProjectDetailsComponent implements OnInit {
 
     this.aiLoading = true;
     this.aiError = '';
+    this.aiAnswer = '';
     this.aiLastQuestion = finalQuestion;
 
-    this.aiService.askProjectAssistant(this.project.id, finalQuestion).subscribe({
-      next: (res) => {
-        this.aiAnswer = (res.answer || '').trim() || 'The assistant returned an empty response. Please try again.';
+    this.aiService.streamProjectAssistant(this.project.id, finalQuestion).subscribe({
+      next: (answer) => { this.aiAnswer = answer; },
+      complete: () => {
+        if (!this.aiAnswer.trim()) this.aiError = 'The assistant returned an empty response. Please retry.';
         this.aiUpdatedAt = new Date();
         this.aiLoading = false;
+        if (this.aiAnswer.trim() && this.aiGeneratePdf) this.downloadAiPdf();
       },
       error: (err) => {
-        const status = err?.status;
-        this.aiError = status === 408 || status === 504
-          ? 'The AI request timed out. Try a shorter question or retry shortly.'
-          : status === 503
-            ? 'Ollama is currently unavailable. Start the local AI service and try again.'
-            : status === 401 || status === 403
-              ? 'You are not authorised to use the assistant for this project.'
-              : 'The AI assistant is unavailable right now. Please retry.';
+        this.aiError = err?.message || 'The AI assistant is unavailable right now. Please retry.';
         this.aiLoading = false;
       }
     });
@@ -96,6 +96,13 @@ export class GmProjectDetailsComponent implements OnInit {
   clearAi(): void { this.aiQuestion = ''; this.aiAnswer = ''; this.aiError = ''; this.aiLastQuestion = ''; this.aiUpdatedAt = null; }
 
   copyAiAnswer(): void { if (this.aiAnswer && navigator.clipboard) navigator.clipboard.writeText(this.aiAnswer); }
+
+  downloadAiPdf(): void {
+    if (this.project && this.aiAnswer.trim()) {
+      void this.aiPdf.download(this.project.name, this.aiLastQuestion, this.aiAnswer)
+        .catch(() => { this.aiError = 'The answer is ready, but the PDF could not be downloaded.'; });
+    }
+  }
 
   formatCurrency(value?: number): string {
     if (value === null || value === undefined) {

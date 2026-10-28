@@ -1,16 +1,7 @@
 <section class="projectum-workspace-header" aria-label="Projectum page context">
   <div class="context-row">
     <div class="context-copy">
-      <a *ngIf="hasProjectContext || showBack; else workspaceBack" class="back-button" routerLink="/gm/projectum">
-        <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
-        Back to Portfolio
-      </a>
-      <ng-template #workspaceBack>
-        <a class="back-button" routerLink="/workspace">
-          <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
-          Back to Workspace
-        </a>
-      </ng-template>
+      <app-nav-buttons [homes]="['/gm/projectum']"></app-nav-buttons>
       <h1>{{ title }}</h1>
     </div>
 

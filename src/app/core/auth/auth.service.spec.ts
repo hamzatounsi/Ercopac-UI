@@ -20,7 +20,18 @@ describe('AuthService', () => {
     expect(service.isLoggedIn()).toBeTrue();
   });
 
-  it('routes every single role directly to its primary module', () => {
+  it('sends an Organisation Admin with another role to the app chooser', () => {
+    const expiry = Math.floor(Date.now() / 1000) + 300;
+    localStorage.setItem('token', token({ roles: ['ORG_ADMIN', 'PROJECT_MANAGER'], exp: expiry }));
+    expect(service.getHomeRoute()).toBe('/workspace');
+    expect(service.getAccessibleWorkspaceModules().map(module => module.key)).toEqual(['ORGANISATION_ADMIN', 'PROJECTUM']);
+
+    localStorage.setItem('token', token({ roles: ['PLATFORM_OWNER', 'CLIENT'], exp: expiry }));
+    expect(service.getHomeRoute()).toBe('/owner');
+    expect(service.getAccessibleWorkspaceModules().map(module => module.key)).toEqual(['PLATFORM_ADMIN']);
+  });
+
+  it('keeps other roles on the app chooser', () => {
     const expiry = Math.floor(Date.now() / 1000) + 300;
     const expectedHomes: Array<[string, string]> = [
       ['PLATFORM_OWNER', '/owner'],
@@ -33,7 +44,7 @@ describe('AuthService', () => {
 
     expectedHomes.forEach(([role, home]) => {
       localStorage.setItem('token', token({ roles: [role], exp: expiry }));
-      expect(service.getHomeRoute()).withContext(role).toBe(home);
+      expect(service.getHomeRoute()).withContext(role).toBe(role === 'PLATFORM_OWNER' ? home : '/workspace');
     });
   });
 

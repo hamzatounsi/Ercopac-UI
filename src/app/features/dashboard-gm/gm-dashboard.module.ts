@@ -1,3 +1,4 @@
+import { AppNavButtonsComponent } from 'src/app/core/navigation/app-nav-buttons.component';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -20,6 +21,7 @@ import { GmProjectActionsPageComponent } from './pages/gm-project-actions-page/g
 import { ProjectumProjectHeaderComponent } from './widgets/projectum-project-header/projectum-project-header.component';
 import { ProjectumWorkspaceHeaderComponent } from './widgets/projectum-workspace-header/projectum-workspace-header.component';
 import { ProjectumNotificationsComponent } from './widgets/projectum-notifications/projectum-notifications.component';
+import { AiAnswerComponent } from './widgets/ai-answer/ai-answer.component';
 import { GmResourceManagementPageComponent } from './pages/gm-resource-management-page/gm-resource-management-page.component';
 import { HttpClientModule } from '@angular/common/http';
 import { GmAdminSettingsPageComponent } from './pages/gm-admin-settings-page/gm-admin-settings-page.component';
@@ -55,6 +57,7 @@ import { MilestoneDashboardComponent } from './pages/milestone-dashboard/milesto
     ProjectumProjectHeaderComponent,
     ProjectumWorkspaceHeaderComponent,
     ProjectumNotificationsComponent,
+    AiAnswerComponent,
     GmResourceManagementPageComponent,
     GmAdminSettingsPageComponent,
     CategoriesTabComponent,
@@ -73,7 +76,8 @@ import { MilestoneDashboardComponent } from './pages/milestone-dashboard/milesto
     FormsModule,
     ReactiveFormsModule,
     GmDashboardRoutingModule,
-    HttpClientModule
+    HttpClientModule,
+    AppNavButtonsComponent
   ]
 })
 export class GmDashboardModule {}

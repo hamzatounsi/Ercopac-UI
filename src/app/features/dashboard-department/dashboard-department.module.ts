@@ -1,3 +1,4 @@
+import { AppNavButtonsComponent } from 'src/app/core/navigation/app-nav-buttons.component';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -15,7 +16,8 @@ import { ResourceSettingsPageComponent } from './pages/resource-settings-page/re
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    RouterModule
+    RouterModule,
+    AppNavButtonsComponent
   ],
   exports: [
     MyDepartmentPageComponent,

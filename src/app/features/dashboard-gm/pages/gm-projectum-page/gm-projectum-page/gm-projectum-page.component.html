@@ -119,22 +119,22 @@
     </div>
   </section>
 
-<button class="ai-floating-btn" type="button" (click)="aiOpen = true">
+<button class="ai-floating-btn" type="button" (click)="aiOpen = true" aria-label="Open Projectum AI assistant">
   <span class="material-symbols-outlined">auto_awesome</span>
   AI Assistant
 </button>
 
 <div class="ai-drawer-backdrop" *ngIf="aiOpen" (click)="aiOpen = false"></div>
 
-<aside class="ai-drawer" *ngIf="aiOpen">
+<aside class="ai-drawer" *ngIf="aiOpen" role="dialog" aria-modal="true" aria-label="Projectum AI assistant">
   <div class="ai-drawer-header">
     <div>
       <div class="ai-kicker">Projectum AI</div>
-      <h3>AI Assistant</h3>
+      <h3><span class="material-symbols-outlined">auto_awesome</span> AI Assistant</h3>
       <p>{{ selectedProject ? selectedProject.code + ' · ' + selectedProject.name : 'Select a project first' }}</p>
     </div>
 
-    <button type="button" class="ai-close" (click)="aiOpen = false">✕</button>
+    <button type="button" class="ai-close" (click)="aiOpen = false" aria-label="Close AI assistant">✕</button>
   </div>
   <div class="ai-toast" *ngIf="aiNotification">
     <span class="material-symbols-outlined">notifications</span>
@@ -142,26 +142,30 @@
   </div>
 
   <div class="ai-actions">
-    <button type="button" (click)="askAi('Summarize this project status.')">Summary</button>
-    <button type="button" (click)="askAi('Analyze the main risks and suggest recommendations.')">Risks</button>
-    <button type="button" (click)="askAi('Generate a professional project status report.')">Report</button>
-    <button type="button" (click)="askAi('Suggest corrective actions for this project.')">Actions</button>
+    <button type="button" [disabled]="aiLoading" (click)="askAi('Summarize this project status.')">Summary</button>
+    <button type="button" [disabled]="aiLoading" (click)="askAi('Analyze the main risks and suggest recommendations.')">Risks</button>
+    <button type="button" [disabled]="aiLoading" (click)="askAi('Generate a professional project status report.')">Report</button>
+    <button type="button" [disabled]="aiLoading" (click)="askAi('Suggest corrective actions for this project.')">Actions</button>
   </div>
 
   <textarea
     [(ngModel)]="aiQuestion"
     placeholder="Ask about the selected project..."
-    rows="4">
+    rows="4" maxlength="500">
   </textarea>
+
+  <label class="ai-pdf-option"><input type="checkbox" [(ngModel)]="aiGeneratePdf"> Download PDF when the answer is ready</label>
 
   <button class="ai-submit" type="button" (click)="askAi()" [disabled]="aiLoading">
     {{ aiLoading ? 'Analyzing...' : 'Ask AI' }}
   </button>
 
+  <div class="ai-streaming" *ngIf="aiLoading"><span class="ai-pulse"></span> {{ aiAnswer ? 'Writing answer...' : 'Reading project data...' }}</div>
   <div class="ai-error" *ngIf="aiError">{{ aiError }}</div>
 
   <div class="ai-answer" *ngIf="aiAnswer">
-    <pre>{{ aiAnswer }}</pre>
+    <div class="ai-answer-head"><strong>Answer</strong><button type="button" (click)="downloadAiPdf()" [disabled]="aiLoading">Download PDF</button></div>
+    <app-ai-answer [text]="aiAnswer" [streaming]="aiLoading"></app-ai-answer>
   </div>
 </aside>
 

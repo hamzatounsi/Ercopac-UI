@@ -1,0 +1,4 @@
+@import '../../ticketing.shared';
+td small { display:block; color:#71809a; font-weight:400; font-size:11.5px; }
+.add-row { display:flex; gap:8px; align-items:center; margin-bottom:14px; flex-wrap:wrap; }
+.add-row .select { max-width:320px; }

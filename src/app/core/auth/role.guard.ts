@@ -17,7 +17,17 @@ export class RoleGuard implements CanActivate {
       return this.router.createUrlTree(['/']);
     }
 
-    const hasAccess = userRoles.some(userRole => allowedRoles.includes(userRole));
+    const excludedRoles = ((route.data['excludeRoles'] as string[]) || [])
+      .map(role => role.replace(/^ROLE_/, ''));
+    if (userRoles.some(role => excludedRoles.includes(role))) {
+      return this.router.createUrlTree(['/forbidden']);
+    }
+
+    const adminRole = userRoles.includes('PLATFORM_OWNER') ? 'PLATFORM_OWNER'
+      : userRoles.length === 1 && userRoles[0] === 'ORG_ADMIN' ? 'ORG_ADMIN' : null;
+    const hasAccess = adminRole
+      ? allowedRoles.length === 1 && allowedRoles[0] === adminRole
+      : userRoles.some(userRole => allowedRoles.includes(userRole));
 
     if (!hasAccess) {
       return this.router.createUrlTree(['/forbidden']);

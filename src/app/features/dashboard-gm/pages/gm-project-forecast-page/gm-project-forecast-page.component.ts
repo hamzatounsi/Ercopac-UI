@@ -158,6 +158,37 @@ export class GmProjectForecastPageComponent implements OnInit {
     return this.formatMoney(hours * rate);
   }
 
+  // Breakdown shown under "Remaining Schedule": same inputs as formatRemainingSchedule
+  // (backend: remainingCost = remainingHours × hourRate for HOUR leaves, parents = sum of children)
+  getRemainingScheduleFormula(row: ForecastRow): { text: string; title: string } | null {
+    const hours = this.formatDecimal(row.remainingHours || 0);
+    const result = this.formatRemainingSchedule(row);
+    if (row.leaf === false) {
+      return {
+        text: `Total of sub-rows: ${hours} h = ${result}`,
+        title: `Sum of the Remaining Schedule of every row under this one (${hours} h in total) = ${result}`
+      };
+    }
+    if (this.getRowType(row) !== 'HOUR') return null;
+    const rate = this.formatRate(this.getHourlyRate(row));
+    return {
+      text: `${rate} × ${hours} h = ${result}`,
+      title: `hourRate (${rate}/h) × remainingHours (${hours} h) = remainingCost (${result})`
+    };
+  }
+
+  private formatRate(value: number): string {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'EUR',
+      maximumFractionDigits: 2
+    }).format(value);
+  }
+
+  private formatDecimal(value: number): string {
+    return new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(value);
+  }
+
    getRemaining(row: ForecastRow): number {
     // Backend value: money for every row, parents rolled up from their leaves
     if (row.remainingForecastCost != null) return row.remainingForecastCost;

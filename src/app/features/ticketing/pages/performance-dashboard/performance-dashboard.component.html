@@ -1,98 +1,204 @@
-<div class="dashboard-container">
-  <!-- Tabs -->
-  <div class="tabs mb-6">
-    <button [class.active]="activeTab === 'org'" (click)="switchTab('org')" class="tab-btn">Organisation Performance</button>
-    <button [class.active]="activeTab === 'team'" (click)="switchTab('team')" class="tab-btn">Team Performance</button>
+<main class="page-pad">
+  <header class="view-head">
+    <div>
+      <h1>Performance dashboard</h1>
+      <p>Tickets created {{ period === 'custom' ? 'between ' + periodLabel : periodLabel }}. SLA targets come from Settings › Priorities.</p>
+    </div>
+    <button class="ghost" (click)="load()" [disabled]="loading">Refresh</button>
+  </header>
+
+  <div class="dash-tabs" role="tablist">
+    <button role="tab" [class.on]="tab === 'org'" [attr.aria-selected]="tab === 'org'" (click)="tab = 'org'"><span class="material-symbols-outlined">apartment</span>Organisation performance</button>
+    <button role="tab" [class.on]="tab === 'team'" [attr.aria-selected]="tab === 'team'" (click)="tab = 'team'"><span class="material-symbols-outlined">groups</span>Team performance</button>
   </div>
 
-  <!-- ORGANISATION TAB -->
-  <div *ngIf="activeTab === 'org' && basicStats">
-    <!-- KPI Cards -->
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <h3>Open Tickets</h3>
-        <p class="value">{{ basicStats.open || 0 }}</p>
-      </div>
-      <div class="kpi-card">
-        <h3>Resolved</h3>
-        <p class="value text-green">{{ basicStats.resolved || 0 }}</p>
-      </div>
-      <div class="kpi-card">
-        <h3>Total Tickets</h3>
-        <p class="value">{{ totalTickets }}</p>
-      </div>
-      <div class="kpi-card">
-        <h3>In Progress</h3>
-        <p class="value">{{ basicStats.inProgress || 0 }}</p>
-      </div>
+  <!-- Period -->
+  <div class="period-bar">
+    <span class="muted-sm">Period:</span>
+    <div class="chips">
+      <button *ngFor="let p of periods" [class.on]="period === p.key" (click)="setPeriod(p.key)">{{ p.label }}</button>
+      <button [class.on]="period === 'custom' || customOpen" (click)="customOpen = !customOpen">Custom…</button>
     </div>
+    <form class="custom" *ngIf="customOpen || period === 'custom'" (ngSubmit)="applyCustom()">
+      <input class="input" type="date" name="from" [(ngModel)]="customFrom" aria-label="From">
+      <span class="muted-sm">→</span>
+      <input class="input" type="date" name="to" [(ngModel)]="customTo" aria-label="To">
+      <button type="submit" class="primary small">Apply</button>
+    </form>
+  </div>
 
-    <!-- Charts Area (CSS-based) -->
-    <div class="charts-grid mt-6">
-      <div class="chart-card">
-        <h3>Tickets by Status</h3>
-        <div class="bar-chart">
-          <div *ngFor="let item of statusDistribution | keyvalue" class="bar-row">
-            <span class="bar-label">{{ item.key | titlecase }}</span>
-            <div class="bar-track">
-              <!-- 👇 CORRECTION : Utilisation de totalTickets au lieu du pipe sumValues -->
-              <div class="bar-fill" [style.width.%]="totalTickets > 0 ? (item.value / totalTickets * 100) : 0" 
-                   [ngClass]="getStatusColor(item.key)"></div>
-            </div>
-            <span class="bar-value">{{ item.value }}</span>
-          </div>
+  <!-- Filters (organisation tab) -->
+  <div class="filters-box" *ngIf="tab === 'org'">
+    <label>Customer
+      <select class="select" [(ngModel)]="customerId" (ngModelChange)="load()">
+        <option [ngValue]="null">All customers</option>
+        <option *ngFor="let c of customers" [ngValue]="c.id">{{ c.name }}</option>
+      </select>
+    </label>
+    <label>Equipment type
+      <select class="select" [(ngModel)]="equipmentTypeId" (ngModelChange)="load()">
+        <option [ngValue]="null">All equipment</option>
+        <option *ngFor="let t of equipmentTypes" [ngValue]="t.id">{{ t.name }}</option>
+      </select>
+    </label>
+    <form class="serial" (ngSubmit)="load()">
+      <label>Serial number
+        <input class="input" name="serial" [(ngModel)]="serial" placeholder="Search serial…" maxlength="100">
+      </label>
+      <button type="submit" class="ghost small">Search</button>
+    </form>
+    <button class="ghost small" *ngIf="filtered" (click)="clearFilters()">Clear all filters</button>
+  </div>
+
+  <div class="state" *ngIf="loading && !data">Loading performance data…</div>
+  <div class="load-error" *ngIf="error">{{ error }} <button class="ghost small" (click)="load()">Retry</button></div>
+
+  <ng-container *ngIf="data as d">
+    <div [class.stale]="loading">
+      <!-- ================= Organisation ================= -->
+      <ng-container *ngIf="tab === 'org'">
+        <div class="kpis">
+          <div class="kpi"><span>Tickets</span><b>{{ d.totals.total }}</b><small>{{ d.totals.open }} still open</small></div>
+          <div class="kpi"><span>SLA compliance</span><b [ngClass]="slaClass(d.totals.slaCompliance)">{{ pct(d.totals.slaCompliance) }}</b><small>{{ d.totals.overdue }} overdue now</small></div>
+          <div class="kpi"><span>Avg. first response</span><b>{{ hours(d.totals.avgFirstResponseHours) }}</b><small>first public reply</small></div>
+          <div class="kpi"><span>Avg. resolution</span><b>{{ hours(d.totals.avgResolutionHours) }}</b><small>{{ d.totals.resolved }} resolved · {{ d.totals.escalated }} escalated</small></div>
         </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- TEAM TAB -->
-  <div *ngIf="activeTab === 'team' && teamKpis">
-    <!-- Team KPI Cards -->
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <h3>Agents Online</h3>
-        <p class="value text-green">{{ teamKpis.agentsOnline }} / {{ teamKpis.totalAgents }}</p>
-      </div>
-      <div class="kpi-card">
-        <h3>Avg Satisfaction</h3>
-        <p class="value">⭐ {{ teamKpis.avgSatisfaction }}</p>
-      </div>
-    </div>
+        <div class="empty panel" *ngIf="!d.totals.total">No ticket was created in this period{{ filtered ? ' for these filters' : '' }}.</div>
 
-    <!-- Agent Workload Table -->
-    <div class="chart-card mt-6">
-      <h3>Agent Workload</h3>
-      <table class="w-full mt-4">
-        <thead>
-          <tr>
-            <th class="text-left p-3">AGENT</th>
-            <th class="text-left p-3">STATUS</th>
-            <th class="text-left p-3">ACTIVE TICKETS</th>
-            <th class="text-left p-3">CAPACITY</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let agent of agentWorkload">
-            <td class="p-3 font-bold">{{ agent.name }}</td>
-            <td class="p-3">
-              <span class="badge" [ngClass]="agent.status === 'ONLINE' ? 'badge-success' : 'badge-gray'">
-                {{ agent.status }}
-              </span>
-            </td>
-            <td class="p-3">{{ agent.activeTickets }}</td>
-            <td class="p-3">
-              <div class="capacity-bar">
-                <div class="capacity-fill" [style.width.%]="agent.capacity > 0 ? (agent.activeTickets / agent.capacity * 100) : 0"></div>
+        <ng-container *ngIf="d.totals.total">
+          <section class="panel card">
+            <h3>Tickets opened · per {{ d.bucket }}</h3>
+            <div class="columns" role="img" [attr.aria-label]="'Tickets opened per ' + d.bucket">
+              <div class="col" *ngFor="let b of timeline; let i = index" [title]="b.label + ': ' + b.count + ' ticket' + (b.count === 1 ? '' : 's')">
+                <div class="col-bar"><div class="fill" [style.height.%]="b.count / timelineMax * 100"></div></div>
+                <small [class.hidden]="i % labelStep !== 0">{{ b.label }}</small>
               </div>
-              <span class="text-small">{{ agent.activeTickets }} / {{ agent.capacity }}</span>
-            </td>
-          </tr>
-          <tr *ngIf="agentWorkload.length === 0">
-            <td colspan="4" class="text-center p-3">No agent workload data available.</td>
-          </tr>
-        </tbody>
-      </table>
+            </div>
+          </section>
+
+          <div class="grid2">
+            <section class="panel card">
+              <h3>Status distribution</h3>
+              <div class="hbar" *ngFor="let b of byStatus" [title]="b.label + ': ' + b.count">
+                <span class="badge" [ngClass]="'c-' + labels.statusColor(b.key)">{{ b.label }}</span>
+                <div class="track"><div class="fill" [ngClass]="'c-' + labels.statusColor(b.key)" [style.width.%]="b.percent"></div></div>
+                <b>{{ b.count }}</b><small>{{ b.percent | number:'1.0-0' }}%</small>
+              </div>
+            </section>
+            <section class="panel card">
+              <h3>Tickets by priority</h3>
+              <div class="hbar" *ngFor="let b of byPriority" [title]="b.label + ': ' + b.count">
+                <span class="priority" [ngClass]="'p-' + b.key.toLowerCase()">{{ b.label }}</span>
+                <div class="track"><div class="fill" [ngClass]="'p-' + b.key.toLowerCase()" [style.width.%]="b.percent"></div></div>
+                <b>{{ b.count }}</b><small>{{ b.percent | number:'1.0-0' }}%</small>
+              </div>
+            </section>
+          </div>
+
+          <section class="panel card">
+            <h3>Tickets and SLA compliance by customer</h3>
+            <table class="set-table">
+              <thead><tr><th>Customer</th><th>Tickets</th><th>Open</th><th class="w40">SLA compliance</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let c of d.byCustomer">
+                  <td class="strong">{{ c.name }}</td>
+                  <td>{{ c.total }}</td>
+                  <td>{{ c.open }}</td>
+                  <td>
+                    <div class="sla-row">
+                      <div class="track"><div class="fill" [ngClass]="slaClass(c.slaCompliance)" [style.width.%]="c.slaCompliance ?? 0"></div></div>
+                      <b [ngClass]="slaClass(c.slaCompliance)">{{ pct(c.slaCompliance) }}</b>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          <section class="panel card" *ngIf="equipmentTypeId || serial.trim()">
+            <h3>Tickets filtered by equipment</h3>
+            <div class="empty" *ngIf="!d.equipmentTickets.length">No tickets found for this equipment filter.</div>
+            <a class="tk-row" *ngFor="let t of d.equipmentTickets" [routerLink]="['/tickets', t.id]">
+              <span class="mono">{{ t.ticketNumber }}</span>
+              <span class="subject">{{ t.subject }}</span>
+              <span class="muted-sm">{{ t.customer || '—' }}<ng-container *ngIf="t.site"> · {{ t.site }}</ng-container></span>
+              <span class="muted-sm">{{ t.equipment }}<ng-container *ngIf="t.serialNumber"> · S/N {{ t.serialNumber }}</ng-container></span>
+              <span class="badge" [ngClass]="'c-' + labels.statusColor(t.status)">{{ labels.statusLabel(t.status) }}</span>
+            </a>
+          </section>
+        </ng-container>
+      </ng-container>
+
+      <!-- ================= Team ================= -->
+      <ng-container *ngIf="tab === 'team'">
+        <div class="filters-box">
+          <label>Agent
+            <select class="select" [(ngModel)]="agentId">
+              <option [ngValue]="null">Team overview</option>
+              <option *ngFor="let a of agents" [ngValue]="a.id">{{ a.name }}</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="empty panel" *ngIf="!agents.length">No active support staff.</div>
+
+        <ng-container *ngIf="agents.length && !selectedAgent">
+          <div class="kpis">
+            <div class="kpi"><span>Resolved</span><b class="good">{{ teamResolved }}</b><small>all agents · {{ periodLabel }}</small></div>
+            <div class="kpi"><span>Avg. SLA compliance</span><b [ngClass]="slaClass(teamSla)">{{ pct(teamSla) }}</b><small>team average</small></div>
+            <div class="kpi"><span>Open workload</span><b>{{ teamOpen }}</b><small>tickets still open</small></div>
+            <div class="kpi"><span>Support staff</span><b>{{ agents.length }}</b><small>active accounts</small></div>
+          </div>
+
+          <div class="grid2">
+            <section class="panel card">
+              <h3>Agent workload · open tickets</h3>
+              <button class="work-row" *ngFor="let a of agents" (click)="agentId = a.id" [title]="'Open ' + a.name">
+                <span class="name">{{ a.name }}<em *ngIf="a.l2Technician">L2</em></span>
+                <div class="track"><div class="fill" [ngClass]="loadClass(a.open)" [style.width.%]="a.open / maxAssigned * 100"></div></div>
+                <b>{{ a.open }}</b>
+              </button>
+            </section>
+            <section class="panel card">
+              <h3>SLA compliance per agent</h3>
+              <div class="sla-row named" *ngFor="let a of agents">
+                <span class="name">{{ a.name }}</span>
+                <div class="track"><div class="fill" [ngClass]="slaClass(a.slaCompliance)" [style.width.%]="a.slaCompliance ?? 0"></div></div>
+                <b [ngClass]="slaClass(a.slaCompliance)">{{ pct(a.slaCompliance) }}</b>
+              </div>
+            </section>
+          </div>
+
+          <section class="panel card">
+            <h3>Team detail</h3>
+            <div class="table-wrap">
+              <table class="set-table">
+                <thead><tr><th>Agent</th><th>Assigned</th><th>Open</th><th>Resolved</th><th>Escalated</th><th>Avg. first response</th><th>SLA</th></tr></thead>
+                <tbody>
+                  <tr *ngFor="let a of agents" class="clickable" (click)="agentId = a.id">
+                    <td class="strong">{{ a.name }}<small>{{ a.specialization || (a.l2Technician ? 'L2 technician' : 'H24 agent') }}</small></td>
+                    <td>{{ a.assigned }}</td><td>{{ a.open }}</td><td>{{ a.resolved }}</td><td>{{ a.escalated }}</td>
+                    <td>{{ hours(a.avgFirstResponseHours) }}</td>
+                    <td><b [ngClass]="slaClass(a.slaCompliance)">{{ pct(a.slaCompliance) }}</b></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </ng-container>
+
+        <ng-container *ngIf="selectedAgent as a">
+          <button class="ghost small back" (click)="agentId = null">← Team overview</button>
+          <h2 class="agent-name">{{ a.name }} <span class="badge c-red" *ngIf="a.l2Technician">L2</span></h2>
+          <p class="muted-sm">{{ a.specialization || 'No specialisation set' }} · tickets created {{ periodLabel }} where {{ a.name }} is the H24 agent or L2 technician</p>
+          <div class="kpis">
+            <div class="kpi"><span>Assigned</span><b>{{ a.assigned }}</b><small>{{ a.open }} open</small></div>
+            <div class="kpi"><span>Resolved</span><b class="good">{{ a.resolved }}</b><small>{{ a.escalated }} escalated</small></div>
+            <div class="kpi"><span>Avg. first response</span><b>{{ hours(a.avgFirstResponseHours) }}</b><small>first public reply</small></div>
+            <div class="kpi"><span>SLA compliance</span><b [ngClass]="slaClass(a.slaCompliance)">{{ pct(a.slaCompliance) }}</b><small>against priority targets</small></div>
+          </div>        </ng-container>
+      </ng-container>
     </div>
-  </div>
-</div>
+  </ng-container>
+</main>

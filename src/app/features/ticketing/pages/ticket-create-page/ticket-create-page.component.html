@@ -1,1 +1,104 @@
-<p>ticket-create-page works!</p>
+<main class="page-pad">
+  <header class="view-head">
+    <div>
+      <h1>{{ isStaff ? 'Create ticket' : 'Open new ticket' }}</h1>
+      <p>{{ isStaff ? 'Log a request on behalf of a customer.' : 'Describe your problem and our support team will get back to you.' }}</p>
+    </div>
+    <button type="button" class="ghost" (click)="cancel()">← Back to tickets</button>
+  </header>
+
+  <section class="panel form-panel">
+    <p class="error" *ngIf="error">{{ error }}</p>
+
+    <form class="form-grid" (ngSubmit)="submit()" novalidate>
+      <!-- 1. Customer -->
+      <label class="full">Customer
+        <select *ngIf="isStaff; else ownCustomer" class="select" name="customer" [ngModel]="form.customerId" (ngModelChange)="loadOptions($event)">
+          <option [ngValue]="null">No customer</option>
+          <option *ngFor="let c of options.customers" [ngValue]="c.id">{{ c.name }}</option>
+        </select>
+        <ng-template #ownCustomer>
+          <input class="input" [value]="options.customers.length ? options.customers[0].name : 'Not linked to a customer yet'" disabled>
+        </ng-template>
+        <small class="muted-sm" *ngIf="isStaff && !options.customers.length && !loadingOptions">No customers yet: add them in Settings › Customers.</small>
+      </label>
+
+      <!-- 2. Project, 3. Site, 4. Equipment of that customer -->
+      <label>Project
+        <select class="select" name="project" [(ngModel)]="form.projectId" [disabled]="!form.customerId || loadingOptions">
+          <option [ngValue]="null">{{ form.customerId ? (options.projects.length ? 'No project' : 'No project for this customer') : 'Choose a customer first' }}</option>
+          <option *ngFor="let p of options.projects" [ngValue]="p.id">{{ p.name }}<ng-container *ngIf="p.code"> ({{ p.code }})</ng-container></option>
+        </select>
+      </label>
+
+      <label>Site
+        <select *ngIf="options.sites.length; else freeSite" class="select" name="site" [(ngModel)]="form.site">
+          <option value="">Select site…</option>
+          <option *ngFor="let s of options.sites" [value]="s.name">{{ s.name }}</option>
+        </select>
+        <ng-template #freeSite>
+          <input class="input" name="site" [(ngModel)]="form.site" maxlength="160" placeholder="Plant, line or location (optional)">
+        </ng-template>
+      </label>
+
+      <label class="full">Equipment
+        <select class="select" name="equipment" [(ngModel)]="form.equipmentId" (ngModelChange)="onEquipment($event)" [disabled]="!form.customerId || loadingOptions">
+          <option [ngValue]="null">{{ options.equipment.length ? 'No equipment' : 'No registered equipment' }}</option>
+          <option *ngFor="let e of options.equipment" [ngValue]="e.id">{{ e.name }}<ng-container *ngIf="e.typeName"> · {{ e.typeName }}</ng-container><ng-container *ngIf="e.serialNumber"> — S/N {{ e.serialNumber }}</ng-container></option>
+        </select>
+      </label>
+
+      <!-- 5. Subject and details -->
+      <label class="full">Subject *
+        <input class="input" name="subject" [(ngModel)]="form.subject" maxlength="250" placeholder="Brief description of the issue"
+               [class.invalid]="submitted && subjectError">
+        <span class="field-error" *ngIf="submitted && subjectError">{{ subjectError }}</span>
+      </label>
+
+      <label>Priority
+        <select class="select" name="priority" [(ngModel)]="form.priority">
+          <option *ngFor="let p of priorities" [ngValue]="p">{{ labels.priorityLabel(p) }}</option>
+        </select>
+      </label>
+
+      <label>Category
+        <select class="select" name="category" [(ngModel)]="form.category">
+          <option *ngFor="let c of categories" [ngValue]="c">{{ label(c) }}</option>
+        </select>
+      </label>
+
+      <label class="full">Description *
+        <textarea class="textarea" name="description" [(ngModel)]="form.description" maxlength="8000" rows="6"
+                  placeholder="What happened, when, on which equipment, and what you already tried" [class.invalid]="submitted && descriptionError"></textarea>
+        <span class="field-error" *ngIf="submitted && descriptionError">{{ descriptionError }}</span>
+      </label>
+
+      <ng-container *ngIf="isStaff">
+        <label>Client account
+          <select class="select" name="client" [(ngModel)]="form.clientUserId">
+            <option [ngValue]="null">No client account (internal ticket)</option>
+            <option *ngFor="let c of clients" [ngValue]="c.id">{{ c.fullName }} · {{ c.email }}</option>
+          </select>
+        </label>
+
+        <label>Origin
+          <select class="select" name="origin" [(ngModel)]="form.origin">
+            <option *ngFor="let o of origins" [ngValue]="o">{{ originLabels[o] }}</option>
+          </select>
+        </label>
+
+        <label class="full">Assign H24 agent
+          <select class="select" name="agent" [(ngModel)]="form.assigneeId">
+            <option [ngValue]="null">Unassigned</option>
+            <option *ngFor="let a of agents" [ngValue]="a.id">{{ a.fullName }}</option>
+          </select>
+        </label>
+      </ng-container>
+
+      <div class="form-actions full">
+        <button type="button" class="ghost" (click)="cancel()">Cancel</button>
+        <button type="submit" class="primary" [disabled]="saving">{{ saving ? 'Submitting…' : 'Submit ticket' }}</button>
+      </div>
+    </form>
+  </section>
+</main>

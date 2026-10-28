@@ -19,7 +19,7 @@ const routes: Routes = [
     path: 'workspace',
     component: GmWorkspacesPageComponent,
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['PLATFORM_OWNER', 'ORG_ADMIN', 'PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'MANAGER', 'DEPARTMENT_MANAGER', 'EMPLOYEE', 'SALES_MANAGER_LEAD', 'SALES_MANAGER', 'SYSTEM_ENGINEER', 'CLIENT'] }
+    data: { roles: ['ORG_ADMIN', 'PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'MANAGER', 'DEPARTMENT_MANAGER', 'EMPLOYEE', 'SALES_MANAGER_LEAD', 'SALES_MANAGER', 'SYSTEM_ENGINEER', 'CLIENT', 'H24', 'H24_LEAD'] }
   },
   {
     path: 'tickets',
@@ -39,25 +39,25 @@ const routes: Routes = [
     path: 'gm',
     loadChildren: () => import('./features/dashboard-gm/gm-dashboard.module').then(m => m.GmDashboardModule),
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'MANAGER', 'DEPARTMENT_MANAGER', 'PLATFORM_OWNER', 'ORG_ADMIN'] }
+    data: { roles: ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'MANAGER', 'DEPARTMENT_MANAGER'] }
   },
   {
     path: 'crm',
     loadChildren: () => import('./features/dashboard-crm/dashboard-crm.module').then(m => m.DashboardCrmModule),
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['MANAGER','PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'PLATFORM_OWNER', 'SALES_MANAGER_LEAD', 'SALES_MANAGER', 'SYSTEM_ENGINEER'] }
+    data: { roles: ['MANAGER','PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'SALES_MANAGER_LEAD', 'SALES_MANAGER', 'SYSTEM_ENGINEER'] }
   },
   {
     path: 'crm/sales',
     component: SalesDashboardComponent,
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['MANAGER','PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'PLATFORM_OWNER', 'SALES_MANAGER_LEAD', 'SALES_MANAGER', 'SYSTEM_ENGINEER'] }
+    data: { roles: ['MANAGER','PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'SALES_MANAGER_LEAD', 'SALES_MANAGER', 'SYSTEM_ENGINEER'] }
   },
   {
     path: 'department',
     component: MyDepartmentPageComponent,
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['DEPARTMENT_MANAGER', 'PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'PLATFORM_OWNER'] }
+    data: { roles: ['DEPARTMENT_MANAGER', 'PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD'] }
   },
   {
     path: 'employee',
@@ -81,7 +81,7 @@ const routes: Routes = [
     path: 'gm/my-department',
     component: MyDepartmentPageComponent,
     canActivate: [AuthGuard, RoleGuard],
-    data: { roles: ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'PLATFORM_OWNER'] }
+    data: { roles: ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD'] }
   },
   {
     path: 'department/resources',

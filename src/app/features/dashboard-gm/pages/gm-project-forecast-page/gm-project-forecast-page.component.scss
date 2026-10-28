@@ -321,8 +321,8 @@
 /* ✅ Ligne des headers de colonnes (alignée avec cal-hdr-top) */
 .wbs-hdr-row {
   display: grid;
-  grid-template-columns: 120px 80px 240px 160px 160px 120px 120px 120px;
-  width: 1120px;
+  grid-template-columns: 120px 80px 240px 160px 160px 120px 120px 150px;
+  width: 1150px;
   align-items: center;
   height: 43px;
   flex-shrink: 0;
@@ -339,8 +339,8 @@
 /* ✅ LIGNES WBS - Hauteur fixe 43px */
 .wbs-row {
   display: grid;
-  grid-template-columns: 120px 80px 240px 160px 160px 120px 120px 120px;
-  width: 1120px;
+  grid-template-columns: 120px 80px 240px 160px 160px 120px 120px 150px;
+  width: 1150px;
   align-items: center;
   height: 43px;
   border-bottom: 1px solid #e7edf4;
@@ -490,8 +490,12 @@
   font-size: 9px;
   color: #888;
   font-weight: 500;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.wbs-row:not([data-row-type="HOUR"]) .remaining-schedule-hint { display: none; }
 
 /* ✅ HEADER CALENDRIER - 2 niveaux (year-strip + cal-hdr-top) */
 #cal-hdr {

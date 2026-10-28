@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { tap } from 'rxjs/operators';
 import { jwtDecode } from 'jwt-decode';
 import { API_AUTH_URL } from '../config/api.config';
-import { accessibleWorkspaceModules, directRouteForRole, WorkspaceModule } from './role-module.config';
+import { accessibleWorkspaceModules, WorkspaceModule } from './role-module.config';
 
 // 👇 MISE À JOUR : Ajout de H24 et H24_LEAD
 export type AppRole =
@@ -156,9 +156,8 @@ export class AuthService {
     }
     
     const roles = this.getRoles();
-    console.log('✅ User roles:', roles);
-    console.log('🎯 Redirecting to: /workspace');
-    
+    if (roles.includes('PLATFORM_OWNER')) return '/owner';
+    if (roles.length === 1 && roles[0] === 'ORG_ADMIN') return '/org-admin';
     return '/workspace';
   }
 

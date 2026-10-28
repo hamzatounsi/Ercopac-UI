@@ -7,6 +7,7 @@ import {
   ViewChild
 } from '@angular/core';
 import { finalize } from 'rxjs/operators';
+import { Router } from '@angular/router';
 
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { DepartmentManager } from '../../models/department-manager.model';
@@ -187,8 +188,12 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
 
   constructor(
   private myDepartmentService: MyDepartmentService,
-  private sanitizer: DomSanitizer
+  private sanitizer: DomSanitizer,
+  private router: Router
   ) {}
+
+  // Under /gm the layout header already shows the navigation buttons
+  get insideGmLayout(): boolean { return this.router.url.startsWith('/gm/'); }
 
   ngOnInit(): void {
     this.resolveCurrentRole();

@@ -1,0 +1,22 @@
+<div class="tk-bell">
+  <button type="button" class="bell-btn" (click)="toggle()" [attr.aria-expanded]="open" aria-label="Notifications">
+    <span class="material-symbols-outlined">notifications</span>
+    <span class="badge" *ngIf="unread">{{ unread > 9 ? '9+' : unread }}</span>
+  </button>
+
+  <div class="drop" *ngIf="open">
+    <div class="drop-head">
+      <strong>Notifications</strong>
+      <button type="button" class="link-btn" *ngIf="unread" (click)="markAllRead()">Mark all read</button>
+    </div>
+    <div class="drop-body">
+      <p class="empty" *ngIf="error">Notifications could not be loaded.</p>
+      <p class="empty" *ngIf="!error && !notifications.length">No ticket notifications.</p>
+      <button type="button" class="item" *ngFor="let n of notifications" [class.unread]="!n.readByUser" (click)="select(n)">
+        <span class="title">{{ n.subject }}</span>
+        <span class="msg">{{ n.message }}</span>
+        <time>{{ n.createdAt | date:'short' }}</time>
+      </button>
+    </div>
+  </div>
+</div>

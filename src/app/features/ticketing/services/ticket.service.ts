@@ -1,49 +1,53 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { API_BASE_URL } from 'src/app/core/config/api.config';
-import { Attachment, Page, Ticket, TicketDetails, TicketMessage, TicketPriority, TicketStats, TicketStatus } from '../models/ticket.models';
+import {
+  Attachment, FormOptions, Page, Ticket, TicketActivity, TicketCategory, TicketDetails, TicketMessage, TicketOrigin,
+  TicketPriority, TicketStats, TicketStatus, UserSummary
+} from '../models/ticket.models';
 
-// =========================================================
-// 👇 NOUVEAU : Interfaces pour le Dashboard Performance (Phase 5)
-// =========================================================
-export interface TeamKpis {
-  agentsOnline: number;
-  totalAgents: number;
-  avgSatisfaction: number;
+export interface TicketFilters {
+  page?: number; size?: number; sort?: string; search?: string; status?: string; priority?: string; category?: string;
+  customerId?: number | null; assigneeId?: number | null; from?: string | null; to?: string | null;
 }
 
-export interface AgentWorkload {
-  name: string;
-  activeTickets: number;
-  status: string;
-  capacity: number;
+export interface NewTicket {
+  subject: string; description: string; category: TicketCategory; priority: TicketPriority; origin: TicketOrigin;
+  site: string | null; clientUserId: number | null; customerId: number | null; projectId: number | null; equipmentId: number | null; assigneeId: number | null;
 }
+
+export interface TicketContext { customerId: number | null; site: string | null; projectId: number | null; equipmentId: number | null; }
 
 @Injectable({ providedIn: 'root' })
 export class TicketService {
   private readonly base = `${API_BASE_URL}/tickets`;
-  private readonly analyticsBase = `${API_BASE_URL}/ticketing/analytics`; // 👈 NOUVEAU
 
   constructor(private http: HttpClient) {}
 
-  // =========================================================
-  // MÉTHODES EXISTANTES (Formatées pour la lisibilité)
-  // =========================================================
-  
-  list(filters: any): Observable<Page<Ticket>> {
+  list(filters: TicketFilters): Observable<Page<Ticket>> {
     let p = new HttpParams()
       .set('page', filters.page || 0)
       .set('size', filters.size || 20)
       .set('sort', filters.sort || 'updatedAt,desc');
-      
     Object.entries(filters).forEach(([k, v]) => {
-      if (v !== undefined && v !== null && v !== '' && !['page', 'size', 'sort'].includes(k)) {
-        p = p.set(k, String(v));
-      }
+      if (v !== undefined && v !== null && v !== '' && !['page', 'size', 'sort'].includes(k)) p = p.set(k, String(v));
     });
-    
     return this.http.get<Page<Ticket>>(this.base, { params: p });
+  }
+
+  /** Support staff of the organisation that a ticket can be assigned to. */
+  agents(): Observable<UserSummary[]> {
+    return this.http.get<UserSummary[]>(`${this.base}/agents`);
+  }
+
+  /** Messages of a ticket; unlike get() this does not mark the ticket as read. */
+  messages(id: number): Observable<TicketMessage[]> {
+    return this.http.get<TicketMessage[]>(`${this.base}/${id}/messages`);
+  }
+
+  activities(id: number): Observable<TicketActivity[]> {
+    return this.http.get<TicketActivity[]>(`${this.base}/${id}/activities`);
   }
 
   stats(): Observable<TicketStats> {
@@ -54,8 +58,22 @@ export class TicketService {
     return this.http.get<TicketDetails>(`${this.base}/${id}`);
   }
 
-  create(data: any): Observable<TicketDetails> {
+  create(data: NewTicket): Observable<TicketDetails> {
     return this.http.post<TicketDetails>(this.base, data);
+  }
+
+  /** Category and origin (null leaves a value unchanged). */
+  update(id: number, data: { category?: TicketCategory; origin?: TicketOrigin }, version: number): Observable<TicketDetails> {
+    return this.http.patch<TicketDetails>(`${this.base}/${id}`, { ...data, version });
+  }
+
+  /** Customer, site, project and equipment; every value is replaced. */
+  context(id: number, context: TicketContext, version: number): Observable<TicketDetails> {
+    return this.http.patch<TicketDetails>(`${this.base}/${id}/context`, { ...context, version });
+  }
+
+  problemStatement(id: number, value: { problem: string; cause: string; solution: string }, version: number): Observable<TicketDetails> {
+    return this.http.patch<TicketDetails>(`${this.base}/${id}/problem-statement`, { ...value, version });
   }
 
   status(id: number, status: TicketStatus, version: number): Observable<TicketDetails> {
@@ -68,6 +86,10 @@ export class TicketService {
 
   assign(id: number, assigneeId: number | null, version: number): Observable<TicketDetails> {
     return this.http.patch<TicketDetails>(`${this.base}/${id}/assignment`, { assigneeId, version });
+  }
+
+  assignL2(id: number, assigneeId: number | null, version: number): Observable<TicketDetails> {
+    return this.http.patch<TicketDetails>(`${this.base}/${id}/l2-technician`, { assigneeId, version });
   }
 
   message(id: number, message: string, internalNote: boolean): Observable<TicketMessage> {
@@ -92,15 +114,14 @@ export class TicketService {
     return `${this.base}/${ticketId}/attachments/${attachmentId}`;
   }
 
-  // =========================================================
-  // 👇 NOUVEAU : Méthodes pour le Dashboard Performance (Phase 5)
-  // =========================================================
-  
-  getTeamKpis(): Observable<TeamKpis> {
-    return this.http.get<TeamKpis>(`${this.analyticsBase}/team-kpis`);
+  /** Customers the user may file a ticket under and, for the chosen one, its sites, equipment and projects. */
+  formOptions(customerId?: number | null): Observable<FormOptions> {
+    const params = customerId ? new HttpParams().set('customerId', customerId) : undefined;
+    return this.http.get<FormOptions>(`${this.base}/form-options`, { params });
   }
 
-  getAgentWorkload(): Observable<AgentWorkload[]> {
-    return this.http.get<AgentWorkload[]>(`${this.analyticsBase}/agent-workload`);
+  /** Translation through the organisation's local AI model. */
+  translate(text: string, to: string): Observable<string> {
+    return this.http.post<{ text: string }>(`${this.base}/translate`, { text, to }).pipe(map(r => r.text));
   }
 }

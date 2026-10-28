@@ -28,10 +28,7 @@
 <div class="dept-pill" *ngIf="selectedDepartmentCode">
   {{ selectedDepartmentCode }}
 </div>
-<a class="main-menu-link" routerLink="/workspace">
-  <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
-  <span>Back to Main Menu</span>
-</a>
+<app-nav-buttons *ngIf="!insideGmLayout" [homes]="['/department']"></app-nav-buttons>
   </header>
   <nav class="dept-toolbar">
     <div class="view-tabs">

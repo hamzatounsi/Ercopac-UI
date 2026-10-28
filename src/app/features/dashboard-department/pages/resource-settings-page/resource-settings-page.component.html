@@ -5,7 +5,10 @@
       <p>Manage organisation resources, assignments, and profile settings.</p>
     </div>
 
-    <button type="button" class="topbar-btn" (click)="openCreate()">+ New Resource</button>
+    <div class="topbar-actions">
+      <app-nav-buttons [homes]="['/department']"></app-nav-buttons>
+      <button type="button" class="topbar-btn" (click)="openCreate()">+ New Resource</button>
+    </div>
   </div>
 
   <div class="filters">

@@ -1,0 +1,14 @@
+@import '../../ticketing.shared';
+.status-list { display:flex; flex-direction:column; gap:8px; }
+.status-row { display:flex; align-items:center; gap:10px; padding:10px 14px; border:1px solid #e3e7f1; border-radius:9px; background:#fff; }
+.idx { min-width:16px; text-align:center; font-size:11px; color:#9499ad; }
+.preview { min-width:100px; text-align:center; }
+.grow { flex:1; min-width:0; }
+.colour { width:110px; text-transform:capitalize; }
+.label { width:140px; }
+.lock { color:#9499ad; }
+.sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
+@media (max-width:800px) {
+  .status-row { flex-wrap:wrap; }
+  .grow { flex-basis:100%; order:5; }
+}
