@@ -10,6 +10,8 @@ import { AuthService } from 'src/app/core/auth/auth.service';
 })
 export class GmLayoutComponent implements OnInit, OnDestroy {
   showSharedHeader = true;
+  // Main page(s) of the application shown in this layout (no "Back" button there)
+  homes: string[] = ['/gm/projectum'];
   private navigationSubscription?: Subscription;
 
   constructor(
@@ -30,25 +32,15 @@ export class GmLayoutComponent implements OnInit, OnDestroy {
     this.navigationSubscription?.unsubscribe();
   }
 
-  get showLogoutInsteadOfMainMenu(): boolean {
-    const roles = this.auth.getRoles();
-    if (this.auth.hasAnyRole(['PLATFORM_OWNER', 'ORG_ADMIN'])) return false;
-    return roles.length === 1;
-  }
-
-  handleMainNavigation(): void {
-    if (this.showLogoutInsteadOfMainMenu) {
-      this.auth.logout();
-      void this.router.navigate(['/']);
-      return;
-    }
-    void this.router.navigateByUrl(this.auth.getHomeRoute());
-  }
 
   private updateHeaderVisibility(url: string): void {
     const path = url.split('?')[0].replace(/\/$/, '');
     // Projectum pages own a Workspace header including account actions.
     const hasWorkspaceHeader = /^\/gm\/(projectum(?:\/|$)|projects\/|milestones$)/.test(path);
     this.showSharedHeader = path !== '/gm' && !hasWorkspaceHeader;
+    this.homes = /^\/gm\/(company-dashboard|command-center)/.test(path) ? ['/gm/company-dashboard', '/gm/command-center']
+      : path.startsWith('/gm/my-department') ? ['/gm/my-department']
+      : path.startsWith('/gm/my-cs') ? ['/gm/my-cs']
+      : ['/gm/projectum'];
   }
 }

@@ -1,38 +1,52 @@
-<div class="settings-container">
-  <div class="header">
+<div class="set-head">
+  <div>
     <h2>H24 Agents</h2>
-    <p class="subtitle">First line support technicians.</p>
-    <button class="btn-primary">+ Add agent</button>
-  </div>
-
-  <div class="table-container">
-    <table>
-      <thead>
-        <tr>
-          <th>NAME</th>
-          <th>SPECIALISATION</th>
-          <th>ACTIVE TICKETS</th>
-          <th>STATUS</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let user of users">
-          <td class="font-bold">
-            {{ user.fullName }}
-            <div class="text-small text-gray">{{ user.email }}</div>
-          </td>
-          <td>{{ user.specialization || 'General Support' }}</td>
-          <td>0</td> <!-- À connecter avec le compteur réel plus tard -->
-          <td>
-            <span class="badge" [ngClass]="getStatusClass(user.agentStatus)">
-              {{ user.agentStatus || 'OFFLINE' }}
-            </span>
-          </td>
-        </tr>
-        <tr *ngIf="users.length === 0">
-          <td colspan="4" class="text-center">No H24 agents found.</td>
-        </tr>
-      </tbody>
-    </table>
+    <p>First-line support team ({{ agents.length }} member{{ agents.length === 1 ? '' : 's' }}). New accounts are created in user management with the H24 role.</p>
   </div>
 </div>
+<p class="readonly-note" *ngIf="!isLead">Only support leads can edit agent profiles.</p>
+
+<div class="state" *ngIf="loading">Loading the support team…</div>
+<div class="load-error" *ngIf="!loading && error">{{ error }} <button class="ghost small" (click)="load()">Retry</button></div>
+<div class="empty" *ngIf="!loading && !error && !agents.length">No support staff in this organisation yet.</div>
+
+<div class="table-wrap" *ngIf="!loading && agents.length">
+  <table class="set-table">
+    <thead><tr><th>Name</th><th>Roles</th><th>Specialisation</th><th>Language</th><th>Open tickets</th><th>Status</th><th *ngIf="isLead"></th></tr></thead>
+    <tbody>
+      <tr *ngFor="let a of agents">
+        <td class="strong">{{ a.fullName }}<small>{{ a.email }}</small></td>
+        <td><span class="muted-sm">{{ roleLabel(a.roles) }}</span><span class="badge c-red" *ngIf="a.l2Technician">L2</span></td>
+        <td>{{ a.specialization || '—' }}</td>
+        <td>{{ languageName(a.preferredLanguage) }}</td>
+        <td>{{ a.openTickets }}</td>
+        <td><span class="badge" [ngClass]="a.active ? 'c-green' : 'c-gray'">{{ a.active ? 'Active' : 'Inactive' }}</span></td>
+        <td *ngIf="isLead"><button class="ghost small" (click)="open(a)">Edit</button></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="modal-backdrop" *ngIf="editing" (click)="editing = undefined">
+  <form class="modal" (click)="$event.stopPropagation()" (ngSubmit)="save()">
+    <h3>Edit {{ editing.fullName }}</h3>
+    <div class="grid">
+      <label class="full">Specialisation
+        <input class="input" name="spec" [(ngModel)]="form.specialization" maxlength="120" placeholder="e.g. PLC, robotics, conveyors">
+      </label>
+      <label>Preferred language
+        <select class="select" name="lang" [(ngModel)]="form.preferredLanguage">
+          <option *ngFor="let l of languages" [value]="l.code">{{ l.label }}</option>
+        </select>
+      </label>
+      <label class="check">Level 2
+        <span><input type="checkbox" name="l2" [(ngModel)]="form.l2Technician"> Can be assigned as L2 technician</span>
+      </label>
+    </div>
+    <div class="set-actions">
+      <button type="button" class="ghost" (click)="editing = undefined">Cancel</button>
+      <button type="submit" class="primary" [disabled]="saving">{{ saving ? 'Saving…' : 'Save' }}</button>
+    </div>
+  </form>
+</div>
+<div class="toast" *ngIf="notice">{{ notice }}</div>

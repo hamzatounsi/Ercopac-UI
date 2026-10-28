@@ -1,39 +1,37 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/core/auth/auth.service';
-import { TICKETING_STAFF_ROLES } from '../../ticketing-roles';
+import { TicketSettingsService } from '../../services/ticket-settings.service';
+import { TICKETING_LEAD_ROLES, TICKETING_STAFF_ROLES } from '../../ticketing-roles';
 
-interface NavItem { label: string; icon: string; route: string; exact: boolean; staffOnly: boolean; }
+interface NavItem { label: string; icon: string; route: string; exact: boolean; show: boolean; }
 
 @Component({
   selector: 'app-ticketing-layout',
   templateUrl: './ticketing-layout.component.html',
   styleUrls: ['./ticketing-layout.component.scss']
 })
-export class TicketingLayoutComponent {
-  private readonly items: NavItem[] = [
-    { label: 'Tickets', icon: 'confirmation_number', route: '/tickets', exact: true, staffOnly: false },
-    { label: 'Live chat', icon: 'forum', route: '/tickets/chat', exact: false, staffOnly: false },
-    { label: 'Performance', icon: 'monitoring', route: '/tickets/dashboard', exact: false, staffOnly: true }
-  ];
+export class TicketingLayoutComponent implements OnInit {
+  readonly isStaff = this.auth.hasAnyRole(TICKETING_STAFF_ROLES);
+  readonly isLead = this.auth.hasAnyRole(TICKETING_LEAD_ROLES);
 
-  constructor(public auth: AuthService, private router: Router) {}
+  // CLIENT users keep the client portal: their own tickets, chat and their language
+  readonly navItems: NavItem[] = [
+    { label: this.isStaff ? 'Tickets' : 'My tickets', icon: 'confirmation_number', route: '/tickets', exact: true, show: true },
+    { label: 'Live chat', icon: 'forum', route: '/tickets/chat', exact: false, show: true },
+    { label: 'Dashboard', icon: 'monitoring', route: '/tickets/dashboard', exact: false, show: this.isLead },
+    { label: 'Settings', icon: 'settings', route: this.isStaff ? '/tickets/settings/h24-agents' : '/tickets/settings/language', exact: false, show: true }
+  ].filter(item => item.show);
 
-  // CLIENT users keep the client portal: they only see their own tickets
-  get isStaff(): boolean { return this.auth.hasAnyRole(TICKETING_STAFF_ROLES); }
-  get navItems(): NavItem[] { return this.items.filter(item => this.isStaff || !item.staffOnly); }
+  constructor(public auth: AuthService, private settings: TicketSettingsService, private router: Router) {}
+
+  ngOnInit(): void { this.settings.load(); }
+
+  // The Settings link opens one section but stays highlighted on all of them
+  get inSettings(): boolean { return this.router.url.startsWith('/tickets/settings'); }
+
   get userName(): string { return this.auth.getCurrentUsername() || 'User'; }
   get initials(): string { return this.userName.split(/\s+/).slice(0, 2).map(v => v[0]).join('').toUpperCase(); }
   get organisation(): string { return this.auth.getOrganisationName() || 'Organisation'; }
   get roleLabel(): string { return this.auth.getRoles().join(', ').replace(/_/g, ' ').toLowerCase(); }
-  get showLogoutInsteadOfWorkspace(): boolean { return this.auth.getAccessibleWorkspaceModules().length <= 1; }
-
-  handleWorkspaceNavigation(): void {
-    if (this.showLogoutInsteadOfWorkspace) {
-      this.auth.logout();
-      void this.router.navigate(['/']);
-      return;
-    }
-    void this.router.navigate(['/workspace']);
-  }
 }

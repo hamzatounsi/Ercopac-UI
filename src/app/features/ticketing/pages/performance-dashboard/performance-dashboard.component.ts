@@ -1,124 +1,135 @@
 import { Component, OnInit } from '@angular/core';
-import { forkJoin, of } from 'rxjs';
-import { catchError, map, switchMap } from 'rxjs/operators';
-import { Ticket, TicketActivity, TicketMessage, TicketStatus } from '../../models/ticket.models';
+import { Subscription } from 'rxjs';
+import { AgentStat, Breakdown, Ref, TicketAnalytics } from '../../models/ticket.models';
 import { TicketService } from '../../services/ticket.service';
+import { TicketSettingsService } from '../../services/ticket-settings.service';
 
-interface TicketTimes { ticket: Ticket; firstResponseHours: number | null; resolutionHours: number | null; }
-interface StatusBar { status: TicketStatus; count: number; percent: number; }
-interface AgentRow { name: string; active: number; resolved: number; total: number; avgFirstResponse: number | null; }
+type Period = 'day' | 'week' | 'month' | 'year' | 'custom';
+type Tab = 'org' | 'team';
+interface Bar { key: string; label: string; count: number; percent: number; }
 
-const ACTIVE: TicketStatus[] = ['OPEN', 'IN_PROGRESS', 'REOPENED'];
-const DONE: TicketStatus[] = ['RESOLVED', 'CLOSED'];
-const STATUS_ORDER: TicketStatus[] = ['OPEN', 'IN_PROGRESS', 'REOPENED', 'ESCALATED', 'RESOLVED', 'CLOSED', 'CANCELLED'];
-const HOUR = 3_600_000;
-
-// All figures are computed in the browser from the ticket list, the messages and the activity history:
-// first response = first public reply from someone other than the client,
-// resolution = first change to RESOLVED (from the activity history).
+// Performance dashboard (support leads). Every figure comes from GET /api/tickets/analytics,
+// computed by the backend for the tickets created in the chosen period.
 @Component({
   selector: 'app-performance-dashboard',
   templateUrl: './performance-dashboard.component.html',
   styleUrls: ['./performance-dashboard.component.scss']
 })
 export class PerformanceDashboardComponent implements OnInit {
+  tab: Tab = 'org';
+  period: Period = 'month';
+  customFrom = '';
+  customTo = '';
+  customOpen = false;
+  customerId: number | null = null;
+  equipmentTypeId: number | null = null;
+  serial = '';
+  agentId: number | null = null;
+
+  data?: TicketAnalytics;
+  customers: Ref[] = [];
+  equipmentTypes: Ref[] = [];
   loading = true;
   error = '';
-  period: 'all' | '30' | '7' = 'all';
 
-  private times: TicketTimes[] = [];
+  readonly periods: { key: Period; label: string }[] = [
+    { key: 'day', label: 'Today' }, { key: 'week', label: 'This week' }, { key: 'month', label: 'This month' }, { key: 'year', label: 'This year' }
+  ];
+  private request?: Subscription;
 
-  open = 0;
-  resolved = 0;
-  escalated = 0;
-  total = 0;
-  avgFirstResponse: number | null = null;
-  avgResolution: number | null = null;
-  statusBars: StatusBar[] = [];
-  agents: AgentRow[] = [];
-  maxAgentTotal = 1;
+  constructor(private api: TicketService, public labels: TicketSettingsService) {}
 
-  constructor(private api: TicketService) {}
-
-  ngOnInit(): void { this.load(); }
+  ngOnInit(): void {
+    this.api.formOptions(null).subscribe({ next: o => this.customers = o.customers, error: () => this.customers = [] });
+    this.labels.equipmentTypes().subscribe({ next: t => this.equipmentTypes = t, error: () => this.equipmentTypes = [] });
+    this.load();
+  }
 
   load(): void {
+    const range = this.range();
+    if (!range) return;
     this.loading = true;
     this.error = '';
-    this.api.list({ page: 0, size: 500, sort: 'createdAt,desc' }).pipe(
-      switchMap(page => page.content.length
-        ? forkJoin(page.content.map(t => forkJoin({
-            messages: this.api.messages(t.id).pipe(catchError(() => of([] as TicketMessage[]))),
-            activities: this.api.activities(t.id).pipe(catchError(() => of([] as TicketActivity[])))
-          }).pipe(map(r => this.measure(t, r.messages, r.activities)))))
-        : of([] as TicketTimes[]))
-    ).subscribe({
-      next: times => { this.times = times; this.compute(); this.loading = false; },
-      error: e => { this.error = e.error?.message || 'Performance data could not be loaded.'; this.loading = false; }
+    this.request?.unsubscribe();
+    this.request = this.labels.analytics({ ...range, customerId: this.customerId, equipmentTypeId: this.equipmentTypeId, serial: this.serial.trim() || null }).subscribe({
+      next: d => { this.data = d; this.loading = false; },
+      error: e => { this.loading = false; this.error = e.error?.message || 'Performance data could not be loaded.'; }
     });
   }
 
-  setPeriod(period: 'all' | '30' | '7'): void {
-    this.period = period;
-    this.compute();
+  setPeriod(p: Period): void { this.period = p; this.customOpen = false; this.load(); }
+
+  applyCustom(): void {
+    if (!this.customFrom || !this.customTo) { this.error = 'Choose both a start and an end date.'; return; }
+    if (this.customFrom > this.customTo) { this.error = 'The start date must be before the end date.'; return; }
+    this.period = 'custom';
+    this.load();
   }
 
-  formatHours(hours: number | null): string {
-    if (hours == null) return '—';
-    if (hours < 1) return `${Math.round(hours * 60)} min`;
-    if (hours < 48) return `${hours.toFixed(1)} h`;
-    return `${(hours / 24).toFixed(1)} d`;
+  clearFilters(): void { this.customerId = null; this.equipmentTypeId = null; this.serial = ''; this.load(); }
+  get filtered(): boolean { return !!(this.customerId || this.equipmentTypeId || this.serial.trim()); }
+
+  get periodLabel(): string {
+    if (this.period === 'custom') return `${this.customFrom} → ${this.customTo}`;
+    return this.periods.find(p => p.key === this.period)!.label.toLowerCase();
   }
 
-  label(v: string): string { return v.replace(/_/g, ' '); }
+  // ---------- chart data ----------
+  get timeline(): Bar[] { return this.bars(this.data?.timeline ?? [], k => this.bucketLabel(k)); }
+  get byStatus(): Bar[] { return this.bars(this.data?.byStatus ?? [], k => this.labels.statusLabel(k)).filter(b => b.count); }
+  get byPriority(): Bar[] { return this.bars(this.data?.byPriority ?? [], k => this.labels.priorityLabel(k)).filter(b => b.count); }
+  get timelineMax(): number { return Math.max(1, ...(this.data?.timeline ?? []).map(b => b.count)); }
+  /** Show at most ~12 axis labels whatever the number of buckets. */
+  get labelStep(): number { return Math.max(1, Math.ceil((this.data?.timeline.length ?? 0) / 12)); }
 
-  private measure(ticket: Ticket, messages: TicketMessage[], activities: TicketActivity[]): TicketTimes {
-    const created = Date.parse(ticket.createdAt);
-    const reply = messages.find(m => !m.internalNote && m.sender?.id !== ticket.client?.id);
-    const resolvedAt = activities.find(a => a.newValue === 'RESOLVED');
-    return {
-      ticket,
-      firstResponseHours: reply ? Math.max(0, Date.parse(reply.createdAt) - created) / HOUR : null,
-      resolutionHours: resolvedAt ? Math.max(0, Date.parse(resolvedAt.createdAt) - created) / HOUR : null
-    };
+  get agents(): AgentStat[] { return this.data?.agents ?? []; }
+  get selectedAgent(): AgentStat | undefined { return this.agents.find(a => a.id === this.agentId); }
+  get maxAssigned(): number { return Math.max(1, ...this.agents.map(a => a.open)); }
+  get teamResolved(): number { return this.agents.reduce((s, a) => s + a.resolved, 0); }
+  get teamOpen(): number { return this.agents.reduce((s, a) => s + a.open, 0); }
+  get teamSla(): number | null {
+    const v = this.agents.map(a => a.slaCompliance).filter((x): x is number => x != null);
+    return v.length ? v.reduce((s, x) => s + x, 0) / v.length : null;
   }
 
-  private compute(): void {
-    const since = this.period === 'all' ? 0 : Date.now() - Number(this.period) * 24 * HOUR;
-    const rows = this.times.filter(r => Date.parse(r.ticket.createdAt) >= since);
-    const tickets = rows.map(r => r.ticket);
+  hours(h?: number | null): string {
+    if (h == null) return '—';
+    if (h < 1) return `${Math.round(h * 60)} min`;
+    if (h < 48) return `${h.toFixed(1)} h`;
+    return `${(h / 24).toFixed(1)} d`;
+  }
+  pct(v?: number | null): string { return v == null ? '—' : `${Math.round(v)}%`; }
+  slaClass(v?: number | null): string { return v == null ? 'none' : v >= 95 ? 'good' : v >= 85 ? 'warn' : 'bad'; }
+  loadClass(open: number): string { const p = open / this.maxAssigned; return p >= .7 ? 'bad' : p >= .4 ? 'warn' : 'good'; }
 
-    this.total = tickets.length;
-    this.open = tickets.filter(t => ACTIVE.includes(t.status)).length;
-    this.resolved = tickets.filter(t => DONE.includes(t.status)).length;
-    this.escalated = tickets.filter(t => t.status === 'ESCALATED').length;
-    this.avgFirstResponse = this.average(rows.map(r => r.firstResponseHours));
-    this.avgResolution = this.average(rows.map(r => r.resolutionHours));
-
-    this.statusBars = STATUS_ORDER
-      .map(status => ({ status, count: tickets.filter(t => t.status === status).length, percent: 0 }))
-      .filter(bar => bar.count > 0 || bar.status !== 'CANCELLED')
-      .map(bar => ({ ...bar, percent: this.total ? (bar.count / this.total) * 100 : 0 }));
-
-    const byAgent = new Map<string, TicketTimes[]>();
-    rows.forEach(r => {
-      const name = r.ticket.assignee?.fullName || 'Unassigned';
-      byAgent.set(name, [...(byAgent.get(name) || []), r]);
-    });
-    this.agents = [...byAgent.entries()]
-      .map(([name, list]) => ({
-        name,
-        active: list.filter(r => r.ticket.status !== 'CANCELLED' && !DONE.includes(r.ticket.status)).length,
-        resolved: list.filter(r => DONE.includes(r.ticket.status)).length,
-        total: list.length,
-        avgFirstResponse: this.average(list.map(r => r.firstResponseHours))
-      }))
-      .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name));
-    this.maxAgentTotal = Math.max(1, ...this.agents.map(a => a.total));
+  private bars(list: Breakdown[], label: (k: string) => string): Bar[] {
+    const total = list.reduce((s, b) => s + b.count, 0) || 1;
+    return list.map(b => ({ key: b.key, label: label(b.key), count: b.count, percent: b.count / total * 100 }));
   }
 
-  private average(values: (number | null)[]): number | null {
-    const known = values.filter((v): v is number => v != null);
-    return known.length ? known.reduce((sum, v) => sum + v, 0) / known.length : null;
+  private bucketLabel(key: string): string {
+    const d = new Date(key.length === 7 ? key + '-01T00:00:00Z' : key + 'T00:00:00Z');
+    return this.data?.bucket === 'month'
+      ? d.toLocaleDateString('en-GB', { month: 'short', year: '2-digit', timeZone: 'UTC' })
+      : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', timeZone: 'UTC' });
+  }
+
+  /** Start of the chosen calendar period (local time) up to now, or the custom days inclusive. */
+  private range(): { from: string; to: string | null } | null {
+    const now = new Date();
+    let from: Date;
+    switch (this.period) {
+      case 'day': from = new Date(now.getFullYear(), now.getMonth(), now.getDate()); break;
+      case 'week': { const dow = (now.getDay() + 6) % 7; from = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dow); break; }
+      case 'month': from = new Date(now.getFullYear(), now.getMonth(), 1); break;
+      case 'year': from = new Date(now.getFullYear(), 0, 1); break;
+      case 'custom': {
+        if (!this.customFrom || !this.customTo) return null;
+        const [fy, fm, fd] = this.customFrom.split('-').map(Number);
+        const [ty, tm, td] = this.customTo.split('-').map(Number);
+        return { from: new Date(fy, fm - 1, fd).toISOString(), to: new Date(ty, tm - 1, td + 1).toISOString() };
+      }
+    }
+    return { from: from.toISOString(), to: null };
   }
 }

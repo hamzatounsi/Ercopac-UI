@@ -1,26 +1,42 @@
-<div>
-  <h2 class="text-2xl font-bold mb-2 text-gray-800">Ticket statuses</h2>
-  <p class="text-gray-600 mb-6">The lifecycle stages a ticket passes through.</p>
-
-  <div class="bg-white rounded-lg shadow overflow-hidden">
-    <div *ngFor="let status of statuses; let i = index" 
-         class="flex items-center justify-between p-4 border-b last:border-b-0 hover:bg-gray-50">
-      <div class="flex items-center gap-4">
-        <span class="text-gray-400 font-medium w-8">{{ i + 1 }}.</span>
-        <span class="px-3 py-1 rounded-full text-sm font-medium" [ngClass]="getStatusBadgeClass(status.status)">
-          {{ status.label }}
-        </span>
-        <span class="text-gray-600">{{ status.description }}</span>
-      </div>
-      <div class="flex items-center gap-3">
-        <span class="px-3 py-1 rounded-full text-sm"
-              [ngClass]="status.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'">
-          {{ status.active ? 'Active' : 'Inactive' }}
-        </span>
-        <button (click)="editStatus(status)" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-          Edit
-        </button>
-      </div>
-    </div>
+<div class="set-head">
+  <div>
+    <h2>Ticket statuses</h2>
+    <p>Lifecycle stages a ticket passes through. The stages and their order are fixed; you can change how each one is named and coloured.</p>
   </div>
 </div>
+<p class="readonly-note" *ngIf="!isLead">Only support leads can change statuses.</p>
+
+<div class="state" *ngIf="loading">Loading statuses…</div>
+<div class="load-error" *ngIf="!loading && error && !rows.length">{{ error }} <button class="ghost small" (click)="load()">Retry</button></div>
+
+<form *ngIf="!loading && rows.length" (ngSubmit)="save()">
+  <div class="status-list">
+    <div class="status-row" *ngFor="let s of rows; let i = index">
+      <span class="idx">{{ i + 1 }}</span>
+      <span class="badge preview" [ngClass]="'c-' + s.color" [title]="s.status">{{ s.label || '—' }}</span>
+      <label class="grow">
+        <span class="sr">Description</span>
+        <input class="input" [name]="'desc' + i" [(ngModel)]="s.description" maxlength="300" placeholder="Description…" [disabled]="!isLead">
+      </label>
+      <label>
+        <span class="sr">Colour</span>
+        <select class="select colour" [name]="'color' + i" [(ngModel)]="s.color" [disabled]="!isLead">
+          <option *ngFor="let c of colors" [value]="c">{{ c }}</option>
+        </select>
+      </label>
+      <label>
+        <span class="sr">Label</span>
+        <input class="input label" [name]="'label' + i" [(ngModel)]="s.label" maxlength="60" placeholder="Label…" [disabled]="!isLead"
+               [class.invalid]="submitted && !s.label.trim()">
+      </label>
+      <span class="lock" title="Built-in stage: cannot be removed"><span class="material-symbols-outlined">lock</span></span>
+    </div>
+  </div>
+  <p class="field-error" *ngIf="submitted && invalid">Every status needs a label.</p>
+  <p class="field-error" *ngIf="error">{{ error }}</p>
+  <div class="set-actions" *ngIf="isLead">
+    <button type="button" class="ghost" (click)="reset()" [disabled]="!dirty || saving">Discard changes</button>
+    <button type="submit" class="primary" [disabled]="!dirty || saving">{{ saving ? 'Saving…' : 'Save statuses' }}</button>
+  </div>
+</form>
+<div class="toast" *ngIf="notice">{{ notice }}</div>

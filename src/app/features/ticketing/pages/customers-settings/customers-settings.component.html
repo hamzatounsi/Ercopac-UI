@@ -1,34 +1,234 @@
-<p>customers-settings works!</p>
-<div class="settings-container">
-  <div class="header">
-    <h2>Customers</h2>
-    <p class="subtitle">Manage customer accounts and their equipment.</p>
-    <button class="btn-primary">+ Add customer</button>
+<!-- Customer list -->
+<ng-container *ngIf="!selected; else detail">
+  <div class="set-head">
+    <div>
+      <h2>Customers</h2>
+      <p>Companies your team supports, with their contacts, sites, equipment and projects.</p>
+    </div>
+    <button class="primary small" *ngIf="isLead" (click)="newCustomer()">+ Add customer</button>
   </div>
+  <p class="readonly-note" *ngIf="!isLead">Only support leads can add or edit customers.</p>
 
-  <div class="table-container">
-    <table>
-      <thead>
-        <tr>
-          <th>NAME</th>
-          <th>ORGANISATION</th>
-          <th>EMAIL</th>
-          <th>LANGUAGE</th>
-          <th>STATUS</th>
-        </tr>
-      </thead>
+  <input class="input search" [(ngModel)]="search" placeholder="Search by name, code or town…" aria-label="Search customers" *ngIf="customers.length">
+
+  <div class="state" *ngIf="loading">Loading customers…</div>
+  <div class="load-error" *ngIf="!loading && error">{{ error }} <button class="ghost small" (click)="load()">Retry</button></div>
+  <div class="empty" *ngIf="!loading && !error && !customers.length">No customers yet.<ng-container *ngIf="isLead"> Add the first one with “+ Add customer”.</ng-container></div>
+  <div class="empty" *ngIf="!loading && customers.length && !filtered.length">No customer matches “{{ search }}”.</div>
+
+  <div class="table-wrap" *ngIf="!loading && filtered.length">
+    <table class="set-table clickable">
+      <thead><tr><th>Customer</th><th>Location</th><th>Contacts</th><th>Sites</th><th>Equipment</th><th>Projects</th><th>Open tickets</th><th>Status</th></tr></thead>
       <tbody>
-        <tr *ngFor="let user of users">
-          <td class="font-bold">{{ user.fullName }}</td>
-          <td>{{ user.organisation?.name || '—' }}</td>
-          <td>{{ user.email }}</td>
-          <td>{{ user.preferredLanguage || 'EN' }}</td>
-          <td><span class="badge badge-success">approved</span></td>
-        </tr>
-        <tr *ngIf="users.length === 0">
-          <td colspan="5" class="text-center">No customers found.</td>
+        <tr *ngFor="let c of filtered" (click)="select(c)" tabindex="0" (keydown.enter)="select(c)">
+          <td class="strong">{{ c.name }}<small>{{ c.code }}</small></td>
+          <td>{{ location(c) || '—' }}</td>
+          <td>{{ c.contacts }}</td>
+          <td>{{ c.sites }}</td>
+          <td>{{ c.equipment }}</td>
+          <td>{{ c.projects }}</td>
+          <td>{{ c.openTickets }}</td>
+          <td><span class="badge" [ngClass]="c.active ? 'c-green' : 'c-gray'">{{ c.active ? 'Active' : 'Inactive' }}</span></td>
         </tr>
       </tbody>
     </table>
   </div>
+</ng-container>
+
+<!-- Customer detail -->
+<ng-template #detail>
+  <ng-container *ngIf="selected as c">
+    <button class="ghost small" (click)="back()">← Back to customers</button>
+    <div class="set-head detail-head">
+      <div>
+        <h2>{{ c.name }} <span class="badge" [ngClass]="c.active ? 'c-green' : 'c-gray'">{{ c.active ? 'Active' : 'Inactive' }}</span></h2>
+        <p>{{ c.code }}<ng-container *ngIf="c.town || c.country"> · {{ location(c) }}</ng-container> · {{ c.openTickets }} open ticket{{ c.openTickets === 1 ? '' : 's' }}</p>
+      </div>
+      <button class="ghost small" *ngIf="isLead" (click)="editCustomer(c)">Edit customer</button>
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button *ngFor="let t of tabs" role="tab" [class.on]="tab === t.key" [attr.aria-selected]="tab === t.key" (click)="openTab(t.key)">
+        {{ t.label }}
+        <span class="count" *ngIf="t.key === 'contacts'">{{ c.contacts }}</span>
+        <span class="count" *ngIf="t.key === 'sites'">{{ c.sites }}</span>
+        <span class="count" *ngIf="t.key === 'equipment'">{{ c.equipment }}</span>
+        <span class="count" *ngIf="t.key === 'projects'">{{ c.projects }}</span>
+      </button>
+    </div>
+
+    <div class="state" *ngIf="tabLoading">Loading…</div>
+    <div class="load-error" *ngIf="tabError">{{ tabError }} <button class="ghost small" (click)="loadTab()">Retry</button></div>
+
+    <!-- Information -->
+    <dl class="info" *ngIf="tab === 'info'">
+      <div><dt>Code</dt><dd>{{ c.code }}</dd></div>
+      <div><dt>Name</dt><dd>{{ c.name }}</dd></div>
+      <div><dt>Main contact</dt><dd>{{ c.contactPerson || '—' }}</dd></div>
+      <div><dt>Email</dt><dd><a *ngIf="c.email; else none" [href]="'mailto:' + c.email">{{ c.email }}</a></dd></div>
+      <div><dt>Phone</dt><dd>{{ c.phone || '—' }}</dd></div>
+      <div><dt>Country</dt><dd>{{ c.country || '—' }}</dd></div>
+      <div><dt>Town</dt><dd>{{ c.town || '—' }}</dd></div>
+      <div class="wide"><dt>Address</dt><dd>{{ c.address || '—' }}</dd></div>
+      <ng-template #none>—</ng-template>
+    </dl>
+
+    <!-- Contacts -->
+    <ng-container *ngIf="tab === 'contacts' && !tabLoading">
+      <div class="tab-head"><span class="muted-sm">People at {{ c.name }}. Link a client account so they can open tickets from the portal.</span>
+        <button class="primary small" *ngIf="isLead" (click)="editContact()">+ Add contact</button></div>
+      <div class="empty" *ngIf="!contacts.length && !tabError">No contacts yet.</div>
+      <table class="set-table" *ngIf="contacts.length">
+        <thead><tr><th>Name</th><th>Email / phone</th><th>Language</th><th>Portal account</th><th *ngIf="isLead"></th></tr></thead>
+        <tbody>
+          <tr *ngFor="let x of contacts">
+            <td class="strong">{{ x.fullName }}<small>{{ x.jobTitle }}</small></td>
+            <td>{{ x.email || '—' }}<small>{{ x.phone }}</small></td>
+            <td>{{ languageName(x.language) }}</td>
+            <td><span class="badge c-green" *ngIf="x.portalUser; else noPortal">{{ x.portalUser.email }}</span><ng-template #noPortal><span class="muted-sm">Not linked</span></ng-template></td>
+            <td *ngIf="isLead" class="row-actions">
+              <button class="ghost small" (click)="editContact(x)">Edit</button>
+              <button class="ghost small danger" (click)="remove('contact', x.id, x.fullName)">Remove</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </ng-container>
+
+    <!-- Sites -->
+    <ng-container *ngIf="tab === 'sites' && !tabLoading">
+      <div class="tab-head"><span class="muted-sm">Plants and locations where the customer's equipment is installed.</span>
+        <button class="primary small" *ngIf="isLead" (click)="editSite()">+ Add site</button></div>
+      <div class="empty" *ngIf="!sites.length && !tabError">No sites yet.</div>
+      <table class="set-table" *ngIf="sites.length">
+        <thead><tr><th>Site</th><th>Address</th><th>Equipment</th><th *ngIf="isLead"></th></tr></thead>
+        <tbody>
+          <tr *ngFor="let s of sites">
+            <td class="strong">{{ s.name }}</td>
+            <td>{{ s.address || '—' }}</td>
+            <td>{{ s.equipment }}</td>
+            <td *ngIf="isLead" class="row-actions">
+              <button class="ghost small" (click)="editSite(s)">Edit</button>
+              <button class="ghost small danger" (click)="remove('site', s.id, s.name)">Remove</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </ng-container>
+
+    <!-- Equipment -->
+    <ng-container *ngIf="tab === 'equipment' && !tabLoading">
+      <div class="tab-head"><span class="muted-sm">Installed equipment that tickets can refer to.</span>
+        <button class="primary small" *ngIf="isLead" (click)="editEquipment()">+ Add equipment</button></div>
+      <div class="empty" *ngIf="!equipment.length && !tabError">No equipment registered.</div>
+      <table class="set-table" *ngIf="equipment.length">
+        <thead><tr><th>Equipment</th><th>Type</th><th>Serial number</th><th>Site</th><th *ngIf="isLead"></th></tr></thead>
+        <tbody>
+          <tr *ngFor="let e of equipment">
+            <td class="strong">{{ e.name }}<small>{{ e.note }}</small></td>
+            <td>{{ e.typeName || '—' }}</td>
+            <td class="mono">{{ e.serialNumber || '—' }}</td>
+            <td>{{ e.siteName || '—' }}</td>
+            <td *ngIf="isLead" class="row-actions">
+              <button class="ghost small" (click)="editEquipment(e)">Edit</button>
+              <button class="ghost small danger" (click)="remove('equipment', e.id, e.name)">Remove</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </ng-container>
+
+    <!-- Projects (read-only, managed in Projectum) -->
+    <ng-container *ngIf="tab === 'projects' && !tabLoading">
+      <div class="tab-head"><span class="muted-sm">Projectum projects of this customer. Tickets can be linked to them; projects are managed in Projectum.</span></div>
+      <div class="empty" *ngIf="!projects.length && !tabError">No project is linked to this customer in Projectum.</div>
+      <table class="set-table" *ngIf="projects.length">
+        <thead><tr><th>Project</th><th>Code</th><th>Phase</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let p of projects"><td class="strong">{{ p.name }}</td><td class="mono">{{ p.code || '—' }}</td><td>{{ p.phase || '—' }}</td></tr>
+        </tbody>
+      </table>
+    </ng-container>
+  </ng-container>
+</ng-template>
+
+<!-- Dialogs -->
+<div class="modal-backdrop" *ngIf="dialog" (click)="closeDialog()">
+  <form class="modal" (click)="$event.stopPropagation()" (ngSubmit)="saveDialog()" novalidate>
+    <ng-container [ngSwitch]="dialog">
+      <ng-container *ngSwitchCase="'customer'">
+        <h3>{{ form.id ? 'Edit customer' : 'New customer' }}</h3>
+        <div class="grid">
+          <label>Code *<input class="input" name="code" [(ngModel)]="form.code" maxlength="60" [class.invalid]="submitted && !form.code?.trim()"></label>
+          <label>Name *<input class="input" name="name" [(ngModel)]="form.name" maxlength="180" [class.invalid]="submitted && !form.name?.trim()"></label>
+          <label>Main contact<input class="input" name="contactPerson" [(ngModel)]="form.contactPerson" maxlength="150"></label>
+          <label>Email<input class="input" name="email" type="email" [(ngModel)]="form.email" maxlength="180"></label>
+          <label>Phone<input class="input" name="phone" [(ngModel)]="form.phone" maxlength="60"></label>
+          <label>Country<input class="input" name="country" [(ngModel)]="form.country" maxlength="80"></label>
+          <label>Town<input class="input" name="town" [(ngModel)]="form.town" maxlength="120"></label>
+          <label class="check">Status<span><input type="checkbox" name="active" [(ngModel)]="form.active"> Active</span></label>
+          <label class="full">Address<input class="input" name="address" [(ngModel)]="form.address" maxlength="300"></label>
+        </div>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="'contact'">
+        <h3>{{ form.id ? 'Edit contact' : 'New contact' }}</h3>
+        <div class="grid">
+          <label class="full">Full name *<input class="input" name="fullName" [(ngModel)]="form.fullName" maxlength="150" [class.invalid]="submitted && !form.fullName?.trim()"></label>
+          <label>Job title<input class="input" name="jobTitle" [(ngModel)]="form.jobTitle" maxlength="120"></label>
+          <label>Language
+            <select class="select" name="language" [(ngModel)]="form.language">
+              <option *ngFor="let l of languages" [value]="l.code">{{ l.label }}</option>
+            </select>
+          </label>
+          <label>Email<input class="input" name="email" type="email" [(ngModel)]="form.email" maxlength="180"></label>
+          <label>Phone<input class="input" name="phone" [(ngModel)]="form.phone" maxlength="60"></label>
+          <label class="full">Portal account
+            <select class="select" name="portalUser" [(ngModel)]="form.portalUserId">
+              <option [ngValue]="null">No portal access</option>
+              <option *ngFor="let u of portalUsers" [ngValue]="u.id" [disabled]="portalUserTaken(u)">{{ u.fullName }} · {{ u.email }}</option>
+            </select>
+            <small class="muted-sm">Client accounts are created in user management with the Client role.</small>
+          </label>
+        </div>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="'site'">
+        <h3>{{ form.id ? 'Edit site' : 'New site' }}</h3>
+        <div class="grid">
+          <label class="full">Name *<input class="input" name="name" [(ngModel)]="form.name" maxlength="160" [class.invalid]="submitted && !form.name?.trim()"></label>
+          <label class="full">Address<input class="input" name="address" [(ngModel)]="form.address" maxlength="300"></label>
+        </div>
+      </ng-container>
+
+      <ng-container *ngSwitchCase="'equipment'">
+        <h3>{{ form.id ? 'Edit equipment' : 'New equipment' }}</h3>
+        <div class="grid">
+          <label class="full">Name *<input class="input" name="name" [(ngModel)]="form.name" maxlength="160" [class.invalid]="submitted && !form.name?.trim()"></label>
+          <label>Type
+            <select class="select" name="type" [(ngModel)]="form.typeId">
+              <option [ngValue]="null">No type</option>
+              <option *ngFor="let t of equipmentTypes" [ngValue]="t.id">{{ t.name }}</option>
+            </select>
+          </label>
+          <label>Serial number<input class="input" name="serial" [(ngModel)]="form.serialNumber" maxlength="100"></label>
+          <label class="full">Site
+            <select class="select" name="site" [(ngModel)]="form.siteId">
+              <option [ngValue]="null">{{ sites.length ? 'No site' : 'No sites yet' }}</option>
+              <option *ngFor="let s of sites" [ngValue]="s.id">{{ s.name }}</option>
+            </select>
+          </label>
+          <label class="full">Note<textarea class="textarea" name="note" [(ngModel)]="form.note" maxlength="500" rows="2"></textarea></label>
+        </div>
+      </ng-container>
+    </ng-container>
+
+    <p class="field-error" *ngIf="submitted && formError">{{ formError }}</p>
+    <p class="field-error" *ngIf="dialogError">{{ dialogError }}</p>
+    <div class="set-actions">
+      <button type="button" class="ghost" (click)="closeDialog()">Cancel</button>
+      <button type="submit" class="primary" [disabled]="saving">{{ saving ? 'Saving…' : 'Save' }}</button>
+    </div>
+  </form>
 </div>
+<div class="toast" *ngIf="notice">{{ notice }}</div>

@@ -1,0 +1,18 @@
+@import '../../ticketing.shared';
+
+.settings-shell { display:grid; grid-template-columns:210px minmax(0, 1fr); gap:14px; align-items:start; }
+.settings-nav { padding:8px 0; position:sticky; top:12px; }
+.sec-label { padding:12px 16px 4px; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#9499ad; }
+.settings-nav a { display:flex; align-items:center; gap:8px; padding:8px 16px; font-size:13px; color:#3b4660; text-decoration:none; border-left:3px solid transparent; }
+.settings-nav a:hover { background:#f6f8fc; }
+.settings-nav a.on { background:#e8f0fe; color:#1a56db; font-weight:600; border-left-color:#1a56db; }
+.settings-nav .material-symbols-outlined { font-size:17px; }
+.settings-body { padding:20px; min-height:400px; min-width:0; }
+@media (max-width:800px) {
+  .page-pad { padding:16px; }
+  .settings-shell { grid-template-columns:1fr; }
+  .settings-nav { position:static; display:flex; flex-wrap:wrap; padding:6px; }
+  .sec-label { display:none; }
+  .settings-nav a { border-left:0; border-radius:7px; padding:7px 10px; }
+  .settings-body { padding:14px; }
+}

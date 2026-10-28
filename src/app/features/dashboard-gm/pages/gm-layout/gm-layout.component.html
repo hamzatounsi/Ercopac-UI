@@ -2,10 +2,7 @@
   <app-projectum-project-header
     *ngIf="showSharedHeader"
     class="shell-header">
-    <button class="main-menu-btn" type="button" (click)="handleMainNavigation()">
-      <span class="material-symbols-outlined">{{ showLogoutInsteadOfMainMenu ? 'logout' : 'home' }}</span>
-      <span>{{ showLogoutInsteadOfMainMenu ? 'Logout' : 'Main Menu' }}</span>
-    </button>
+    <app-nav-buttons [homes]="homes"></app-nav-buttons>
   </app-projectum-project-header>
 
   <main

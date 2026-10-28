@@ -1,0 +1,10 @@
+<div class="ai-answer-body" [class.streaming]="streaming" aria-live="polite">
+  <ng-container *ngFor="let block of blocks">
+    <p *ngIf="block.kind === 'paragraph'" [class.labelled]="block.label">
+      <span class="ai-label" *ngIf="block.label">{{ block.label }}</span>{{ block.text }}
+    </p>
+    <ul *ngIf="block.kind === 'list'">
+      <li *ngFor="let item of block.items">{{ item }}</li>
+    </ul>
+  </ng-container>
+</div>

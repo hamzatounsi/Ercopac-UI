@@ -9,7 +9,7 @@
         <b *ngIf="item.key === 'notifications' && unreadCount">{{ unreadCount }}</b>
       </button>
     </nav>
-    <div class="user-actions"><span>{{ userName }}</span><button type="button" (click)="logout()">Sign out</button></div>
+    <div class="user-actions"><app-nav-buttons [homes]="['/employee']"></app-nav-buttons><span>{{ userName }}</span><button type="button" (click)="logout()">Sign out</button></div>
   </header>
 
   <main class="workspace-content">

@@ -46,10 +46,12 @@ export const ROLE_MODULE_MAP: Record<AppRole, WorkspaceModuleKey> = {
 };
 
 export function accessibleWorkspaceModules(roles: readonly AppRole[]): WorkspaceModule[] {
+  if (roles.includes('PLATFORM_OWNER')) return [WORKSPACE_MODULES.PLATFORM_ADMIN];
+
   const keys = roles.map(role => ROLE_MODULE_MAP[role]).filter(Boolean);
   
   // ✅ MISE À JOUR : Ajout de H24 et H24_LEAD dans la liste des rôles ayant accès au ticketing
-  const hasTicketingAccess = roles.some(role => 
+  const hasTicketingAccess = !roles.includes('ORG_ADMIN') && roles.some(role =>
     ['CLIENT', 'SALES_MANAGER_LEAD', 'H24', 'H24_LEAD'].includes(role)
   );
   

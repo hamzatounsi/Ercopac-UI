@@ -13,6 +13,7 @@ import { HealthStatus } from '../../../models/health-status.model';
 import { ResourceListItem } from '../../../models/resource-list-item.model';
 import { GmProjectTemplateService } from '../../../services/gm-project-template.service';
 import { GmAiAssistantService } from '../../../services/gm-ai-assistant.service';
+import { AiPdfExportService } from '../../../services/ai-pdf-export.service';
 import { AuthService } from 'src/app/core/auth/auth.service';
 
 type SortColumn =
@@ -75,6 +76,9 @@ export class GmProjectumPageComponent implements OnInit {
   aiAnswer = '';
   aiLoading = false;
   aiError = '';
+  aiGeneratePdf = false;
+  aiLastQuestion = '';
+  aiResultProjectName = '';
 
   // TEAM MODAL
   teamModalOpen = false;
@@ -154,6 +158,7 @@ export class GmProjectumPageComponent implements OnInit {
     private router: Router,
     private gmProjectTemplateService: GmProjectTemplateService,
     private aiService: GmAiAssistantService,
+    private aiPdf: AiPdfExportService,
     private authService: AuthService
   ) {}
 
@@ -298,6 +303,7 @@ export class GmProjectumPageComponent implements OnInit {
   }
 
   askAi(question?: string): void {
+    if (this.aiLoading) return;
     const project = this.selectedProject;
 
     if (!project?.id) {
@@ -305,7 +311,7 @@ export class GmProjectumPageComponent implements OnInit {
       return;
     }
 
-    const finalQuestion = question || this.aiQuestion;
+    const finalQuestion = (question || this.aiQuestion).trim();
 
     if (!finalQuestion.trim()) {
       return;
@@ -314,19 +320,30 @@ export class GmProjectumPageComponent implements OnInit {
     this.aiLoading = true;
     this.aiError = '';
     this.aiAnswer = '';
+    this.aiLastQuestion = finalQuestion;
+    this.aiResultProjectName = project.name || project.code || 'Project';
 
-    this.aiService.askProjectAssistant(project.id, finalQuestion).subscribe({
-      next: (res) => {
-        this.aiAnswer = res.answer;
+    this.aiService.streamProjectAssistant(project.id, finalQuestion).subscribe({
+      next: (answer) => { this.aiAnswer = answer; },
+      complete: () => {
         this.aiLoading = false;
+        if (!this.aiAnswer.trim()) this.aiError = 'The assistant returned an empty answer. Please retry.';
+        if (this.aiAnswer.trim() && this.aiGeneratePdf) this.downloadAiPdf();
         this.notifyAiFinished('AI analysis finished.');
       },
-      error: () => {
-        this.aiError = 'AI assistant is currently unavailable.';
+      error: (err) => {
+        this.aiError = err?.message || 'AI assistant is currently unavailable.';
         this.aiLoading = false;
         this.notifyAiFinished('AI analysis failed.');
       }
     });
+  }
+
+  downloadAiPdf(): void {
+    if (this.aiResultProjectName && this.aiAnswer.trim()) {
+      void this.aiPdf.download(this.aiResultProjectName, this.aiLastQuestion, this.aiAnswer)
+        .catch(() => { this.aiError = 'The answer is ready, but the PDF could not be downloaded.'; });
+    }
   }
 
 

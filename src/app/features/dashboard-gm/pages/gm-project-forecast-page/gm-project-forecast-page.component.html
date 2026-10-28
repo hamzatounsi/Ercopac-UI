@@ -90,9 +90,8 @@
           <div class="col-remaining-schedule money remaining-schedule-cell">
             <div class="remaining-schedule-wrap">
               <strong class="remaining-schedule-cost">{{ formatRemainingSchedule(row) }}</strong>
-              <small class="remaining-schedule-hint" *ngIf="getRowType(row) === 'HOUR'">{{ (row.remainingHours || 0) | number:'1.0-2' }} h × {{ formatMoney(getHourlyRate(row)) }}</small>
-              <small class="remaining-schedule-hint" *ngIf="getRowType(row) !== 'HOUR'">{{ (row.remainingHours || 0) | number:'1.0-2' }} h</small>
-              
+              <small class="remaining-schedule-hint" *ngIf="getRemainingScheduleFormula(row) as formula" [title]="formula.title">{{ formula.text }}</small>
+
             </div>
           </div>
         </div>

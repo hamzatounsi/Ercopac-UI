@@ -1,0 +1,17 @@
+:host { display:block; }
+.tk-bell { position:relative; }
+.bell-btn { position:relative; width:34px; height:34px; border-radius:8px; border:1px solid rgba(0,0,0,.08); background:#fff; color:#5a5f72; display:grid; place-items:center; cursor:pointer; }
+.bell-btn:hover { background:#f8f9fc; color:#0f1117; }
+.bell-btn .material-symbols-outlined { font-size:20px; }
+.badge { position:absolute; top:-5px; right:-5px; min-width:17px; height:17px; padding:0 4px; border-radius:9px; background:#e63648; color:#fff; font-size:10px; font-weight:700; display:grid; place-items:center; }
+.drop { position:absolute; right:0; top:42px; z-index:40; width:340px; max-width:calc(100vw - 32px); background:#fff; border:1px solid #e3e7f1; border-radius:10px; box-shadow:0 12px 32px #18284b26; overflow:hidden; }
+.drop-head { display:flex; justify-content:space-between; align-items:center; padding:10px 14px; border-bottom:1px solid #f0f2f7; font-size:13px; }
+.link-btn { border:0; background:transparent; color:#1a56db; font:inherit; font-size:12px; font-weight:600; cursor:pointer; }
+.drop-body { max-height:380px; overflow:auto; }
+.empty { margin:0; padding:20px; text-align:center; color:#71809a; font-size:12.5px; }
+.item { display:block; width:100%; text-align:left; border:0; border-bottom:1px solid #f4f5f9; background:#fff; padding:10px 14px; font:inherit; cursor:pointer; }
+.item:hover { background:#f8f9fc; }
+.item.unread { background:#f3f7ff; }
+.title { display:block; font-size:12.5px; font-weight:700; color:#17223b; }
+.msg { display:block; font-size:12px; color:#5a5f72; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+time { display:block; font-size:11px; color:#9499ad; margin-top:3px; }

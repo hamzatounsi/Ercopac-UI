@@ -1,0 +1,23 @@
+@import '../../ticketing.shared';
+td small { display:block; color:#71809a; font-weight:400; font-size:11.5px; }
+.search { max-width:340px; margin-bottom:12px; }
+.clickable tbody tr { cursor:pointer; }
+.clickable tbody tr:hover, .clickable tbody tr:focus { background:#f7f9fd; outline:none; }
+.detail-head { margin-top:12px; }
+.detail-head h2 .badge { font-size:11px; padding:3px 9px; vertical-align:2px; margin-left:6px; }
+.tabs { display:flex; gap:2px; border-bottom:1px solid #e3e7f1; margin-bottom:14px; overflow-x:auto; }
+.tabs button { border:0; background:transparent; padding:9px 14px; font:inherit; font-size:13px; font-weight:600; color:#68758d; cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; }
+.tabs button.on { color:#1a56db; border-bottom-color:#1a56db; }
+.count { display:inline-block; margin-left:4px; padding:1px 7px; border-radius:999px; background:#f0f2f7; font-size:11px; color:#5a6680; }
+.tab-head { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+.info { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:4px 24px; margin:0; }
+.info > div { display:grid; grid-template-columns:120px 1fr; padding:8px 0; border-bottom:1px dashed #edf0f6; font-size:13px; }
+.info .wide { grid-column:1 / -1; }
+.info dt { color:#71809a; }
+.info dd { margin:0; font-weight:600; overflow-wrap:anywhere; }
+.info a { color:#1a56db; }
+.row-actions { white-space:nowrap; text-align:right; }
+.row-actions button + button { margin-left:6px; }
+.mono { font-family:monospace; }
+.modal label.check span { font-weight:400; display:flex; align-items:center; gap:6px; padding-top:6px; }
+@media (max-width:640px) { .info { grid-template-columns:1fr; } }

@@ -1,3 +1,4 @@
+import { AppNavButtonsComponent } from 'src/app/core/navigation/app-nav-buttons.component';
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
@@ -32,6 +33,7 @@ import { ForbiddenComponent } from './features/forbidden/forbidden.component';
     RouterModule,
     AppRoutingModule,
     DashboardDepartmentModule,
+    AppNavButtonsComponent,
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }

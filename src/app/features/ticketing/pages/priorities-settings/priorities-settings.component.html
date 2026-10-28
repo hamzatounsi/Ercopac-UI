@@ -1,43 +1,42 @@
-<div>
-  <h2 class="text-2xl font-bold mb-2 text-gray-800">Priority levels</h2>
-  <p class="text-gray-600 mb-6">Configure ticket priority levels and their SLA targets.</p>
+<div class="set-head">
+  <div>
+    <h2>Priority levels</h2>
+    <p>Ticket priority levels and their SLA targets. A ticket is overdue once it stays unresolved longer than its resolution target.</p>
+  </div>
+</div>
+<p class="readonly-note" *ngIf="!isLead">Only support leads can change priorities and SLA targets.</p>
 
-  <div class="bg-white rounded-lg shadow overflow-hidden">
-    <table class="w-full">
-      <thead>
-        <tr class="border-b bg-gray-50">
-          <th class="text-left p-4 font-semibold text-gray-600">PRIORITY</th>
-          <th class="text-left p-4 font-semibold text-gray-600">FIRST RESPONSE SLA</th>
-          <th class="text-left p-4 font-semibold text-gray-600">RESOLUTION SLA</th>
-          <th class="text-left p-4 font-semibold text-gray-600">ACTIONS</th>
-        </tr>
-      </thead>
+<div class="state" *ngIf="loading">Loading priorities…</div>
+<div class="load-error" *ngIf="!loading && error && !rows.length">{{ error }} <button class="ghost small" (click)="load()">Retry</button></div>
+
+<form *ngIf="!loading && rows.length" (ngSubmit)="save()">
+  <div class="table-wrap">
+    <table class="set-table">
+      <thead><tr><th>Priority</th><th>Label</th><th>First response SLA (minutes)</th><th>Resolution SLA (hours)</th></tr></thead>
       <tbody>
-        <tr *ngFor="let priority of priorities" class="border-b last:border-b-0 hover:bg-gray-50">
-          <td class="p-4">
-            <span class="px-3 py-1 rounded-full text-sm font-medium" [ngClass]="getPriorityBadgeClass(priority.priority)">
-              {{ priority.label }}
-            </span>
-          </td>
-          <td class="p-4">
-            <div class="flex items-center gap-2">
-              <input type="number" [(ngModel)]="priority.firstResponseSlaHours" class="border border-gray-300 rounded px-3 py-1 w-24" min="1">
-              <span class="text-gray-600 text-sm">hours</span>
-            </div>
-          </td>
-          <td class="p-4">
-            <div class="flex items-center gap-2">
-              <input type="number" [(ngModel)]="priority.resolutionSlaHours" class="border border-gray-300 rounded px-3 py-1 w-24" min="1">
-              <span class="text-gray-600 text-sm">hours</span>
-            </div>
-          </td>
-          <td class="p-4">
-            <button (click)="savePriority(priority)" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium">
-              Save
-            </button>
-          </td>
-        </tr>
+        <ng-container *ngFor="let p of rows; let i = index">
+          <tr>
+            <td><span class="priority" [ngClass]="'p-' + p.priority.toLowerCase()">{{ p.label || p.priority }}</span></td>
+            <td><input class="input" [name]="'label' + i" [(ngModel)]="p.label" maxlength="60" [disabled]="!isLead" aria-label="Label"
+                       [class.invalid]="submitted && !p.label.trim()"></td>
+            <td>
+              <input class="input num" type="number" min="1" max="100000" [name]="'resp' + i" [(ngModel)]="p.firstResponseMinutes" [disabled]="!isLead" aria-label="First response minutes">
+              <small>{{ duration(p.firstResponseMinutes) }}</small>
+            </td>
+            <td>
+              <input class="input num" type="number" min="1" max="10000" [name]="'res' + i" [(ngModel)]="p.resolutionHours" [disabled]="!isLead" aria-label="Resolution hours">
+              <small>{{ duration(p.resolutionHours * 60) }}</small>
+            </td>
+          </tr>
+          <tr class="err-row" *ngIf="submitted && rowError(p)"><td colspan="4"><span class="field-error">{{ p.priority }}: {{ rowError(p) }}</span></td></tr>
+        </ng-container>
       </tbody>
     </table>
   </div>
-</div>
+  <p class="field-error" *ngIf="error">{{ error }}</p>
+  <div class="set-actions" *ngIf="isLead">
+    <button type="button" class="ghost" (click)="reset()" [disabled]="!dirty || saving">Discard changes</button>
+    <button type="submit" class="primary" [disabled]="!dirty || saving">{{ saving ? 'Saving…' : 'Save priorities' }}</button>
+  </div>
+</form>
+<div class="toast" *ngIf="notice">{{ notice }}</div>

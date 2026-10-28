@@ -1,10 +1,11 @@
 @import '../../ticketing.shared';
 
-.back { margin-bottom:16px; }
 .form-panel { padding:22px; max-width:900px; }
-.form-panel > .error { margin:0 0 14px; }
+.form-panel > .error { margin:0 0 14px; padding:10px; background:#fff1f1; border-radius:8px; text-align:left; }
+.form-grid { gap:14px 16px; }
 .form-grid .full { grid-column:1 / -1; }
-.form-grid label { color:#3b4660; }
-.form-grid input, .form-grid select, .form-grid textarea { font-weight:400; font-size:13.5px; }
+.form-grid label { color:#3b4660; display:flex; flex-direction:column; gap:6px; }
+.form-grid textarea { min-height:140px; }
+.form-grid .select:disabled { background:#f6f8fc; color:#9499ad; }
 .form-actions { margin-top:4px; }
-.primary:disabled { opacity:.55; cursor:default; }
+@media (max-width:640px) { .page-pad { padding:16px; } .form-panel { padding:16px; } }

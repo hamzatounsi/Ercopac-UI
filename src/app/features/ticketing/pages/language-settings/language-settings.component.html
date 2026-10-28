@@ -1,0 +1,53 @@
+<div class="set-head">
+  <div>
+    <h2>My language &amp; translation</h2>
+    <p>Set your preferred language and see how messages are translated in ticket conversations.</p>
+  </div>
+</div>
+
+<div class="state" *ngIf="loading">Loading…</div>
+<div class="load-error" *ngIf="!loading && error && !me">{{ error }} <button class="ghost small" (click)="load()">Retry</button></div>
+
+<ng-container *ngIf="me">
+  <section class="box">
+    <h3>My language</h3>
+    <label class="lang">
+      <span class="sr">Language</span>
+      <select class="select" [ngModel]="language" (ngModelChange)="save($event)" [disabled]="saving">
+        <option *ngFor="let l of languages" [value]="l.code">{{ l.label }}</option>
+      </select>
+      <span class="muted-sm" *ngIf="saving">Saving…</span>
+    </label>
+    <p class="muted-sm">{{ me.staff
+      ? 'This is the language you write in and the language customer messages are translated into.'
+      : 'This is the language you write in. The support team can translate your messages and reply in this language.' }}</p>
+    <p class="field-error" *ngIf="error">{{ error }}</p>
+  </section>
+
+  <section class="box">
+    <div class="box-head">
+      <h3>Translation</h3>
+      <span class="badge c-green">Per ticket</span>
+    </div>
+    <div class="how" *ngIf="me.staff; else clientHow">
+      <strong>How it works</strong>
+      <ul>
+        <li>Each ticket conversation shows your language and the customer's language.</li>
+        <li>Turn on “Translate” on a ticket: the customer's messages appear in your language, with the original below.</li>
+        <li>Your public replies are sent to the customer in their language. Internal notes are never translated.</li>
+        <li>The customer's language comes from their contact record (Settings › Customers) or their own setting.</li>
+      </ul>
+    </div>
+    <ng-template #clientHow>
+      <div class="how">
+        <strong>How it works</strong>
+        <ul>
+          <li>Write to the support team in your own language.</li>
+          <li>Agents can read your messages translated, and their replies can be translated into your language.</li>
+        </ul>
+      </div>
+    </ng-template>
+    <p class="muted-sm">Translation runs on the organisation's own AI service; if it is unavailable, messages are shown untranslated.</p>
+  </section>
+</ng-container>
+<div class="toast" *ngIf="notice">{{ notice }}</div>

@@ -1,33 +1,38 @@
-<div class="settings-container">
-  <div class="header">
+<div class="set-head">
+  <div>
     <h2>L2 Technicians</h2>
-    <p class="subtitle">Level 2 specialists assigned by H24 agents when escalation is needed.</p>
-    <button class="btn-primary">+ Add L2</button>
+    <p>Level 2 specialists assigned by H24 agents when escalation is needed.</p>
   </div>
-
-  <div class="table-container">
-    <table>
-      <thead>
-        <tr>
-          <th>NAME</th>
-          <th>SPECIALISATION</th>
-          <th>LEVEL</th>
-          <th>ACTIVE</th>
-          <th>STATUS</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let user of users">
-          <td class="font-bold">{{ user.fullName }}</td>
-          <td>{{ user.specialization || 'General' }}</td>
-          <td><span class="badge badge-info">L2</span></td>
-          <td>0</td>
-          <td><span class="badge badge-success">Active</span></td>
-        </tr>
-        <tr *ngIf="users.length === 0">
-          <td colspan="5" class="text-center">No L2 technicians found. (Check the "isL2Technician" flag in database).</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <button class="primary small" *ngIf="isLead && !adding" (click)="adding = true" [disabled]="loading || !candidates.length">+ Add L2</button>
 </div>
+<p class="readonly-note" *ngIf="!isLead">Only support leads can change who is an L2 technician.</p>
+
+<form class="add-row" *ngIf="adding" (ngSubmit)="add()">
+  <select class="select" name="candidate" [(ngModel)]="candidateId" aria-label="Support member">
+    <option [ngValue]="null">Choose a support member…</option>
+    <option *ngFor="let c of candidates" [ngValue]="c.id">{{ c.fullName }}<ng-container *ngIf="c.specialization"> · {{ c.specialization }}</ng-container></option>
+  </select>
+  <button type="button" class="ghost small" (click)="adding = false; candidateId = null">Cancel</button>
+  <button type="submit" class="primary small" [disabled]="!candidateId || busyId">Add</button>
+</form>
+
+<div class="state" *ngIf="loading">Loading…</div>
+<div class="load-error" *ngIf="error">{{ error }} <button class="ghost small" (click)="load()">Retry</button></div>
+<div class="empty" *ngIf="!loading && !error && !technicians.length">No L2 technicians yet.<ng-container *ngIf="isLead"> Use “+ Add L2” to flag a support member.</ng-container></div>
+
+<div class="table-wrap" *ngIf="!loading && technicians.length">
+  <table class="set-table">
+    <thead><tr><th>Name</th><th>Specialisation</th><th>Level</th><th>Open L2 tickets</th><th>Status</th><th *ngIf="isLead"></th></tr></thead>
+    <tbody>
+      <tr *ngFor="let t of technicians">
+        <td class="strong">{{ t.fullName }}<small>{{ t.email }}</small></td>
+        <td>{{ t.specialization || '—' }}</td>
+        <td><span class="badge c-red">L2</span></td>
+        <td>{{ t.l2OpenTickets }}</td>
+        <td><span class="badge" [ngClass]="t.active ? 'c-green' : 'c-gray'">{{ t.active ? 'Active' : 'Inactive' }}</span></td>
+        <td *ngIf="isLead"><button class="ghost small danger" (click)="remove(t)" [disabled]="busyId === t.id">Remove</button></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div class="toast" *ngIf="notice">{{ notice }}</div>

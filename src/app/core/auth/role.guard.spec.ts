@@ -37,6 +37,23 @@ describe('RoleGuard', () => {
     expect(guard.canActivate(routeWithRoles('SALES_MANAGER_LEAD', 'SALES_MANAGER'))).toBeTrue();
   });
 
+  it('limits single-role admins while allowing an Organisation Admin with another role to use the chooser', () => {
+    auth.isLoggedIn.and.returnValue(true);
+    auth.getRoles.and.returnValue(['ORG_ADMIN']);
+    expect(guard.canActivate(routeWithRoles('ORG_ADMIN'))).toBeTrue();
+    const result = guard.canActivate(routeWithRoles('SALES_MANAGER'));
+    expect(TestBed.inject(Router).serializeUrl(result as UrlTree)).toBe('/forbidden');
+
+    auth.getRoles.and.returnValue(['ORG_ADMIN', 'PROJECT_MANAGER']);
+    expect(guard.canActivate(routeWithRoles('ORG_ADMIN', 'PROJECT_MANAGER'))).toBeTrue();
+    expect(guard.canActivate(routeWithRoles('PROJECT_MANAGER'))).toBeTrue();
+
+    auth.getRoles.and.returnValue(['PLATFORM_OWNER', 'CLIENT']);
+    expect(guard.canActivate(routeWithRoles('PLATFORM_OWNER'))).toBeTrue();
+    const ticketingResult = guard.canActivate(routeWithRoles('CLIENT'));
+    expect(TestBed.inject(Router).serializeUrl(ticketingResult as UrlTree)).toBe('/forbidden');
+  });
+
   function routeWithRoles(...roles: string[]): ActivatedRouteSnapshot {
     const route = new ActivatedRouteSnapshot();
     Object.defineProperty(route, 'data', { value: { roles } });

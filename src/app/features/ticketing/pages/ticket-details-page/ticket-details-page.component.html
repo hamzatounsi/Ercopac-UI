@@ -1,5 +1,8 @@
 <div class="state-page" *ngIf="busy && !details">Loading ticket…</div>
-<div class="state-page error" *ngIf="!busy && !details && error">{{ error }}</div>
+<div class="state-page error" *ngIf="!busy && !details && error">
+  {{ error }}
+  <div class="state-actions"><button class="ghost" (click)="back()">← Back to tickets</button><button class="ghost" (click)="load()">Retry</button></div>
+</div>
 
 <div class="tk-page" *ngIf="details as d">
   <!-- Header -->
@@ -10,15 +13,18 @@
     </div>
     <h1 [title]="d.ticket.subject">{{ d.ticket.subject }}</h1>
     <div class="tk-badges">
-      <span class="badge" [class]="'badge s-' + d.ticket.status.toLowerCase()">{{ label(d.ticket.status) }}</span>
-      <span class="priority" [class]="'priority p-' + d.ticket.priority.toLowerCase()">{{ label(d.ticket.priority) }}</span>
-      <span class="chip">{{ label(d.origin) }}</span>
-      <span class="chip locked" *ngIf="closed"><span class="material-symbols-outlined">lock</span>{{ label(d.ticket.status) }}</span>
+      <span class="badge" [ngClass]="'c-' + labels.statusColor(d.ticket.status)">{{ labels.statusLabel(d.ticket.status) }}</span>
+      <span class="priority" [ngClass]="'p-' + d.ticket.priority.toLowerCase()">{{ labels.priorityLabel(d.ticket.priority) }}</span>
+      <span class="chip">{{ originLabels[d.origin] }}</span>
+      <span class="chip overdue" *ngIf="d.ticket.overdue"><span class="material-symbols-outlined">schedule</span>Overdue</span>
+      <span class="chip locked" *ngIf="closed"><span class="material-symbols-outlined">lock</span>{{ labels.statusLabel(d.ticket.status) }}</span>
     </div>
     <div class="tk-actions">
-      <button type="button" class="ghost" routerLink="/tickets">← Back</button>
-      <button type="button" class="primary" *ngIf="d.canManage && nextStatuses.includes('RESOLVED')" (click)="changeStatus('RESOLVED')">✓ Resolve</button>
-      <button type="button" class="ghost" *ngIf="d.canManage && nextStatuses.includes('REOPENED')" (click)="changeStatus('REOPENED')">Reopen</button>
+      <button type="button" class="ghost small" (click)="exportPdf()" [disabled]="exporting" title="Export to PDF">
+        <span class="material-symbols-outlined">picture_as_pdf</span>{{ exporting ? 'Exporting…' : 'Export PDF' }}
+      </button>
+      <button type="button" class="primary small" *ngIf="d.canManage && nextStatuses.includes('RESOLVED')" (click)="changeStatus('RESOLVED')" [disabled]="saving">✓ Resolve</button>
+      <button type="button" class="ghost small" *ngIf="d.ticket.status === 'RESOLVED' && (d.canManage || d.canClose)" (click)="changeStatus('REOPENED')" [disabled]="saving">Reopen</button>
     </div>
   </header>
 
@@ -26,9 +32,9 @@
   <div class="pipeline-wrap">
     <div class="pipeline">
       <ng-container *ngFor="let step of pipeline; let i = index; let last = last">
-        <button type="button" class="step" [ngClass]="step.state" [class.allowed]="step.allowed"
-                [disabled]="!step.allowed" (click)="changeStatus(step.status)"
-                [title]="step.state === 'active' ? 'Current status' : step.allowed ? 'Move to ' + step.label : 'Not available from ' + label(d.ticket.status)">
+        <button type="button" class="step" [ngClass]="step.state" [class.allowed]="step.allowed && !saving"
+                [disabled]="!step.allowed || saving" (click)="changeStatus(step.status)"
+                [title]="step.state === 'active' ? 'Current status' : step.allowed ? 'Move to ' + step.label : 'Not available from ' + labels.statusLabel(d.ticket.status)">
           <span class="node">{{ step.state === 'past' ? '✓' : i + 1 }}</span>
           <span class="step-label">{{ step.label }}</span>
         </button>
@@ -38,7 +44,8 @@
     <p class="hint" *ngIf="d.canManage && !closed">Click a highlighted step to change the status.</p>
   </div>
 
-  <p class="error banner" *ngIf="error">{{ error }}</p>
+  <p class="error banner" *ngIf="error" role="alert">{{ error }}</p>
+  <div class="toast" *ngIf="notice" role="status">{{ notice }}</div>
 
   <!-- 3-column body -->
   <div class="tk-body">
@@ -50,27 +57,81 @@
         </button>
         <div class="card-body" *ngIf="!collapsed['info']">
           <div class="field"><label>Case #</label><div class="mono">{{ d.ticket.ticketNumber }}</div></div>
-          <div class="field"><label>Customer</label><div class="link">{{ d.ticket.organisationName }}</div></div>
-          <div class="field"><label>Site</label><div>{{ d.ticket.site || '—' }}</div></div>
+          <div class="field"><label>Customer</label>
+            <div>
+              <span class="link" *ngIf="!editable">{{ d.ticket.customer?.name || 'No customer' }}</span>
+              <select *ngIf="editable" class="inline-select" [ngModel]="d.ticket.customer?.id ?? null" (ngModelChange)="setCustomer($event)" [disabled]="saving" aria-label="Customer">
+                <option [ngValue]="null">No customer</option>
+                <option *ngFor="let c of options.customers" [ngValue]="c.id">{{ c.name }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="field"><label>Site</label>
+            <div>
+              <ng-container *ngIf="!editable || !options.sites.length">{{ d.ticket.site || '—' }}</ng-container>
+              <select *ngIf="editable && options.sites.length" class="inline-select" [ngModel]="d.ticket.site || ''" (ngModelChange)="setContext({ site: $event || null })" [disabled]="saving" aria-label="Site">
+                <option value="">No site</option>
+                <option *ngFor="let s of options.sites" [value]="s.name">{{ s.name }}</option>
+              </select>
+            </div>
+          </div>
           <div class="field"><label>Status</label>
             <div>
-              <span class="badge" [class]="'badge s-' + d.ticket.status.toLowerCase()">{{ label(d.ticket.status) }}</span>
-              <select *ngIf="d.canManage && nextStatuses.length" class="inline-select" [ngModel]="null" (ngModelChange)="$event && changeStatus($event)" aria-label="Change status">
+              <span class="badge" [ngClass]="'c-' + labels.statusColor(d.ticket.status)">{{ labels.statusLabel(d.ticket.status) }}</span>
+              <select *ngIf="d.canManage && nextStatuses.length" class="inline-select" [ngModel]="null" (ngModelChange)="$event && changeStatus($event)" [disabled]="saving" aria-label="Change status">
                 <option [ngValue]="null">Change status…</option>
-                <option *ngFor="let s of nextStatuses" [ngValue]="s">{{ label(s) }}</option>
+                <option *ngFor="let s of nextStatuses" [ngValue]="s">{{ labels.statusLabel(s) }}</option>
               </select>
             </div>
           </div>
           <div class="field"><label>Priority</label>
             <div>
-              <span class="priority" [class]="'priority p-' + d.ticket.priority.toLowerCase()">{{ label(d.ticket.priority) }}</span>
-              <select *ngIf="editable" class="inline-select" [ngModel]="d.ticket.priority" (ngModelChange)="setPriority($event)" aria-label="Priority">
-                <option *ngFor="let p of priorities" [ngValue]="p">{{ label(p) }}</option>
+              <span *ngIf="!editable" class="priority" [ngClass]="'p-' + d.ticket.priority.toLowerCase()">{{ labels.priorityLabel(d.ticket.priority) }}</span>
+              <select *ngIf="editable" class="inline-select" [ngModel]="d.ticket.priority" (ngModelChange)="setPriority($event)" [disabled]="saving" aria-label="Priority">
+                <option *ngFor="let p of priorities" [ngValue]="p">{{ labels.priorityLabel(p) }}</option>
               </select>
             </div>
           </div>
-          <div class="field"><label>Origin</label><div>{{ label(d.origin) }}</div></div>
-          <div class="field"><label>Category</label><div>{{ label(d.ticket.category) }}</div></div>
+          <div class="field"><label>Origin</label>
+            <div>
+              <ng-container *ngIf="!editable">{{ originLabels[d.origin] }}</ng-container>
+              <select *ngIf="editable" class="inline-select" [ngModel]="d.origin" (ngModelChange)="setOrigin($event)" [disabled]="saving" aria-label="Origin">
+                <option *ngFor="let o of origins" [ngValue]="o">{{ originLabels[o] }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="field"><label>Category</label>
+            <div>
+              <ng-container *ngIf="!editable">{{ label(d.ticket.category) }}</ng-container>
+              <select *ngIf="editable" class="inline-select" [ngModel]="d.ticket.category" (ngModelChange)="setCategory($event)" [disabled]="saving" aria-label="Category">
+                <option *ngFor="let c of categories" [ngValue]="c">{{ label(c) }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="field"><label>Project</label>
+            <div>
+              <span *ngIf="d.ticket.project; else noProject"><span class="material-symbols-outlined">folder</span> {{ d.ticket.project.name }}</span>
+              <ng-template #noProject><span class="muted">None</span></ng-template>
+              <select *ngIf="editable && d.ticket.customer" class="inline-select" [ngModel]="d.ticket.project?.id ?? null" (ngModelChange)="setContext({ projectId: $event })" [disabled]="saving" aria-label="Project">
+                <option [ngValue]="null">{{ options.projects.length ? 'No project' : 'No project for this customer' }}</option>
+                <option *ngFor="let p of options.projects" [ngValue]="p.id">{{ p.name }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="field"><label>Equipment</label>
+            <div>
+              <ng-container *ngIf="d.equipment as e; else noEquipment">
+                <span><span class="material-symbols-outlined">precision_manufacturing</span> {{ e.name }}</span>
+                <small class="muted block" *ngIf="e.serialNumber">S/N: {{ e.serialNumber }}</small>
+                <small class="muted block" *ngIf="e.typeName">{{ e.typeName }}</small>
+              </ng-container>
+              <ng-template #noEquipment><span class="muted">None</span></ng-template>
+              <select *ngIf="editable && d.ticket.customer" class="inline-select" [ngModel]="d.equipment?.id ?? null" (ngModelChange)="setContext({ equipmentId: $event })" [disabled]="saving" aria-label="Equipment">
+                <option [ngValue]="null">{{ options.equipment.length ? 'No equipment' : 'No registered equipment' }}</option>
+                <option *ngFor="let e of options.equipment" [ngValue]="e.id">{{ e.name }}<ng-container *ngIf="e.serialNumber"> ({{ e.serialNumber }})</ng-container></option>
+              </select>
+            </div>
+          </div>
           <div class="field"><label>Escalation</label><div>Level {{ d.escalationLevel }}</div></div>
           <div class="field"><label>Created</label><div class="muted">{{ d.ticket.createdAt | date:'medium' }}</div></div>
           <div class="field"><label>Last updated</label><div class="muted">{{ d.ticket.updatedAt | date:'medium' }}</div></div>
@@ -87,10 +148,11 @@
           <ng-container *ngIf="d.ticket.client as c; else noContact">
             <div class="person">
               <span class="avatar client">{{ initials(c.fullName) }}</span>
-              <div><strong>{{ c.fullName }}</strong><small>{{ d.ticket.organisationName }}</small></div>
+              <div><strong>{{ c.fullName }}</strong><small>{{ d.ticket.customer?.name || d.ticket.organisationName }}</small></div>
             </div>
-            <div class="field"><label>Email</label><div class="link">{{ c.email }}</div></div>
-            <div class="field"><label>Customer</label><div>{{ d.ticket.organisationName }}</div></div>
+            <div class="field"><label>Email</label><div><a class="link" [href]="'mailto:' + c.email">{{ c.email }}</a></div></div>
+            <div class="field"><label>Customer</label><div>{{ d.ticket.customer?.name || '—' }}</div></div>
+            <div class="field"><label>Language</label><div>{{ languageName(d.clientLanguage) }}</div></div>
           </ng-container>
           <ng-template #noContact><p class="muted">No contact linked.</p></ng-template>
         </div>
@@ -103,16 +165,52 @@
         <button type="button" class="problem-head" (click)="toggle('problem')">
           <span>Problem statement</span><span class="chev">{{ collapsed['problem'] ? '▸' : '▾' }}</span>
         </button>
-        <p class="problem-text" *ngIf="!collapsed['problem']">{{ d.description || 'No description provided.' }}</p>
+        <div class="problem-body" *ngIf="!collapsed['problem']">
+          <div class="rca-field reported">
+            <label>Reported by the customer</label>
+            <p>{{ d.description || 'No description provided.' }}</p>
+          </div>
+          <div class="rca-field" *ngFor="let f of rcaFields">
+            <div class="rca-head">
+              <label [attr.for]="'rca-' + f.key">{{ f.label }}</label>
+              <button type="button" class="icon-btn" *ngIf="editable && editing[f.key] === undefined" (click)="edit(f.key)" [title]="'Edit ' + f.label.toLowerCase()">
+                <span class="material-symbols-outlined">edit</span>
+              </button>
+            </div>
+            <ng-container *ngIf="editing[f.key] === undefined; else editor">
+              <p [class.placeholder]="!d[f.key]">{{ d[f.key] || (editable ? f.placeholder : 'Not filled in yet.') }}</p>
+            </ng-container>
+            <ng-template #editor>
+              <textarea class="textarea" [id]="'rca-' + f.key" [(ngModel)]="editing[f.key]" rows="3" maxlength="4000" [placeholder]="f.placeholder"></textarea>
+              <div class="rca-actions">
+                <button type="button" class="ghost small" (click)="cancelEdit(f.key)">Cancel</button>
+                <button type="button" class="primary small" (click)="saveRca(f.key)" [disabled]="saving">{{ saving ? 'Saving…' : 'Save' }}</button>
+              </div>
+            </ng-template>
+          </div>
+        </div>
       </div>
 
       <div class="conv-head">
         <div>
-          <strong>Ticket thread</strong>
+          <strong>Conversation</strong>
           <small>{{ publicMessages }} message{{ publicMessages === 1 ? '' : 's' }}<ng-container *ngIf="d.ticket.client"> · with {{ d.ticket.client.fullName }}</ng-container></small>
         </div>
-        <button type="button" class="ghost small" (click)="load(false)" title="Refresh the thread">Refresh</button>
+        <div class="conv-tools">
+          <ng-container *ngIf="d.ticket.client">
+            <span class="lang-tag">{{ languageName(myLanguage) }}</span>
+            <span class="material-symbols-outlined swap">sync_alt</span>
+            <span class="lang-tag">{{ languageName(clientLanguage) }}</span>
+          </ng-container>
+          <label class="switch" *ngIf="d.ticket.client && !sameLanguage">
+            <input type="checkbox" [ngModel]="translateOn" (ngModelChange)="toggleTranslation($event)">
+            <span class="track"></span>Translate
+          </label>
+          <span class="muted-sm" *ngIf="d.ticket.client && sameLanguage">Same language</span>
+          <button type="button" class="ghost small" (click)="load(false)" title="Refresh the thread">Refresh</button>
+        </div>
       </div>
+      <p class="translate-note" *ngIf="translateOn">Messages are shown in {{ languageName(myLanguage) }}; your replies are sent in {{ languageName(clientLanguage) }}.<span class="field-error" *ngIf="translateError"> {{ translateError }}</span></p>
 
       <div class="conv-msgs">
         <div class="state" *ngIf="!d.messages.length">No messages on this ticket yet.</div>
@@ -124,7 +222,11 @@
               <em *ngIf="m.internalNote"><span class="material-symbols-outlined">lock</span>Internal note</em>
               <time>{{ m.createdAt | date:'short' }}</time>
             </div>
-            <p>{{ m.message }}</p>
+            <ng-container *ngIf="translateOn && !isMine(m); else original">
+              <p>{{ translations[m.id] || (translating.has(m.id) ? 'Translating…' : m.message) }}</p>
+              <small class="original" *ngIf="translations[m.id] && translations[m.id] !== m.message">Original: {{ m.message }}</small>
+            </ng-container>
+            <ng-template #original><p>{{ m.message }}</p></ng-template>
           </div>
         </article>
       </div>
@@ -136,44 +238,77 @@
             <span class="material-symbols-outlined">lock</span>Internal note
           </button>
         </div>
-        <textarea [(ngModel)]="message" rows="3" (keydown)="onKeydown($event)" [class.internal]="internal"
-                  [placeholder]="internal ? 'Internal note, only visible to the support team…' : 'Write a reply to the client…'"></textarea>
+        <textarea [(ngModel)]="message" rows="3" (keydown)="onKeydown($event)" [class.internal]="internal" maxlength="8000" aria-label="Message"
+                  [placeholder]="internal ? 'Internal note, only visible to the support team…' : (d.canManage ? 'Write a reply to the customer…' : 'Write a message to the support team…')"></textarea>
         <div class="compose-foot">
-          <span class="muted">Enter ↵ to send · Shift+Enter for a new line</span>
+          <span class="muted">Enter ↵ to send · Shift+Enter for a new line<ng-container *ngIf="translateOn && !internal"> · sent in {{ languageName(clientLanguage) }}</ng-container></span>
           <button type="button" class="primary" (click)="send()" [disabled]="sending || !message.trim()">
             {{ sending ? 'Sending…' : (internal ? 'Add note' : 'Send') }}
           </button>
         </div>
       </div>
-      <ng-template #closedNote><div class="closed-note">Ticket {{ label(d.ticket.status).toLowerCase() }}: replies are disabled.</div></ng-template>
+      <ng-template #closedNote><div class="closed-note"><span class="material-symbols-outlined">lock</span> Ticket {{ labels.statusLabel(d.ticket.status).toLowerCase() }}: replies are disabled.</div></ng-template>
     </section>
 
-    <!-- Right: assignment, history, files -->
+    <!-- Right: assignments, history, activities, files -->
     <aside class="col-right">
       <section class="card">
         <button type="button" class="card-head" (click)="toggle('assign')">
-          <span><span class="material-symbols-outlined">group</span>Assignment</span><span class="chev">{{ collapsed['assign'] ? '▸' : '▾' }}</span>
+          <span><span class="material-symbols-outlined">group</span>Assignments</span><span class="chev">{{ collapsed['assign'] ? '▸' : '▾' }}</span>
         </button>
         <div class="card-body" *ngIf="!collapsed['assign']">
-          <label class="label">Support agent</label>
+          <label class="label">H24 agent</label>
           <div class="person" *ngIf="d.ticket.assignee as a; else unassigned">
             <span class="avatar">{{ initials(a.fullName) }}</span>
             <div><strong>{{ a.fullName }}</strong><small>{{ a.email }}</small></div>
           </div>
           <ng-template #unassigned><p class="danger">Unassigned</p></ng-template>
-          <select *ngIf="editable" class="inline-select" [ngModel]="d.ticket.assignee?.id ?? null" (ngModelChange)="assignTo($event)" aria-label="Support agent">
+          <select *ngIf="editable" class="inline-select" [ngModel]="d.ticket.assignee?.id ?? null" (ngModelChange)="assignTo($event)" [disabled]="saving" aria-label="H24 agent">
             <option [ngValue]="null">Unassigned</option>
+            <option *ngIf="agentOptionMissing(d.ticket.assignee?.id)" [ngValue]="d.ticket.assignee?.id">{{ d.ticket.assignee?.fullName }}</option>
             <option *ngFor="let a of agents" [ngValue]="a.id">{{ a.fullName }}</option>
+          </select>
+
+          <label class="label l2">L2 technician</label>
+          <div class="person" *ngIf="d.ticket.l2Technician as t; else noL2">
+            <span class="avatar l2">{{ initials(t.fullName) }}</span>
+            <div><strong>{{ t.fullName }}</strong><small>{{ t.email }}</small></div>
+          </div>
+          <ng-template #noL2><p class="muted">None assigned</p></ng-template>
+          <select *ngIf="editable" class="inline-select" [ngModel]="d.ticket.l2Technician?.id ?? null" (ngModelChange)="assignL2($event)" [disabled]="saving" aria-label="L2 technician">
+            <option [ngValue]="null">{{ l2Technicians.length ? 'No L2 technician' : 'No L2 technicians configured' }}</option>
+            <option *ngIf="l2OptionMissing(d.ticket.l2Technician?.id)" [ngValue]="d.ticket.l2Technician?.id">{{ d.ticket.l2Technician?.fullName }}</option>
+            <option *ngFor="let t of l2Technicians" [ngValue]="t.id">{{ t.fullName }}<ng-container *ngIf="t.specialization"> · {{ t.specialization }}</ng-container></option>
           </select>
         </div>
       </section>
 
       <section class="card">
         <button type="button" class="card-head" (click)="toggle('history')">
-          <span><span class="material-symbols-outlined">history</span>History ({{ d.activities.length }})</span><span class="chev">{{ collapsed['history'] ? '▸' : '▾' }}</span>
+          <span><span class="material-symbols-outlined">history</span>History ({{ assignmentHistory.length }})</span><span class="chev">{{ collapsed['history'] ? '▸' : '▾' }}</span>
         </button>
         <div class="card-body history" *ngIf="!collapsed['history']">
-          <p class="muted" *ngIf="!d.activities.length">No history yet.</p>
+          <p class="muted" *ngIf="!assignmentHistory.length">No assignments yet.</p>
+          <div class="hist-row" *ngFor="let a of assignmentHistory">
+            <span class="dot" [class.l2]="a.field === 'l2Technician'" [class.sys]="a.activityType === 'CREATED'"></span>
+            <div>
+              <div>
+                <b [class.l2-text]="a.field === 'l2Technician'">{{ a.field === 'l2Technician' ? 'L2' : a.field === 'assignee' ? 'H24' : 'SYS' }}</b>
+                → {{ a.newValue || (a.activityType === 'CREATED' ? 'Ticket opened' : 'Unassigned') }}
+                <span class="muted" *ngIf="a.previousValue">(was: {{ a.previousValue }})</span>
+              </div>
+              <small>{{ a.actor?.fullName || 'System' }} · {{ a.createdAt | date:'short' }}</small>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <button type="button" class="card-head" (click)="toggle('activities')">
+          <span><span class="material-symbols-outlined">bolt</span>Activities ({{ d.activities.length }})</span><span class="chev">{{ collapsed['activities'] ? '▸' : '▾' }}</span>
+        </button>
+        <div class="card-body history" *ngIf="!collapsed['activities']">
+          <p class="muted" *ngIf="!d.activities.length">No activity yet.</p>
           <div class="hist-row" *ngFor="let a of d.activities">
             <span class="dot"></span>
             <div>
@@ -189,13 +324,14 @@
           <span><span class="material-symbols-outlined">attach_file</span>Files ({{ d.attachments.length }})</span><span class="chev">{{ collapsed['files'] ? '▸' : '▾' }}</span>
         </button>
         <div class="card-body" *ngIf="!collapsed['files']">
+          <p class="muted" *ngIf="!d.attachments.length">No files attached.</p>
           <ul class="files" *ngIf="d.attachments.length">
             <li *ngFor="let a of d.attachments">
-              <a [href]="api.attachmentUrl(d.ticket.id, a.id)">{{ a.originalFileName }}</a>
+              <a [href]="api.attachmentUrl(d.ticket.id, a.id)" target="_blank" rel="noopener">{{ a.originalFileName }}</a>
               <small>{{ a.fileSize / 1024 | number:'1.0-0' }} KB · {{ a.uploadedBy?.fullName }}</small>
             </li>
           </ul>
-          <label class="ghost upload" *ngIf="!closed">Attach file<input type="file" hidden (change)="file($event)"></label>
+          <label class="ghost upload" *ngIf="!closed">Attach file<input type="file" hidden (change)="file($event)" accept=".pdf,.png,.jpg,.jpeg,.txt,.docx,.xlsx,.csv,.log,.zip"></label>
         </div>
       </section>
     </aside>
