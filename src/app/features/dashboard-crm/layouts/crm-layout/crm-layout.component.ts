@@ -47,7 +47,7 @@ readonly mainItems = [
     
   }
 
-  get organisation(): string { return this.auth.getOrganisationName() || 'Organisation'; }
+  get organisation(): string { return this.auth.getOrganisationName() || this.i18n.t('layout.organisation'); }
 
   search(value: string): void {
     const query = value.trim();

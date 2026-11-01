@@ -1,11 +1,11 @@
 <div class="crm-page crm-settings">
-  <nav class="settings-tabs" aria-label="CRM settings">
+  <nav class="settings-tabs" [attr.aria-label]="'crm.settings.crmSettings' | translate">
     <button [class.active]="active==='pipeline'" (click)="active='pipeline'">{{ i18n.t('settings.pipelineStages') }}</button>
     <button [class.active]="active==='equipment'" (click)="active='equipment'">{{ i18n.t('settings.equipmentType') }}</button>
     <button [class.active]="active==='industry'" (click)="active='industry'">{{ i18n.t('settings.industry') }}</button>
     <button *ngIf="permissions.canAccessManagerView" [class.active]="active==='schedule'" (click)="active='schedule'">{{ i18n.t('settings.reportSchedule') }}</button>
     <button [class.active]="active==='notifications'" (click)="active='notifications'">{{ i18n.t('settings.notifications') }}</button>
-    <button [class.active]="active==='lost-reasons'" (click)="active='lost-reasons'">Lost Reasons</button>
+    <button [class.active]="active==='lost-reasons'" (click)="active='lost-reasons'">{{ 'crm.settings.lostReasons' | translate }}</button>
   </nav>
 
   <div class="loading" *ngIf="loading">{{ i18n.t('settings.loading') }}</div>
@@ -37,7 +37,7 @@
     <article class="settings-card">
       <div class="catalogue-heading"><span>{{ i18n.t('settings.code') }}</span><span>{{ i18n.t('settings.equipmentName') }}</span><span>{{ i18n.t('settings.actions') }}</span></div>
       <div class="catalogue-list">
-        <div class="catalogue-row" *ngFor="let item of activeEquipmentTypes"><input class="equipment-code" maxlength="8" [(ngModel)]="item.code" (blur)="saveEquipment(item)" [disabled]="!permissions.canWriteCrm" placeholder="e.g. ASR"><input [(ngModel)]="item.name" (blur)="saveEquipment(item)" [disabled]="!permissions.canWriteCrm" [placeholder]="i18n.t('settings.equipmentName')"><button class="remove" *ngIf="permissions.canWriteCrm" [title]="i18n.t('settings.removeEquipment')" (click)="deleteEquipment(item)">×</button></div>
+        <div class="catalogue-row" *ngFor="let item of activeEquipmentTypes"><input class="equipment-code" maxlength="8" [(ngModel)]="item.code" (blur)="saveEquipment(item)" [disabled]="!permissions.canWriteCrm" [placeholder]="'crm.settings.eGAsr' | translate"><input [(ngModel)]="item.name" (blur)="saveEquipment(item)" [disabled]="!permissions.canWriteCrm" [placeholder]="i18n.t('settings.equipmentName')"><button class="remove" *ngIf="permissions.canWriteCrm" [title]="i18n.t('settings.removeEquipment')" (click)="deleteEquipment(item)">×</button></div>
         <div class="catalogue-row new" *ngIf="addingEquipment"><input class="equipment-code" maxlength="8" [(ngModel)]="newEquipment.code" [placeholder]="i18n.t('settings.code')"><input [(ngModel)]="newEquipment.name" [placeholder]="i18n.t('settings.equipmentName')" (keyup.enter)="addEquipment()"><div class="new-actions"><button class="mini-action primary-action" (click)="addEquipment()">{{ i18n.t('settings.add') }}</button><button class="mini-action" (click)="addingEquipment=false">{{ i18n.t('settings.cancel') }}</button></div></div>
         <div class="catalogue-empty" *ngIf="!activeEquipmentTypes.length && !addingEquipment"><span class="empty-icon">⚙</span><strong>{{ i18n.t('settings.noEquipmentTypes') }}</strong><small>{{ i18n.t('settings.addFirstType') }}</small></div>
       </div>
@@ -59,8 +59,8 @@
       <article class="schedule-card" *ngFor="let item of schedules" [class.unsaved]="!item.id">
         <div class="schedule-fields">
           <label><span>{{ i18n.t('settings.report') }}</span><select [(ngModel)]="item.reportType" (change)="saveSchedule(item)" [disabled]="!permissions.canWriteCrm"><option *ngFor="let report of reportOptions" [value]="report.id">{{ i18n.t('settings.reports.' + report.id) }}</option></select></label>
-          <label><span>{{ i18n.t('settings.typeFilter') }}</span><select [(ngModel)]="item.typeFilter" (change)="saveSchedule(item)" [disabled]="!permissions.canWriteCrm"><option value="ALL">{{ i18n.t('settings.allTypes') }}</option><option value="BP">BP only</option><option value="CS">CS only</option></select></label>
-          <label><span>{{ i18n.t('settings.frequency') }}</span><select [(ngModel)]="item.frequency" (change)="saveSchedule(item)" [disabled]="!permissions.canWriteCrm"><option value="DAILY">Daily</option><option value="WEEKLY">Weekly</option><option value="BIWEEKLY">Biweekly</option><option value="MONTHLY">Monthly</option><option value="QUARTERLY">Quarterly</option></select></label>
+          <label><span>{{ i18n.t('settings.typeFilter') }}</span><select [(ngModel)]="item.typeFilter" (change)="saveSchedule(item)" [disabled]="!permissions.canWriteCrm"><option value="ALL">{{ i18n.t('settings.allTypes') }}</option><option value="BP">{{ 'crm.settings.bpOnly' | translate }}</option><option value="CS">{{ 'crm.settings.csOnly' | translate }}</option></select></label>
+          <label><span>{{ i18n.t('settings.frequency') }}</span><select [(ngModel)]="item.frequency" (change)="saveSchedule(item)" [disabled]="!permissions.canWriteCrm"><option value="DAILY">{{ 'crm.settings.daily' | translate }}</option><option value="WEEKLY">{{ 'crm.settings.weekly' | translate }}</option><option value="BIWEEKLY">{{ 'crm.settings.biweekly' | translate }}</option><option value="MONTHLY">{{ 'crm.settings.monthly' | translate }}</option><option value="QUARTERLY">{{ 'crm.settings.quarterly' | translate }}</option></select></label>
           <label class="schedule-recipients"><span>{{ i18n.t('settings.recipients') }}</span><input [(ngModel)]="item.recipients" (blur)="saveSchedule(item)" [disabled]="!permissions.canWriteCrm" [placeholder]="'name@company.com, team@company.com'"></label>
           <label class="schedule-active"><span>{{ i18n.t('settings.active') }}</span><i class="toggle"><input type="checkbox" [(ngModel)]="item.active" (change)="saveSchedule(item)" [disabled]="!permissions.canWriteCrm"><b></b></i></label>
           <div class="schedule-actions"><button class="mini-action primary-action" *ngIf="permissions.canWriteCrm && !item.id" (click)="saveSchedule(item)">{{ i18n.t('settings.save') }}</button><button class="remove schedule-remove" *ngIf="permissions.canWriteCrm" [title]="i18n.t('settings.removeSchedule')" (click)="deleteSchedule(item)">×</button></div>
@@ -82,20 +82,20 @@
   <!-- ✅ NEW LOST REASONS PANEL -->
   <section class="settings-panel catalogue-panel" *ngIf="!loading && active==='lost-reasons'">
     <div class="settings-intro">
-      <div><h2>Lost Reasons</h2><p>Define the reasons why opportunities are marked as lost.</p></div>
-      <button class="btn primary compact" *ngIf="permissions.canWriteCrm" (click)="startLostReason()" [disabled]="addingLostReason">+ Add reason</button>
+      <div><h2>{{ 'crm.settings.lostReasons' | translate }}</h2><p>{{ 'crm.settings.defineReasonsWhyOpportunities' | translate }}</p></div>
+      <button class="btn primary compact" *ngIf="permissions.canWriteCrm" (click)="startLostReason()" [disabled]="addingLostReason">{{ 'crm.settings.addReason' | translate }}</button>
     </div>
     <article class="settings-card">
-      <div class="simple-heading"><span>Reason Name</span><span>Description</span><span>{{ i18n.t('settings.actions') }}</span></div>
+      <div class="simple-heading"><span>{{ 'crm.settings.reasonName' | translate }}</span><span>{{ 'common.description' | translate }}</span><span>{{ i18n.t('settings.actions') }}</span></div>
       <div class="simple-list">
         <div class="simple-row" *ngFor="let reason of lostReasons">
-          <input [(ngModel)]="reason.name" (blur)="saveLostReason(reason)" [disabled]="!permissions.canWriteCrm" placeholder="e.g., Price too high">
-          <input [(ngModel)]="reason.description" (blur)="saveLostReason(reason)" [disabled]="!permissions.canWriteCrm" placeholder="Optional details...">
-          <button class="remove" *ngIf="permissions.canWriteCrm" (click)="deleteLostReason(reason)" title="Remove">×</button>
+          <input [(ngModel)]="reason.name" (blur)="saveLostReason(reason)" [disabled]="!permissions.canWriteCrm" [placeholder]="'crm.settings.eGPriceToo' | translate">
+          <input [(ngModel)]="reason.description" (blur)="saveLostReason(reason)" [disabled]="!permissions.canWriteCrm" [placeholder]="'crm.settings.optionalDetails' | translate">
+          <button class="remove" *ngIf="permissions.canWriteCrm" (click)="deleteLostReason(reason)" [title]="'crm.settings.remove' | translate">×</button>
         </div>
         <div class="simple-row new" *ngIf="addingLostReason">
-          <input [(ngModel)]="newLostReason.name" placeholder="Reason name *" (keyup.enter)="addLostReason()">
-          <input [(ngModel)]="newLostReason.description" placeholder="Description" (keyup.enter)="addLostReason()">
+          <input [(ngModel)]="newLostReason.name" [placeholder]="'crm.settings.reasonName2' | translate" (keyup.enter)="addLostReason()">
+          <input [(ngModel)]="newLostReason.description" [placeholder]="'common.description' | translate" (keyup.enter)="addLostReason()">
           <div class="new-actions">
             <button class="mini-action primary-action" (click)="addLostReason()">{{ i18n.t('settings.add') }}</button>
             <button class="mini-action" (click)="addingLostReason=false">{{ i18n.t('settings.cancel') }}</button>
@@ -103,8 +103,8 @@
         </div>
         <div class="catalogue-empty" *ngIf="!lostReasons.length && !addingLostReason">
           <span class="empty-icon">⚠</span>
-          <strong>No lost reasons configured</strong>
-          <small>Add your first reason to make it available when closing opportunities as lost.</small>
+          <strong>{{ 'crm.settings.noLostReasonsConfigured' | translate }}</strong>
+          <small>{{ 'crm.settings.addFirstReasonMake' | translate }}</small>
         </div>
       </div>
     </article>

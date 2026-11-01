@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CrmOpportunity } from '../../models/crm-opportunity.model';
 import { CrmService } from '../../services/crm.service';
+import { CrmI18nService } from 'src/app/features/dashboard-crm/services/crm-i18n.service';
 
 @Component({
   selector: 'app-crm-archived-opportunities-page',
@@ -14,7 +15,8 @@ export class CrmArchivedOpportunitiesPageComponent implements OnInit {
   error = '';
 
   // ✅ On retire le service de toast problématique et on garde uniquement CrmService
-  constructor(private crm: CrmService) {}
+  constructor(public i18n: CrmI18nService,
+    private crm: CrmService) {}
 
   ngOnInit(): void {
     this.loadArchived();
@@ -29,7 +31,7 @@ export class CrmArchivedOpportunitiesPageComponent implements OnInit {
         this.loading = false;
       },
       error: e => {
-        this.error = e?.error?.message || 'Failed to load archived opportunities.';
+        this.error = this.i18n.error(e, 'archived.failedLoadArchivedOpportunities');
         this.loading = false;
       }
     });
@@ -41,10 +43,10 @@ export class CrmArchivedOpportunitiesPageComponent implements OnInit {
     
     this.crm.restoreOpportunity(this.orgId, id).subscribe({
       next: () => {
-        window.alert('Opportunity restored successfully.');
+        window.alert(this.i18n.t('archived.opportunityRestoredSuccessfully'));
         this.loadArchived();
       },
-      error: e => this.error = e?.error?.message || 'Failed to restore.'
+      error: e => this.error = this.i18n.error(e, 'archived.failedRestore')
     });
   }
 
@@ -52,13 +54,13 @@ export class CrmArchivedOpportunitiesPageComponent implements OnInit {
   deletePermanently(id: number | null): void {
     if (!id) return;
     
-    if (confirm('This will PERMANENTLY delete the opportunity and all its data. Are you sure?')) {
+    if (confirm(this.i18n.t('archived.willPermanentlyDeleteOpportunity'))) {
       this.crm.deleteOpportunity(this.orgId, id).subscribe({
         next: () => {
-          window.alert('Opportunity permanently deleted.');
+          window.alert(this.i18n.t('archived.opportunityPermanentlyDeleted'));
           this.loadArchived();
         },
-        error: e => this.error = e?.error?.message || 'Failed to delete.'
+        error: e => this.error = this.i18n.error(e, 'archived.failedDelete')
       });
     }
   }

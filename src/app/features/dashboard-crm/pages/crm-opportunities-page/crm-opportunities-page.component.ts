@@ -51,7 +51,7 @@ export class CrmOpportunitiesPageComponent implements OnInit {
         this.categories = v.categories;
         this.users = v.users;
       },
-      error: e => this.error = e?.error?.message || this.i18n.t('opportunities.error.loadFormData')
+      error: e => this.error = this.i18n.error(e, 'opportunities.error.loadFormData')
     });
     this.load();
   }
@@ -64,7 +64,7 @@ export class CrmOpportunitiesPageComponent implements OnInit {
         this.loading = false;
       },
       error: e => {
-        this.error = e?.error?.message || this.i18n.t('opportunities.error.load');
+        this.error = this.i18n.error(e, 'opportunities.error.load');
         this.loading = false;
       }
     });
@@ -113,7 +113,7 @@ export class CrmOpportunitiesPageComponent implements OnInit {
     // ✅ Ajout : Vérifier que l'ID existe avant d'appeler le service
     if (!opportunity.id) return; 
     
-    const confirmMessage = this.i18n.t('opportunities.confirm.delete') || `Delete opportunity "${opportunity.name}"?`;
+    const confirmMessage = this.i18n.t('opportunities.confirm.delete', { name: opportunity.name });
     if (confirm(confirmMessage)) {
       this.crm.deleteOpportunity(this.orgId, opportunity.id).subscribe({
         next: () => {
@@ -121,7 +121,7 @@ export class CrmOpportunitiesPageComponent implements OnInit {
           this.opportunities = this.opportunities.filter(o => o.id !== opportunity.id);
         },
         error: e => {
-          this.error = e?.error?.message || this.i18n.t('opportunities.error.delete');
+          this.error = this.i18n.error(e, 'opportunities.error.delete');
         }
       });
     }
@@ -136,11 +136,11 @@ export class CrmOpportunitiesPageComponent implements OnInit {
         next: () => {
           // ✅ 2. Utiliser alert() car le service 'toast' n'est pas injecté dans ce composant
           // (Tu peux aussi injecter AdminToastService dans le constructeur si tu préfères)
-          window.alert('Opportunity archived successfully.'); 
+          window.alert(this.i18n.t('opportunities.opportunityArchivedSuccessfully')); 
           this.load(); // Rafraîchit la liste pour la faire disparaître
         },
         error: e => {
-          this.error = e?.error?.message || 'Failed to archive opportunity.';
+          this.error = this.i18n.error(e, 'opportunities.failedArchiveOpportunity');
         }
       });
     }
@@ -177,7 +177,7 @@ export class CrmOpportunitiesPageComponent implements OnInit {
         this.router.navigate(['/crm/opportunities', v.id]);
       },
       error: e => {
-        this.error = e?.error?.message || this.i18n.t('opportunities.error.create');
+        this.error = this.i18n.error(e, 'opportunities.error.create');
         this.saving = false;
       }
     });

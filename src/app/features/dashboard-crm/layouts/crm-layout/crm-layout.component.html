@@ -1,7 +1,7 @@
 <div class="crm-shell">
   <header class="crm-header">
     <a class="crm-logo" routerLink="/crm/dashboard">
-      <span class="logo-mark">⌁</span>Projectum CRM
+      <span class="logo-mark">⌁</span>{{ 'crm.layout.projectumCrm' | translate }}
     </a>
     
     <div class="global-search">
@@ -12,7 +12,7 @@
         (focus)="showResults = query.trim().length >= 2" 
         (blur)="closeResults()" 
         [placeholder]="i18n.t('header.search.placeholder')" 
-        aria-label="Search CRM records">
+        [attr.aria-label]="'crm.layout.searchCrmRecords' | translate">
       
       <div class="search-results" *ngIf="showResults">
         <div class="search-state" *ngIf="searching">{{ i18n.t('search.searching') }}</div>
@@ -79,7 +79,7 @@
         <div class="org-logo">{{ organisation.charAt(0) }}</div>
         <div>
           <strong>{{ organisation }}</strong>
-          <small>{{ auth.getCurrentRole().replace('_', ' ') }}</small>
+          <small>{{ 'roles.' + auth.getCurrentRole() | translate }}</small>
         </div>
       </div>
 

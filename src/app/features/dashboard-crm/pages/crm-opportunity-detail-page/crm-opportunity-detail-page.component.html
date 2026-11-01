@@ -1,6 +1,6 @@
 <div class="crm-page opportunity-page" *ngIf="!loading && opportunity && form; else state">
   <header class="detail-top">
-    <a routerLink="/crm/opportunities">&lsaquo; {{ i18n.t('opportunityDetail.backToOpportunities') }}</a>
+    <a routerLink="/crm/opportunities">{{ 'crm.opportunityDetail.lsaquoT' | translate: { t: i18n.t('opportunityDetail.backToOpportunities') } }}</a>
     <span>/</span>
     <strong>{{ opportunity.name }}</strong>
     <div class="page-actions">
@@ -50,59 +50,59 @@
         <div id="overview" class="overview-grid">
           <section class="card">
             <div class="summary-row">
-              <label>Opportunity owner</label>
+              <label>{{ 'crm.opportunityDetail.opportunityOwner' | translate }}</label>
               <select [(ngModel)]="form.ownerId" [disabled]="!permissions.canWriteCrm || permissions.hasOwnOpportunityScope">
-                <option [ngValue]="null">Unassigned</option>
+                <option [ngValue]="null">{{ 'crm.opportunityDetail.unassigned' | translate }}</option>
                 <option *ngFor="let user of users" [ngValue]="user.id">{{ user.name }}</option>
               </select>
             </div>
                         <div class="summary-row">
-              <label>Stage</label>
+              <label>{{ 'crm.opportunityDetail.stage' | translate }}</label>
               <strong>{{ opportunity.stageName }}</strong>
             </div>
 
             <!-- ✅ NEW: Lost Reason Dropdown (Only shows when stage is "Closed lost") -->
             <div class="summary-row" *ngIf="opportunity.stageName === 'Closed lost' || form.stageName === 'Closed lost'">
-              <label>Lost reason</label>
+              <label>{{ 'crm.opportunityDetail.lostReason' | translate }}</label>
               <select [(ngModel)]="form.lostReasonId" [disabled]="!permissions.canWriteCrm">
-                <option [ngValue]="null">Select a reason</option>
+                <option [ngValue]="null">{{ 'crm.opportunityDetail.selectReason' | translate }}</option>
                 <option *ngFor="let reason of lostReasons" [ngValue]="reason.id">{{reason.name}}</option>
-                <option [ngValue]="'other'">Other (specify below)</option>
+                <option [ngValue]="'other'">{{ 'crm.opportunityDetail.otherSpecifyBelow' | translate }}</option>
               </select>
               
               <!-- Other reason text field -->
               <input *ngIf="form.lostReasonId === 'other'" 
                      [(ngModel)]="form.lostReasonOther" 
-                     placeholder="Please specify the reason..."
+                     [placeholder]="'crm.opportunityDetail.pleaseSpecifyReason' | translate"
                      [disabled]="!permissions.canWriteCrm"
                      style="margin-top: 8px; width: 100%;">
             </div>
             <!-- ✅ END NEW BLOCK -->
 
             <div class="summary-row discount-row">
-              <label>Discount</label>
+              <label>{{ 'crm.opportunityDetail.discount' | translate }}</label>
               <div class="discount-control">
                 <span><input type="number" min="0" max="100" step="0.01" [(ngModel)]="form.discount" [disabled]="!permissions.canWriteCrm"> %</span>
-                <small>{{ money(baseValue, form.currency) }} − {{ form.discount || 0 }}% (on material) = {{ money(totalValue, form.currency) }}</small>
+                <small>{{ 'crm.opportunityDetail.currencyDiscountMaterialCurrency2' | translate: { currency: money(baseValue, form.currency), discount: (form.discount || 0), currency2: money(totalValue, form.currency) } }}</small>
               </div>
             </div>
                       <div class="summary-row expected-row">
-              <label>Expected revenue</label>
+              <label>{{ 'crm.opportunityDetail.expectedRevenue' | translate }}</label>
               <div>
                 <strong class="currency">{{ money(expectedRevenue, form.currency) }}</strong>
-                <small>{{ money(totalValue, form.currency) }} − {{ form.discount || 0 }}% discount (on material)</small>
+                <small>{{ 'crm.opportunityDetail.currencyDiscountDiscountMaterial' | translate: { currency: money(totalValue, form.currency), discount: (form.discount || 0) } }}</small>
               </div>
             </div>
             <div class="summary-row">
-              <label>Quote requested date</label>
+              <label>{{ 'crm.opportunityDetail.quoteRequestedDate' | translate }}</label>
               <input type="date" [(ngModel)]="form.quoteRequestedDate" [disabled]="!permissions.canWriteCrm">
             </div>
             <div class="summary-row">
-              <label>Closing date</label>
+              <label>{{ 'crm.opportunityDetail.closingDate' | translate }}</label>
               <input type="date" [(ngModel)]="form.closingDate" [disabled]="!permissions.canWriteCrm">
             </div>
             <div class="summary-row">
-              <label>Shipment date</label>
+              <label>{{ 'crm.opportunityDetail.shipmentDate' | translate }}</label>
               <input type="date" [(ngModel)]="form.shipmentDate" [disabled]="!permissions.canWriteCrm">
             </div>
           </section>
@@ -221,15 +221,15 @@
             <div>
               <label>{{ i18n.t('opportunityDetail.opportunityType') }}</label>
               <select [(ngModel)]="form.opportunityType" [disabled]="!permissions.canWriteCrm">
-                <option>BP</option>
-                <option>CS</option>
+                <option>{{ 'crm.opportunityDetail.bp' | translate }}</option>
+                <option>{{ 'crm.opportunityDetail.cs' | translate }}</option>
               </select>
             </div>
             <div>
               <label>{{ i18n.t('opportunityDetail.pipeline') }}</label>
               <select [(ngModel)]="form.pipeline" [disabled]="!permissions.canWriteCrm">
-                <option>MTO</option>
-                <option>ETO</option>
+                <option>{{ 'crm.opportunityDetail.mto' | translate }}</option>
+                <option>{{ 'crm.opportunityDetail.eto' | translate }}</option>
               </select>
             </div>
             <div>

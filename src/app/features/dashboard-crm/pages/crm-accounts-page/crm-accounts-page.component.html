@@ -7,7 +7,7 @@
     <div class="page-actions">
       <input class="search" [(ngModel)]="search" (keyup.enter)="load()" [placeholder]="i18n.t('accounts.searchPlaceholder')">
       
-      <div class="view-switcher" aria-label="Account view">
+      <div class="view-switcher" [attr.aria-label]="'crm.accounts.accountView' | translate">
         <button type="button" class="view-btn" [class.active]="view==='grid'" (click)="view='grid'" [title]="i18n.t('accounts.gridView')" [attr.aria-label]="i18n.t('accounts.gridView')"></button>
         <button type="button" class="view-btn" [class.active]="view==='list'" (click)="view='list'" [title]="i18n.t('accounts.listView')" [attr.aria-label]="i18n.t('accounts.listView')">☰</button>
       </div>
@@ -18,7 +18,7 @@
         style="min-width: 160px; height: 34px; padding: 0 10px; font-size: 13px;"
         [(ngModel)]="ownerFilter" 
         (ngModelChange)="applyOwnerFilter()">
-        <option [ngValue]="null">{{ i18n.t('accounts.allOwners') || 'All owners' }}</option>
+        <option [ngValue]="null">{{ 'crm.accounts.allOwners' | translate }}</option>
         <option *ngFor="let user of users" [ngValue]="user.id">{{ user.name }}</option>
       </select>
 
@@ -60,7 +60,7 @@
           <th>{{ i18n.t('accounts.industry') }}</th>
           <th>{{ i18n.t('accounts.country') }}</th>
           <th>{{ i18n.t('accounts.city') }}</th>
-          <th>CAP</th> 
+          <th>{{ 'crm.accounts.cap' | translate }}</th> 
           <th>{{ i18n.t('accounts.owner') }}</th>
           <th>{{ i18n.t('accounts.contacts') }}</th>
           <th>{{ i18n.t('accounts.opportunities') }}</th>
@@ -118,7 +118,7 @@
       </div>
       <!-- ✅ NOUVEAU : Champ CAP / Code Postal -->
       <div class="field">
-        <label>CAP / Code Postal</label>
+        <label>{{ 'crm.accounts.capCodePostal' | translate }}</label>
         <input name="postalCode" [(ngModel)]="form.postalCode">
       </div>
       <div class="field">

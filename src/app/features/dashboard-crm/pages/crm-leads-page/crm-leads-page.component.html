@@ -27,7 +27,7 @@
         style="min-width: 160px; height: 30px; padding: 0 10px; font-size: 13px;"
         [(ngModel)]="ownerFilter" 
         (ngModelChange)="applyOwnerFilter()">
-        <option [ngValue]="null">{{ i18n.t('leads.modal.allOwners') || 'All owners' }}</option>
+        <option [ngValue]="null">{{ 'crm.leads.allOwners' | translate }}</option>
         <option *ngFor="let user of users" [ngValue]="user.id">{{ user.name }}</option>
       </select>
     </div>
@@ -48,7 +48,7 @@
           <th>{{ i18n.t('leads.col.source') }}</th>
           <th>{{ i18n.t('leads.col.status') }}</th>
           <th>{{ i18n.t('leads.col.owner') }}</th>
-          <th *ngIf="permissions.canWriteCrm" aria-label="Actions"></th>
+          <th *ngIf="permissions.canWriteCrm" [attr.aria-label]="'common.actions' | translate"></th>
         </tr>
       </thead>
       <tbody>
@@ -81,7 +81,7 @@
             <ng-template #ownerText>{{ lead.ownerName || i18n.t('leads.modal.unassigned') }}</ng-template>
           </td>
           <td *ngIf="permissions.canWriteCrm" (click)="$event.stopPropagation()">
-            <button class="row-delete" type="button" (click)="delete($event, lead)" aria-label="Delete lead">×</button>
+            <button class="row-delete" type="button" (click)="delete($event, lead)" [attr.aria-label]="'crm.leads.deleteLead' | translate">×</button>
           </td>
         </tr>
         <!-- ✅ MODIFIÉ : Utiliser filteredLeads pour le message vide -->

@@ -8,7 +8,7 @@
       {{ i18n.t('analytics.opportunityType') }}
       <select [(ngModel)]="type" (change)="load()">
         <option value="">{{ i18n.t('analytics.allTypes') }}</option>
-        <option value="BP">BP</option>
+        <option value="BP">{{ 'crm.analytics.bp' | translate }}</option>
         <option value="CS">C S</option>
       </select>
     </label>

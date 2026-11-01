@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CrmService } from '../../services/crm.service';
+import { CrmI18nService } from 'src/app/features/dashboard-crm/services/crm-i18n.service';
 
 @Component({
   selector: 'app-sales-dashboard',
@@ -13,7 +14,8 @@ export class SalesDashboardComponent implements OnInit {
   data: any = null;
   orgId = this.crm.getOrgIdFromToken();
 
-  constructor(private crm: CrmService, private router: Router) {}
+  constructor(public i18n: CrmI18nService,
+    private crm: CrmService, private router: Router) {}
 
   ngOnInit(): void { this.load(); }
 
@@ -28,7 +30,7 @@ export class SalesDashboardComponent implements OnInit {
       },
       error: (err: any) => {
         console.error('❌ Error loading sales dashboard:', err);
-        this.error = 'Failed to load sales dashboard.';
+        this.error = this.i18n.t('salesDashboard.failedLoadSalesDashboard');
         this.loading = false;
       }
     });

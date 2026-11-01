@@ -96,7 +96,7 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
       },
       error: e => { 
         console.error('Load error:', e);
-        this.error = e?.error?.message || this.i18n.t('opportunityDetail.error.notFound'); 
+        this.error = this.i18n.error(e, 'opportunityDetail.error.notFound'); 
         this.loading = false; 
       }
     });
@@ -134,7 +134,7 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
       },
       error: e => {
         console.error(e);
-        this.error = e?.error?.message || this.i18n.t('opportunityDetail.error.save');
+        this.error = this.i18n.error(e, 'opportunityDetail.error.save');
       }
     });
   }
@@ -145,13 +145,13 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
   
   if (!this.form) {
     console.error('❌ Form is undefined');
-    this.error = 'Form is not loaded yet.';
+    this.error = this.i18n.t('opportunityDetail.formNotLoadedYet');
     return;
   }
   
   if (!this.permissions.canWriteCrm) {
     console.error('❌ No write permission');
-    this.error = 'You do not have permission to save.';
+    this.error = this.i18n.t('opportunityDetail.youDoNotHave');
     return;
   }
   
@@ -203,7 +203,7 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
     }, 
     error: e => { 
       console.error('❌ Save failed:', e);
-      this.error = e?.error?.message || this.i18n.t('opportunityDetail.error.save'); 
+      this.error = this.i18n.error(e, 'opportunityDetail.error.save'); 
       this.saving = false; 
     } 
   });
@@ -248,7 +248,7 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
       error: e => {
         console.error(e);
         if (rollback) this.equipment = rollback;
-        this.error = e?.error?.message || this.i18n.t('opportunityDetail.error.save');
+        this.error = this.i18n.error(e, 'opportunityDetail.error.save');
       }
     });
   }
@@ -288,7 +288,7 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
         this.form!.stageId = previous.stageId; 
         this.form!.probability = previous.probability;
         this.opportunity = { ...this.opportunity!, ...previous };
-        this.error = e?.error?.message || this.i18n.t('opportunityDetail.error.changeStage');
+        this.error = this.i18n.error(e, 'opportunityDetail.error.changeStage');
       } 
     });
   }
@@ -316,11 +316,11 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
         if (this.form) this.form.teamMembers = [...opportunity.teamMembers]; 
         this.teamSaving = false; 
         this.showTeamPicker = false; 
-        this.flash(`${opportunity.teamMembers.length} ${this.i18n.t('opportunityDetail.toast.teamAssigned')}`);
+        this.flash(this.i18n.t('opportunityDetail.toast.teamAssigned', { count: opportunity.teamMembers.length }));
       }, 
       error: e => { 
         console.error(e);
-        this.error = e?.error?.message || this.i18n.t('opportunityDetail.error.saveTeam'); 
+        this.error = this.i18n.error(e, 'opportunityDetail.error.saveTeam'); 
         this.teamSaving = false; 
       } 
     }); 
@@ -336,7 +336,7 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
       }, 
       error: e => {
         console.error(e);
-        this.error = e?.error?.message || this.i18n.t('opportunityDetail.error.postNote'); 
+        this.error = this.i18n.error(e, 'opportunityDetail.error.postNote'); 
       }
     }); 
   }
@@ -366,7 +366,7 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
       }, 
       error: e => {
         console.error(e);
-        this.error = e?.error?.message || this.i18n.t('opportunityDetail.error.upload'); 
+        this.error = this.i18n.error(e, 'opportunityDetail.error.upload'); 
       }
     }); 
   }
@@ -394,7 +394,7 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
       next: () => this.router.navigate(['/crm/opportunities']), 
       error: e => {
         console.error(e);
-        this.error = e?.error?.message || this.i18n.t('opportunityDetail.error.delete'); 
+        this.error = this.i18n.error(e, 'opportunityDetail.error.delete'); 
       }
     }); 
   }
@@ -504,7 +504,7 @@ export class CrmOpportunityDetailPageComponent implements OnInit {
     const start = new Date(this.opportunity.createdAt); 
     if (Number.isNaN(start.getTime())) return '—'; 
     const days = Math.max(0, Math.floor((Date.now() - start.getTime()) / 86400000)); 
-    return days === 1 ? '1 day' : days + ' days'; 
+    return this.i18n.t(days === 1 ? 'opportunityDetail.oneDay' : 'opportunityDetail.daysCount', { count: days }); 
   }
 
   // ✅ AJOUT DES 3 MÉTHODES MANQUANTES POUR LE SALES INDEX
