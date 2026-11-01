@@ -40,4 +40,13 @@ describe('I18nService', () => {
       .toBe('Tickets could not be loaded. The server cannot be reached. Check your connection and try again.');
     expect(i18n.error(new Error('boom'), 'ticketing.list.ticketsCouldNotLoaded')).toBe('Tickets could not be loaded.');
   });
+
+  it('keeps informational API messages in English only', () => {
+    translate.use('en');
+    expect(i18n.server('Reset link sent', 'login.passwordResetRequestSent')).toBe('Reset link sent');
+    expect(i18n.server('', 'login.passwordResetRequestSent')).toBe('Password reset request sent.');
+    translate.setTranslation('fr', { login: { passwordResetRequestSent: 'Demande envoyée.' } });
+    translate.use('fr');
+    expect(i18n.server('Reset link sent', 'login.passwordResetRequestSent')).toBe('Demande envoyée.');
+  });
 });

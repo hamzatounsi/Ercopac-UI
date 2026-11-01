@@ -3,12 +3,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from 'src/app/core/auth/auth.service';
 import { PreferencesService } from 'src/app/core/services/preferences.service';
 import { APPLICATION_ICONS } from 'src/app/core/config/application-icons';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 type LoginMessageType = 'error' | 'success' | 'info';
 
 interface LandingPreviewApp {
+  key: string;
   name: string;
-  description: string;
   group: string;
   icon: string;
   badge: string;
@@ -49,8 +50,8 @@ export class LoginComponent {
 
   landingPreviewApps: LandingPreviewApp[] = [
     {
+      key: 'projectum',
       name: 'Projectum',
-      description: 'Portfolio, projects, finance, forecast, risks and actions.',
       group: 'Project Management',
       icon: APPLICATION_ICONS.projectum,
       badge: 'Available',
@@ -58,8 +59,8 @@ export class LoginComponent {
       selectedApp: 'Projectum'
     },
     {
+      key: 'myDepartment',
       name: 'My Department',
-      description: 'Department workload, capacity, resources and delivery view.',
       group: 'Department',
       icon: APPLICATION_ICONS.myDepartment,
       badge: 'Available',
@@ -67,8 +68,8 @@ export class LoginComponent {
       selectedApp: 'My Department'
     },
     {
+      key: 'myCs',
       name: 'MY CS',
-      description: 'Customer success workspace and customer project follow-up.',
       group: 'Customer Success',
       icon: APPLICATION_ICONS.myCs,
       badge: 'Available',
@@ -76,8 +77,8 @@ export class LoginComponent {
       selectedApp: 'MY_CS'
     },
     {
+      key: 'commandCenter',
       name: 'Command Center',
-      description: 'Executive company overview and organisation performance.',
       group: 'Platform',
       icon: APPLICATION_ICONS.companyDashboard,
       badge: 'Coming soon',
@@ -85,8 +86,8 @@ export class LoginComponent {
       selectedApp: 'Command Center'
     },
     {
+      key: 'myExpenses',
       name: 'My Expenses',
-      description: 'Expense tracking and approval workspace.',
       group: 'Finance',
       icon: APPLICATION_ICONS.myExpenses,
       badge: 'Coming soon',
@@ -94,8 +95,8 @@ export class LoginComponent {
       selectedApp: 'My Expenses'
     },
     {
+      key: 'myCrm',
       name: 'My CRM',
-      description: 'Leads, opportunities, accounts and commercial pipeline.',
       group: 'CRM',
       icon: APPLICATION_ICONS.myCrm,
       badge: 'Coming soon',
@@ -103,8 +104,8 @@ export class LoginComponent {
       selectedApp: 'My CRM'
     },
     {
+      key: 'myTicketing',
       name: 'My Ticketing',
-      description: 'Support requests, service cases and operational tickets.',
       group: 'Support',
       icon: APPLICATION_ICONS.ticketing,
       badge: 'Coming soon',
@@ -117,7 +118,8 @@ export class LoginComponent {
     private auth: AuthService,
     private router: Router,
     private route: ActivatedRoute,
-    private preferences: PreferencesService
+    private preferences: PreferencesService,
+    private i18n: I18nService
   ) {}
 
   ngOnInit(): void {
@@ -133,7 +135,7 @@ export class LoginComponent {
         this.selectedApp = 'Projectum';
       }
       if (params['sessionExpired']) {
-        this.setMessage('Your session expired. Sign in again to continue.', 'info');
+        this.setMessage(this.i18n.t('login.sessionExpired'), 'info');
       }
     });
   }
@@ -160,7 +162,7 @@ export class LoginComponent {
     const username = this.username.trim();
 
     if (!username || !this.password) {
-      this.setMessage('Enter your email and password to continue.', 'error');
+      this.setMessage(this.i18n.t('login.enterEmailPassword'), 'error');
       return;
     }
 
@@ -171,7 +173,7 @@ export class LoginComponent {
 
         if (res.passwordResetRequired) {
           this.forgotEmail = username;
-          this.setMessage(res.message || 'Password reset is required for this account.', 'info');
+          this.setMessage(this.i18n.server(res.message, 'login.passwordResetRequired'), 'info');
 
           if (res.resetStatus === 'APPROVED' && res.resetToken) {
             this.resetMode = true;
@@ -187,13 +189,13 @@ export class LoginComponent {
         }
 
         if (this.auth.getRoles().length === 0) {
-          this.setMessage('Login succeeded, but no role was found for this account.', 'error');
+          this.setMessage(this.i18n.t('login.noRole'), 'error');
           return;
         }
-        this.setMessage('Login successful. Opening your workspace…', 'success');
+        this.setMessage(this.i18n.t('login.openingWorkspace'), 'success');
         this.preferences.loadFromServer();
         const destination = this.auth.getHomeRoute();
-        this.setMessage('Login successful. Opening your account...', 'success');
+        this.setMessage(this.i18n.t('login.openingWorkspace'), 'success');
         setTimeout(() => this.router.navigateByUrl(destination), 350);
       },
       error: err => {
@@ -212,11 +214,11 @@ export class LoginComponent {
         }
 
         if (err?.status === 429) {
-          this.setMessage(errorText || 'Too many failed login attempts. Please try again later.', 'error');
+          this.setMessage(this.i18n.server(errorText, 'login.tooManyAttempts'), 'error');
           return;
         }
 
-        this.setMessage('Invalid username or password.', 'error');
+        this.setMessage(this.i18n.t('login.invalidCredentials'), 'error');
       }
     });
   }
@@ -244,7 +246,7 @@ export class LoginComponent {
     this.setMessage('', 'info');
 
     if (this.newPassword !== this.confirmPassword) {
-      this.setMessage('Passwords do not match.', 'error');
+      this.setMessage(this.i18n.t('login.passwordsDoNotMatch'), 'error');
       return;
     }
 
@@ -252,7 +254,7 @@ export class LoginComponent {
     this.auth.resetPassword(this.resetToken, this.newPassword).subscribe({
       next: res => {
         this.resetSubmitting = false;
-        this.setMessage(res.message || 'Password updated successfully.', 'success');
+        this.setMessage(this.i18n.server(res.message, 'login.passwordUpdated'), 'success');
 
         setTimeout(() => {
           this.resetMode = false;
@@ -263,7 +265,7 @@ export class LoginComponent {
       },
       error: err => {
         this.resetSubmitting = false;
-        this.setMessage(err?.error?.message || 'Could not reset password.', 'error');
+        this.setMessage(this.i18n.error(err, 'login.couldNotResetPassword'), 'error');
       }
     });
   }
@@ -276,7 +278,7 @@ export class LoginComponent {
     this.setMessage('', 'info');
 
     if (!this.forgotEmail.trim()) {
-      this.setMessage('Enter your email to request a password reset.', 'error');
+      this.setMessage(this.i18n.t('login.enterEmailForReset'), 'error');
       return;
     }
 
@@ -284,12 +286,12 @@ export class LoginComponent {
     this.auth.requestPasswordReset(this.forgotEmail.trim()).subscribe({
       next: res => {
         this.forgotSubmitting = false;
-        this.setMessage(res.message || 'Password reset request sent.', 'success');
+        this.setMessage(this.i18n.server(res.message, 'login.passwordResetRequestSent'), 'success');
         this.waitingApprovalMode = true;
       },
       error: err => {
         this.forgotSubmitting = false;
-        this.setMessage(err?.error?.message || 'Could not send password reset request.', 'error');
+        this.setMessage(this.i18n.error(err, 'login.couldNotSendReset'), 'error');
       }
     });
   }
@@ -305,7 +307,7 @@ export class LoginComponent {
     this.auth.checkApprovedReset(this.forgotEmail.trim()).subscribe({
       next: res => {
         this.approvalChecking = false;
-        this.setMessage(res.message || 'Password reset status checked.', 'info');
+        this.setMessage(this.i18n.server(res.message, 'login.resetStatusChecked'), 'info');
 
         if (res.approved && res.token) {
           this.resetMode = true;
@@ -319,7 +321,7 @@ export class LoginComponent {
       },
       error: err => {
         this.approvalChecking = false;
-        this.setMessage(err?.error?.message || 'Could not check approval status.', 'error');
+        this.setMessage(this.i18n.error(err, 'login.couldNotCheckApproval'), 'error');
       }
     });
   }

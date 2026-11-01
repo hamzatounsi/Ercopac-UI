@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
 import { API_BASE_URL } from 'src/app/core/config/api.config';
 import { AuthService } from 'src/app/core/auth/auth.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 type WorkspacePage = 'home' | 'tasks' | 'actions' | 'schedule' | 'projects' | 'notifications';
 type ActionStatus = 'todo' | 'doing' | 'review' | 'blocked' | 'done';
@@ -48,15 +49,15 @@ interface AppNotification {
 })
 export class DashboardEmployeeComponent implements OnInit {
   readonly pages: Array<{ key: WorkspacePage; label: string; icon: string; route: string }> = [
-    { key: 'tasks', label: 'My Tasks', icon: 'assignment', route: '/employee/tasks' },
-    { key: 'actions', label: 'My Actions', icon: 'checklist', route: '/employee/actions' },
-    { key: 'schedule', label: 'My Schedule', icon: 'calendar_month', route: '/employee/schedule' },
-    { key: 'projects', label: 'My Projects', icon: 'folder_open', route: '/employee/projects' },
-    { key: 'notifications', label: 'Notifications', icon: 'notifications', route: '/employee/notifications' }
+    { key: 'tasks', label: 'employee.nav.tasks', icon: 'assignment', route: '/employee/tasks' },
+    { key: 'actions', label: 'employee.nav.actions', icon: 'checklist', route: '/employee/actions' },
+    { key: 'schedule', label: 'employee.nav.schedule', icon: 'calendar_month', route: '/employee/schedule' },
+    { key: 'projects', label: 'employee.nav.projects', icon: 'folder_open', route: '/employee/projects' },
+    { key: 'notifications', label: 'employee.nav.notifications', icon: 'notifications', route: '/employee/notifications' }
   ];
   readonly actionColumns: Array<{ status: ActionStatus; label: string }> = [
-    { status: 'todo', label: 'To Do' }, { status: 'doing', label: 'In Progress' },
-    { status: 'review', label: 'In Review' }, { status: 'blocked', label: 'Blocked' }, { status: 'done', label: 'Done' }
+    { status: 'todo', label: 'employee.actionStatus.todo' }, { status: 'doing', label: 'employee.actionStatus.doing' },
+    { status: 'review', label: 'employee.actionStatus.review' }, { status: 'blocked', label: 'employee.actionStatus.blocked' }, { status: 'done', label: 'employee.actionStatus.done' }
   ];
 
   page: WorkspacePage = 'home';
@@ -85,10 +86,11 @@ export class DashboardEmployeeComponent implements OnInit {
   dragOverStatus: ActionStatus | null = null;
   weekStart = this.startOfWeek(new Date());
 
-  constructor(private http: HttpClient, private auth: AuthService, private router: Router, private route: ActivatedRoute) {}
+  constructor(private http: HttpClient, private auth: AuthService, private router: Router, private route: ActivatedRoute,
+              private i18n: I18nService) {}
 
   ngOnInit(): void {
-    this.userName = this.auth.getCurrentUsername() || 'Employee';
+    this.userName = this.auth.getCurrentUsername() || this.i18n.t('employee.fallbackName');
     this.route.data.subscribe(data => {
       this.page = (data['employeePage'] as WorkspacePage) || 'home';
       this.loadPage();
@@ -110,7 +112,7 @@ export class DashboardEmployeeComponent implements OnInit {
     let remaining = keys.length;
     keys.forEach(key => requests[key].subscribe({
       next: (result: any) => { (this as any)[key] = result || []; this.completeLoad(--remaining); },
-      error: (err: any) => { this.error = err?.error?.message || 'Unable to load your workspace.'; this.completeLoad(--remaining); }
+      error: (err: any) => { this.error = this.i18n.error(err, 'employee.unableLoadWorkspace'); this.completeLoad(--remaining); }
     }));
   }
 
@@ -162,18 +164,18 @@ export class DashboardEmployeeComponent implements OnInit {
     if (!action || action.status === status) return;
     const previous = action.status;
     action.status = status;
-    this.statusMessage = 'Saving action status…';
+    this.statusMessage = this.i18n.t('employee.savingActionStatus');
     this.http.patch<EmployeeAction>(`${API_BASE_URL}/employee/actions/${action.id}/status`, { status }).subscribe({
       next: updated => {
         const index = this.actions.findIndex(item => item.id === updated.id);
         if (index >= 0) this.actions[index] = updated;
         if (this.selectedAction?.id === updated.id) this.selectedAction = updated;
-        this.statusMessage = 'Action status saved.';
+        this.statusMessage = this.i18n.t('employee.actionStatusSaved');
       },
       error: err => {
         action.status = previous;
         this.statusMessage = '';
-        this.error = err?.error?.message || 'The action status could not be saved. The card was restored.';
+        this.error = this.i18n.error(err, 'employee.actionStatusNotSaved');
       }
     });
   }
@@ -190,7 +192,7 @@ export class DashboardEmployeeComponent implements OnInit {
     if (!notification.readByUser) {
       this.http.post<void>(`${API_BASE_URL}/notifications/${notification.id}/read`, {}).subscribe({
         next: () => notification.readByUser = true,
-        error: () => this.error = 'Notification could not be marked as read.'
+        error: () => this.error = this.i18n.t('employee.notificationNotMarked')
       });
     }
     if (notification.link) this.router.navigateByUrl(notification.link);
@@ -198,7 +200,7 @@ export class DashboardEmployeeComponent implements OnInit {
   markAllRead(): void {
     this.http.post<void>(`${API_BASE_URL}/notifications/read-all`, {}).subscribe({
       next: () => this.notifications.forEach(notification => notification.readByUser = true),
-      error: () => this.error = 'Notifications could not be updated.'
+      error: () => this.error = this.i18n.t('employee.notificationsNotUpdated')
     });
   }
 
@@ -211,7 +213,7 @@ export class DashboardEmployeeComponent implements OnInit {
     this.taskComments = [];
     this.http.get<TaskComment[]>(`${API_BASE_URL}/employee/projects/${task.projectId}/tasks/${task.id}/comments`)
       .subscribe({ next: comments => this.taskComments = comments,
-        error: () => this.commentError = 'Unable to load comments.' });
+        error: () => this.commentError = this.i18n.t('employee.unableLoadComments') });
   }
 
   openAction(action: EmployeeAction): void {
@@ -230,12 +232,12 @@ export class DashboardEmployeeComponent implements OnInit {
       const action = this.selectedAction;
       this.http.post<EmployeeAction['comments'][number]>(`${API_BASE_URL}/employee/actions/${action.id}/comments`, { text })
         .subscribe({ next: comment => { action.comments = [...(action.comments || []), comment]; this.commentText = ''; this.commentSaving = false; },
-          error: err => { this.commentError = err?.error?.message || 'Comment could not be saved.'; this.commentSaving = false; } });
+          error: err => { this.commentError = this.i18n.error(err, 'employee.commentNotSaved'); this.commentSaving = false; } });
     } else if (this.selectedTask) {
       const task = this.selectedTask;
       this.http.post<TaskComment>(`${API_BASE_URL}/employee/projects/${task.projectId}/tasks/${task.id}/comments`, { text })
         .subscribe({ next: comment => { this.taskComments = [comment, ...this.taskComments]; this.commentText = ''; this.commentSaving = false; },
-          error: err => { this.commentError = err?.error?.message || 'Comment could not be saved.'; this.commentSaving = false; } });
+          error: err => { this.commentError = this.i18n.error(err, 'employee.commentNotSaved'); this.commentSaving = false; } });
     } else this.commentSaving = false;
   }
 
@@ -250,7 +252,7 @@ export class DashboardEmployeeComponent implements OnInit {
     this.attachmentError = '';
     this.http.post<ActionAttachment[]>(`${API_BASE_URL}/employee/actions/${action.id}/attachments`, formData)
       .subscribe({ next: attachments => action.attachments = attachments,
-        error: err => this.attachmentError = err?.error?.message || 'Attachment could not be uploaded.' });
+        error: err => this.attachmentError = this.i18n.error(err, 'employee.attachmentNotUploaded') });
   }
 
   downloadAttachment(action: EmployeeAction, attachment: ActionAttachment): void {
@@ -263,7 +265,7 @@ export class DashboardEmployeeComponent implements OnInit {
           link.click();
           window.URL.revokeObjectURL(url);
         },
-        error: () => this.attachmentError = 'Attachment could not be downloaded.' });
+        error: () => this.attachmentError = this.i18n.t('employee.attachmentNotDownloaded') });
   }
 
   canDeleteAttachment(attachment: ActionAttachment): boolean {
@@ -274,12 +276,16 @@ export class DashboardEmployeeComponent implements OnInit {
     if (!confirm(`Delete ${attachment.fileName}?`)) return;
     this.http.delete<void>(`${API_BASE_URL}/employee/actions/${action.id}/attachments/${attachment.id}`)
       .subscribe({ next: () => action.attachments = (action.attachments || []).filter(a => a.id !== attachment.id),
-        error: err => this.attachmentError = err?.error?.message || 'Attachment could not be deleted.' });
+        error: err => this.attachmentError = this.i18n.error(err, 'employee.attachmentNotDeleted') });
   }
 
-  taskStatusLabel(status?: string): string { return (status || 'Not started').replace(/_/g, ' '); }
-  actionStatusLabel(status: string): string { return ({ todo: 'To Do', doing: 'In Progress', review: 'In Review', blocked: 'Blocked', done: 'Done' } as any)[status] || status; }
-  priorityLabel(priority?: string | number): string { return priority === null || priority === undefined || priority === '' ? 'Normal' : String(priority); }
+  taskStatusLabel(status?: string): string {
+    const key = `employee.taskStatus.${status || 'NOT_STARTED'}`;
+    const label = this.i18n.t(key);
+    return label !== key ? label : (status || '').replace(/_/g, ' ');
+  }
+  actionStatusLabel(status: string): string { return ['todo', 'doing', 'review', 'blocked', 'done'].includes(status) ? this.i18n.t(`employee.actionStatus.${status}`) : status; }
+  priorityLabel(priority?: string | number): string { return priority === null || priority === undefined || priority === '' ? this.i18n.t('employee.priorityNormal') : String(priority); }
   isDoneTask(task: EmployeeTask): boolean { return ['done', 'completed', 'complete'].includes((task.status || '').toLowerCase()) || task.percentComplete === 100; }
   isDueSoon(date?: string | null): boolean { if (!date) return false; const delta = (new Date(`${date}T00:00:00`).getTime() - new Date().setHours(0, 0, 0, 0)) / 86400000; return delta >= 0 && delta <= 7; }
   private overlaps(task: EmployeeTask, day: Date): boolean { if (!task.plannedStart) return false; const start = new Date(`${task.plannedStart}T00:00:00`); const end = new Date(`${task.plannedEnd || task.plannedStart}T23:59:59`); return start <= day && end >= day; }

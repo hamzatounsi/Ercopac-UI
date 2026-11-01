@@ -12,6 +12,12 @@ export class I18nService {
     return this.translate.instant(key, params);
   }
 
+  /** Informational message returned by the API: kept in English, replaced by the translated key in other languages. */
+  server(message: string | null | undefined, key: string, params?: Record<string, unknown>): string {
+    const text = typeof message === 'string' ? message.trim() : '';
+    return text && (this.translate.currentLang || 'en') === 'en' ? text : this.t(key, params);
+  }
+
   /**
    * Message for a failed API call. In English the specific backend message is kept (as before);
    * other languages get the translated contextual message, completed by the translated reason for generic failures

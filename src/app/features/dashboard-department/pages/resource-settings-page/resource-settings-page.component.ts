@@ -6,6 +6,7 @@ import { ResourceListItem } from '../../models/resource-list-item.model';
 import { ResourceDetails } from '../../models/resource-details.model';
 import { CreateResourceRequest } from '../../models/create-resource-request.model';
 import { UpdateResourceRequest } from '../../models/update-resource-request.model';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 @Component({
   selector: 'app-resource-settings-page',
@@ -41,7 +42,8 @@ export class ResourceSettingsPageComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private resourceService: ResourceService
+    private resourceService: ResourceService,
+    private i18n: I18nService
   ) {}
 
   ngOnInit(): void {
@@ -112,7 +114,7 @@ export class ResourceSettingsPageComponent implements OnInit {
         this.loading = false;
       },
       error: err => {
-        this.errorMessage = err?.error?.message || 'Failed to load resources.';
+        this.errorMessage = this.i18n.error(err, 'department.resources.failedLoadResources');
         this.loading = false;
       }
     });
@@ -186,7 +188,7 @@ export class ResourceSettingsPageComponent implements OnInit {
         this.loading = false;
       },
       error: err => {
-        this.errorMessage = err?.error?.message || 'Failed to load resource details.';
+        this.errorMessage = this.i18n.error(err, 'department.resources.failedLoadDetails');
         this.loading = false;
       }
     });
@@ -233,7 +235,7 @@ export class ResourceSettingsPageComponent implements OnInit {
           this.openDetails(resource.id);
         },
         error: err => {
-          this.errorMessage = err?.error?.message || 'Failed to create resource.';
+          this.errorMessage = this.i18n.error(err, 'department.resources.failedCreate');
           this.saving = false;
         }
       });
@@ -242,7 +244,7 @@ export class ResourceSettingsPageComponent implements OnInit {
     }
 
     if (!this.selectedResource) {
-      this.errorMessage = 'No resource selected.';
+      this.errorMessage = this.i18n.t('department.resources.noResourceSelected');
       this.saving = false;
       return;
     }
@@ -273,7 +275,7 @@ export class ResourceSettingsPageComponent implements OnInit {
         this.loadResources();
       },
       error: err => {
-        this.errorMessage = err?.error?.message || 'Failed to update resource.';
+        this.errorMessage = this.i18n.error(err, 'department.resources.failedUpdate');
         this.saving = false;
       }
     });
@@ -297,7 +299,7 @@ export class ResourceSettingsPageComponent implements OnInit {
         this.loadResources();
       },
       error: err => {
-        this.errorMessage = err?.error?.message || 'Failed to update status.';
+        this.errorMessage = this.i18n.error(err, 'department.resources.failedUpdateStatus');
       }
     });
   }
