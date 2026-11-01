@@ -4,6 +4,7 @@ import { AuthService } from 'src/app/core/auth/auth.service';
 import { PrioritySetting } from '../../models/ticket.models';
 import { TicketSettingsService } from '../../services/ticket-settings.service';
 import { TICKETING_LEAD_ROLES } from '../../ticketing-roles';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 // Priority levels and their SLA targets (first response in minutes, resolution in hours).
 // The targets drive the overdue flag on tickets and the SLA figures of the performance dashboard.
@@ -23,7 +24,8 @@ export class PrioritiesSettingsComponent implements OnInit, OnDestroy {
   private saved = '';
   private sub?: Subscription;
 
-  constructor(private settings: TicketSettingsService, private auth: AuthService) {}
+  constructor(private i18n: I18nService,
+    private settings: TicketSettingsService, private auth: AuthService) {}
 
   ngOnInit(): void { this.load(); }
   ngOnDestroy(): void { this.sub?.unsubscribe(); }
@@ -34,16 +36,16 @@ export class PrioritiesSettingsComponent implements OnInit, OnDestroy {
     this.sub?.unsubscribe();
     this.sub = this.settings.refresh().subscribe({
       next: s => { this.apply(s.priorities); this.loading = false; },
-      error: e => { this.loading = false; this.error = e.error?.message || 'Priorities could not be loaded.'; }
+      error: e => { this.loading = false; this.error = this.i18n.error(e, 'ticketing.priorities.prioritiesCouldNotLoaded'); }
     });
   }
 
   get dirty(): boolean { return JSON.stringify(this.rows) !== this.saved; }
 
   rowError(p: PrioritySetting): string {
-    if (!p.label?.trim()) return 'A label is required.';
-    if (!(p.firstResponseMinutes >= 1) || !(p.resolutionHours >= 1)) return 'Targets must be at least 1.';
-    if (p.firstResponseMinutes > p.resolutionHours * 60) return 'First response must come before resolution.';
+    if (!p.label?.trim()) return this.i18n.t('ticketing.priorities.labelRequired');
+    if (!(p.firstResponseMinutes >= 1) || !(p.resolutionHours >= 1)) return this.i18n.t('ticketing.priorities.targetsMustLeast1');
+    if (p.firstResponseMinutes > p.resolutionHours * 60) return this.i18n.t('ticketing.priorities.firstResponseMustCome');
     return '';
   }
 
@@ -62,8 +64,8 @@ export class PrioritiesSettingsComponent implements OnInit, OnDestroy {
     this.saving = true;
     this.error = '';
     this.settings.savePriorities(this.rows.map(r => ({ ...r, label: r.label.trim() }))).subscribe({
-      next: s => { this.apply(s.priorities); this.saving = false; this.submitted = false; this.flash('Priorities saved'); },
-      error: e => { this.saving = false; this.error = e.error?.message || 'Priorities could not be saved.'; }
+      next: s => { this.apply(s.priorities); this.saving = false; this.submitted = false; this.flash(this.i18n.t('ticketing.priorities.prioritiesSaved')); },
+      error: e => { this.saving = false; this.error = this.i18n.error(e, 'ticketing.priorities.prioritiesCouldNotSaved'); }
     });
   }
 

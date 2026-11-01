@@ -1,26 +1,26 @@
 <div class="set-head">
   <div>
-    <h2>L2 Technicians</h2>
-    <p>Level 2 specialists assigned by H24 agents when escalation is needed. Pick them among the Projectum employees by resource type.</p>
+    <h2>{{ 'ticketing.l2.l2Technicians' | translate }}</h2>
+    <p>{{ 'ticketing.l2.level2SpecialistsAssigned' | translate }}</p>
   </div>
-  <button class="primary small" *ngIf="isLead && !adding" (click)="adding = true" [disabled]="loading">+ Add L2</button>
+  <button class="primary small" *ngIf="isLead && !adding" (click)="adding = true" [disabled]="loading">{{ 'ticketing.l2.addL2' | translate }}</button>
 </div>
-<p class="readonly-note" *ngIf="!isLead">Only support leads can change who is an L2 technician.</p>
+<p class="readonly-note" *ngIf="!isLead">{{ 'ticketing.l2.onlySupportLeadsCan' | translate }}</p>
 
 <form class="add-row" *ngIf="adding" (ngSubmit)="add()">
   <app-resource-employee-picker class="picker" [excludeIds]="technicianIds" employeePlaceholder="Choose an employee…"
-                                emptyText="No other employee of this type" (picked)="candidate = $event"></app-resource-employee-picker>
-  <button type="button" class="ghost small" (click)="adding = false; candidate = null">Cancel</button>
-  <button type="submit" class="primary small" [disabled]="!candidate || busyId">Add</button>
+                                [emptyText]="'ticketing.l2.noOtherEmployeeType' | translate" (picked)="candidate = $event"></app-resource-employee-picker>
+  <button type="button" class="ghost small" (click)="adding = false; candidate = null">{{ 'common.cancel' | translate }}</button>
+  <button type="submit" class="primary small" [disabled]="!candidate || busyId">{{ 'common.add' | translate }}</button>
 </form>
 
-<div class="state" *ngIf="loading">Loading…</div>
-<div class="load-error" *ngIf="error">{{ error }} <button class="ghost small" (click)="load()">Retry</button></div>
-<div class="empty" *ngIf="!loading && !error && !technicians.length">No L2 technicians yet.<ng-container *ngIf="isLead"> Use “+ Add L2” to flag a support member.</ng-container></div>
+<div class="state" *ngIf="loading">{{ 'common.loading' | translate }}</div>
+<div class="load-error" *ngIf="error">{{ error }} <button class="ghost small" (click)="load()">{{ 'common.retry' | translate }}</button></div>
+<div class="empty" *ngIf="!loading && !error && !technicians.length">{{ 'ticketing.l2.noL2TechniciansYet' | translate }}<ng-container *ngIf="isLead"> {{ 'ticketing.l2.useAddL2Flag' | translate }}</ng-container></div>
 
 <div class="table-wrap" *ngIf="!loading && technicians.length">
   <table class="set-table">
-    <thead><tr><th>Name</th><th>Resource type</th><th>Specialisation</th><th>Level</th><th>Open L2 tickets</th><th>Status</th><th *ngIf="isLead"></th></tr></thead>
+    <thead><tr><th>{{ 'common.name' | translate }}</th><th>{{ 'ticketing.l2.resourceType' | translate }}</th><th>{{ 'ticketing.l2.specialisation' | translate }}</th><th>{{ 'ticketing.l2.level' | translate }}</th><th>{{ 'ticketing.l2.openL2Tickets' | translate }}</th><th>{{ 'common.status' | translate }}</th><th *ngIf="isLead"></th></tr></thead>
     <tbody>
       <tr *ngFor="let t of technicians">
         <td class="strong">{{ t.fullName }}<small>{{ t.email }}</small></td>
@@ -28,8 +28,8 @@
         <td>{{ t.specialization || '—' }}</td>
         <td><span class="badge c-red">L2</span></td>
         <td>{{ t.l2OpenTickets }}</td>
-        <td><span class="badge" [ngClass]="t.active ? 'c-green' : 'c-gray'">{{ t.active ? 'Active' : 'Inactive' }}</span></td>
-        <td *ngIf="isLead"><button class="ghost small danger" (click)="remove(t)" [disabled]="busyId === t.id">Remove</button></td>
+        <td><span class="badge" [ngClass]="t.active ? 'c-green' : 'c-gray'">{{ t.active ? ('ticketing.l2.active' | translate) : ('ticketing.l2.inactive' | translate) }}</span></td>
+        <td *ngIf="isLead"><button class="ghost small danger" (click)="remove(t)" [disabled]="busyId === t.id">{{ 'ticketing.l2.remove' | translate }}</button></td>
       </tr>
     </tbody>
   </table>

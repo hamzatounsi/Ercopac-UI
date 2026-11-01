@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 export interface PickOption { id: number; label: string; hint?: string; }
 
@@ -11,6 +12,8 @@ export interface PickOption { id: number; label: string; hint?: string; }
   styleUrls: ['./select-or-manual.component.scss']
 })
 export class SelectOrManualComponent {
+  constructor(private i18n: I18nService) {}
+
   @Input() label = '';
   @Input() options: PickOption[] = [];
   @Input() selectedId: number | null = null;
@@ -21,10 +24,10 @@ export class SelectOrManualComponent {
   @Input() loading = false;
   @Input() error = '';
   @Input() disabled = false;
-  @Input() noneLabel = 'None';
-  @Input() emptyText = 'Nothing to choose from';
-  @Input() manualLabel = 'Enter manually';
-  @Input() linkedLabel = 'Choose from Projectum';
+  @Input() noneLabel = 'ticketing.selectOrManual.none';
+  @Input() emptyText = 'ticketing.selectOrManual.nothingToChoose';
+  @Input() manualLabel = 'ticketing.selectOrManual.enterManually';
+  @Input() linkedLabel = 'ticketing.selectOrManual.chooseFromProjectum';
   @Input() searchThreshold = 8;
   @Input() compact = false;
   @Output() selectedIdChange = new EventEmitter<number | null>();
@@ -44,12 +47,12 @@ export class SelectOrManualComponent {
   get pinned(): PickOption | null {
     if (this.selectedId == null || this.filtered.some(o => o.id === this.selectedId)) return null;
     const known = this.options.find(o => o.id === this.selectedId);
-    return known ?? { id: this.selectedId, label: this.selectedLabel || 'Current selection' };
+    return known ?? { id: this.selectedId, label: this.selectedLabel || this.i18n.t('ticketing.selectOrManual.currentSelection') };
   }
 
   get placeholder(): string {
-    if (this.loading) return 'Loading…';
-    if (this.error) return 'List unavailable';
+    if (this.loading) return this.i18n.t('ticketing.selectOrManual.loading');
+    if (this.error) return this.i18n.t('ticketing.selectOrManual.listUnavailable');
     return this.options.length ? this.noneLabel : this.emptyText;
   }
 

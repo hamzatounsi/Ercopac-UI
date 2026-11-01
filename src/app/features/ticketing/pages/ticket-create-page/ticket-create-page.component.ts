@@ -7,6 +7,7 @@ import { DirectChatService } from '../../services/direct-chat.service';
 import { TicketService } from '../../services/ticket.service';
 import { TicketSettingsService } from '../../services/ticket-settings.service';
 import { TICKETING_STAFF_ROLES } from '../../ticketing-roles';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 // New ticket. Customer -> project, site and equipment of that customer (Settings > Customers).
 // A client files under the customer their account is linked to; support staff choose the customer,
@@ -52,7 +53,8 @@ export class TicketCreatePageComponent implements OnInit {
   saving = false;
   error = '';
 
-  constructor(private api: TicketService, private chat: DirectChatService, private auth: AuthService,
+  constructor(private i18n: I18nService,
+    private api: TicketService, private chat: DirectChatService, private auth: AuthService,
               public labels: TicketSettingsService, private router: Router) {}
 
   ngOnInit(): void {
@@ -82,7 +84,7 @@ export class TicketCreatePageComponent implements OnInit {
         if (!o.sites.some(s => s.name === this.form.site)) this.form.site = '';
         this.loadingOptions = false;
       },
-      error: e => { this.optionsError = e.error?.message || 'Customer data could not be loaded.'; this.loadingOptions = false; }
+      error: e => { this.optionsError = this.i18n.error(e, 'ticketing.create.customerDataCouldNot'); this.loadingOptions = false; }
     });
   }
 
@@ -115,21 +117,21 @@ export class TicketCreatePageComponent implements OnInit {
 
   get subjectError(): string {
     const v = this.form.subject.trim();
-    if (!v) return 'Subject is required.';
-    if (v.length < 5) return 'Use at least 5 characters.';
+    if (!v) return this.i18n.t('ticketing.create.subjectRequired');
+    if (v.length < 5) return this.i18n.t('ticketing.create.useLeast5Characters');
     return '';
   }
   get descriptionError(): string {
     const v = this.form.description.trim();
-    if (!v) return 'Describe the problem.';
-    if (v.length < 10) return 'Add a bit more detail (10 characters or more).';
+    if (!v) return this.i18n.t('ticketing.create.describeProblem');
+    if (v.length < 10) return this.i18n.t('ticketing.create.addBitMoreDetail');
     return '';
   }
-  get customerError(): string { return this.customerManual && !this.form.customerName.trim() ? 'Enter the customer name or choose an existing customer.' : ''; }
-  get projectError(): string { return this.projectManual && !this.form.projectName.trim() ? 'Enter the project name or choose a Projectum project.' : ''; }
+  get customerError(): string { return this.customerManual && !this.form.customerName.trim() ? this.i18n.t('ticketing.create.enterCustomerNameChoose') : ''; }
+  get projectError(): string { return this.projectManual && !this.form.projectName.trim() ? this.i18n.t('ticketing.create.enterProjectNameChoose') : ''; }
   get yearError(): string {
     const y = this.form.projectYear;
-    return this.projectManual && y != null && (!Number.isInteger(+y) || +y < 1900 || +y > 2100) ? 'Year must be between 1900 and 2100.' : '';
+    return this.projectManual && y != null && (!Number.isInteger(+y) || +y < 1900 || +y > 2100) ? this.i18n.t('ticketing.create.yearMustBetween1900') : '';
   }
   get valid(): boolean { return !this.subjectError && !this.descriptionError && !this.customerError && !this.projectError && !this.yearError; }
 
@@ -156,10 +158,10 @@ export class TicketCreatePageComponent implements OnInit {
       assigneeId: this.isStaff ? this.form.assigneeId : null
     }).subscribe({
       next: created => void this.router.navigate(['/tickets', created.ticket.id]),
-      error: e => { this.error = e.error?.message || 'Ticket could not be created.'; this.saving = false; }
+      error: e => { this.error = this.i18n.error(e, 'ticketing.create.ticketCouldNotCreated'); this.saving = false; }
     });
   }
 
   cancel(): void { void this.router.navigate(['/tickets']); }
-  label(v: string): string { return v.replace(/_/g, ' ').toLowerCase().replace(/^\w/, c => c.toUpperCase()); }
+  label(category: string): string { return category ? this.i18n.t('ticketing.categories.' + category) : ''; }
 }

@@ -5,11 +5,12 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { AuthService } from 'src/app/core/auth/auth.service';
 
 import { TicketingLayoutComponent } from './ticketing-layout.component';
+import { translateTestingModule } from 'src/app/core/i18n/translate-testing';
 
 describe('TicketingLayoutComponent', () => {
   function create(roles: string[]): ComponentFixture<TicketingLayoutComponent> {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, RouterTestingModule],
+      imports: [HttpClientTestingModule, RouterTestingModule, translateTestingModule()],
       declarations: [TicketingLayoutComponent],
       providers: [{
         provide: AuthService,
@@ -27,13 +28,13 @@ describe('TicketingLayoutComponent', () => {
 
   it('shows the dashboard and team settings to support leads', () => {
     const c = create(['H24_LEAD']).componentInstance;
-    expect(c.navItems.map(i => i.label)).toEqual(['Tickets', 'Live chat', 'Dashboard', 'Settings']);
+    expect(c.navItems.map(i => i.label)).toEqual(['ticketing.layout.tickets', 'ticketing.layout.liveChat', 'ticketing.layout.dashboard', 'ticketing.layout.settings']);
     expect(c.navItems[3].route).toBe('/tickets/settings/h24-agents');
   });
 
   it('gives clients their own tickets and language settings only', () => {
     const c = create(['CLIENT']).componentInstance;
-    expect(c.navItems.map(i => i.label)).toEqual(['My tickets', 'Live chat', 'Settings']);
+    expect(c.navItems.map(i => i.label)).toEqual(['ticketing.layout.myTickets', 'ticketing.layout.liveChat', 'ticketing.layout.settings']);
     expect(c.navItems[2].route).toBe('/tickets/settings/language');
   });
 });

@@ -5,6 +5,7 @@ import { of } from 'rxjs';
 import { TicketSettingsService } from '../../services/ticket-settings.service';
 
 import { ResourceEmployeePickerComponent } from './resource-employee-picker.component';
+import { translateTestingModule } from 'src/app/core/i18n/translate-testing';
 
 describe('ResourceEmployeePickerComponent', () => {
   let component: ResourceEmployeePickerComponent;
@@ -17,7 +18,7 @@ describe('ResourceEmployeePickerComponent', () => {
       ? [{ id: 20, fullName: 'Nora', email: 'n@x.test', resourceTypeId: 3, l2Technician: true }]
       : [{ id: 30, fullName: 'Rob', email: 'r@x.test', resourceTypeId: 4, l2Technician: true }]));
     TestBed.configureTestingModule({
-      imports: [FormsModule],
+      imports: [FormsModule, translateTestingModule()],
       declarations: [ResourceEmployeePickerComponent],
       providers: [{ provide: TicketSettingsService, useValue: settings }]
     });

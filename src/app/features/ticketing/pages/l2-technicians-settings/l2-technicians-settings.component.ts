@@ -3,6 +3,7 @@ import { AuthService } from 'src/app/core/auth/auth.service';
 import { Agent, EmployeeOption } from '../../models/ticket.models';
 import { TicketSettingsService } from '../../services/ticket-settings.service';
 import { TICKETING_LEAD_ROLES } from '../../ticketing-roles';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 // Level 2 specialists: Projectum employees (or support staff) flagged as L2 can be assigned to tickets next to the H24 agent.
 // A new L2 is picked with the cascading Resource type -> employee choice.
@@ -21,7 +22,8 @@ export class L2TechniciansSettingsComponent implements OnInit {
   busyId?: number;
   readonly isLead = this.auth.hasAnyRole(TICKETING_LEAD_ROLES);
 
-  constructor(private settings: TicketSettingsService, private auth: AuthService) {}
+  constructor(private i18n: I18nService,
+    private settings: TicketSettingsService, private auth: AuthService) {}
 
   get technicians(): Agent[] { return this.agents.filter(a => a.l2Technician); }
   get technicianIds(): number[] { return this.technicians.map(t => t.id); }
@@ -33,7 +35,7 @@ export class L2TechniciansSettingsComponent implements OnInit {
     this.error = '';
     this.settings.agents().subscribe({
       next: a => { this.agents = a; this.loading = false; },
-      error: e => { this.error = e.error?.message || 'L2 technicians could not be loaded.'; this.loading = false; }
+      error: e => { this.error = this.i18n.error(e, 'ticketing.l2.l2TechniciansCouldNot'); this.loading = false; }
     });
   }
 
@@ -60,7 +62,7 @@ export class L2TechniciansSettingsComponent implements OnInit {
         done?.();
         this.flash(l2 ? `${updated.fullName} is now an L2 technician` : `${updated.fullName} removed from L2`);
       },
-      error: e => { this.busyId = undefined; this.error = e.error?.message || 'The change could not be saved.'; }
+      error: e => { this.busyId = undefined; this.error = this.i18n.error(e, 'ticketing.l2.changeCouldNotSaved'); }
     });
   }
 

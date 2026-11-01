@@ -1,22 +1,22 @@
 <div class="set-head">
   <div>
-    <h2>My language &amp; translation</h2>
-    <p>Set your preferred language and see how messages are translated in ticket conversations.</p>
+    <h2>{{ 'ticketing.languageSettings.myLanguageTranslation' | translate }}</h2>
+    <p>{{ 'ticketing.languageSettings.setPreferredLanguageSee' | translate }}</p>
   </div>
 </div>
 
-<div class="state" *ngIf="loading">Loading…</div>
-<div class="load-error" *ngIf="!loading && error && !me">{{ error }} <button class="ghost small" (click)="load()">Retry</button></div>
+<div class="state" *ngIf="loading">{{ 'common.loading' | translate }}</div>
+<div class="load-error" *ngIf="!loading && error && !me">{{ error }} <button class="ghost small" (click)="load()">{{ 'common.retry' | translate }}</button></div>
 
 <ng-container *ngIf="me">
   <section class="box">
-    <h3>My language</h3>
+    <h3>{{ 'ticketing.languageSettings.myLanguage' | translate }}</h3>
     <label class="lang">
-      <span class="sr">Language</span>
+      <span class="sr">{{ 'ticketing.languageSettings.language' | translate }}</span>
       <select class="select" [ngModel]="language" (ngModelChange)="save($event)" [disabled]="saving">
-        <option *ngFor="let l of languages" [value]="l.code">{{ l.label }}</option>
+        <option *ngFor="let l of languages" [value]="l.code">{{ l.label | translate }}</option>
       </select>
-      <span class="muted-sm" *ngIf="saving">Saving…</span>
+      <span class="muted-sm" *ngIf="saving">{{ 'ticketing.languageSettings.saving' | translate }}</span>
     </label>
     <p class="muted-sm">{{ me.staff
       ? 'This is the language you write in and the language customer messages are translated into.'
@@ -26,28 +26,28 @@
 
   <section class="box">
     <div class="box-head">
-      <h3>Translation</h3>
-      <span class="badge c-green">Per ticket</span>
+      <h3>{{ 'ticketing.languageSettings.translation' | translate }}</h3>
+      <span class="badge c-green">{{ 'ticketing.languageSettings.perTicket' | translate }}</span>
     </div>
     <div class="how" *ngIf="me.staff; else clientHow">
-      <strong>How it works</strong>
+      <strong>{{ 'ticketing.languageSettings.howWorks' | translate }}</strong>
       <ul>
-        <li>Each ticket conversation shows your language and the customer's language.</li>
-        <li>Turn on “Translate” on a ticket: the customer's messages appear in your language, with the original below.</li>
-        <li>Your public replies are sent to the customer in their language. Internal notes are never translated.</li>
-        <li>The customer's language comes from their contact record (Settings › Customers) or their own setting.</li>
+        <li>{{ 'ticketing.languageSettings.eachTicketConversationShows' | translate }}</li>
+        <li>{{ 'ticketing.languageSettings.turnTranslateTicketCustomer' | translate }}</li>
+        <li>{{ 'ticketing.languageSettings.publicRepliesSentCustomer' | translate }}</li>
+        <li>{{ 'ticketing.languageSettings.customerSLanguageComes' | translate }}</li>
       </ul>
     </div>
     <ng-template #clientHow>
       <div class="how">
-        <strong>How it works</strong>
+        <strong>{{ 'ticketing.languageSettings.howWorks' | translate }}</strong>
         <ul>
-          <li>Write to the support team in your own language.</li>
-          <li>Agents can read your messages translated, and their replies can be translated into your language.</li>
+          <li>{{ 'ticketing.languageSettings.writeSupportTeamOwn' | translate }}</li>
+          <li>{{ 'ticketing.languageSettings.agentsCanReadMessages' | translate }}</li>
         </ul>
       </div>
     </ng-template>
-    <p class="muted-sm">Translation runs on the organisation's own AI service; if it is unavailable, messages are shown untranslated.</p>
+    <p class="muted-sm">{{ 'ticketing.languageSettings.translationRunsOrganisationS' | translate }}</p>
   </section>
 </ng-container>
 <div class="toast" *ngIf="notice">{{ notice }}</div>

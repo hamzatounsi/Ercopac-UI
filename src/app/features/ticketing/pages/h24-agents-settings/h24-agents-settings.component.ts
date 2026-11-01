@@ -3,6 +3,7 @@ import { AuthService } from 'src/app/core/auth/auth.service';
 import { Agent, LANGUAGES } from '../../models/ticket.models';
 import { TicketSettingsService } from '../../services/ticket-settings.service';
 import { TICKETING_LEAD_ROLES } from '../../ticketing-roles';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 // H24 team with their workload: users holding the H24 / H24_LEAD role or the H24 resource type (queried by the backend).
 // Leads edit specialisation, language and the L2 flag; accounts themselves are created in the admin user management.
@@ -22,7 +23,8 @@ export class H24AgentsSettingsComponent implements OnInit {
   readonly languages = LANGUAGES;
   readonly isLead = this.auth.hasAnyRole(TICKETING_LEAD_ROLES);
 
-  constructor(private settings: TicketSettingsService, private auth: AuthService) {}
+  constructor(private i18n: I18nService,
+    private settings: TicketSettingsService, private auth: AuthService) {}
 
   ngOnInit(): void { this.load(); }
 
@@ -31,7 +33,7 @@ export class H24AgentsSettingsComponent implements OnInit {
     this.error = '';
     this.settings.agents('H24').subscribe({
       next: a => { this.agents = a; this.loading = false; },
-      error: e => { this.error = e.error?.message || 'The support team could not be loaded.'; this.loading = false; }
+      error: e => { this.error = this.i18n.error(e, 'ticketing.h24.supportTeamCouldNot'); this.loading = false; }
     });
   }
 
@@ -49,14 +51,14 @@ export class H24AgentsSettingsComponent implements OnInit {
         this.agents = this.agents.map(x => x.id === a.id ? a : x);
         this.editing = undefined;
         this.saving = false;
-        this.flash('Agent updated');
+        this.flash(this.i18n.t('ticketing.h24.agentUpdated'));
       },
-      error: e => { this.saving = false; this.error = e.error?.message || 'The agent could not be updated.'; }
+      error: e => { this.saving = false; this.error = this.i18n.error(e, 'ticketing.h24.agentCouldNotUpdated'); }
     });
   }
 
-  roleLabel(roles: string[]): string { return roles.map(r => r.replace(/_/g, ' ').toLowerCase()).join(', '); }
-  languageName(code?: string): string { return LANGUAGES.find(l => l.code === code)?.label ?? 'English'; }
+  roleLabel(roles: string[]): string { return roles.map(r => this.i18n.t('roles.' + r)).join(', '); }
+  languageName(code?: string): string { return this.i18n.t(LANGUAGES.find(l => l.code === code)?.label ?? 'ticketing.languages.en'); }
 
   private flash(text: string): void { this.notice = text; setTimeout(() => this.notice = '', 2500); }
 }

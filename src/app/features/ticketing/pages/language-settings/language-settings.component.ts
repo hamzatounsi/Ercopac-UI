@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { LANGUAGES, MySettings } from '../../models/ticket.models';
 import { TicketSettingsService } from '../../services/ticket-settings.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 // My language: the language I write in. Ticket conversations can translate the other side's
 // messages into it, and translate my public replies into the other side's language.
@@ -18,7 +19,8 @@ export class LanguageSettingsComponent implements OnInit {
   notice = '';
   readonly languages = LANGUAGES;
 
-  constructor(private settings: TicketSettingsService) {}
+  constructor(private i18n: I18nService,
+    private settings: TicketSettingsService) {}
 
   ngOnInit(): void { this.load(); }
 
@@ -27,7 +29,7 @@ export class LanguageSettingsComponent implements OnInit {
     this.error = '';
     this.settings.me().subscribe({
       next: me => { this.me = me; this.language = me.preferredLanguage || 'en'; this.loading = false; },
-      error: e => { this.loading = false; this.error = e.error?.message || 'Your settings could not be loaded.'; }
+      error: e => { this.loading = false; this.error = this.i18n.error(e, 'ticketing.languageSettings.settingsCouldNotLoaded'); }
     });
   }
 
@@ -36,11 +38,11 @@ export class LanguageSettingsComponent implements OnInit {
     this.saving = true;
     this.error = '';
     this.settings.setMyLanguage(language).subscribe({
-      next: me => { this.me = me; this.saving = false; this.flash('Language updated'); },
+      next: me => { this.me = me; this.saving = false; this.flash(this.i18n.t('ticketing.languageSettings.languageUpdated')); },
       error: e => {
         this.saving = false;
         this.language = this.me?.preferredLanguage || 'en';
-        this.error = e.error?.message || 'The language could not be saved.';
+        this.error = this.i18n.error(e, 'ticketing.languageSettings.languageCouldNotSaved');
       }
     });
   }

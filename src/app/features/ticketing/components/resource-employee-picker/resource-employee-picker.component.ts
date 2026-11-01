@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, S
 import { Subscription } from 'rxjs';
 import { EmployeeOption, ResourceTypeOption } from '../../models/ticket.models';
 import { TicketSettingsService } from '../../services/ticket-settings.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 // Cascading choice of a Projectum employee: Resource type first, then the employees of that type
 // (filtered by the backend). The employee list stays disabled until a type is chosen and is cleared
@@ -21,8 +22,8 @@ export class ResourceEmployeePickerComponent implements OnInit, OnChanges, OnDes
   @Input() excludeIds: number[] = [];
   @Input() disabled = false;
   @Input() compact = false;
-  @Input() employeePlaceholder = 'Choose an employee…';
-  @Input() emptyText = 'No employee of this type';
+  @Input() employeePlaceholder = 'ticketing.picker.chooseEmployee';
+  @Input() emptyText = 'ticketing.picker.noEmployeeOfType';
   @Output() picked = new EventEmitter<EmployeeOption>();
 
   types: ResourceTypeOption[] = [];
@@ -35,7 +36,8 @@ export class ResourceEmployeePickerComponent implements OnInit, OnChanges, OnDes
   employeesError = '';
   private employeesSub?: Subscription;
 
-  constructor(private settings: TicketSettingsService) {}
+  constructor(private i18n: I18nService,
+    private settings: TicketSettingsService) {}
 
   ngOnInit(): void { this.loadTypes(); }
 
@@ -55,9 +57,9 @@ export class ResourceEmployeePickerComponent implements OnInit, OnChanges, OnDes
   get missing(): boolean { return this.selectedId != null && !this.loadingEmployees && !this.employees.some(e => e.id === this.selectedId); }
 
   get employeeHint(): string {
-    if (!this.typeId) return 'Choose a resource type first';
-    if (this.loadingEmployees) return 'Loading employees…';
-    if (this.employeesError) return 'Employees unavailable';
+    if (!this.typeId) return this.i18n.t('ticketing.picker.chooseResourceTypeFirst');
+    if (this.loadingEmployees) return this.i18n.t('ticketing.picker.loadingEmployees');
+    if (this.employeesError) return this.i18n.t('ticketing.picker.employeesUnavailable');
     return this.available.length ? this.employeePlaceholder : this.emptyText;
   }
 
@@ -83,7 +85,7 @@ export class ResourceEmployeePickerComponent implements OnInit, OnChanges, OnDes
     this.typesError = '';
     this.settings.resourceTypes().subscribe({
       next: t => { this.types = t; this.loadingTypes = false; },
-      error: e => { this.loadingTypes = false; this.typesError = e.error?.message || 'Resource types could not be loaded.'; }
+      error: e => { this.loadingTypes = false; this.typesError = this.i18n.error(e, 'ticketing.picker.resourceTypesCouldNot'); }
     });
   }
 
@@ -95,7 +97,7 @@ export class ResourceEmployeePickerComponent implements OnInit, OnChanges, OnDes
     this.loadingEmployees = true;
     this.employeesSub = this.settings.employees(this.typeId, this.l2Only).subscribe({
       next: e => { this.employees = e; this.loadingEmployees = false; },
-      error: e => { this.loadingEmployees = false; this.employeesError = e.error?.message || 'Employees could not be loaded.'; }
+      error: e => { this.loadingEmployees = false; this.employeesError = this.i18n.error(e, 'ticketing.picker.employeesCouldNotLoaded'); }
     });
   }
 }

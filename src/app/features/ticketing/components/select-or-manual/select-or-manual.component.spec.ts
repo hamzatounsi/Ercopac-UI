@@ -2,12 +2,13 @@ import { TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 
 import { SelectOrManualComponent } from './select-or-manual.component';
+import { translateTestingModule } from 'src/app/core/i18n/translate-testing';
 
 describe('SelectOrManualComponent', () => {
   let component: SelectOrManualComponent;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ imports: [FormsModule], declarations: [SelectOrManualComponent] });
+    TestBed.configureTestingModule({ imports: [FormsModule, translateTestingModule()], declarations: [SelectOrManualComponent] });
     component = TestBed.createComponent(SelectOrManualComponent).componentInstance;
     component.options = Array.from({ length: 10 }, (_, i) => ({ id: i + 1, label: `Customer ${i + 1}`, hint: i === 0 ? 'ACME' : undefined }));
   });

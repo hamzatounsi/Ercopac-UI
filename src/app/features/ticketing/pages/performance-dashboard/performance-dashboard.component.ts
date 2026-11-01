@@ -3,6 +3,7 @@ import { Subscription } from 'rxjs';
 import { AgentStat, Breakdown, Ref, TicketAnalytics } from '../../models/ticket.models';
 import { TicketService } from '../../services/ticket.service';
 import { TicketSettingsService } from '../../services/ticket-settings.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 type Period = 'day' | 'week' | 'month' | 'year' | 'custom';
 type Tab = 'org' | 'team';
@@ -33,11 +34,12 @@ export class PerformanceDashboardComponent implements OnInit {
   error = '';
 
   readonly periods: { key: Period; label: string }[] = [
-    { key: 'day', label: 'Today' }, { key: 'week', label: 'This week' }, { key: 'month', label: 'This month' }, { key: 'year', label: 'This year' }
+    { key: 'day', label: 'ticketing.performance.today' }, { key: 'week', label: 'ticketing.performance.thisWeek' }, { key: 'month', label: 'ticketing.performance.thisMonth' }, { key: 'year', label: 'ticketing.performance.thisYear' }
   ];
   private request?: Subscription;
 
-  constructor(private api: TicketService, public labels: TicketSettingsService) {}
+  constructor(private i18n: I18nService,
+    private api: TicketService, public labels: TicketSettingsService) {}
 
   ngOnInit(): void {
     this.api.formOptions(null).subscribe({ next: o => this.customers = o.customers, error: () => this.customers = [] });
@@ -53,15 +55,15 @@ export class PerformanceDashboardComponent implements OnInit {
     this.request?.unsubscribe();
     this.request = this.labels.analytics({ ...range, customerId: this.customerId, equipmentTypeId: this.equipmentTypeId, serial: this.serial.trim() || null }).subscribe({
       next: d => { this.data = d; this.loading = false; },
-      error: e => { this.loading = false; this.error = e.error?.message || 'Performance data could not be loaded.'; }
+      error: e => { this.loading = false; this.error = this.i18n.error(e, 'ticketing.performance.performanceDataCouldNot'); }
     });
   }
 
   setPeriod(p: Period): void { this.period = p; this.customOpen = false; this.load(); }
 
   applyCustom(): void {
-    if (!this.customFrom || !this.customTo) { this.error = 'Choose both a start and an end date.'; return; }
-    if (this.customFrom > this.customTo) { this.error = 'The start date must be before the end date.'; return; }
+    if (!this.customFrom || !this.customTo) { this.error = this.i18n.t('ticketing.performance.chooseBothStartEnd'); return; }
+    if (this.customFrom > this.customTo) { this.error = this.i18n.t('ticketing.performance.startDateMustBefore'); return; }
     this.period = 'custom';
     this.load();
   }
@@ -71,7 +73,7 @@ export class PerformanceDashboardComponent implements OnInit {
 
   get periodLabel(): string {
     if (this.period === 'custom') return `${this.customFrom} → ${this.customTo}`;
-    return this.periods.find(p => p.key === this.period)!.label.toLowerCase();
+    return this.i18n.t(this.periods.find(p => p.key === this.period)!.label + 'Inline');
   }
 
   // ---------- chart data ----------

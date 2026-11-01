@@ -48,7 +48,7 @@ export interface TicketAnalytics { from:string; to:string; bucket:'day'|'month';
 export interface EquipmentTicket { id:number; ticketNumber:string; subject:string; customer?:string; site?:string; equipment:string; serialNumber?:string; status:TicketStatus; }
 
 export const LANGUAGES: { code:string; label:string }[] = [
-  { code:'en', label:'English' }, { code:'fr', label:'French' }, { code:'es', label:'Spanish' }, { code:'it', label:'Italian' },
-  { code:'pt', label:'Portuguese' }, { code:'de', label:'German' }, { code:'ar', label:'Arabic' }
+  { code:'en', label:'ticketing.languages.en' }, { code:'fr', label:'ticketing.languages.fr' }, { code:'es', label:'ticketing.languages.es' }, { code:'it', label:'ticketing.languages.it' },
+  { code:'pt', label:'ticketing.languages.pt' }, { code:'de', label:'ticketing.languages.de' }, { code:'ar', label:'ticketing.languages.ar' }
 ];
-export const ORIGIN_LABELS: Record<TicketOrigin, string> = { WEB:'Portal', EMAIL:'Email', PHONE:'Phone', INTERNAL:'Internal', OTHER:'Other' };
+export const ORIGIN_LABELS: Record<TicketOrigin, string> = { WEB:'ticketing.origins.web', EMAIL:'ticketing.origins.email', PHONE:'ticketing.origins.phone', INTERNAL:'ticketing.origins.internal', OTHER:'ticketing.origins.other' };

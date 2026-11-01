@@ -11,6 +11,7 @@ import { PickOption } from '../../components/select-or-manual/select-or-manual.c
 import { TicketSettingsService } from '../../services/ticket-settings.service';
 import { TicketChatService } from '../../services/ticket-chat.service';
 import { TicketPdfService } from '../../services/ticket-pdf.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 interface PipelineStep { status: TicketStatus; label: string; state: 'past' | 'active' | 'future'; allowed: boolean; }
 type RcaField = 'problem' | 'cause' | 'solution';
@@ -44,9 +45,9 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
   readonly origins: TicketOrigin[] = ['WEB', 'EMAIL', 'PHONE', 'INTERNAL', 'OTHER'];
   readonly originLabels = ORIGIN_LABELS;
   readonly rcaFields: { key: RcaField; label: string; placeholder: string }[] = [
-    { key: 'problem', label: 'Problem', placeholder: 'Describe the observed problem…' },
-    { key: 'cause', label: 'Cause', placeholder: 'Root cause analysis…' },
-    { key: 'solution', label: 'Solution', placeholder: 'Solution applied or planned…' }
+    { key: 'problem', label: 'ticketing.details.problem', placeholder: 'ticketing.details.problemPlaceholder' },
+    { key: 'cause', label: 'ticketing.details.cause', placeholder: 'ticketing.details.causePlaceholder' },
+    { key: 'solution', label: 'ticketing.details.solution', placeholder: 'ticketing.details.solutionPlaceholder' }
   ];
 
   error = '';
@@ -80,7 +81,8 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
 
   private readonly currentUserId = this.auth.getCurrentUserId();
 
-  constructor(private route: ActivatedRoute, private router: Router, public api: TicketService, public labels: TicketSettingsService,
+  constructor(private i18n: I18nService,
+    private route: ActivatedRoute, private router: Router, public api: TicketService, public labels: TicketSettingsService,
               private live: TicketChatService, private pdf: TicketPdfService, private auth: AuthService) {}
 
   ngOnInit(): void {
@@ -140,17 +142,17 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
         }
         if (this.translateOn) this.translateAll();
       },
-      error: e => { this.error = e.error?.message || 'Ticket could not be loaded.'; this.busy = false; }
+      error: e => { this.error = this.i18n.error(e, 'ticketing.details.ticketCouldNotLoaded'); this.busy = false; }
     });
   }
 
   // ---------- changes (each sends the version it was based on; a conflict reloads the ticket) ----------
-  changeStatus(status: TicketStatus): void { this.apply(this.api.status(this.id, status, this.version), 'Status updated'); }
-  setPriority(priority: TicketPriority): void { this.apply(this.api.priority(this.id, priority, this.version), 'Priority updated'); }
-  setCategory(category: TicketCategory): void { this.apply(this.api.update(this.id, { category }, this.version), 'Category updated'); }
-  setOrigin(origin: TicketOrigin): void { this.apply(this.api.update(this.id, { origin }, this.version), 'Origin updated'); }
-  assignTo(assigneeId: number | null): void { this.apply(this.api.assign(this.id, assigneeId, this.version), assigneeId ? 'H24 agent assigned' : 'H24 agent removed'); }
-  assignL2(assigneeId: number | null): void { this.apply(this.api.assignL2(this.id, assigneeId, this.version), assigneeId ? 'L2 technician assigned' : 'L2 technician removed'); }
+  changeStatus(status: TicketStatus): void { this.apply(this.api.status(this.id, status, this.version), this.i18n.t('ticketing.details.statusUpdated')); }
+  setPriority(priority: TicketPriority): void { this.apply(this.api.priority(this.id, priority, this.version), this.i18n.t('ticketing.details.priorityUpdated')); }
+  setCategory(category: TicketCategory): void { this.apply(this.api.update(this.id, { category }, this.version), this.i18n.t('ticketing.details.categoryUpdated')); }
+  setOrigin(origin: TicketOrigin): void { this.apply(this.api.update(this.id, { origin }, this.version), this.i18n.t('ticketing.details.originUpdated')); }
+  assignTo(assigneeId: number | null): void { this.apply(this.api.assign(this.id, assigneeId, this.version), assigneeId ? this.i18n.t('ticketing.details.h24AgentAssigned') : this.i18n.t('ticketing.details.h24AgentRemoved')); }
+  assignL2(assigneeId: number | null): void { this.apply(this.api.assignL2(this.id, assigneeId, this.version), assigneeId ? this.i18n.t('ticketing.details.l2TechnicianAssigned') : this.i18n.t('ticketing.details.l2TechnicianRemoved')); }
 
   get customerOptions(): PickOption[] { return this.options.customers.map(c => ({ id: c.id, label: c.name })); }
   get projectOptions(): PickOption[] {
@@ -167,7 +169,7 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
     const t = this.details!.ticket;
     const keep = t.project && t.project.id == null ? this.currentContext() : null;
     this.saveContext({ customerId, site: null, projectId: null, equipmentId: null,
-      projectName: keep?.projectName ?? null, projectNumber: keep?.projectNumber ?? null, projectYear: keep?.projectYear ?? null }, 'Customer updated');
+      projectName: keep?.projectName ?? null, projectNumber: keep?.projectNumber ?? null, projectYear: keep?.projectYear ?? null }, this.i18n.t('ticketing.details.customerUpdated'));
   }
   setCustomerManual(on: boolean): void {
     this.customerManual = on;
@@ -175,8 +177,8 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
   }
   saveManualCustomer(): void {
     const name = this.customerDraft.trim();
-    if (!name) { this.flash('Enter the customer name.'); return; }
-    this.saveContext({ ...this.currentContext(), customerId: null, customerName: name, site: null, equipmentId: null }, 'Customer updated');
+    if (!name) { this.flash(this.i18n.t('ticketing.details.enterCustomerName')); return; }
+    this.saveContext({ ...this.currentContext(), customerId: null, customerName: name, site: null, equipmentId: null }, this.i18n.t('ticketing.details.customerUpdated'));
   }
 
   setProject(projectId: number | null): void { this.setContext({ projectId, projectName: null, projectNumber: null, projectYear: null }); }
@@ -188,8 +190,8 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
   saveManualProject(): void {
     const name = this.projectDraft.name.trim();
     const year = this.projectDraft.year;
-    if (!name) { this.flash('Enter the project name.'); return; }
-    if (year != null && (!Number.isInteger(+year) || +year < 1900 || +year > 2100)) { this.flash('Year must be between 1900 and 2100.'); return; }
+    if (!name) { this.flash(this.i18n.t('ticketing.details.enterProjectName')); return; }
+    if (year != null && (!Number.isInteger(+year) || +year < 1900 || +year > 2100)) { this.flash(this.i18n.t('ticketing.details.yearMustBetween1900')); return; }
     this.setContext({ projectId: null, projectName: name, projectNumber: this.projectDraft.number.trim() || null, projectYear: year == null ? null : +year });
   }
 
@@ -200,7 +202,7 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
       const item = this.options.equipment.find(e => e.id === change.equipmentId);
       if (item?.siteName) next.site = item.siteName;
     }
-    this.saveContext(next, 'Ticket updated');
+    this.saveContext(next, this.i18n.t('ticketing.details.ticketUpdated'));
   }
 
   // ---------- problem statement ----------
@@ -211,8 +213,8 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
     const value = { problem: this.details.problem ?? '', cause: this.details.cause ?? '', solution: this.details.solution ?? '', [field]: this.editing[field] ?? '' };
     this.saving = true;
     this.api.problemStatement(this.id, value, this.version).subscribe({
-      next: d => { this.details = d; delete this.editing[field]; this.saving = false; this.flash('Problem statement saved'); },
-      error: e => { this.saving = false; this.fail(e, 'Problem statement could not be saved.'); }
+      next: d => { this.details = d; delete this.editing[field]; this.saving = false; this.flash(this.i18n.t('ticketing.details.problemStatementSaved')); },
+      error: e => { this.saving = false; this.fail(e, 'ticketing.details.problemStatementCouldNot'); }
     });
   }
 
@@ -226,7 +228,7 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
     if (this.translateOn && !internal && !this.sameLanguage) {
       this.api.translate(text, this.clientLanguage).subscribe({
         next: translated => this.post(translated, false),
-        error: e => { this.sending = false; this.error = (e.error?.message || 'Translation is unavailable') + '. Turn translation off to send the original text.'; }
+        error: e => { this.sending = false; this.error = this.i18n.error(e, 'ticketing.details.translationUnavailableSendOriginal'); }
       });
     } else {
       this.post(text, internal);
@@ -249,10 +251,10 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     const f = input.files?.[0];
     if (!f) return;
-    if (f.size > 10 * 1024 * 1024) { this.error = 'Files are limited to 10 MB.'; input.value = ''; return; }
+    if (f.size > 10 * 1024 * 1024) { this.error = this.i18n.t('ticketing.details.filesLimited10Mb'); input.value = ''; return; }
     this.api.upload(this.id, f).subscribe({
-      next: a => { this.details?.attachments.push(a); input.value = ''; this.flash('File attached'); },
-      error: e => { this.error = e.error?.message || 'Attachment could not be uploaded.'; input.value = ''; }
+      next: a => { this.details?.attachments.push(a); input.value = ''; this.flash(this.i18n.t('ticketing.details.fileAttached')); },
+      error: e => { this.error = this.i18n.error(e, 'ticketing.details.attachmentCouldNotUploaded'); input.value = ''; }
     });
   }
 
@@ -260,7 +262,7 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
     if (!this.details || this.exporting) return;
     this.exporting = true;
     try { await this.pdf.download(this.details); }
-    catch { this.error = 'The PDF could not be generated.'; }
+    catch { this.error = this.i18n.t('ticketing.details.pdfCouldNotGenerated'); }
     finally { this.exporting = false; }
   }
 
@@ -268,8 +270,8 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
   toggle(section: string): void { this.collapsed[section] = !this.collapsed[section]; }
   isClientMessage(m: TicketMessage): boolean { return m.sender?.id === this.details?.ticket.client?.id; }
   initials(name?: string): string { return (name || '?').split(/\s+/).slice(0, 2).map(v => v[0]).join('').toUpperCase(); }
-  label(v: string): string { return (v || '').replace(/_/g, ' ').toLowerCase().replace(/^\w/, c => c.toUpperCase()); }
-  languageName(code: string): string { return LANGUAGES.find(l => l.code === code)?.label ?? code; }
+  label(category: string): string { return category ? this.i18n.t('ticketing.categories.' + category) : ''; }
+  languageName(code: string): string { const label = LANGUAGES.find(l => l.code === code)?.label; return label ? this.i18n.t(label) : code; }
   agentOptionMissing(id?: number): boolean { return !!id && !this.agents.some(a => a.id === id); }
 
   private get version(): number { return this.details!.version; }
@@ -301,7 +303,7 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
     this.saving = true;
     request.subscribe({
       next: d => { this.details = d; this.saving = false; this.flash(done); },
-      error: e => { this.saving = false; this.fail(e, 'The change was rejected.'); }
+      error: e => { this.saving = false; this.fail(e, 'ticketing.details.changeWasRejected'); }
     });
   }
 
@@ -317,7 +319,7 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
         if (customerChanged) this.loadOptions(d.ticket.customer?.id ?? null);
         this.flash(done);
       },
-      error: e => { this.saving = false; this.fail(e, 'The change was rejected.'); }
+      error: e => { this.saving = false; this.fail(e, 'ticketing.details.changeWasRejected'); }
     });
   }
 
@@ -328,7 +330,7 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
   private post(text: string, internal: boolean): void {
     this.api.message(this.id, text, internal).subscribe({
       next: () => { this.message = ''; this.sending = false; this.load(false); },
-      error: e => { this.error = e.error?.message || 'Message could not be sent.'; this.sending = false; }
+      error: e => { this.error = this.i18n.error(e, 'ticketing.details.messageCouldNotSent'); this.sending = false; }
     });
   }
 
@@ -339,7 +341,7 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
       this.translating.add(m.id);
       this.api.translate(m.message, this.myLanguage).subscribe({
         next: t => { this.translations[m.id] = t; this.translating.delete(m.id); },
-        error: e => { this.translating.delete(m.id); this.translateError = e.error?.message || 'Translation is unavailable right now.'; }
+        error: e => { this.translating.delete(m.id); this.translateError = this.i18n.error(e, 'ticketing.details.translationUnavailableRightNow'); }
       });
     }
   }
@@ -352,8 +354,8 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
     });
   }
 
-  private fail(e: any, fallback: string): void {
-    this.error = e.status === 409 ? 'Someone else changed this ticket; it has been reloaded. Please try again.' : (e.error?.message || fallback);
+  private fail(e: any, fallbackKey: string): void {
+    this.error = e.status === 409 ? this.i18n.t('ticketing.details.someoneElseChangedTicket') : this.i18n.error(e, fallbackKey);
     this.load(false);
   }
 

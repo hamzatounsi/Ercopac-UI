@@ -4,6 +4,7 @@ import { AuthService } from 'src/app/core/auth/auth.service';
 import { StatusColor, StatusSetting } from '../../models/ticket.models';
 import { TicketSettingsService } from '../../services/ticket-settings.service';
 import { TICKETING_LEAD_ROLES } from '../../ticketing-roles';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 // Wording and colour of each ticket status. The lifecycle itself (which statuses exist and the
 // allowed transitions) is fixed by the backend, so statuses cannot be added or removed.
@@ -24,7 +25,8 @@ export class StatusesSettingsComponent implements OnInit, OnDestroy {
   private saved = '';
   private sub?: Subscription;
 
-  constructor(private settings: TicketSettingsService, private auth: AuthService) {}
+  constructor(private i18n: I18nService,
+    private settings: TicketSettingsService, private auth: AuthService) {}
 
   ngOnInit(): void { this.load(); }
 
@@ -38,7 +40,7 @@ export class StatusesSettingsComponent implements OnInit, OnDestroy {
         this.saved = JSON.stringify(this.rows);
         this.loading = false;
       },
-      error: e => { this.loading = false; this.error = e.error?.message || 'Statuses could not be loaded.'; }
+      error: e => { this.loading = false; this.error = this.i18n.error(e, 'ticketing.statuses.statusesCouldNotLoaded'); }
     });
   }
 
@@ -60,9 +62,9 @@ export class StatusesSettingsComponent implements OnInit, OnDestroy {
         this.saved = JSON.stringify(this.rows);
         this.saving = false;
         this.submitted = false;
-        this.flash('Statuses saved');
+        this.flash(this.i18n.t('ticketing.statuses.statusesSaved'));
       },
-      error: e => { this.saving = false; this.error = e.error?.message || 'Statuses could not be saved.'; }
+      error: e => { this.saving = false; this.error = this.i18n.error(e, 'ticketing.statuses.statusesCouldNotSaved'); }
     });
   }
 

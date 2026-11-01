@@ -5,13 +5,14 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from 'src/app/core/auth/auth.service';
 
 import { PrioritiesSettingsComponent } from './priorities-settings.component';
+import { translateTestingModule } from 'src/app/core/i18n/translate-testing';
 
 describe('PrioritiesSettingsComponent', () => {
   let component: PrioritiesSettingsComponent;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, FormsModule],
+      imports: [HttpClientTestingModule, FormsModule, translateTestingModule()],
       declarations: [PrioritiesSettingsComponent],
       providers: [{ provide: AuthService, useValue: { hasAnyRole: () => true } }],
       schemas: [NO_ERRORS_SCHEMA]

@@ -1,16 +1,16 @@
 <main class="page-pad">
   <header class="view-head">
     <div>
-      <h1>{{ isStaff ? 'Platform settings' : 'Settings' }}</h1>
-      <p *ngIf="isStaff">{{ isLead ? 'Configure the support team, ticket wording, SLA targets and customers.' : 'Read-only: only support leads can change these settings.' }}</p>
+      <h1>{{ isStaff ? ('ticketing.platform.platformSettings' | translate) : ('ticketing.platform.settings' | translate) }}</h1>
+      <p *ngIf="isStaff">{{ isLead ? ('ticketing.platform.configureSupportTeamTicket' | translate) : ('ticketing.platform.readOnlyOnlySupport' | translate) }}</p>
     </div>
   </header>
   <div class="settings-shell">
-    <nav class="panel settings-nav" aria-label="Settings sections">
+    <nav class="panel settings-nav" [attr.aria-label]="'ticketing.platform.settingsSections' | translate">
       <ng-container *ngFor="let g of groups">
-        <div class="sec-label">{{ g.label }}</div>
+        <div class="sec-label">{{ g.label | translate }}</div>
         <a *ngFor="let i of g.items" [routerLink]="i.path" routerLinkActive="on">
-          <span class="material-symbols-outlined">{{ i.icon }}</span>{{ i.label }}
+          <span class="material-symbols-outlined">{{ i.icon }}</span>{{ i.label | translate }}
         </a>
       </ng-container>
     </nav>
