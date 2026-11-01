@@ -24,7 +24,7 @@
       </div>
 
       <div class="count-text">
-        {{ 'gm.customersTab.filteredcustomersCustomersCustomerCustomers2' | translate: { filteredCustomers: filteredCustomers.length, customers: customers.length, customers2: (customers.length === 1 ? '' : 's') } }}
+        {{ (customers.length === 1 ? 'gm.customersTab.customerCountOne' : 'gm.customersTab.customerCount') | translate: { filtered: filteredCustomers.length, total: customers.length } }}
       </div>
     </div>
 

@@ -38,7 +38,7 @@
               <span class="yes" *ngIf="t.billable">{{ 'gm.typesTab.yes' | translate }}</span>
               <span class="no" *ngIf="!t.billable">—</span>
             </td>
-            <td>{{ 'gm.typesTab.projectsusingProjectProjectsusing2' | translate: { projectsUsing: t.projectsUsing, projectsUsing2: (t.projectsUsing === 1 ? '' : 's') } }}</td>
+            <td>{{ (t.projectsUsing === 1 ? 'gm.projectCountOne' : 'gm.projectCount') | translate: { count: t.projectsUsing } }}</td>
             <td>
               <div class="row-actions">
                 <button class="act-btn edit" [title]="'common.edit' | translate" (click)="openEdit(t)">✎</button>

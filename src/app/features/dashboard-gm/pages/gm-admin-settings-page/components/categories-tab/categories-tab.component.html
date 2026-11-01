@@ -38,7 +38,7 @@
           <td class="muted">{{ c.description || '—' }}</td>
 
           <td>
-            <span class="usage">{{ 'gm.categoriesTab.projectsusingProjectProjectsusing2' | translate: { projectsUsing: c.projectsUsing, projectsUsing2: (c.projectsUsing === 1 ? '' : 's') } }}</span>
+            <span class="usage">{{ (c.projectsUsing === 1 ? 'gm.projectCountOne' : 'gm.projectCount') | translate: { count: c.projectsUsing } }}</span>
           </td>
 
           <td>

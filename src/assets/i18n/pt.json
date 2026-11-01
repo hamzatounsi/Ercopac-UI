@@ -1466,7 +1466,6 @@
       "noCategoriesDefinedYet": "No categories defined yet.",
       "projectCategories": "Project Categories",
       "projectsUsing": "Projects using",
-      "projectsusingProjectProjectsusing2": "{{projectsUsing}} project{{projectsUsing2}}",
       "saveCategory": "💾 Save Category",
       "shortDescription": "Short description..."
     },
@@ -1608,7 +1607,6 @@
       "editCustomer": "✏️ Edit Customer",
       "email": "Email",
       "erpId": "ERP ID",
-      "filteredcustomersCustomersCustomerCustomers2": "{{filteredCustomers}} of {{customers}} customer{{customers2}}",
       "id": "ID",
       "import": "✓ Import",
       "importCsv": "📥 Import CSV",
@@ -1627,7 +1625,9 @@
       "town": "Town",
       "townCity": "Town / City",
       "vatTaxId": "VAT / Tax ID",
-      "viaRoma1": "Via Roma 1"
+      "viaRoma1": "Via Roma 1",
+      "customerCountOne": "{{filtered}} de {{total}} cliente",
+      "customerCount": "{{filtered}} de {{total}} clientes"
     },
     "dashboard": {
       "code": "Code",
@@ -2887,7 +2887,6 @@
       "projectTypes": "Project Types",
       "projectsTypeBillableCustomer": "Projects of this type are billable to the customer",
       "projectsUsing": "Projects using",
-      "projectsusingProjectProjectsusing2": "{{projectsUsing}} project{{projectsUsing2}}",
       "saveType": "💾 Save Type",
       "shortDescription": "Short description...",
       "typesDefineNatureProject": "Types define the nature of a project (e.g. Internal, External, R&amp;D).",
@@ -2909,7 +2908,9 @@
       "welcomeBackCurrentusernameEverything": "Welcome back, {{currentUserName}}. Everything you can access is ready below.",
       "workspace": "Workspace",
       "workspaceNavigation": "Workspace navigation"
-    }
+    },
+    "projectCountOne": "{{count}} projeto",
+    "projectCount": "{{count}} projetos"
   },
   "login": {
     "accessOrganisationWorkspace": "Acesse o espaço da sua organização",
