@@ -1,9 +1,8 @@
-import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_ADMIN_URL, API_AUTH_URL, API_BASE_URL, API_ORG_ADMIN_URL } from 'src/app/core/config/api.config';
 import {
-  ApiErrorBody,
   CustomerConfig,
   OrganisationAdminOverview,
   OrganisationDepartment,
@@ -217,14 +216,3 @@ export class OrgAdminService {
   }
 }
 
-export function adminErrorMessage(error: unknown, fallback: string): string {
-  if (error instanceof HttpErrorResponse) {
-    const body = error.error as ApiErrorBody | string | null;
-    if (typeof body === 'object' && body?.message) return body.message;
-    if (error.status === 0) return 'The administration service is unavailable. Try again shortly.';
-    if (error.status === 403) return 'You do not have permission to perform this action.';
-    if (error.status === 404) return 'The requested item no longer exists.';
-    if (error.status === 409) return 'The change conflicts with existing organisation data.';
-  }
-  return fallback;
-}

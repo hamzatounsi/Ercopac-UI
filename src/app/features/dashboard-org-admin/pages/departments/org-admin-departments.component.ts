@@ -2,8 +2,9 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { finalize, forkJoin } from 'rxjs';
 import { OrganisationDepartment, OrganisationUser, SaveOrganisationDepartment } from '../../models/org-admin.models';
-import { adminErrorMessage, OrgAdminService } from '../../services/org-admin.service';
+import { OrgAdminService } from '../../services/org-admin.service';
 import { AdminToastService } from '../../shared/admin-toast.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 @Component({ selector: 'app-org-admin-departments', templateUrl: './org-admin-departments.component.html', styleUrls: ['./org-admin-departments.component.scss'] })
 export class OrgAdminDepartmentsComponent implements OnInit {
@@ -22,7 +23,7 @@ export class OrgAdminDepartmentsComponent implements OnInit {
     managerId: this.fb.control<number | null>(null)
   });
 
-  constructor(private readonly fb: FormBuilder, private readonly service: OrgAdminService, private readonly toast: AdminToastService) {}
+  constructor(private readonly fb: FormBuilder, private readonly service: OrgAdminService, private readonly toast: AdminToastService, private readonly i18n: I18nService) {}
   ngOnInit(): void { this.load(); }
 
   @HostListener('document:keydown.escape')
@@ -33,7 +34,7 @@ export class OrgAdminDepartmentsComponent implements OnInit {
     forkJoin({ departments: this.service.getDepartments(), managers: this.service.getUsers({ role: 'DEPARTMENT_MANAGER', active: true, size: 100, sort: 'fullName' }) })
       .pipe(finalize(() => this.loading = false)).subscribe({
         next: result => { this.departments = result.departments; this.managers = result.managers.content; },
-        error: error => this.errorMessage = adminErrorMessage(error, 'Could not load organisation departments.')
+        error: error => this.errorMessage = this.i18n.error(error, 'orgAdmin.departments.loadOrganisationDepartments')
       });
   }
 
@@ -49,8 +50,8 @@ export class OrgAdminDepartmentsComponent implements OnInit {
     this.saving = true; this.formError = '';
     const request = this.editingDepartment ? this.service.updateDepartment(this.editingDepartment.id, payload) : this.service.createDepartment(payload);
     request.pipe(finalize(() => this.saving = false)).subscribe({
-      next: () => { this.dialogOpen = false; this.editingDepartment = null; this.toast.show(editing ? 'Department updated.' : 'Department created.'); this.load(); },
-      error: error => this.formError = adminErrorMessage(error, 'Could not save the department.')
+      next: () => { this.dialogOpen = false; this.editingDepartment = null; this.toast.show(editing ? this.i18n.t('orgAdmin.departments.departmentUpdated') : this.i18n.t('orgAdmin.departments.departmentCreated')); this.load(); },
+      error: error => this.formError = this.i18n.error(error, 'orgAdmin.departments.saveDepartment')
     });
   }
 
@@ -58,8 +59,8 @@ export class OrgAdminDepartmentsComponent implements OnInit {
     const department = this.pendingDelete; if (!department || this.saving) return;
     this.saving = true;
     this.service.deleteDepartment(department.id).pipe(finalize(() => this.saving = false)).subscribe({
-      next: () => { this.pendingDelete = null; this.toast.show('Department deleted.'); this.load(); },
-      error: error => { this.pendingDelete = null; this.toast.show(adminErrorMessage(error, 'Could not delete the department.'), 'error'); }
+      next: () => { this.pendingDelete = null; this.toast.show(this.i18n.t('orgAdmin.departments.departmentDeleted')); this.load(); },
+      error: error => { this.pendingDelete = null; this.toast.show(this.i18n.error(error, 'orgAdmin.departments.couldNotDeleteDepartment'), 'error'); }
     });
   }
 }

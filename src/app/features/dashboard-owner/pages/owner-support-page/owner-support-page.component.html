@@ -1,31 +1,31 @@
 <section class="enterprise-module-page">
   <header class="enterprise-module-header">
     <div>
-      <div class="enterprise-eyebrow">Customer operations</div>
-      <h1>Support Tickets</h1>
-      <p>Platform-wide tenant support queue for incidents, onboarding requests and account escalations.</p>
+      <div class="enterprise-eyebrow">{{ 'owner.support.customerOperations' | translate }}</div>
+      <h1>{{ 'owner.support.supportTickets' | translate }}</h1>
+      <p>{{ 'owner.support.platformWideTenantSupport' | translate }}</p>
     </div>
-    <span class="enterprise-status-pill"><span class="material-symbols-outlined">support_agent</span> Coming soon</span>
+    <span class="enterprise-status-pill"><span class="material-symbols-outlined">support_agent</span> {{ 'owner.support.comingSoon' | translate }}</span>
   </header>
 
   <div class="enterprise-panel-grid">
     <article class="enterprise-panel">
-      <h2>Support center</h2>
-      <p>Ticket creation and SLA tracking are intentionally disabled until a support backend is available. This avoids fake support actions in the owner console.</p>
+      <h2>{{ 'owner.support.supportCenter' | translate }}</h2>
+      <p>{{ 'owner.support.ticketCreationSlaTracking' | translate }}</p>
       <div class="enterprise-metric-row">
-        <div class="enterprise-metric-card"><span>Queue</span><strong>SLA</strong></div>
-        <div class="enterprise-metric-card"><span>Accounts</span><strong>Tenants</strong></div>
-        <div class="enterprise-metric-card"><span>Status</span><strong>Planned</strong></div>
+        <div class="enterprise-metric-card"><span>{{ 'owner.support.queue' | translate }}</span><strong>{{ 'owner.support.sla' | translate }}</strong></div>
+        <div class="enterprise-metric-card"><span>{{ 'owner.support.accounts' | translate }}</span><strong>{{ 'owner.support.tenants' | translate }}</strong></div>
+        <div class="enterprise-metric-card"><span>{{ 'common.status' | translate }}</span><strong>{{ 'owner.support.planned' | translate }}</strong></div>
       </div>
     </article>
 
     <aside class="enterprise-checklist">
-      <h2>Support workflow</h2>
+      <h2>{{ 'owner.support.supportWorkflow' | translate }}</h2>
       <ul>
-        <li>Tenant ticket creation.</li>
-        <li>Priority and SLA assignment.</li>
-        <li>Owner/operator triage queue.</li>
-        <li>Notifications and audit history.</li>
+        <li>{{ 'owner.support.tenantTicketCreation' | translate }}</li>
+        <li>{{ 'owner.support.prioritySlaAssignment' | translate }}</li>
+        <li>{{ 'owner.support.ownerOperatorTriageQueue' | translate }}</li>
+        <li>{{ 'owner.support.notificationsAuditHistory' | translate }}</li>
       </ul>
     </aside>
   </div>

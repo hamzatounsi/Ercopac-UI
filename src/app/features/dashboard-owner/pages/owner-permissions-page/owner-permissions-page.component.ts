@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { PlatformOrganisation } from '../../models/platform-organisation.model';
 import { RolePermission } from '../../models/role-permission.model';
 import { OwnerPermissionService } from '../../services/owner-permission.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 @Component({
   selector: 'app-owner-permissions-page',
@@ -22,7 +23,7 @@ export class OwnerPermissionsPageComponent implements OnInit {
   errorMessage = '';
   successMessage = '';
 
-  constructor(private permissionService: OwnerPermissionService) {}
+  constructor(private permissionService: OwnerPermissionService, private readonly i18n: I18nService) {}
 
   ngOnInit(): void {
     this.loadInitialData();
@@ -51,13 +52,13 @@ export class OwnerPermissionsPageComponent implements OnInit {
           },
           error: () => {
             this.loading = false;
-            this.errorMessage = 'Failed to load roles.';
+            this.errorMessage = this.i18n.t('owner.permissions.failedLoadRoles');
           }
         });
       },
       error: () => {
         this.loading = false;
-        this.errorMessage = 'Failed to load organisations.';
+        this.errorMessage = this.i18n.t('owner.permissions.failedLoadOrganisations');
       }
     });
   }
@@ -88,7 +89,7 @@ export class OwnerPermissionsPageComponent implements OnInit {
         },
         error: () => {
           this.loading = false;
-          this.errorMessage = 'Failed to load permissions.';
+          this.errorMessage = this.i18n.t('owner.permissions.failedLoadPermissions');
         }
       });
   }
@@ -152,34 +153,25 @@ export class OwnerPermissionsPageComponent implements OnInit {
         next: data => {
           this.permissions = data;
           this.saving = false;
-          this.successMessage = 'Permissions saved successfully.';
+          this.successMessage = this.i18n.t('owner.permissions.permissionsSavedSuccessfully');
         },
         error: () => {
           this.saving = false;
-          this.errorMessage = 'Failed to save permissions.';
+          this.errorMessage = this.i18n.t('owner.permissions.failedSavePermissions');
         }
       });
   }
 
   accessLabel(permission: RolePermission): string {
-    if (permission.canRead && permission.canWrite) return 'Full Access';
-    if (permission.canRead) return 'Read Only';
-    return 'No Access';
+    if (permission.canRead && permission.canWrite) return this.i18n.t('owner.permissions.access.full');
+    if (permission.canRead) return this.i18n.t('owner.permissions.access.read');
+    return this.i18n.t('owner.permissions.access.none');
   }
 
   roleLabel(role: string): string {
-    return ({
-      ORG_ADMIN: 'Organisation Admin',
-      PROJECT_MANAGER: 'Project Manager',
-      DEPARTMENT_MANAGER: 'Department Manager',
-      EMPLOYEE: 'Employee',
-      SALES_MANAGER_LEAD: 'Sales Manager Lead',
-      SALES_MANAGER: 'Sales Manager',
-      SYSTEM_ENGINEER: 'System Engineer',
-      CLIENT: 'Client',
-      H24: 'H24 Agent',
-      H24_LEAD: 'H24 Lead'
-    } as Record<string, string>)[role] || role.replaceAll('_', ' ');
+    const key = `roles.${role}`;
+    const label = this.i18n.t(key);
+    return label !== key ? label : role.replaceAll('_', ' ');
   }
 
   orgInitials(org: PlatformOrganisation): string {

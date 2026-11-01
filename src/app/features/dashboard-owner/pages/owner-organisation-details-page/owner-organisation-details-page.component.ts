@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { OwnerDashboardService } from '../../services/owner-dashboard.service';
 import { PlatformOrganisation } from '../../models/platform-organisation.model';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 type OrgStatus = 'ACTIVE' | 'TRIAL' | 'SUSPENDED';
 
@@ -87,7 +88,8 @@ export class OwnerOrganisationDetailsPageComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private service: OwnerDashboardService
+    private service: OwnerDashboardService,
+    private readonly i18n: I18nService
   ) {}
 
   ngOnInit(): void {
@@ -107,7 +109,7 @@ export class OwnerOrganisationDetailsPageComponent implements OnInit {
         this.loading = false;
       },
       error: () => {
-        this.errorMessage = 'Failed to load organisation.';
+        this.errorMessage = this.i18n.t('owner.organisationDetails.failedLoadOrganisation');
         this.loading = false;
       }
     });
@@ -229,7 +231,7 @@ export class OwnerOrganisationDetailsPageComponent implements OnInit {
         this.saving = false;
       },
       error: () => {
-        this.errorMessage = 'Failed to save organisation.';
+        this.errorMessage = this.i18n.t('owner.organisationDetails.failedSaveOrganisation');
         this.saving = false;
       }
     });

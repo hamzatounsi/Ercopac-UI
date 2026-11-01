@@ -14,8 +14,9 @@ import {
   SaveSupplierConfig,
   SupplierConfig
 } from '../../models/org-admin.models';
-import { adminErrorMessage, OrgAdminService } from '../../services/org-admin.service';
+import { OrgAdminService } from '../../services/org-admin.service';
 import { AdminToastService } from '../../shared/admin-toast.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 type ConfigurationTab = 'categories' | 'types' | 'resourceTypes' | 'customers' | 'suppliers';
 type ConfigurationKind = 'category' | 'type' | 'customer' | 'supplier';
@@ -146,7 +147,8 @@ readonly countries = [
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly adminService: OrgAdminService,
-    private readonly toast: AdminToastService
+    private readonly toast: AdminToastService,
+    private readonly i18n: I18nService
   ) {}
 
   ngOnInit(): void {
@@ -189,7 +191,7 @@ readonly countries = [
         this.resourceTypes = response.resourceTypes;
         this.suppliers = response.suppliers;
       },
-      error: error => this.errorMessage = adminErrorMessage(error, 'Could not load resource configuration.')
+      error: error => this.errorMessage = this.i18n.error(error, 'orgAdmin.resourceConfiguration.loadResourceConfiguration')
     });
   }
 
@@ -337,9 +339,9 @@ readonly countries = [
           .sort((left, right) => (left.label || left.code).localeCompare(right.label || right.code));
           this.dialogKind = null;
           this.editingId = null;
-        this.toast.show(`Resource type ${editing ? 'updated' : 'created'}.`, 'success');
+        this.toast.show(this.i18n.t(editing ? 'orgAdmin.resourceConfiguration.toast.resourceType.updated' : 'orgAdmin.resourceConfiguration.toast.resourceType.created'), 'success');
       },
-      error: error => this.toast.show(adminErrorMessage(error, 'Could not save resource type.'), 'error')
+      error: error => this.toast.show(this.i18n.error(error, 'orgAdmin.resourceConfiguration.couldNotSaveResourceType'), 'error')
     });
   }
 
@@ -351,9 +353,9 @@ readonly countries = [
     this.adminService.updateResourceType(item.id, payload).subscribe({
       next: updated => {
         this.resourceTypes = this.resourceTypes.map(existing => existing.id === updated.id ? updated : existing);
-        this.toast.show(`Resource type ${updated.active ? 'activated' : 'deactivated'}.`, 'success');
+        this.toast.show(this.i18n.t(updated.active ? 'orgAdmin.resourceConfiguration.toast.resourceType.activated' : 'orgAdmin.resourceConfiguration.toast.resourceType.deactivated'), 'success');
       },
-      error: error => this.toast.show(adminErrorMessage(error, 'Could not update resource type.'), 'error')
+      error: error => this.toast.show(this.i18n.error(error, 'orgAdmin.resourceConfiguration.updateResourceType'), 'error')
     });
   }
 
@@ -477,9 +479,9 @@ readonly countries = [
         if (target.kind === 'customer') this.customers = this.customers.filter(item => item.id !== target.id);
         if (target.kind === 'supplier') this.suppliers = this.suppliers.map(item => item.id === target.id ? { ...item, active: false } : item);
         this.deleteTarget = null;
-        this.toast.show(`${this.kindLabel(target.kind)} ${target.kind === 'supplier' ? 'deactivated' : 'deleted'}.`, 'success');
+        this.toast.show(this.i18n.t(`orgAdmin.resourceConfiguration.toast.${target.kind}.${target.kind === 'supplier' ? 'deactivated' : 'deleted'}`), 'success');
       },
-      error: error => this.toast.show(adminErrorMessage(error, `Could not delete ${this.kindLabel(target.kind).toLowerCase()}.`), 'error')
+      error: error => this.toast.show(this.i18n.error(error, `orgAdmin.resourceConfiguration.error.delete.${target.kind}`), 'error')
     });
   }
 
@@ -491,14 +493,14 @@ readonly countries = [
 
     const reader = new FileReader();
     reader.onload = () => this.processCustomerCsv(String(reader.result || ''));
-    reader.onerror = () => this.toast.show('Could not read the selected CSV file.', 'error');
+    reader.onerror = () => this.toast.show(this.i18n.t('orgAdmin.resourceConfiguration.readSelectedCsvFile'), 'error');
     reader.readAsText(file);
   }
 
   private processCustomerCsv(text: string): void {
     const rows = this.parseCustomerCsv(text);
     if (!rows.length) {
-      this.toast.show('No valid customer rows were found. Include customerCode and name columns.', 'info');
+      this.toast.show(this.i18n.t('orgAdmin.resourceConfiguration.noValidCustomerRows'), 'info');
       return;
     }
 
@@ -515,8 +517,8 @@ readonly countries = [
       finalize(() => this.importing = false)
     ).subscribe(() => {
       const imported = rows.length - failures;
-      if (imported) this.toast.show(`${imported} customer record(s) imported.`, 'success');
-      if (failures) this.toast.show(`${failures} row(s) could not be imported. Review duplicates and validation.`, 'info');
+      if (imported) this.toast.show(this.i18n.t('orgAdmin.resourceConfiguration.toast.customersImported', { count: imported }), 'success');
+      if (failures) this.toast.show(this.i18n.t('orgAdmin.resourceConfiguration.toast.rowsNotImported', { count: failures }), 'info');
       this.load();
     });
   }
@@ -559,9 +561,9 @@ readonly countries = [
         if (kind === 'supplier') this.suppliers = this.upsert(this.suppliers, item as SupplierConfig);
         this.dialogKind = null;
         this.editingId = null;
-        this.toast.show(`${this.kindLabel(kind)} ${editing ? 'updated' : 'created'}.`, 'success');
+        this.toast.show(this.i18n.t(`orgAdmin.resourceConfiguration.toast.${kind}.${editing ? 'updated' : 'created'}`), 'success');
       },
-      error: error => this.toast.show(adminErrorMessage(error, `Could not save ${this.kindLabel(kind).toLowerCase()}.`), 'error')
+      error: error => this.toast.show(this.i18n.error(error, `orgAdmin.resourceConfiguration.error.save.${kind}`), 'error')
     });
   }
 
@@ -570,9 +572,6 @@ readonly countries = [
       .sort((left, right) => left.name.localeCompare(right.name));
   }
 
-  private kindLabel(kind: ConfigurationKind): string {
-    return kind === 'category' ? 'Category' : kind === 'type' ? 'Project type' : kind === 'customer' ? 'Customer' : 'Supplier';
-  }
 
   private optional(value: string | null | undefined): string | null {
     const normalized = value?.trim();

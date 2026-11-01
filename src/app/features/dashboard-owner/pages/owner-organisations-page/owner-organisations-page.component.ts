@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 
 import { OwnerDashboardService } from '../../services/owner-dashboard.service';
 import { PlatformOrganisation } from '../../models/platform-organisation.model';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 @Component({
   selector: 'app-owner-organisations-page',
@@ -18,7 +19,8 @@ export class OwnerOrganisationsPageComponent implements OnInit {
 
   constructor(
     private ownerDashboardService: OwnerDashboardService,
-    private router: Router
+    private router: Router,
+    private readonly i18n: I18nService
   ) {}
 
   ngOnInit(): void {
@@ -36,7 +38,7 @@ export class OwnerOrganisationsPageComponent implements OnInit {
       },
       error: (error) => {
         console.error('Failed to load platform organisations', error);
-        this.errorMessage = 'Failed to load organisations.';
+        this.errorMessage = this.i18n.t('owner.organisations.failedLoadOrganisations');
         this.loading = false;
       }
     });
@@ -96,7 +98,7 @@ export class OwnerOrganisationsPageComponent implements OnInit {
         next: () => this.loadOrganisations(),
         error: (error) => {
           console.error('Failed to suspend organisation', error);
-          this.errorMessage = 'Failed to update organisation status.';
+          this.errorMessage = this.i18n.t('owner.organisations.failedUpdateOrganisationStatus');
         }
       });
   }
@@ -110,7 +112,7 @@ export class OwnerOrganisationsPageComponent implements OnInit {
         next: () => this.loadOrganisations(),
         error: (error) => {
           console.error('Failed to activate organisation', error);
-          this.errorMessage = 'Failed to update organisation status.';
+          this.errorMessage = this.i18n.t('owner.organisations.failedUpdateOrganisationStatus');
         }
       });
   }

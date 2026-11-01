@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { finalize } from 'rxjs';
 import { OrganisationAdminOverview } from '../../models/org-admin.models';
-import { adminErrorMessage, OrgAdminService } from '../../services/org-admin.service';
+import { OrgAdminService } from '../../services/org-admin.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 @Component({
   selector: 'app-org-admin-overview',
@@ -14,7 +15,7 @@ export class OrgAdminOverviewComponent implements OnInit {
   refreshing = false;
   errorMessage = '';
 
-  constructor(private readonly adminService: OrgAdminService) {}
+  constructor(private readonly adminService: OrgAdminService, private readonly i18n: I18nService) {}
 
   ngOnInit(): void {
     this.load();
@@ -31,7 +32,7 @@ export class OrgAdminOverviewComponent implements OnInit {
       })
     ).subscribe({
       next: overview => this.overview = overview,
-      error: error => this.errorMessage = adminErrorMessage(error, 'Could not load the administration overview.')
+      error: error => this.errorMessage = this.i18n.error(error, 'orgAdmin.overview.loadAdministrationOverview')
     });
   }
 

@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { PlatformOrganisationService } from '../../services/platform-organisation.service';
 import { CreateOrganisationWithAdminRequest } from '../../models/create-organisation-with-admin-request.model';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 @Component({
   selector: 'app-create-organisation-page',
@@ -92,7 +93,8 @@ export class CreateOrganisationPageComponent {
 
   constructor(
     private service: PlatformOrganisationService,
-    private router: Router
+    private router: Router,
+    private readonly i18n: I18nService
   ) {}
 
   submit(): void {
@@ -100,7 +102,7 @@ export class CreateOrganisationPageComponent {
     this.successMessage = '';
 
     if (!this.form.organisationName || !this.form.organisationCode || !this.form.adminEmail || !this.form.adminPassword) {
-      this.errorMessage = 'Please fill all required fields.';
+      this.errorMessage = this.i18n.t('owner.createOrganisation.pleaseFillAllRequired');
       return;
     }
 
@@ -112,7 +114,7 @@ export class CreateOrganisationPageComponent {
       },
       error: (err) => {
         this.loading = false;
-        this.errorMessage = err?.error?.message || 'Failed to create organisation.';
+        this.errorMessage = this.i18n.error(err, 'owner.createOrganisation.failedCreateOrganisation');
       }
     });
   }

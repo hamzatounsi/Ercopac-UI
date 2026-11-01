@@ -1,6 +1,7 @@
 import { ProfileMenuComponent } from 'src/app/core/navigation/profile-menu.component';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 import { FormsModule } from '@angular/forms';
 
 import { DashboardOwnerRoutingModule } from './dashboard-owner-routing.module';
@@ -33,6 +34,7 @@ import { OwnerOrganisationDetailsPageComponent } from './pages/owner-organisatio
   ],
   imports: [
     CommonModule,
+    TranslateModule,
     FormsModule,
     DashboardOwnerRoutingModule,
     ProfileMenuComponent

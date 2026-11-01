@@ -1,18 +1,18 @@
 <app-admin-toast></app-admin-toast>
 
-<section class="page-actions" aria-label="Configuration tools">
-  <div class="tab-list" role="tablist" aria-label="Resource configuration sections">
+<section class="page-actions" [attr.aria-label]="'orgAdmin.resourceConfiguration.configurationTools' | translate">
+  <div class="tab-list" role="tablist" [attr.aria-label]="'orgAdmin.resourceConfiguration.resourceConfigurationSections' | translate">
     <button type="button" role="tab" [attr.aria-selected]="activeTab === 'categories'" [class.active]="activeTab === 'categories'" (click)="setTab('categories')">
-      Categories <span>{{ categories.length }}</span>
+      {{ 'orgAdmin.resourceConfiguration.categories' | translate }} <span>{{ categories.length }}</span>
     </button>
     <button type="button" role="tab" [attr.aria-selected]="activeTab === 'types'" [class.active]="activeTab === 'types'" (click)="setTab('types')">
-      Project types <span>{{ projectTypes.length }}</span>
+      {{ 'orgAdmin.resourceConfiguration.projectTypes' | translate }} <span>{{ projectTypes.length }}</span>
     </button>
     <button type="button" role="tab" [attr.aria-selected]="activeTab === 'resourceTypes'" [class.active]="activeTab === 'resourceTypes'" (click)="setTab('resourceTypes')">
-      Resource types <span>{{ resourceTypes.length }}</span>
+      {{ 'orgAdmin.resourceConfiguration.resourceTypes' | translate }} <span>{{ resourceTypes.length }}</span>
     </button>
     <button type="button" role="tab" [attr.aria-selected]="activeTab === 'customers'" [class.active]="activeTab === 'customers'" (click)="setTab('customers')">
-      Customers <span>{{ customers.length }}</span>
+      {{ 'orgAdmin.resourceConfiguration.customers' | translate }} <span>{{ customers.length }}</span>
     </button>
 
     <button
@@ -22,7 +22,7 @@
       [class.active]="activeTab === 'suppliers'"
       (click)="setTab('suppliers')"
     >
-      Suppliers
+      {{ 'orgAdmin.resourceConfiguration.suppliers' | translate }}
       <span>{{ suppliers.length }}</span>
     </button>
   </div>
@@ -30,27 +30,27 @@
   <div class="toolbar">
     <label class="search-field">
       <span class="material-symbols-outlined" aria-hidden="true">search</span>
-      <span class="sr-only">Search current configuration section</span>
-      <input [value]="search" (input)="search = $any($event.target).value" placeholder="Search this section" />
+      <span class="sr-only">{{ 'orgAdmin.resourceConfiguration.searchCurrentConfigurationSection' | translate }}</span>
+      <input [value]="search" (input)="search = $any($event.target).value" [placeholder]="'orgAdmin.resourceConfiguration.searchSection' | translate" />
     </label>
 
     <label *ngIf="activeTab === 'customers'" class="secondary-button file-button" [class.disabled]="importing">
       <span class="material-symbols-outlined" aria-hidden="true">upload_file</span>
-      {{ importing ? 'Importing…' : 'Import CSV' }}
+      {{ importing ? ('orgAdmin.resourceConfiguration.importing' | translate) : ('orgAdmin.resourceConfiguration.importCsv' | translate) }}
       <input type="file" accept=".csv,text/csv" [disabled]="importing" (change)="importCustomers($event)" />
     </label>
 
     <button *ngIf="activeTab === 'categories'" type="button" class="primary-button" (click)="openCategory()">
-      <span class="material-symbols-outlined" aria-hidden="true">add</span> Add category
+      <span class="material-symbols-outlined" aria-hidden="true">add</span> {{ 'orgAdmin.resourceConfiguration.addCategory' | translate }}
     </button>
     <button *ngIf="activeTab === 'types'" type="button" class="primary-button" (click)="openProjectType()">
-      <span class="material-symbols-outlined" aria-hidden="true">add</span> Add type
+      <span class="material-symbols-outlined" aria-hidden="true">add</span> {{ 'orgAdmin.resourceConfiguration.addType' | translate }}
     </button>
     <button *ngIf="activeTab === 'resourceTypes'" type="button" class="primary-button" (click)="openResourceType()">
-      <span class="material-symbols-outlined" aria-hidden="true">add</span> Add resource type
+      <span class="material-symbols-outlined" aria-hidden="true">add</span> {{ 'orgAdmin.resourceConfiguration.addResourceType' | translate }}
     </button>
     <button *ngIf="activeTab === 'customers'" type="button" class="primary-button" (click)="openCustomer()">
-      <span class="material-symbols-outlined" aria-hidden="true">add</span> Add customer
+      <span class="material-symbols-outlined" aria-hidden="true">add</span> {{ 'orgAdmin.resourceConfiguration.addCustomer' | translate }}
     </button>
 
     <button
@@ -60,7 +60,7 @@
       (click)="openSupplier()"
     >
       <span class="material-symbols-outlined" aria-hidden="true">add</span>
-      Add supplier
+      {{ 'orgAdmin.resourceConfiguration.addSupplier' | translate }}
     </button>
   </div>
 </section>
@@ -68,14 +68,14 @@
 <!-- LOADING -->
 <section *ngIf="loading" class="state-card" aria-live="polite">
   <span class="spinner" aria-hidden="true"></span>
-  <div><strong>Loading resource configuration</strong><p>Retrieving organisation-scoped records.</p></div>
+  <div><strong>{{ 'orgAdmin.resourceConfiguration.loadingResourceConfiguration' | translate }}</strong><p>{{ 'orgAdmin.resourceConfiguration.retrievingOrganisationScopedRecords' | translate }}</p></div>
 </section>
 
 <!-- ERROR -->
 <section *ngIf="!loading && errorMessage" class="state-card error-state" role="alert">
   <span class="material-symbols-outlined" aria-hidden="true">cloud_off</span>
-  <div><strong>Configuration unavailable</strong><p>{{ errorMessage }}</p></div>
-  <button type="button" (click)="load()">Try again</button>
+  <div><strong>{{ 'orgAdmin.resourceConfiguration.configurationUnavailable' | translate }}</strong><p>{{ errorMessage }}</p></div>
+  <button type="button" (click)="load()">{{ 'orgAdmin.resourceConfiguration.tryAgain' | translate }}</button>
 </section>
 
 <!-- CONFIGURATION CONTENT -->
@@ -83,80 +83,80 @@
 
   <!-- CATEGORIES -->
   <ng-container *ngSwitchCase="'categories'">
-    <header><div><h2>Project categories</h2><p>Classify projects using organisation-owned categories.</p></div></header>
+    <header><div><h2>{{ 'orgAdmin.resourceConfiguration.projectCategories' | translate }}</h2><p>{{ 'orgAdmin.resourceConfiguration.classifyProjectsUsingOrganisation' | translate }}</p></div></header>
     <div class="table-scroll" *ngIf="filteredCategories.length; else emptyCategories">
       <table>
-        <thead><tr><th>Category</th><th>Description</th><th>Projects</th><th>Status</th><th><span class="sr-only">Actions</span></th></tr></thead>
+        <thead><tr><th>{{ 'orgAdmin.resourceConfiguration.category' | translate }}</th><th>{{ 'common.description' | translate }}</th><th>{{ 'orgAdmin.resourceConfiguration.projects' | translate }}</th><th>{{ 'common.status' | translate }}</th><th><span class="sr-only">{{ 'common.actions' | translate }}</span></th></tr></thead>
         <tbody>
           <tr *ngFor="let item of filteredCategories">
-            <td data-label="Category"><div class="identity"><span class="color-mark" [style.background]="item.color || '#64748b'"></span><div><strong>{{ item.name }}</strong><small>{{ item.code }}</small></div></div></td>
-            <td data-label="Description">{{ item.description || 'No description' }}</td>
-            <td data-label="Projects">{{ item.projectsUsing }}</td>
-            <td data-label="Status"><span class="status" [class.inactive]="!item.active">{{ item.active ? 'Active' : 'Inactive' }}</span></td>
+            <td [attr.data-label]="'orgAdmin.resourceConfiguration.category' | translate"><div class="identity"><span class="color-mark" [style.background]="item.color || '#64748b'"></span><div><strong>{{ item.name }}</strong><small>{{ item.code }}</small></div></div></td>
+            <td [attr.data-label]="'common.description' | translate">{{ item.description || ('orgAdmin.resourceConfiguration.noDescription' | translate) }}</td>
+            <td [attr.data-label]="'orgAdmin.resourceConfiguration.projects' | translate">{{ item.projectsUsing }}</td>
+            <td [attr.data-label]="'common.status' | translate"><span class="status" [class.inactive]="!item.active">{{ item.active ? ('orgAdmin.resourceConfiguration.active' | translate) : ('orgAdmin.resourceConfiguration.inactive' | translate) }}</span></td>
             <td class="row-actions">
-              <button type="button" title="Edit category" (click)="openCategory(item)"><span class="material-symbols-outlined" aria-hidden="true">edit</span></button>
-              <button type="button" class="danger" title="Delete category" (click)="requestDelete('category', item)"><span class="material-symbols-outlined" aria-hidden="true">delete</span></button>
+              <button type="button" [title]="'orgAdmin.resourceConfiguration.editCategory' | translate" (click)="openCategory(item)"><span class="material-symbols-outlined" aria-hidden="true">edit</span></button>
+              <button type="button" class="danger" [title]="'orgAdmin.resourceConfiguration.deleteCategory' | translate" (click)="requestDelete('category', item)"><span class="material-symbols-outlined" aria-hidden="true">delete</span></button>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
-    <ng-template #emptyCategories><div class="empty-state"><span class="material-symbols-outlined" aria-hidden="true">category</span><h3>No matching categories</h3><p>Create a category or clear the current search.</p><button type="button" (click)="openCategory()">Add category</button></div></ng-template>
+    <ng-template #emptyCategories><div class="empty-state"><span class="material-symbols-outlined" aria-hidden="true">category</span><h3>{{ 'orgAdmin.resourceConfiguration.noMatchingCategories' | translate }}</h3><p>{{ 'orgAdmin.resourceConfiguration.createCategoryClearCurrent' | translate }}</p><button type="button" (click)="openCategory()">{{ 'orgAdmin.resourceConfiguration.addCategory' | translate }}</button></div></ng-template>
   </ng-container>
 
   <!-- PROJECT TYPES -->
   <ng-container *ngSwitchCase="'types'">
-    <header><div><h2>Project types</h2><p>Control the project-type choices available to operational teams.</p></div></header>
+    <header><div><h2>{{ 'orgAdmin.resourceConfiguration.projectTypes' | translate }}</h2><p>{{ 'orgAdmin.resourceConfiguration.controlProjectTypeChoices' | translate }}</p></div></header>
     <div class="table-scroll" *ngIf="filteredProjectTypes.length; else emptyTypes">
       <table>
-        <thead><tr><th>Project type</th><th>Billing mode</th><th>Projects</th><th>Status</th><th><span class="sr-only">Actions</span></th></tr></thead>
+        <thead><tr><th>{{ 'orgAdmin.resourceConfiguration.projectType' | translate }}</th><th>{{ 'orgAdmin.resourceConfiguration.billingMode' | translate }}</th><th>{{ 'orgAdmin.resourceConfiguration.projects' | translate }}</th><th>{{ 'common.status' | translate }}</th><th><span class="sr-only">{{ 'common.actions' | translate }}</span></th></tr></thead>
         <tbody>
           <tr *ngFor="let item of filteredProjectTypes">
-            <td data-label="Project type"><div class="identity"><span class="color-mark" [style.background]="item.color || '#64748b'"></span><div><strong>{{ item.name }}</strong><small>{{ item.code }} · {{ item.description || 'No description' }}</small></div></div></td>
-            <td data-label="Billing mode"><span class="mode">{{ item.billable ? 'Billable' : 'Non-billable' }}</span></td>
-            <td data-label="Projects">{{ item.projectsUsing }}</td>
-            <td data-label="Status"><span class="status" [class.inactive]="!item.active">{{ item.active ? 'Active' : 'Inactive' }}</span></td>
+            <td [attr.data-label]="'orgAdmin.resourceConfiguration.projectType' | translate"><div class="identity"><span class="color-mark" [style.background]="item.color || '#64748b'"></span><div><strong>{{ item.name }}</strong><small>{{ item.code }} · {{ item.description || ('orgAdmin.resourceConfiguration.noDescription' | translate) }}</small></div></div></td>
+            <td [attr.data-label]="'orgAdmin.resourceConfiguration.billingMode' | translate"><span class="mode">{{ item.billable ? ('orgAdmin.resourceConfiguration.billable' | translate) : ('orgAdmin.resourceConfiguration.nonBillable' | translate) }}</span></td>
+            <td [attr.data-label]="'orgAdmin.resourceConfiguration.projects' | translate">{{ item.projectsUsing }}</td>
+            <td [attr.data-label]="'common.status' | translate"><span class="status" [class.inactive]="!item.active">{{ item.active ? ('orgAdmin.resourceConfiguration.active' | translate) : ('orgAdmin.resourceConfiguration.inactive' | translate) }}</span></td>
             <td class="row-actions">
-              <button type="button" title="Edit project type" (click)="openProjectType(item)"><span class="material-symbols-outlined" aria-hidden="true">edit</span></button>
-              <button type="button" class="danger" title="Delete project type" (click)="requestDelete('type', item)"><span class="material-symbols-outlined" aria-hidden="true">delete</span></button>
+              <button type="button" [title]="'orgAdmin.resourceConfiguration.editProjectType' | translate" (click)="openProjectType(item)"><span class="material-symbols-outlined" aria-hidden="true">edit</span></button>
+              <button type="button" class="danger" [title]="'orgAdmin.resourceConfiguration.deleteProjectType' | translate" (click)="requestDelete('type', item)"><span class="material-symbols-outlined" aria-hidden="true">delete</span></button>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
-    <ng-template #emptyTypes><div class="empty-state"><span class="material-symbols-outlined" aria-hidden="true">description</span><h3>No matching project types</h3><p>Create a project type or clear the current search.</p><button type="button" (click)="openProjectType()">Add project type</button></div></ng-template>
+    <ng-template #emptyTypes><div class="empty-state"><span class="material-symbols-outlined" aria-hidden="true">description</span><h3>{{ 'orgAdmin.resourceConfiguration.noMatchingProjectTypes' | translate }}</h3><p>{{ 'orgAdmin.resourceConfiguration.createProjectTypeClear' | translate }}</p><button type="button" (click)="openProjectType()">{{ 'orgAdmin.resourceConfiguration.addProjectType' | translate }}</button></div></ng-template>
   </ng-container>
 
   <!-- RESOURCE TYPES -->
   <ng-container *ngSwitchCase="'resourceTypes'">
-    <header><div><h2>Resource types</h2><p>Manage organisation-owned internal resource profiles.</p></div></header>
+    <header><div><h2>{{ 'orgAdmin.resourceConfiguration.resourceTypes' | translate }}</h2><p>{{ 'orgAdmin.resourceConfiguration.manageOrganisationOwnedInternal' | translate }}</p></div></header>
     <div class="table-scroll" *ngIf="filteredResourceTypes.length; else emptyResourceTypes">
       <table>
         <thead>
           <tr>
-            <th>Resource type</th>
-            <th>Department</th>
-            <th>Default Rate (€/day)</th>
-            <th>Assignment</th>
-            <th>Status</th>
-            <th><span class="sr-only">Actions</span></th>
+            <th>{{ 'orgAdmin.resourceConfiguration.resourceType' | translate }}</th>
+            <th>{{ 'orgAdmin.resourceConfiguration.department' | translate }}</th>
+            <th>{{ 'orgAdmin.resourceConfiguration.defaultRateDay' | translate }}</th>
+            <th>{{ 'orgAdmin.resourceConfiguration.assignment' | translate }}</th>
+            <th>{{ 'common.status' | translate }}</th>
+            <th><span class="sr-only">{{ 'common.actions' | translate }}</span></th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let item of filteredResourceTypes">
-            <td data-label="Resource type">
+            <td [attr.data-label]="'orgAdmin.resourceConfiguration.resourceType' | translate">
               <div class="identity">
                 <span class="color-mark" [style.background]="item.colour || '#64748b'"></span>
                 <div><strong>{{ item.label || item.code }}</strong><small>{{ item.code }}</small></div>
               </div>
             </td>
-            <td data-label="Department">{{ item.departmentCode || 'Any department' }}</td>
-            <td data-label="Default Rate"><strong>{{ item.defaultRate ?? 0 | number:'1.2-2' }} €</strong></td>
-            <td data-label="Assignment">{{ item.assignable ? 'Assignable' : 'Archived' }}</td>
-            <td data-label="Status"><span class="status" [class.inactive]="!item.active">{{ item.active ? 'Active' : 'Inactive' }}</span></td>
+            <td [attr.data-label]="'orgAdmin.resourceConfiguration.department' | translate">{{ item.departmentCode || ('orgAdmin.resourceConfiguration.anyDepartment' | translate) }}</td>
+            <td [attr.data-label]="'orgAdmin.resourceConfiguration.defaultRateDay' | translate"><strong>{{ item.defaultRate ?? 0 | number:'1.2-2' }} €</strong></td>
+            <td [attr.data-label]="'orgAdmin.resourceConfiguration.assignment' | translate">{{ item.assignable ? ('orgAdmin.resourceConfiguration.assignable' | translate) : ('orgAdmin.resourceConfiguration.archived' | translate) }}</td>
+            <td [attr.data-label]="'common.status' | translate"><span class="status" [class.inactive]="!item.active">{{ item.active ? ('orgAdmin.resourceConfiguration.active' | translate) : ('orgAdmin.resourceConfiguration.inactive' | translate) }}</span></td>
             <td class="row-actions">
-              <button type="button" title="Edit resource type" (click)="openResourceType(item)"><span class="material-symbols-outlined" aria-hidden="true">edit</span></button>
-              <button type="button" [title]="item.active ? 'Deactivate resource type' : 'Activate resource type'" (click)="toggleResourceType(item)">
+              <button type="button" [title]="'orgAdmin.resourceConfiguration.editResourceType' | translate" (click)="openResourceType(item)"><span class="material-symbols-outlined" aria-hidden="true">edit</span></button>
+              <button type="button" [title]="item.active ? ('orgAdmin.resourceConfiguration.deactivateResourceType' | translate) : ('orgAdmin.resourceConfiguration.activateResourceType' | translate)" (click)="toggleResourceType(item)">
                 <span class="material-symbols-outlined" aria-hidden="true">{{ item.active ? 'toggle_on' : 'toggle_off' }}</span>
               </button>
             </td>
@@ -167,35 +167,35 @@
     <ng-template #emptyResourceTypes>
       <div class="empty-state">
         <span class="material-symbols-outlined" aria-hidden="true">engineering</span>
-        <h3>No resource types</h3>
-        <p>Create an organisation resource type before assigning internal users.</p>
-        <button type="button" (click)="openResourceType()">Add resource type</button>
+        <h3>{{ 'orgAdmin.resourceConfiguration.noResourceTypes' | translate }}</h3>
+        <p>{{ 'orgAdmin.resourceConfiguration.createOrganisationResourceType' | translate }}</p>
+        <button type="button" (click)="openResourceType()">{{ 'orgAdmin.resourceConfiguration.addResourceType' | translate }}</button>
       </div>
     </ng-template>
   </ng-container>
 
   <!-- CUSTOMERS -->
   <ng-container *ngSwitchCase="'customers'">
-    <header><div><h2>Customer directory</h2><p>Maintain customer records used by this organisation's projects.</p></div><small class="csv-hint">CSV columns: customerCode, name, country, town, email…</small></header>
+    <header><div><h2>{{ 'orgAdmin.resourceConfiguration.customerDirectory' | translate }}</h2><p>{{ 'orgAdmin.resourceConfiguration.maintainCustomerRecordsUsed' | translate }}</p></div><small class="csv-hint">{{ 'orgAdmin.resourceConfiguration.csvColumnsCustomercodeName' | translate }}</small></header>
     <div class="table-scroll" *ngIf="filteredCustomers.length; else emptyCustomers">
       <table>
-        <thead><tr><th>Customer</th><th>Location</th><th>Primary contact</th><th>Projects</th><th>Status</th><th><span class="sr-only">Actions</span></th></tr></thead>
+        <thead><tr><th>{{ 'orgAdmin.resourceConfiguration.customer' | translate }}</th><th>{{ 'orgAdmin.resourceConfiguration.location' | translate }}</th><th>{{ 'orgAdmin.resourceConfiguration.primaryContact' | translate }}</th><th>{{ 'orgAdmin.resourceConfiguration.projects' | translate }}</th><th>{{ 'common.status' | translate }}</th><th><span class="sr-only">{{ 'common.actions' | translate }}</span></th></tr></thead>
         <tbody>
           <tr *ngFor="let item of filteredCustomers">
-            <td data-label="Customer"><div class="identity"><span class="avatar" aria-hidden="true">{{ item.name.charAt(0) }}</span><div><strong>{{ item.name }}</strong><small>{{ item.customerCode }}<ng-container *ngIf="item.erpId"> · ERP {{ item.erpId }}</ng-container></small></div></div></td>
-            <td data-label="Location">{{ item.town || '—' }}<small>{{ item.country || '' }}</small></td>
-            <td data-label="Primary contact">{{ item.contactPerson || '—' }}<small>{{ item.email || item.phone || '' }}</small></td>
-            <td data-label="Projects">{{ item.projectsUsing }}</td>
-            <td data-label="Status"><span class="status" [class.inactive]="!item.active">{{ item.active ? 'Active' : 'Inactive' }}</span></td>
+            <td [attr.data-label]="'orgAdmin.resourceConfiguration.customer' | translate"><div class="identity"><span class="avatar" aria-hidden="true">{{ item.name.charAt(0) }}</span><div><strong>{{ item.name }}</strong><small>{{ item.customerCode }}<ng-container *ngIf="item.erpId"> {{ 'orgAdmin.resourceConfiguration.erpErpid' | translate: { erpId: item.erpId } }}</ng-container></small></div></div></td>
+            <td [attr.data-label]="'orgAdmin.resourceConfiguration.location' | translate">{{ item.town || '—' }}<small>{{ item.country || '' }}</small></td>
+            <td [attr.data-label]="'orgAdmin.resourceConfiguration.primaryContact' | translate">{{ item.contactPerson || '—' }}<small>{{ item.email || item.phone || '' }}</small></td>
+            <td [attr.data-label]="'orgAdmin.resourceConfiguration.projects' | translate">{{ item.projectsUsing }}</td>
+            <td [attr.data-label]="'common.status' | translate"><span class="status" [class.inactive]="!item.active">{{ item.active ? ('orgAdmin.resourceConfiguration.active' | translate) : ('orgAdmin.resourceConfiguration.inactive' | translate) }}</span></td>
             <td class="row-actions">
-              <button type="button" title="Edit customer" (click)="openCustomer(item)"><span class="material-symbols-outlined" aria-hidden="true">edit</span></button>
-              <button type="button" class="danger" title="Delete customer" (click)="requestDelete('customer', item)"><span class="material-symbols-outlined" aria-hidden="true">delete</span></button>
+              <button type="button" [title]="'orgAdmin.resourceConfiguration.editCustomer' | translate" (click)="openCustomer(item)"><span class="material-symbols-outlined" aria-hidden="true">edit</span></button>
+              <button type="button" class="danger" [title]="'orgAdmin.resourceConfiguration.deleteCustomer' | translate" (click)="requestDelete('customer', item)"><span class="material-symbols-outlined" aria-hidden="true">delete</span></button>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
-    <ng-template #emptyCustomers><div class="empty-state"><span class="material-symbols-outlined" aria-hidden="true">handshake</span><h3>No matching customers</h3><p>Add a customer, import a CSV file, or clear the search.</p><button type="button" (click)="openCustomer()">Add customer</button></div></ng-template>
+    <ng-template #emptyCustomers><div class="empty-state"><span class="material-symbols-outlined" aria-hidden="true">handshake</span><h3>{{ 'orgAdmin.resourceConfiguration.noMatchingCustomers' | translate }}</h3><p>{{ 'orgAdmin.resourceConfiguration.addCustomerImportCsv' | translate }}</p><button type="button" (click)="openCustomer()">{{ 'orgAdmin.resourceConfiguration.addCustomer' | translate }}</button></div></ng-template>
   </ng-container>
 
   <!-- =======================================================
@@ -204,8 +204,8 @@
   <ng-container *ngSwitchCase="'suppliers'">
     <header>
       <div>
-        <h2>Suppliers</h2>
-        <p>Maintain the suppliers available to this organisation.</p>
+        <h2>{{ 'orgAdmin.resourceConfiguration.suppliers' | translate }}</h2>
+        <p>{{ 'orgAdmin.resourceConfiguration.maintainSuppliersAvailableOrganisation' | translate }}</p>
       </div>
     </header>
 
@@ -213,35 +213,35 @@
       <table>
         <thead>
           <tr>
-            <th>Code</th>
-            <th>Supplier</th>
-            <th>Resource types</th>
-            <th>Contact</th>
-            <th>Email</th>
-            <th>Status</th>
-            <th><span class="sr-only">Actions</span></th>
+            <th>{{ 'orgAdmin.resourceConfiguration.code' | translate }}</th>
+            <th>{{ 'orgAdmin.resourceConfiguration.supplier' | translate }}</th>
+            <th>{{ 'orgAdmin.resourceConfiguration.resourceTypes' | translate }}</th>
+            <th>{{ 'orgAdmin.resourceConfiguration.contact' | translate }}</th>
+            <th>{{ 'orgAdmin.resourceConfiguration.email' | translate }}</th>
+            <th>{{ 'common.status' | translate }}</th>
+            <th><span class="sr-only">{{ 'common.actions' | translate }}</span></th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let item of filteredSuppliers">
-            <td data-label="Code"><strong>{{ item.code }}</strong></td>
-            <td data-label="Supplier">{{ item.name }}</td>
-            <td data-label="Resource types">
+            <td [attr.data-label]="'orgAdmin.resourceConfiguration.code' | translate"><strong>{{ item.code }}</strong></td>
+            <td [attr.data-label]="'orgAdmin.resourceConfiguration.supplier' | translate">{{ item.name }}</td>
+            <td [attr.data-label]="'orgAdmin.resourceConfiguration.resourceTypes' | translate">
               <span class="resource-type-badges" *ngIf="item.resourceTypes?.length; else noSupplierResourceTypes">
                 <span class="resource-type-badge" *ngFor="let resourceType of item.resourceTypes">{{ resourceType.code }}</span>
               </span>
               <ng-template #noSupplierResourceTypes>â€”</ng-template>
             </td>
-            <td data-label="Contact">{{ item.contactPerson || '—' }}<small>{{ item.phone || '' }}</small></td>
-            <td data-label="Email">{{ item.email || '—' }}</td>
-            <td data-label="Status">
-              <span class="status" [class.inactive]="!item.active">{{ item.active ? 'Active' : 'Inactive' }}</span>
+            <td [attr.data-label]="'orgAdmin.resourceConfiguration.contact' | translate">{{ item.contactPerson || '—' }}<small>{{ item.phone || '' }}</small></td>
+            <td [attr.data-label]="'orgAdmin.resourceConfiguration.email' | translate">{{ item.email || '—' }}</td>
+            <td [attr.data-label]="'common.status' | translate">
+              <span class="status" [class.inactive]="!item.active">{{ item.active ? ('orgAdmin.resourceConfiguration.active' | translate) : ('orgAdmin.resourceConfiguration.inactive' | translate) }}</span>
             </td>
             <td class="row-actions">
-              <button type="button" title="Edit supplier" (click)="openSupplier(item)">
+              <button type="button" [title]="'orgAdmin.resourceConfiguration.editSupplier' | translate" (click)="openSupplier(item)">
                 <span class="material-symbols-outlined" aria-hidden="true">edit</span>
               </button>
-              <button type="button" class="danger" title="Deactivate supplier" [disabled]="!item.active" (click)="requestDelete('supplier', item)">
+              <button type="button" class="danger" [title]="'orgAdmin.resourceConfiguration.deactivateSupplier' | translate" [disabled]="!item.active" (click)="requestDelete('supplier', item)">
                 <span class="material-symbols-outlined" aria-hidden="true">delete</span>
               </button>
             </td>
@@ -253,9 +253,9 @@
     <ng-template #emptySuppliers>
       <div class="empty-state">
         <span class="material-symbols-outlined" aria-hidden="true">local_shipping</span>
-        <h3>No matching suppliers</h3>
-        <p>Add a supplier or clear the search.</p>
-        <button type="button" (click)="openSupplier()">Add supplier</button>
+        <h3>{{ 'orgAdmin.resourceConfiguration.noMatchingSuppliers' | translate }}</h3>
+        <p>{{ 'orgAdmin.resourceConfiguration.addSupplierClearSearch' | translate }}</p>
+        <button type="button" (click)="openSupplier()">{{ 'orgAdmin.resourceConfiguration.addSupplier' | translate }}</button>
       </div>
     </ng-template>
   </ng-container>
@@ -265,145 +265,144 @@
 <div class="dialog-backdrop" *ngIf="dialogKind" (mousedown)="$event.target === $event.currentTarget && closeDialog()">
   <section class="dialog" role="dialog" aria-modal="true" [attr.aria-labelledby]="dialogKind + '-dialog-title'" (mousedown)="$event.stopPropagation()" (click)="$event.stopPropagation()">
     <header>
-      <div><p class="eyebrow">Resource configuration</p>
+      <div><p class="eyebrow">{{ 'orgAdmin.resourceConfiguration.resourceConfiguration' | translate }}</p>
         <h2 [id]="dialogKind + '-dialog-title'">
-          {{ editingId === null ? 'Create' : 'Edit' }}
-          {{ dialogKind === 'category' ? 'category' : dialogKind === 'type' ? 'project type' : dialogKind === 'resourceType' ? 'resource type' : dialogKind === 'supplier' ? 'supplier' : 'customer' }}
+          {{ 'orgAdmin.resourceConfiguration.dialogTitle.' + (editingId === null ? 'create' : 'edit') + '.' + dialogKind | translate }}
         </h2>
       </div>
-      <button type="button" class="icon-button" [disabled]="saving" (click)="closeDialog()" aria-label="Close dialog"><span class="material-symbols-outlined" aria-hidden="true">close</span></button>
+      <button type="button" class="icon-button" [disabled]="saving" (click)="closeDialog()" [attr.aria-label]="'orgAdmin.resourceConfiguration.closeDialog' | translate"><span class="material-symbols-outlined" aria-hidden="true">close</span></button>
     </header>
 
     <!-- CATEGORY FORM -->
     <form *ngIf="dialogKind === 'category'" [formGroup]="categoryForm" (ngSubmit)="saveCategory()">
       <div class="form-grid">
-        <label>Name <span>*</span><input type="text" formControlName="name" autofocus autocomplete="off" /></label>
-        <label>Code <span>*</span><input type="text" formControlName="code" autocomplete="off" /></label>
-        <label class="wide">Description<textarea formControlName="description" rows="3"></textarea></label>
-        <label>Icon name<input type="text" formControlName="icon" placeholder="category" autocomplete="off" /></label>
-        <label>Colour<input type="text" formControlName="color" placeholder="#1565c0" autocomplete="off" /></label>
-        <label class="toggle wide"><input type="checkbox" formControlName="active" /> Available for new projects</label>
+        <label>{{ 'common.name' | translate }} <span>*</span><input type="text" formControlName="name" autofocus autocomplete="off" /></label>
+        <label>{{ 'orgAdmin.resourceConfiguration.code' | translate }} <span>*</span><input type="text" formControlName="code" autocomplete="off" /></label>
+        <label class="wide">{{ 'common.description' | translate }}<textarea formControlName="description" rows="3"></textarea></label>
+        <label>{{ 'orgAdmin.resourceConfiguration.iconName' | translate }}<input type="text" formControlName="icon" placeholder="category" autocomplete="off" /></label>
+        <label>{{ 'orgAdmin.resourceConfiguration.colour' | translate }}<input type="text" formControlName="color" placeholder="#1565c0" autocomplete="off" /></label>
+        <label class="toggle wide"><input type="checkbox" formControlName="active" /> {{ 'orgAdmin.resourceConfiguration.availableNewProjects' | translate }}</label>
       </div>
-      <p class="validation" *ngIf="categoryForm.touched && categoryForm.invalid" role="alert">Enter a valid name, 2–30 character code, and six-digit colour.</p>
+      <p class="validation" *ngIf="categoryForm.touched && categoryForm.invalid" role="alert">{{ 'orgAdmin.resourceConfiguration.enterValidName2' | translate }}</p>
       <footer>
-        <button type="button" class="secondary-button" [disabled]="saving" (click)="closeDialog()">Cancel</button>
-        <button type="submit" class="primary-button" [disabled]="categoryForm.invalid || saving">{{ saving ? 'Saving…' : 'Save category' }}</button>
+        <button type="button" class="secondary-button" [disabled]="saving" (click)="closeDialog()">{{ 'common.cancel' | translate }}</button>
+        <button type="submit" class="primary-button" [disabled]="categoryForm.invalid || saving">{{ saving ? ('orgAdmin.resourceConfiguration.saving' | translate) : ('orgAdmin.resourceConfiguration.saveCategory' | translate) }}</button>
       </footer>
     </form>
 
     <!-- PROJECT TYPE FORM -->
     <form *ngIf="dialogKind === 'type'" [formGroup]="typeForm" (ngSubmit)="saveProjectType()">
       <div class="form-grid">
-        <label>Name <span>*</span><input type="text" formControlName="name" autofocus autocomplete="off" /></label>
-        <label>Code <span>*</span><input type="text" formControlName="code" autocomplete="off" /></label>
-        <label class="wide">Description<textarea formControlName="description" rows="3"></textarea></label>
-        <label>Icon name<input type="text" formControlName="icon" placeholder="description" autocomplete="off" /></label>
-        <label>Colour<input type="text" formControlName="color" placeholder="#0f766e" autocomplete="off" /></label>
-        <label class="toggle"><input type="checkbox" formControlName="billable" /> Billable project type</label>
-        <label class="toggle"><input type="checkbox" formControlName="active" /> Available for new projects</label>
+        <label>{{ 'common.name' | translate }} <span>*</span><input type="text" formControlName="name" autofocus autocomplete="off" /></label>
+        <label>{{ 'orgAdmin.resourceConfiguration.code' | translate }} <span>*</span><input type="text" formControlName="code" autocomplete="off" /></label>
+        <label class="wide">{{ 'common.description' | translate }}<textarea formControlName="description" rows="3"></textarea></label>
+        <label>{{ 'orgAdmin.resourceConfiguration.iconName' | translate }}<input type="text" formControlName="icon" placeholder="description" autocomplete="off" /></label>
+        <label>{{ 'orgAdmin.resourceConfiguration.colour' | translate }}<input type="text" formControlName="color" placeholder="#0f766e" autocomplete="off" /></label>
+        <label class="toggle"><input type="checkbox" formControlName="billable" /> {{ 'orgAdmin.resourceConfiguration.billableProjectType' | translate }}</label>
+        <label class="toggle"><input type="checkbox" formControlName="active" /> {{ 'orgAdmin.resourceConfiguration.availableNewProjects' | translate }}</label>
       </div>
-      <p class="validation" *ngIf="typeForm.touched && typeForm.invalid" role="alert">Enter a valid name, 2–30 character code, and six-digit colour.</p>
+      <p class="validation" *ngIf="typeForm.touched && typeForm.invalid" role="alert">{{ 'orgAdmin.resourceConfiguration.enterValidName2' | translate }}</p>
       <footer>
-        <button type="button" class="secondary-button" [disabled]="saving" (click)="closeDialog()">Cancel</button>
-        <button type="submit" class="primary-button" [disabled]="typeForm.invalid || saving">{{ saving ? 'Saving…' : 'Save project type' }}</button>
+        <button type="button" class="secondary-button" [disabled]="saving" (click)="closeDialog()">{{ 'common.cancel' | translate }}</button>
+        <button type="submit" class="primary-button" [disabled]="typeForm.invalid || saving">{{ saving ? ('orgAdmin.resourceConfiguration.saving' | translate) : ('orgAdmin.resourceConfiguration.saveProjectType' | translate) }}</button>
       </footer>
     </form>
 
     <!-- RESOURCE TYPE FORM (AVEC DEFAULT RATE) -->
     <form *ngIf="dialogKind === 'resourceType'" [formGroup]="resourceTypeForm" (ngSubmit)="saveResourceType()">
       <div class="form-grid">
-        <label>Name <span>*</span><input type="text" formControlName="label" autofocus autocomplete="off" /></label>
-        <label>Code <span>*</span><input type="text" formControlName="code" autocomplete="off" /></label>
-        <label>Department
+        <label>{{ 'common.name' | translate }} <span>*</span><input type="text" formControlName="label" autofocus autocomplete="off" /></label>
+        <label>{{ 'orgAdmin.resourceConfiguration.code' | translate }} <span>*</span><input type="text" formControlName="code" autocomplete="off" /></label>
+        <label>{{ 'orgAdmin.resourceConfiguration.department' | translate }}
           <select formControlName="departmentId">
-            <option [ngValue]="null">Any department</option>
+            <option [ngValue]="null">{{ 'orgAdmin.resourceConfiguration.anyDepartment' | translate }}</option>
             <option *ngFor="let department of departments" [ngValue]="department.id">{{ department.name }}</option>
           </select>
         </label>
-        <label>Colour<input type="text" formControlName="colour" placeholder="#2563eb" autocomplete="off" /></label>
+        <label>{{ 'orgAdmin.resourceConfiguration.colour' | translate }}<input type="text" formControlName="colour" placeholder="#2563eb" autocomplete="off" /></label>
         
         <!-- ✅ CHAMP DEFAULT RATE AJOUTÉ ICI -->
-        <label>Default Rate (€/day)
+        <label>{{ 'orgAdmin.resourceConfiguration.defaultRateDay' | translate }}
           <input type="number" formControlName="defaultRate" min="0" step="0.01" placeholder="0.00" autocomplete="off" />
         </label>
 
-        <label class="toggle"><input type="checkbox" formControlName="assignable" /> Available for new users</label>
-        <label class="toggle"><input type="checkbox" formControlName="active" /> Active</label>
+        <label class="toggle"><input type="checkbox" formControlName="assignable" /> {{ 'orgAdmin.resourceConfiguration.availableNewUsers' | translate }}</label>
+        <label class="toggle"><input type="checkbox" formControlName="active" /> {{ 'orgAdmin.resourceConfiguration.active' | translate }}</label>
       </div>
-      <p class="validation" *ngIf="resourceTypeForm.touched && resourceTypeForm.invalid" role="alert">Enter a valid name, code, and six-digit colour.</p>
+      <p class="validation" *ngIf="resourceTypeForm.touched && resourceTypeForm.invalid" role="alert">{{ 'orgAdmin.resourceConfiguration.enterValidNameCode' | translate }}</p>
       <footer>
-        <button type="button" class="secondary-button" [disabled]="saving" (click)="closeDialog()">Cancel</button>
-        <button type="submit" class="primary-button" [disabled]="resourceTypeForm.invalid || saving">{{ saving ? 'Saving…' : 'Save resource type' }}</button>
+        <button type="button" class="secondary-button" [disabled]="saving" (click)="closeDialog()">{{ 'common.cancel' | translate }}</button>
+        <button type="submit" class="primary-button" [disabled]="resourceTypeForm.invalid || saving">{{ saving ? ('orgAdmin.resourceConfiguration.saving' | translate) : ('orgAdmin.resourceConfiguration.saveResourceType' | translate) }}</button>
       </footer>
     </form>
 
     <!-- CUSTOMER FORM -->
     <form *ngIf="dialogKind === 'customer'" [formGroup]="customerForm" (ngSubmit)="saveCustomer()">
       <div class="form-grid">
-        <label>Customer code <span>*</span><input type="text" formControlName="customerCode" autofocus autocomplete="off" /></label>
-        <label>Customer name <span>*</span><input type="text" formControlName="name" autocomplete="off" /></label>
-        <label>Country
+        <label>{{ 'orgAdmin.resourceConfiguration.customerCode' | translate }} <span>*</span><input type="text" formControlName="customerCode" autofocus autocomplete="off" /></label>
+        <label>{{ 'orgAdmin.resourceConfiguration.customerName' | translate }} <span>*</span><input type="text" formControlName="name" autocomplete="off" /></label>
+        <label>{{ 'orgAdmin.resourceConfiguration.country' | translate }}
   <select formControlName="country">
-    <option value="">Select a country</option>
+    <option value="">{{ 'orgAdmin.resourceConfiguration.selectCountry' | translate }}</option>
     <option *ngFor="let country of countries" [value]="country">{{ country }}</option>
   </select>
 </label>
-        <label>Town or city<input type="text" formControlName="town" /></label>
-        <label class="wide">Address<input type="text" formControlName="address" /></label>
-        <label>VAT / tax ID<input type="text" formControlName="vatTaxId" /></label>
-        <label>ERP ID<input type="text" formControlName="erpId" /></label>
-        <label>Contact person<input type="text" formControlName="contactPerson" /></label>
-        <label>Email<input type="email" formControlName="email" /></label>
-        <label>Phone<input type="tel" formControlName="phone" /></label>
-        <label class="toggle"><input type="checkbox" formControlName="active" /> Active customer</label>
+        <label>{{ 'orgAdmin.resourceConfiguration.townCity' | translate }}<input type="text" formControlName="town" /></label>
+        <label class="wide">{{ 'orgAdmin.resourceConfiguration.address' | translate }}<input type="text" formControlName="address" /></label>
+        <label>{{ 'orgAdmin.resourceConfiguration.vatTaxId' | translate }}<input type="text" formControlName="vatTaxId" /></label>
+        <label>{{ 'orgAdmin.resourceConfiguration.erpId' | translate }}<input type="text" formControlName="erpId" /></label>
+        <label>{{ 'orgAdmin.resourceConfiguration.contactPerson' | translate }}<input type="text" formControlName="contactPerson" /></label>
+        <label>{{ 'orgAdmin.resourceConfiguration.email' | translate }}<input type="email" formControlName="email" /></label>
+        <label>{{ 'orgAdmin.resourceConfiguration.phone' | translate }}<input type="tel" formControlName="phone" /></label>
+        <label class="toggle"><input type="checkbox" formControlName="active" /> {{ 'orgAdmin.resourceConfiguration.activeCustomer' | translate }}</label>
       </div>
-      <p class="validation" *ngIf="customerForm.touched && customerForm.invalid" role="alert">Customer code and name are required. Check the email and field lengths.</p>
+      <p class="validation" *ngIf="customerForm.touched && customerForm.invalid" role="alert">{{ 'orgAdmin.resourceConfiguration.customerCodeNameRequired' | translate }}</p>
       <footer>
-        <button type="button" class="secondary-button" [disabled]="saving" (click)="closeDialog()">Cancel</button>
-        <button type="submit" class="primary-button" [disabled]="customerForm.invalid || saving">{{ saving ? 'Saving…' : 'Save customer' }}</button>
+        <button type="button" class="secondary-button" [disabled]="saving" (click)="closeDialog()">{{ 'common.cancel' | translate }}</button>
+        <button type="submit" class="primary-button" [disabled]="customerForm.invalid || saving">{{ saving ? ('orgAdmin.resourceConfiguration.saving' | translate) : ('orgAdmin.resourceConfiguration.saveCustomer' | translate) }}</button>
       </footer>
     </form>
 
     <form *ngIf="dialogKind === 'supplier'" [formGroup]="supplierForm" (ngSubmit)="saveSupplier()">
       <div class="form-grid">
-        <label>Supplier name <span>*</span><input type="text" formControlName="name" autofocus autocomplete="organization" /></label>
-        <label>Supplier code <span>*</span><input type="text" formControlName="code" autocomplete="off" /></label>
+        <label>{{ 'orgAdmin.resourceConfiguration.supplierName' | translate }} <span>*</span><input type="text" formControlName="name" autofocus autocomplete="organization" /></label>
+        <label>{{ 'orgAdmin.resourceConfiguration.supplierCode' | translate }} <span>*</span><input type="text" formControlName="code" autocomplete="off" /></label>
         <div class="wide supplier-resource-type-field">
-          <label>Resource Types</label>
+          <label>{{ 'orgAdmin.resourceConfiguration.resourceTypes2' | translate }}</label>
           <div class="supplier-resource-type-multiselect">
             <button type="button" class="supplier-resource-type-trigger" (click)="toggleSupplierResourceTypeDropdown($event)" [attr.aria-expanded]="supplierResourceTypeDropdownOpen">
-              <span *ngIf="!selectedSupplierResourceTypes.length" class="supplier-resource-type-placeholder">Select Resource Types</span>
+              <span *ngIf="!selectedSupplierResourceTypes.length" class="supplier-resource-type-placeholder">{{ 'orgAdmin.resourceConfiguration.selectResourceTypes' | translate }}</span>
               <span class="supplier-resource-type-chips" *ngIf="selectedSupplierResourceTypes.length">
                 <span class="supplier-resource-type-chip" *ngFor="let resourceType of selectedSupplierResourceTypes">
                   {{ resourceType.code }}
-                  <span class="material-symbols-outlined" (click)="removeSupplierResourceType(resourceType.id, $event)" [attr.aria-label]="'Remove ' + resourceType.code">close</span>
+                  <span class="material-symbols-outlined" (click)="removeSupplierResourceType(resourceType.id, $event)" [attr.aria-label]="'common.removeNamed' | translate: { name: resourceType.code }">close</span>
                 </span>
               </span>
               <span class="material-symbols-outlined supplier-resource-type-chevron">expand_more</span>
             </button>
             <div class="supplier-resource-type-menu" *ngIf="supplierResourceTypeDropdownOpen" (click)="$event.stopPropagation()">
-              <input type="search" [value]="supplierResourceTypeSearch" (input)="setSupplierResourceTypeSearch($any($event.target).value)" placeholder="Search resource types" aria-label="Search resource types" />
+              <input type="search" [value]="supplierResourceTypeSearch" (input)="setSupplierResourceTypeSearch($any($event.target).value)" [placeholder]="'orgAdmin.resourceConfiguration.searchResourceTypes' | translate" [attr.aria-label]="'orgAdmin.resourceConfiguration.searchResourceTypes' | translate" />
               <div class="supplier-resource-type-options" *ngIf="filteredSupplierResourceTypes.length; else noSupplierResourceTypes">
                 <button type="button" class="supplier-resource-type-option" *ngFor="let resourceType of filteredSupplierResourceTypes" [class.selected]="supplierHasResourceType(resourceType.id)" (click)="toggleSupplierResourceType(resourceType.id, !supplierHasResourceType(resourceType.id))">
                   <span><strong>{{ resourceType.code }}</strong><small *ngIf="resourceType.label">{{ resourceType.label }}</small></span>
                   <span class="material-symbols-outlined" *ngIf="supplierHasResourceType(resourceType.id)">check</span>
                 </button>
               </div>
-              <ng-template #noSupplierResourceTypes><p class="supplier-resource-type-empty">{{ resourceTypes.length ? 'No matching resource types' : 'No resource types are configured for this organisation.' }}</p></ng-template>
+              <ng-template #noSupplierResourceTypes><p class="supplier-resource-type-empty">{{ resourceTypes.length ? ('orgAdmin.resourceConfiguration.noMatchingResourceTypes' | translate) : ('orgAdmin.resourceConfiguration.noResourceTypesConfigured' | translate) }}</p></ng-template>
             </div>
           </div>
         </div>
-        <label>Contact person<input type="text" formControlName="contactPerson" autocomplete="name" /></label>
-        <label>Email<input type="email" formControlName="email" autocomplete="email" /></label>
-        <label>Phone<input type="tel" formControlName="phone" autocomplete="tel" /></label>
-        <label class="wide">Address<input type="text" formControlName="address" autocomplete="street-address" /></label>
-        <label class="wide">Notes<textarea rows="3" formControlName="notes"></textarea></label>
-        <label class="toggle"><input type="checkbox" formControlName="active" /> Active supplier</label>
+        <label>{{ 'orgAdmin.resourceConfiguration.contactPerson' | translate }}<input type="text" formControlName="contactPerson" autocomplete="name" /></label>
+        <label>{{ 'orgAdmin.resourceConfiguration.email' | translate }}<input type="email" formControlName="email" autocomplete="email" /></label>
+        <label>{{ 'orgAdmin.resourceConfiguration.phone' | translate }}<input type="tel" formControlName="phone" autocomplete="tel" /></label>
+        <label class="wide">{{ 'orgAdmin.resourceConfiguration.address' | translate }}<input type="text" formControlName="address" autocomplete="street-address" /></label>
+        <label class="wide">{{ 'orgAdmin.resourceConfiguration.notes' | translate }}<textarea rows="3" formControlName="notes"></textarea></label>
+        <label class="toggle"><input type="checkbox" formControlName="active" /> {{ 'orgAdmin.resourceConfiguration.activeSupplier' | translate }}</label>
       </div>
-      <p class="validation" *ngIf="supplierForm.touched && supplierForm.invalid" role="alert">Supplier name and code are required. Check the email and field lengths.</p>
+      <p class="validation" *ngIf="supplierForm.touched && supplierForm.invalid" role="alert">{{ 'orgAdmin.resourceConfiguration.supplierNameCodeRequired' | translate }}</p>
       <footer>
-        <button type="button" class="secondary-button" [disabled]="saving" (click)="closeDialog()">Cancel</button>
-        <button type="submit" class="primary-button" [disabled]="supplierForm.invalid || saving">{{ saving ? 'Saving…' : 'Save supplier' }}</button>
+        <button type="button" class="secondary-button" [disabled]="saving" (click)="closeDialog()">{{ 'common.cancel' | translate }}</button>
+        <button type="submit" class="primary-button" [disabled]="supplierForm.invalid || saving">{{ saving ? ('orgAdmin.resourceConfiguration.saving' | translate) : ('orgAdmin.resourceConfiguration.saveSupplier' | translate) }}</button>
       </footer>
     </form>
   </section>
@@ -433,21 +432,20 @@
     </span>
 
     <h2 id="delete-configuration-title">
-      {{ deleteTarget.kind === 'supplier' ? 'Deactivate' : 'Delete' }} {{ deleteTarget.name }}?
+      {{ deleteTarget.kind === 'supplier' ? ('orgAdmin.resourceConfiguration.deactivate' | translate) : ('common.delete' | translate) }} {{ deleteTarget.name }}?
     </h2>
 
     <p *ngIf="deleteTarget.projectsUsing === 0">
       {{ deleteTarget.kind === 'supplier'
-        ? 'This supplier will be deactivated and retained for audit history.'
-        : 'This record will be permanently removed from the organisation configuration.' }}
+        ? ('orgAdmin.resourceConfiguration.supplierWillDeactivatedRetained' | translate)
+        : ('orgAdmin.resourceConfiguration.recordWillPermanentlyRemoved' | translate) }}
     </p>
 
     <p *ngIf="deleteTarget.projectsUsing > 0">
       <strong>
-        {{ deleteTarget.projectsUsing }} project(s)
+        {{ 'orgAdmin.resourceConfiguration.projectsusingProjectS' | translate: { projectsUsing: deleteTarget.projectsUsing } }}
       </strong>
-      currently use this record. Deletion will be rejected if those
-      references must be preserved.
+      {{ 'orgAdmin.resourceConfiguration.currentlyUseRecordDeletion' | translate }}
     </p>
 
     <footer>
@@ -457,7 +455,7 @@
         [disabled]="deleting"
         (click)="deleteTarget = null"
       >
-        Cancel
+        {{ 'common.cancel' | translate }}
       </button>
 
       <button
@@ -466,7 +464,7 @@
         [disabled]="deleting"
         (click)="confirmDelete()"
       >
-        {{ deleting ? (deleteTarget.kind === 'supplier' ? 'Deactivating…' : 'Deleting…') : (deleteTarget.kind === 'supplier' ? 'Deactivate' : 'Delete') }}
+        {{ deleting ? (deleteTarget.kind === 'supplier' ? ('orgAdmin.resourceConfiguration.deactivating' | translate) : ('orgAdmin.resourceConfiguration.deleting' | translate)) : (deleteTarget.kind === 'supplier' ? ('orgAdmin.resourceConfiguration.deactivate' | translate) : ('common.delete' | translate)) }}
       </button>
     </footer>
   </section>

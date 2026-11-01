@@ -6,6 +6,7 @@ import { OwnerKpi } from '../../models/owner-kpi.model';
 import { OwnerOrganisationSummary } from '../../models/owner-organisation-summary.model';
 import { OwnerProjectRow } from '../../models/owner-project-row.model';
 import { OwnerAlert } from '../../models/owner-alert.model';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 @Component({
   selector: 'app-owner-dashboard-page',
@@ -32,7 +33,8 @@ export class OwnerDashboardPageComponent implements OnInit {
 
   constructor(
     private ownerDashboardService: OwnerDashboardService,
-    private router: Router
+    private router: Router,
+    private readonly i18n: I18nService
   ) {}
 
   ngOnInit(): void {
@@ -76,7 +78,7 @@ export class OwnerDashboardPageComponent implements OnInit {
       },
       error: (error) => {
         console.error('Failed to load owner dashboard', error);
-        this.errorMessage = 'Failed to load owner dashboard data.';
+        this.errorMessage = this.i18n.t('owner.dashboard.failedLoadOwnerDashboard');
         this.loading = false;
       }
     });

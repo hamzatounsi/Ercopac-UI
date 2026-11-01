@@ -1,24 +1,24 @@
 <section class="permissions-page">
   <header class="page-header">
     <div>
-      <h1>User Permissions</h1>
+      <h1>{{ 'owner.permissions.userPermissions' | translate }}</h1>
       <p>
-        Select an organisation, choose a role, then control module access.
+        {{ 'owner.permissions.selectOrganisationChooseRole' | translate }}
       </p>
     </div>
 
     <div class="header-actions" *ngIf="selectedOrganisation && selectedRole">
-      <button class="grant-btn" type="button" (click)="grantAll()">✓ Grant All</button>
-      <button class="revoke-btn" type="button" (click)="revokeAll()">× Revoke All</button>
+      <button class="grant-btn" type="button" (click)="grantAll()">{{ 'owner.permissions.grantAll' | translate }}</button>
+      <button class="revoke-btn" type="button" (click)="revokeAll()">{{ 'owner.permissions.revokeAll' | translate }}</button>
       <button class="save-btn" type="button" (click)="save()" [disabled]="saving">
-        💾 {{ saving ? 'Saving...' : 'Save' }}
+        💾 {{ saving ? ('owner.permissions.saving' | translate) : ('common.save' | translate) }}
       </button>
     </div>
   </header>
 
   <div class="permissions-layout">
     <aside class="side-panel">
-      <div class="panel-title">Organisation</div>
+      <div class="panel-title">{{ 'common.organisation' | translate }}</div>
 
       <button
         type="button"
@@ -34,7 +34,7 @@
         </span>
       </button>
 
-      <div class="panel-title role-title">Select Role</div>
+      <div class="panel-title role-title">{{ 'owner.permissions.selectRole' | translate }}</div>
 
       <button
         type="button"
@@ -46,7 +46,7 @@
         <span class="role-avatar">{{ role.charAt(0) }}</span>
         <span>
           <strong>{{ roleLabel(role) }}</strong>
-          <small>Role permissions</small>
+          <small>{{ 'owner.permissions.rolePermissions' | translate }}</small>
         </span>
       </button>
     </aside>
@@ -57,7 +57,7 @@
 
         <div>
           <h2>{{ selectedOrganisation.name }}</h2>
-          <p>{{ selectedOrganisation.code }} · {{ selectedOrganisation.plan }} · {{ selectedOrganisation.status }}</p>
+          <p>{{ selectedOrganisation.code }} · {{ selectedOrganisation.plan }} · {{ 'common.orgStatus.' + selectedOrganisation.status | translate }}</p>
         </div>
 
         <div class="selected-role">
@@ -66,22 +66,22 @@
       </div>
 
       <div class="legend">
-        <span><i class="box full"></i> Full Access</span>
-        <span><i class="box read"></i> Read Only</span>
-        <span><i class="box none"></i> No Access</span>
-        <em>READ = view only · WRITE = create / edit / delete</em>
+        <span><i class="box full"></i> {{ 'owner.permissions.fullAccess' | translate }}</span>
+        <span><i class="box read"></i> {{ 'owner.permissions.readOnly' | translate }}</span>
+        <span><i class="box none"></i> {{ 'owner.permissions.noAccess' | translate }}</span>
+        <em>{{ 'owner.permissions.readViewOnlyWrite' | translate }}</em>
       </div>
 
       <div class="message error" *ngIf="errorMessage">{{ errorMessage }}</div>
       <div class="message success" *ngIf="successMessage">{{ successMessage }}</div>
 
-      <div class="loading" *ngIf="loading">Loading permissions...</div>
+      <div class="loading" *ngIf="loading">{{ 'owner.permissions.loadingPermissions' | translate }}</div>
 
       <section class="permission-group" *ngFor="let group of groupedPermissions()">
         <div class="group-header">
           <span>{{ group.group }}</span>
-          <strong>READ</strong>
-          <strong>WRITE</strong>
+          <strong>{{ 'owner.permissions.read' | translate }}</strong>
+          <strong>{{ 'owner.permissions.write' | translate }}</strong>
         </div>
 
         <div class="permission-row" *ngFor="let permission of group.items">

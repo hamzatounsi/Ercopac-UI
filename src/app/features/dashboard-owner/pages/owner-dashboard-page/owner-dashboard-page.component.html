@@ -7,58 +7,58 @@
       </div>
 
       <div class="brand-copy">
-        <div class="brand-title">PROJECTUM</div>
-        <div class="brand-subtitle">Control Tower</div>
+        <div class="brand-title">{{ 'owner.dashboard.projectum' | translate }}</div>
+        <div class="brand-subtitle">{{ 'owner.dashboard.controlTower' | translate }}</div>
       </div>
     </div>
 
     <nav class="sidebar-nav">
       <a class="nav-item active">
         <span class="material-symbols-outlined">space_dashboard</span>
-        <span>Dashboard</span>
+        <span>{{ 'owner.dashboard.dashboard' | translate }}</span>
       </a>
 
       <a class="nav-item" (click)="openResourcesConfig()">
         <span class="material-symbols-outlined">tune</span>
-        <span>Resources</span>
+        <span>{{ 'owner.dashboard.resources' | translate }}</span>
       </a>
 
       <a class="nav-item">
         <span class="material-symbols-outlined">apartment</span>
-        <span>Organisations</span>
+        <span>{{ 'owner.dashboard.organisations' | translate }}</span>
       </a>
 
       <a class="nav-item">
         <span class="material-symbols-outlined">folder_managed</span>
-        <span>Projects</span>
+        <span>{{ 'owner.dashboard.projects' | translate }}</span>
       </a>
 
       <a class="nav-item">
         <span class="material-symbols-outlined">group</span>
-        <span>Users</span>
+        <span>{{ 'owner.dashboard.users' | translate }}</span>
       </a>
 
       <a class="nav-item">
         <span class="material-symbols-outlined">warning</span>
-        <span>Alerts</span>
+        <span>{{ 'owner.dashboard.alerts' | translate }}</span>
       </a>
 
       <a class="nav-item">
         <span class="material-symbols-outlined">query_stats</span>
-        <span>Analytics</span>
+        <span>{{ 'owner.dashboard.analytics' | translate }}</span>
       </a>
 
       <a class="nav-item">
         <span class="material-symbols-outlined">settings</span>
-        <span>Settings</span>
+        <span>{{ 'owner.dashboard.settings' | translate }}</span>
       </a>
     </nav>
 
     <div class="sidebar-footer">
       <div class="platform-card">
-        <div class="platform-card-title">Platform Layer</div>
+        <div class="platform-card-title">{{ 'owner.dashboard.platformLayer' | translate }}</div>
         <div class="platform-card-text">
-          Multi-tenant executive workspace
+          {{ 'owner.dashboard.multiTenantExecutiveWorkspace' | translate }}
         </div>
       </div>
     </div>
@@ -70,8 +70,8 @@
     <header class="owner-topbar">
       <div class="topbar-left">
         <div class="page-copy">
-          <h1>SaaS Control Tower</h1>
-          <p>Platform Owner Workspace</p>
+          <h1>{{ 'owner.dashboard.saasControlTower' | translate }}</h1>
+          <p>{{ 'owner.dashboard.platformOwnerWorkspace' | translate }}</p>
         </div>
       </div>
 
@@ -80,7 +80,7 @@
           <span class="material-symbols-outlined">search</span>
           <input
             type="text"
-            placeholder="Search organisations, projects, users..."
+            [placeholder]="'owner.dashboard.searchOrganisationsProjectsUsers' | translate"
             [value]="searchTerm"
             (input)="onSearchChange($any($event.target).value)"
           />
@@ -92,19 +92,19 @@
 
         <button type="button" class="primary-btn" (click)="openCreateOrganisation()">
           <span class="material-symbols-outlined">add_business</span>
-          <span>Create Organisation</span>
+          <span>{{ 'owner.dashboard.createOrganisation' | translate }}</span>
         </button>
 
         <button type="button" class="primary-btn" (click)="openPlatformWorkspace()">
           <span class="material-symbols-outlined">hub</span>
-          <span>Open Workspace</span>
+          <span>{{ 'owner.dashboard.openWorkspace' | translate }}</span>
         </button>
       </div>
     </header>
 
     <!-- LOADING / ERROR -->
     <div class="state-box loading" *ngIf="loading">
-      Loading owner dashboard...
+      {{ 'owner.dashboard.loadingOwnerDashboard' | translate }}
     </div>
 
     <div class="state-box error" *ngIf="errorMessage">
@@ -117,25 +117,25 @@
         <article class="kpi-group-card">
           <div class="group-head">
             <div>
-              <div class="group-eyebrow">Platform Scale</div>
-              <h3>Tenant Footprint</h3>
+              <div class="group-eyebrow">{{ 'owner.dashboard.platformScale' | translate }}</div>
+              <h3>{{ 'owner.dashboard.tenantFootprint' | translate }}</h3>
             </div>
             <span class="material-symbols-outlined group-icon">apartment</span>
           </div>
 
           <div class="group-metrics">
             <div class="metric-tile">
-              <span class="metric-label">Organisations</span>
+              <span class="metric-label">{{ 'owner.dashboard.organisations' | translate }}</span>
               <strong>{{ k.totalOrganisations }}</strong>
             </div>
 
             <div class="metric-tile">
-              <span class="metric-label">Users</span>
+              <span class="metric-label">{{ 'owner.dashboard.users' | translate }}</span>
               <strong>{{ k.totalUsers }}</strong>
             </div>
 
             <div class="metric-tile">
-              <span class="metric-label">Projects</span>
+              <span class="metric-label">{{ 'owner.dashboard.projects' | translate }}</span>
               <strong>{{ k.totalProjects }}</strong>
             </div>
           </div>
@@ -144,25 +144,25 @@
         <article class="kpi-group-card">
           <div class="group-head">
             <div>
-              <div class="group-eyebrow">Execution Status</div>
-              <h3>Delivery Performance</h3>
+              <div class="group-eyebrow">{{ 'owner.dashboard.executionStatus' | translate }}</div>
+              <h3>{{ 'owner.dashboard.deliveryPerformance' | translate }}</h3>
             </div>
             <span class="material-symbols-outlined group-icon">monitoring</span>
           </div>
 
           <div class="group-metrics">
             <div class="metric-tile">
-              <span class="metric-label">Active</span>
+              <span class="metric-label">{{ 'owner.dashboard.active' | translate }}</span>
               <strong>{{ k.activeProjects }}</strong>
             </div>
 
             <div class="metric-tile">
-              <span class="metric-label">Completed</span>
+              <span class="metric-label">{{ 'owner.dashboard.completed' | translate }}</span>
               <strong>{{ k.completedProjects }}</strong>
             </div>
 
             <div class="metric-tile danger">
-              <span class="metric-label">Delayed</span>
+              <span class="metric-label">{{ 'owner.dashboard.delayed' | translate }}</span>
               <strong>{{ k.delayedProjects }}</strong>
             </div>
           </div>
@@ -171,25 +171,25 @@
         <article class="kpi-group-card risk">
           <div class="group-head">
             <div>
-              <div class="group-eyebrow">Risk Exposure</div>
-              <h3>Platform Attention</h3>
+              <div class="group-eyebrow">{{ 'owner.dashboard.riskExposure' | translate }}</div>
+              <h3>{{ 'owner.dashboard.platformAttention' | translate }}</h3>
             </div>
             <span class="material-symbols-outlined group-icon">warning</span>
           </div>
 
           <div class="group-metrics">
             <div class="metric-tile danger">
-              <span class="metric-label">Critical Projects</span>
+              <span class="metric-label">{{ 'owner.dashboard.criticalProjects' | translate }}</span>
               <strong>{{ k.criticalProjects }}</strong>
             </div>
 
             <div class="metric-tile">
-              <span class="metric-label">Health Watch</span>
+              <span class="metric-label">{{ 'owner.dashboard.healthWatch' | translate }}</span>
               <strong>{{ totalAlertCount }}</strong>
             </div>
 
             <div class="metric-tile">
-              <span class="metric-label">Executive Signals</span>
+              <span class="metric-label">{{ 'owner.dashboard.executiveSignals' | translate }}</span>
               <strong>{{ riskOrganisationCount }}</strong>
             </div>
           </div>
@@ -199,9 +199,9 @@
       <!-- ALERT STRIP -->
       <section class="alert-strip">
         <div class="strip-head">
-          <h2>Platform Signals</h2>
+          <h2>{{ 'owner.dashboard.platformSignals' | translate }}</h2>
           <button type="button" class="ghost-btn">
-            View Alert Center
+            {{ 'owner.dashboard.viewAlertCenter' | translate }}
           </button>
         </div>
 
@@ -226,7 +226,7 @@
 
         <ng-template #noPlatformAlerts>
           <div class="empty-inline">
-            No platform alerts detected.
+            {{ 'owner.dashboard.noPlatformAlertsDetected' | translate }}
           </div>
         </ng-template>
       </section>
@@ -237,8 +237,8 @@
         <article class="panel panel-lg">
           <div class="panel-head">
             <div>
-              <div class="panel-eyebrow">Tenant Operations</div>
-              <h2>Organisations Overview</h2>
+              <div class="panel-eyebrow">{{ 'owner.dashboard.tenantOperations' | translate }}</div>
+              <h2>{{ 'owner.dashboard.organisationsOverview' | translate }}</h2>
             </div>
 
             <div class="panel-actions">
@@ -248,7 +248,7 @@
                 [class.active]="organisationFilter === 'ALL'"
                 (click)="setOrganisationFilter('ALL')"
               >
-                All
+                {{ 'common.all' | translate }}
               </button>
 
               <button
@@ -257,7 +257,7 @@
                 [class.active]="organisationFilter === 'ACTIVE'"
                 (click)="setOrganisationFilter('ACTIVE')"
               >
-                Active
+                {{ 'owner.dashboard.active' | translate }}
               </button>
 
               <button
@@ -266,7 +266,7 @@
                 [class.active]="organisationFilter === 'RISK'"
                 (click)="setOrganisationFilter('RISK')"
               >
-                At Risk
+                {{ 'owner.dashboard.risk' | translate }}
               </button>
             </div>
           </div>
@@ -275,15 +275,15 @@
             <table class="enterprise-table">
               <thead>
                 <tr>
-                  <th>Organisation</th>
-                  <th>Users</th>
-                  <th>Projects</th>
-                  <th>Active</th>
-                  <th>Delayed</th>
-                  <th>Critical</th>
-                  <th>Health</th>
-                  <th>Status</th>
-                  <th class="actions-col">Action</th>
+                  <th>{{ 'common.organisation' | translate }}</th>
+                  <th>{{ 'owner.dashboard.users' | translate }}</th>
+                  <th>{{ 'owner.dashboard.projects' | translate }}</th>
+                  <th>{{ 'owner.dashboard.active' | translate }}</th>
+                  <th>{{ 'owner.dashboard.delayed' | translate }}</th>
+                  <th>{{ 'owner.dashboard.critical' | translate }}</th>
+                  <th>{{ 'owner.dashboard.health' | translate }}</th>
+                  <th>{{ 'common.status' | translate }}</th>
+                  <th class="actions-col">{{ 'owner.dashboard.action' | translate }}</th>
                 </tr>
               </thead>
 
@@ -296,7 +296,7 @@
                       </div>
                       <div class="entity-text">
                         <strong>{{ org.organisationName }}</strong>
-                        <span>Tenant workspace</span>
+                        <span>{{ 'owner.dashboard.tenantWorkspace' | translate }}</span>
                       </div>
                     </div>
                   </td>
@@ -318,18 +318,18 @@
                       class="status-badge"
                       [ngClass]="org.criticalProjects > 0 ? 'warning' : 'active'"
                     >
-                      {{ org.criticalProjects > 0 ? 'Attention' : 'Stable' }}
+                      {{ org.criticalProjects > 0 ? ('owner.dashboard.attention' | translate) : ('owner.dashboard.stable' | translate) }}
                     </span>
                   </td>
 
                   <td class="actions-col">
-                    <button type="button" class="row-action-btn">View</button>
+                    <button type="button" class="row-action-btn">{{ 'owner.dashboard.view' | translate }}</button>
                   </td>
                 </tr>
 
                 <tr *ngIf="filteredOrganisations.length === 0">
                   <td colspan="9" class="empty-cell">
-                    No organisations available.
+                    {{ 'owner.dashboard.noOrganisationsAvailable' | translate }}
                   </td>
                 </tr>
               </tbody>
@@ -341,8 +341,8 @@
         <aside class="panel side-panel">
           <div class="panel-head">
             <div>
-              <div class="panel-eyebrow">Executive Focus</div>
-              <h2>Risk Intelligence</h2>
+              <div class="panel-eyebrow">{{ 'owner.dashboard.executiveFocus' | translate }}</div>
+              <h2>{{ 'owner.dashboard.riskIntelligence' | translate }}</h2>
             </div>
           </div>
 
@@ -350,26 +350,25 @@
             <div class="risk-card">
               <div class="risk-card-head">
                 <span class="material-symbols-outlined">warning</span>
-                <strong>Critical Exposure</strong>
+                <strong>{{ 'owner.dashboard.criticalExposure' | translate }}</strong>
               </div>
               <p>
-                Monitor tenants with delayed or red health projects across the
-                platform.
+                {{ 'owner.dashboard.monitorTenantsDelayedRed' | translate }}
               </p>
             </div>
 
             <div class="mini-stat danger">
-              <span class="mini-stat-label">Critical Projects</span>
+              <span class="mini-stat-label">{{ 'owner.dashboard.criticalProjects' | translate }}</span>
               <strong>{{ kpis?.criticalProjects || 0 }}</strong>
             </div>
 
             <div class="mini-stat amber">
-              <span class="mini-stat-label">Alerts Raised</span>
+              <span class="mini-stat-label">{{ 'owner.dashboard.alertsRaised' | translate }}</span>
               <strong>{{ totalAlertCount }}</strong>
             </div>
 
             <div class="risk-list">
-              <div class="risk-list-title">Top Signals</div>
+              <div class="risk-list-title">{{ 'owner.dashboard.topSignals' | translate }}</div>
 
               <div
                 class="risk-line"
@@ -383,17 +382,17 @@
               </div>
 
               <div class="empty-inline" *ngIf="visibleAlerts.length === 0">
-                No high-priority platform signals.
+                {{ 'owner.dashboard.noHighPriorityPlatform' | translate }}
               </div>
             </div>
 
             <div class="quick-actions">
               <button type="button" class="primary-btn full">
-                Review Organisations
+                {{ 'owner.dashboard.reviewOrganisations' | translate }}
               </button>
 
               <button type="button" class="secondary-btn full">
-                Open Global Projects
+                {{ 'owner.dashboard.openGlobalProjects' | translate }}
               </button>
             </div>
           </div>
@@ -404,8 +403,8 @@
       <section class="panel">
         <div class="panel-head">
           <div>
-            <div class="panel-eyebrow">Cross-Tenant Portfolio</div>
-            <h2>Global Projects Monitor</h2>
+            <div class="panel-eyebrow">{{ 'owner.dashboard.crossTenantPortfolio' | translate }}</div>
+            <h2>{{ 'owner.dashboard.globalProjectsMonitor' | translate }}</h2>
           </div>
 
           <div class="panel-actions">
@@ -415,7 +414,7 @@
               [class.active]="projectFilter === 'ALL'"
               (click)="setProjectFilter('ALL')"
             >
-              All Projects
+              {{ 'owner.dashboard.allProjects' | translate }}
             </button>
 
             <button
@@ -424,7 +423,7 @@
               [class.active]="projectFilter === 'DELAYED'"
               (click)="setProjectFilter('DELAYED')"
             >
-              Delayed
+              {{ 'owner.dashboard.delayed' | translate }}
             </button>
 
             <button
@@ -433,7 +432,7 @@
               [class.active]="projectFilter === 'CRITICAL'"
               (click)="setProjectFilter('CRITICAL')"
             >
-              Critical
+              {{ 'owner.dashboard.critical' | translate }}
             </button>
 
             <button
@@ -442,7 +441,7 @@
               [class.active]="projectFilter === 'ACTIVE'"
               (click)="setProjectFilter('ACTIVE')"
             >
-              Active
+              {{ 'owner.dashboard.active' | translate }}
             </button>
           </div>
         </div>
@@ -451,15 +450,15 @@
           <table class="enterprise-table">
             <thead>
               <tr>
-                <th>Code</th>
-                <th>Project</th>
-                <th>Organisation</th>
-                <th>Start</th>
-                <th>End</th>
-                <th>Progress</th>
-                <th>Status</th>
-                <th>Health</th>
-                <th class="actions-col">Action</th>
+                <th>{{ 'owner.dashboard.code' | translate }}</th>
+                <th>{{ 'owner.dashboard.project' | translate }}</th>
+                <th>{{ 'common.organisation' | translate }}</th>
+                <th>{{ 'owner.dashboard.start' | translate }}</th>
+                <th>{{ 'owner.dashboard.end' | translate }}</th>
+                <th>{{ 'owner.dashboard.progress' | translate }}</th>
+                <th>{{ 'common.status' | translate }}</th>
+                <th>{{ 'owner.dashboard.health' | translate }}</th>
+                <th class="actions-col">{{ 'owner.dashboard.action' | translate }}</th>
               </tr>
             </thead>
 
@@ -476,7 +475,7 @@
                     </div>
                     <div class="entity-text">
                       <strong>{{ project.projectName }}</strong>
-                      <span>Cross-tenant execution view</span>
+                      <span>{{ 'owner.dashboard.crossTenantExecutionView' | translate }}</span>
                     </div>
                   </div>
                 </td>
@@ -515,14 +514,14 @@
                     class="row-action-btn"
                     (click)="openProjectDetails(project.projectId)"
                   >
-                    View
+                    {{ 'owner.dashboard.view' | translate }}
                   </button>
                 </td>
               </tr>
 
               <tr *ngIf="filteredProjects.length === 0">
                 <td colspan="9" class="empty-cell">
-                  No global projects available.
+                  {{ 'owner.dashboard.noGlobalProjectsAvailable' | translate }}
                 </td>
               </tr>
             </tbody>
@@ -535,8 +534,8 @@
         <article class="panel insight-card">
           <div class="panel-head compact">
             <div>
-              <div class="panel-eyebrow">Distribution</div>
-              <h2>Organisation Footprint</h2>
+              <div class="panel-eyebrow">{{ 'owner.dashboard.distribution' | translate }}</div>
+              <h2>{{ 'owner.dashboard.organisationFootprint' | translate }}</h2>
             </div>
           </div>
 
@@ -548,31 +547,31 @@
               <span></span>
               <span></span>
             </div>
-            <p>Reserved for organisation distribution analytics.</p>
+            <p>{{ 'owner.dashboard.reservedOrganisationDistributionAnalytics' | translate }}</p>
           </div>
         </article>
 
         <article class="panel insight-card">
           <div class="panel-head compact">
             <div>
-              <div class="panel-eyebrow">Health Mix</div>
-              <h2>Portfolio Health Distribution</h2>
+              <div class="panel-eyebrow">{{ 'owner.dashboard.healthMix' | translate }}</div>
+              <h2>{{ 'owner.dashboard.portfolioHealthDistribution' | translate }}</h2>
             </div>
           </div>
 
           <div class="insight-placeholder">
             <div class="placeholder-ring">
-              <div class="ring-core">Health</div>
+              <div class="ring-core">{{ 'owner.dashboard.health' | translate }}</div>
             </div>
-            <p>Reserved for green / amber / red platform insights.</p>
+            <p>{{ 'owner.dashboard.reservedGreenAmberRed' | translate }}</p>
           </div>
         </article>
 
         <article class="panel insight-card">
           <div class="panel-head compact">
             <div>
-              <div class="panel-eyebrow">Trendline</div>
-              <h2>Delivery Momentum</h2>
+              <div class="panel-eyebrow">{{ 'owner.dashboard.trendline' | translate }}</div>
+              <h2>{{ 'owner.dashboard.deliveryMomentum' | translate }}</h2>
             </div>
           </div>
 
@@ -580,7 +579,7 @@
             <div class="placeholder-line">
               <span></span>
             </div>
-            <p>Reserved for delayed vs completed trend analytics.</p>
+            <p>{{ 'owner.dashboard.reservedDelayedVsCompleted' | translate }}</p>
           </div>
         </article>
       </section>

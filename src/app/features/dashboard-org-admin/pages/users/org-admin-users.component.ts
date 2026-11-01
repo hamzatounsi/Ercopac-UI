@@ -10,8 +10,9 @@ import {
   OrganisationUser,
   SaveOrganisationUser
 } from '../../models/org-admin.models';
-import { adminErrorMessage, OrgAdminService } from '../../services/org-admin.service';
+import { OrgAdminService } from '../../services/org-admin.service';
 import { AdminToastService } from '../../shared/admin-toast.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 @Component({ selector: 'app-org-admin-users', templateUrl: './org-admin-users.component.html', styleUrls: ['./org-admin-users.component.scss'] })
 export class OrgAdminUsersComponent implements OnInit, OnDestroy {
@@ -60,7 +61,8 @@ export class OrgAdminUsersComponent implements OnInit, OnDestroy {
     private readonly fb: FormBuilder,
     private readonly service: OrgAdminService,
     private readonly toast: AdminToastService,
-    authService: AuthService
+    authService: AuthService,
+    private readonly i18n: I18nService
   ) { this.currentUserId = authService.getCurrentUserId(); }
  requestDelete(user: OrganisationUser): void { 
     this.pendingDeleteUser = user; 
@@ -74,14 +76,14 @@ export class OrgAdminUsersComponent implements OnInit, OnDestroy {
     this.saving = true;
     this.service.deleteUser(user.id).pipe(finalize(() => this.saving = false)).subscribe({
       next: () => { 
-        this.toast.show('User account deactivated successfully.'); 
+        this.toast.show(this.i18n.t('orgAdmin.users.userAccountDeactivatedSuccessfully')); 
         this.pendingDeleteUser = null; 
         // ✅ FORCER LE RAFRAÎCHISSEMENT DE LA LISTE
         this.loadUsers(); 
       },
       error: error => { 
         this.pendingDeleteUser = null; 
-        this.toast.show(adminErrorMessage(error, 'Could not delete the user account.'), 'error'); 
+        this.toast.show(this.i18n.error(error, 'orgAdmin.users.deleteUserAccount'), 'error'); 
       }
     });
   }
@@ -109,7 +111,7 @@ export class OrgAdminUsersComponent implements OnInit, OnDestroy {
     forkJoin({ departments: this.service.getDepartments(), resourceTypes: this.service.getResourceTypes(), roles: this.service.getRoles() })
       .pipe(finalize(() => this.loading = false)).subscribe({
         next: result => { this.departments = result.departments; this.resourceTypes = result.resourceTypes; this.roles = result.roles; this.loadUsers(); },
-        error: error => this.errorMessage = adminErrorMessage(error, 'Could not load user administration data.')
+        error: error => this.errorMessage = this.i18n.error(error, 'orgAdmin.users.loadUserAdministrationData')
       });
   }
 
@@ -125,7 +127,7 @@ export class OrgAdminUsersComponent implements OnInit, OnDestroy {
       page: this.page, size: this.size, sort: this.sort, direction: this.direction
     }).pipe(finalize(() => this.loadingUsers = false)).subscribe({
       next: response => { this.users = response.content; this.page = response.page; this.totalElements = response.totalElements; this.totalPages = response.totalPages; },
-      error: error => this.errorMessage = adminErrorMessage(error, 'Could not load organisation users.')
+      error: error => this.errorMessage = this.i18n.error(error, 'orgAdmin.users.loadOrganisationUsers')
     });
   }
 
@@ -199,13 +201,13 @@ saveUser(): void {
     
   request.pipe(finalize(() => this.saving = false)).subscribe({
     next: () => {
-      this.toast.show(this.editingUser ? 'User account updated.' : 'User account created.');
+      this.toast.show(this.editingUser ? this.i18n.t('orgAdmin.users.userAccountUpdated') : this.i18n.t('orgAdmin.users.userAccountCreated'));
       this.drawerOpen = false;
       this.editingUser = null;
       this.showPassword = false; // ✅ Réinitialiser
       this.loadUsers();
     },
-    error: error => this.formError = adminErrorMessage(error, 'Could not save the user account.')
+    error: error => this.formError = this.i18n.error(error, 'orgAdmin.users.saveUserAccount')
   });
 }
 
@@ -214,8 +216,8 @@ saveUser(): void {
     const user = this.pendingStatusUser; if (!user || this.saving) return;
     this.saving = true;
     this.service.updateUserStatus(user.id, !user.active).pipe(finalize(() => this.saving = false)).subscribe({
-      next: () => { this.toast.show(user.active ? 'User account deactivated.' : 'User account activated.'); this.pendingStatusUser = null; this.loadUsers(); },
-      error: error => { this.pendingStatusUser = null; this.toast.show(adminErrorMessage(error, 'Could not update the account status.'), 'error'); }
+      next: () => { this.toast.show(user.active ? this.i18n.t('orgAdmin.users.userAccountDeactivated') : this.i18n.t('orgAdmin.users.userAccountActivated')); this.pendingStatusUser = null; this.loadUsers(); },
+      error: error => { this.pendingStatusUser = null; this.toast.show(this.i18n.error(error, 'orgAdmin.users.updateAccountStatus'), 'error'); }
     });
   }
 
@@ -223,7 +225,11 @@ saveUser(): void {
   previousPage(): void { if (this.page > 0) { this.page--; this.loadUsers(); } }
   nextPage(): void { if (this.page + 1 < this.totalPages) { this.page++; this.loadUsers(); } }
   trackUser(_index: number, user: OrganisationUser): number { return user.id; }
-  roleLabel(role: OrganisationRole): string { return this.roles.find(item => item.role === role)?.label || role.replace(/_/g, ' '); }
+  roleLabel(role: OrganisationRole): string {
+    const key = `roles.${role}`;
+    const label = this.i18n.t(key);
+    return label !== key ? label : this.roles.find(item => item.role === role)?.label || role.replace(/_/g, ' ');
+  }
   toggleRole(role: OrganisationRole, checked: boolean): void {
     const selected = new Set(this.userForm.controls.roles.value);
     checked ? selected.add(role) : selected.delete(role);

@@ -1,31 +1,31 @@
 <section class="enterprise-module-page">
   <header class="enterprise-module-header">
     <div>
-      <div class="enterprise-eyebrow">Platform configuration</div>
-      <h1>Platform Settings</h1>
-      <p>Global configuration for platform identity, security defaults, tenant feature flags and operational policies.</p>
+      <div class="enterprise-eyebrow">{{ 'owner.settings.platformConfiguration' | translate }}</div>
+      <h1>{{ 'owner.settings.platformSettings' | translate }}</h1>
+      <p>{{ 'owner.settings.globalConfigurationPlatformIdentity' | translate }}</p>
     </div>
-    <span class="enterprise-status-pill"><span class="material-symbols-outlined">settings</span> Controlled rollout</span>
+    <span class="enterprise-status-pill"><span class="material-symbols-outlined">settings</span> {{ 'owner.settings.controlledRollout' | translate }}</span>
   </header>
 
   <div class="enterprise-panel-grid">
     <article class="enterprise-panel">
-      <h2>Settings governance</h2>
-      <p>Global platform settings affect all organisations. Editing should be enabled only after audit logging, validation and rollback rules are implemented.</p>
+      <h2>{{ 'owner.settings.settingsGovernance' | translate }}</h2>
+      <p>{{ 'owner.settings.globalPlatformSettingsAffect' | translate }}</p>
       <div class="enterprise-metric-row">
-        <div class="enterprise-metric-card"><span>Security</span><strong>Policies</strong></div>
-        <div class="enterprise-metric-card"><span>Tenants</span><strong>Flags</strong></div>
-        <div class="enterprise-metric-card"><span>Audit</span><strong>Required</strong></div>
+        <div class="enterprise-metric-card"><span>{{ 'owner.settings.security' | translate }}</span><strong>{{ 'owner.settings.policies' | translate }}</strong></div>
+        <div class="enterprise-metric-card"><span>{{ 'owner.settings.tenants' | translate }}</span><strong>{{ 'owner.settings.flags' | translate }}</strong></div>
+        <div class="enterprise-metric-card"><span>{{ 'owner.settings.audit' | translate }}</span><strong>{{ 'common.required' | translate }}</strong></div>
       </div>
     </article>
 
     <aside class="enterprise-checklist">
-      <h2>Controls to add</h2>
+      <h2>{{ 'owner.settings.controlsAdd' | translate }}</h2>
       <ul>
-        <li>Feature flags per organisation.</li>
-        <li>Password and session policy settings.</li>
-        <li>AI availability and model settings.</li>
-        <li>Change audit and rollback history.</li>
+        <li>{{ 'owner.settings.featureFlagsPerOrganisation' | translate }}</li>
+        <li>{{ 'owner.settings.passwordSessionPolicySettings' | translate }}</li>
+        <li>{{ 'owner.settings.aiAvailabilityModelSettings' | translate }}</li>
+        <li>{{ 'owner.settings.changeAuditRollbackHistory' | translate }}</li>
       </ul>
     </aside>
   </div>

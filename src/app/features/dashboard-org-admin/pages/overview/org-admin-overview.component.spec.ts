@@ -1,8 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 import { OrgAdminService } from '../../services/org-admin.service';
 import { OrgAdminOverviewComponent } from './org-admin-overview.component';
+import en from 'src/assets/i18n/en.json';
 
 describe('OrgAdminOverviewComponent', () => {
   let fixture: ComponentFixture<OrgAdminOverviewComponent>;
@@ -16,10 +18,13 @@ describe('OrgAdminOverviewComponent', () => {
       configurationWarnings: []
     }));
     await TestBed.configureTestingModule({
-      imports: [RouterTestingModule],
+      imports: [RouterTestingModule, TranslateModule.forRoot()],
       declarations: [OrgAdminOverviewComponent],
       providers: [{ provide: OrgAdminService, useValue: service }]
     }).compileComponents();
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('en', en);
+    translate.use('en');
     fixture = TestBed.createComponent(OrgAdminOverviewComponent);
     fixture.detectChanges();
   });
