@@ -8,8 +8,8 @@
   width: 38px;
   height: 38px;
   border-radius: 9px;
-  border: 1px solid #cbd5e1;
-  background: white;
+  border: 1px solid var(--pm-border-strong);
+  background: var(--pm-surface);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -17,7 +17,7 @@
 }
 
 .hdr-bell-btn:hover {
-  border-color: #1565c0;
+  border-color: var(--pm-primary);
 }
 
 .hdr-bell-badge {
@@ -28,8 +28,8 @@
   height: 16px;
   padding: 0 4px;
   border-radius: 999px;
-  background: #dc2626;
-  color: white;
+  background: var(--pm-danger);
+  color: var(--pm-on-accent);
   font-size: 9px;
   font-weight: 900;
   display: flex;
@@ -42,8 +42,8 @@
   top: calc(100% + 8px);
   right: 0;
   width: min(360px, calc(100vw - 32px));
-  background: white;
-  border: 1px solid #cbd5e1;
+  background: var(--pm-surface);
+  border: 1px solid var(--pm-border-strong);
   border-radius: 14px;
   box-shadow: 0 14px 36px rgba(15, 23, 42, .16);
   z-index: 1000;
@@ -52,7 +52,7 @@
 
 .hdr-bell-hdr {
   padding: 12px 14px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--pm-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -63,7 +63,7 @@
 .hdr-bell-mark-all {
   border: none;
   background: transparent;
-  color: #1565c0;
+  color: var(--pm-primary-text);
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
@@ -77,22 +77,22 @@
 .hdr-bell-empty {
   padding: 24px;
   text-align: center;
-  color: #64748b;
+  color: var(--pm-text-muted);
   font-size: 12px;
 }
 
 .hdr-bell-item {
   padding: 12px 14px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--pm-border);
   cursor: pointer;
 }
 
 .hdr-bell-item:hover {
-  background: #f8fafc;
+  background: var(--pm-surface-muted);
 }
 
 .hdr-bell-item.unread {
-  background: #eff6ff;
+  background: var(--pm-primary-soft);
 }
 
 .hdr-bell-item-top {
@@ -111,18 +111,18 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #1565c0;
+  background: var(--pm-primary);
   flex-shrink: 0;
 }
 
 .hdr-bell-item-msg {
   margin-top: 4px;
   font-size: 11px;
-  color: #64748b;
+  color: var(--pm-text-muted);
 }
 
 .hdr-bell-item-time {
   margin-top: 4px;
   font-size: 10px;
-  color: #94a3b8;
+  color: var(--pm-text-soft);
 }

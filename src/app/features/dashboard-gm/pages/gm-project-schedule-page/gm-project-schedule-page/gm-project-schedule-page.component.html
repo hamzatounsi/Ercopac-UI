@@ -235,7 +235,7 @@
     [ngModel]="getSelectedMilestoneCode(task)"
     [ngModelOptions]="{ standalone: true }"
     (ngModelChange)="onMilestoneTypeSelect(task, $event)"
-    style="flex: 1; padding: 2px 4px; border: 1px solid #d1d5db; border-radius: 3px; font-size: 12px;"
+    style="flex: 1; padding: 2px 4px; border: 1px solid var(--pm-border-strong); border-radius: 3px; font-size: 12px;"
   >
     <option [ngValue]="null">-- Select milestone --</option>
    <option *ngFor="let mt of milestoneTypes" [value]="mt.code" [style.background]="mt.color">
@@ -1127,22 +1127,22 @@
                 
                 <!-- ✅ IMPROVED: More Visible Color Picker -->
                 <div style="display: flex; align-items: center; gap: 8px;">
-                  <label style="font-size: 12px; color: #6b7280;">Color:</label>
+                  <label style="font-size: 12px; color: var(--pm-text-muted);">Color:</label>
                   <input type="color" [(ngModel)]="newMilestoneType.color" 
-                         style="width: 50px; height: 36px; border: 2px solid #d1d5db; border-radius: 6px; cursor: pointer;" 
+                         style="width: 50px; height: 36px; border: 2px solid var(--pm-border-strong); border-radius: 6px; cursor: pointer;" 
                          title="Click to choose milestone color" />
                 </div>
                 
                 <button type="button" class="primary-action-btn" (click)="saveNewMilestoneType()">Add milestone</button>
               </div>
-              <div style="font-size: 11px; color: #6b7280; margin-top: 8px; padding-left: 4px;">
+              <div style="font-size: 11px; color: var(--pm-text-muted); margin-top: 8px; padding-left: 4px;">
                 💡 Tip: Click "Load Defaults" to add all 13 standard milestones (RT, KOM, FAT, SPEDIZIONE, etc.) with their colors
               </div>
             </div>
 
             <!-- List of Milestones -->
             <div class="drawer-list-card" *ngFor="let mt of visibleMilestoneTypes">
-              <div class="calendar-avatar" [style.background]="mt.color" style="color: white; font-weight: bold; display: flex; align-items: center; justify-content: center;">
+              <div class="calendar-avatar" [style.background]="mt.color" style="color: var(--pm-on-accent); font-weight: bold; display: flex; align-items: center; justify-content: center;">
                 {{ mt.letterCode || mt.code }}
               </div>
               <div class="list-card-main" *ngIf="editingMilestoneType?.id !== mt.id; else editMilestoneType">

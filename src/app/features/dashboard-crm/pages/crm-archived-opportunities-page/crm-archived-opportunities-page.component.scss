@@ -6,7 +6,7 @@
 
 .icon-btn {
   background: transparent;
-  border: 1px solid var(--pm-border, #e2e8f0);
+  border: 1px solid var(--pm-border, var(--pm-border));
   border-radius: 6px;
   padding: 6px;
   cursor: pointer;
@@ -14,18 +14,18 @@
   align-items: center;
   justify-content: center;
   
-  &:hover { background: #f1f5f9; }
+  &:hover { background: var(--pm-surface-muted); }
   
   &.btn-restore { 
-    color: #059669; 
-    border-color: #059669; 
-    &:hover { background: #d1fae5; } 
+    color: var(--pm-info-text); 
+    border-color: var(--pm-info); 
+    &:hover { background: var(--pm-success-soft); } 
   }
   
   &.btn-delete { 
-    color: #dc3545; 
-    border-color: #dc3545; 
-    &:hover { background: #fee2e2; } 
+    color: var(--pm-danger-text); 
+    border-color: var(--pm-danger); 
+    &:hover { background: var(--pm-danger-soft); } 
   }
 }
 

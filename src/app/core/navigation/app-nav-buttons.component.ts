@@ -24,9 +24,9 @@ import { Subscription } from 'rxjs';
   `,
   styles: [`
     :host { display:inline-flex; align-items:center; gap:8px; flex-shrink:0; }
-    .nav-btn { display:inline-flex; align-items:center; gap:5px; height:32px; padding:0 11px; border:1px solid rgba(0,0,0,.12);
-      border-radius:7px; background:#fff; color:#374151; font:inherit; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; }
-    .nav-btn:hover { background:#f3f4f6; color:#111827; }
+    .nav-btn { display:inline-flex; align-items:center; gap:5px; height:32px; padding:0 11px; border:1px solid var(--pm-border);
+      border-radius:7px; background:var(--pm-surface); color:var(--pm-text); font:inherit; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; }
+    .nav-btn:hover { background:var(--pm-surface-muted); color:var(--pm-text); }
     .nav-btn .material-symbols-outlined { font-size:17px; }
   `]
 })

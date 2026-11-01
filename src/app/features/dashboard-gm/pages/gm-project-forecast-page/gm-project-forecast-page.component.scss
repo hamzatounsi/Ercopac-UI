@@ -14,8 +14,8 @@
   --txt3: var(--pm-text-soft);
   --accent: var(--pm-primary);
   --accent-dark: var(--pm-primary-strong);
-  --green: #16a34a;
-  --red: #dc2626;
+  --green: var(--pm-success-text);
+  --red: var(--pm-danger-text);
   --blue-strip: var(--pm-primary-strong);
 
   height: 100dvh;
@@ -30,7 +30,7 @@
 
 #app-hdr {
   height: 58px;
-  background: #ffffff;
+  background: var(--pm-surface);
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
@@ -50,7 +50,7 @@
   font-size: 16px;
   font-weight: 900;
   line-height: 1;
-  color: #214a8a;
+  color: var(--pm-primary-text);
 }
 
 .app-name span {
@@ -59,7 +59,7 @@
 
 .app-sub {
   font-size: 10px;
-  color: #5679b5;
+  color: var(--pm-primary-text);
   margin-top: 2px;
   font-style: italic;
 }
@@ -75,9 +75,9 @@
   height: 30px;
   padding: 0 14px;
   border-radius: 16px;
-  border: 1px solid #dbe3ec;
-  background: #ffffff;
-  color: #50627d;
+  border: 1px solid var(--pm-primary-border);
+  background: var(--pm-surface);
+  color: var(--pm-text-muted);
   font-size: 12px;
   font-weight: 600;
   display: inline-flex;
@@ -90,12 +90,12 @@
 
 .nav-pill.active {
   background: var(--pm-primary);
-  color: white;
+  color: var(--pm-on-accent);
   border-color: var(--pm-primary);
 }
 
 #toolbar {
-  background: #ffffff;
+  background: var(--pm-surface);
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
@@ -116,7 +116,7 @@
   border: 1px solid var(--border2);
   border-radius: 8px;
   overflow: hidden;
-  background: white;
+  background: var(--pm-surface);
 }
 
 .tb-btn,
@@ -125,7 +125,7 @@
 .tb-icon-btn {
   height: 32px;
   border: 1px solid var(--border2);
-  background: white;
+  background: var(--pm-surface);
   color: var(--txt);
   padding: 0 12px;
   font-size: 12px;
@@ -147,8 +147,8 @@
 }
 
 .tb-btn.on {
-  background: linear-gradient(#2578dc, #1762c0);
-  color: white;
+  background: linear-gradient(var(--pm-primary), var(--pm-primary));
+  color: var(--pm-on-accent);
 }
 
 .tb-icon-btn {
@@ -200,15 +200,15 @@
   height: 32px;
   min-width: 92px;
   border-radius: 9px;
-  border: 1px solid #63c27a;
-  background: white;
-  color: #19733d;
+  border: 1px solid var(--pm-success);
+  background: var(--pm-surface);
+  color: var(--pm-success-text);
   font-weight: 700;
   cursor: pointer;
 }
 
 .project-strip {
-  background: #ffffff;
+  background: var(--pm-surface);
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
@@ -219,7 +219,7 @@
 .project-label {
   font-size: 12px;
   font-weight: 700;
-  color: #344256;
+  color: var(--pm-text);
   white-space: nowrap;
 }
 
@@ -227,14 +227,14 @@
   flex: 1;
   min-width: 260px;
   height: 34px;
-  border: 1px solid #dbe3ec;
-  background: #f8fafc;
+  border: 1px solid var(--pm-primary-border);
+  background: var(--pm-surface-muted);
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 12px;
-  color: #214a8a;
+  color: var(--pm-primary-text);
   font-weight: 700;
 }
 
@@ -245,14 +245,14 @@
 }
 
 .project-caret {
-  color: #62748a;
+  color: var(--pm-text-muted);
 }
 
 .project-chip {
   padding: 7px 12px;
   border-radius: 999px;
-  background: #dbeafe;
-  color: #214a8a;
+  background: var(--pm-primary-soft);
+  color: var(--pm-primary-text);
   font-weight: 700;
   white-space: nowrap;
 }
@@ -262,7 +262,7 @@
 .empty-box {
   margin: 12px 16px;
   padding: 18px;
-  background: white;
+  background: var(--pm-surface);
   border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--txt2);
@@ -282,7 +282,7 @@
 
 #wbs-panel,
 #cal-panel {
-  background: white;
+  background: var(--pm-surface);
   border: 1px solid var(--border);
   min-height: 0;
   display: flex;
@@ -300,7 +300,7 @@
 
 /* ✅ HEADER WBS - 2 niveaux (spacer + hdr-row) pour égaler le calendrier */
 #wbs-panel-hdr {
-  background: #eef2f6;
+  background: var(--pm-surface-sunken);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
@@ -313,7 +313,7 @@
 /* ✅ SPACER : égale la hauteur de year-strip (33px) */
 .wbs-year-spacer {
   height: 33px;
-  background: #eef2f6;
+  background: var(--pm-surface-sunken);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
@@ -331,7 +331,7 @@
 .hdr-cell {
   font-size: 11px;
   font-weight: 800;
-  color: #53657e;
+  color: var(--pm-text-muted);
   letter-spacing: .06em;
   padding: 0 10px;
 }
@@ -343,8 +343,8 @@
   width: 1150px;
   align-items: center;
   height: 43px;
-  border-bottom: 1px solid #e7edf4;
-  background: white;
+  border-bottom: 1px solid var(--pm-border);
+  background: var(--pm-surface);
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -377,7 +377,7 @@
 
 .mono {
   font-family: Consolas, monospace;
-  color: #2a63b8;
+  color: var(--pm-primary-text);
   font-size: 12px;
   font-weight: 600;
 }
@@ -388,7 +388,7 @@
 
 .icon-cell {
   justify-content: center;
-  color: #f1b81c;
+  color: var(--pm-warning-text);
 }
 
 .type-cell {
@@ -401,7 +401,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #26354d;
+  color: var(--pm-text);
   font-weight: 600;
 }
 
@@ -415,18 +415,18 @@
 }
 
 .type-badge.hours {
-  background: #ede9fe;
-  color: #6d28d9;
+  background: var(--pm-accent-soft);
+  color: var(--pm-accent-text);
 }
 
 .type-badge.cost {
-  background: #fef3c7;
-  color: #b45309;
+  background: var(--pm-warning-soft);
+  color: var(--pm-warning-text);
 }
 
 .type-badge.summary {
-  background: #e2e8f0;
-  color: #334155;
+  background: var(--pm-surface-sunken);
+  color: var(--pm-text);
 }
 
 .money {
@@ -436,7 +436,7 @@
 }
 
 .actual-cell {
-  color: #0f88b7;
+  color: var(--pm-info-text);
 }
 
 /* Level Cell */
@@ -451,9 +451,9 @@
   justify-content: center;
   width: 32px;
   height: 26px;
-  background: #f1f5f9;
-  color: #334155;
-  border: 1px solid #e2e8f0;
+  background: var(--pm-surface-muted);
+  color: var(--pm-text);
+  border: 1px solid var(--pm-border);
   border-radius: 6px;
   font-size: 12px;
   font-weight: 700;
@@ -462,13 +462,13 @@
 
 /* Remaining Classique */
 .remaining-cell {
-  color: #16a34a;
+  color: var(--pm-success-text);
 }
 
 /* Remaining Schedule - Compact */
 .col-remaining-schedule {
-  background: #f0f9ff;
-  border-left: 1px solid #e0f2fe;
+  background: var(--pm-surface-muted);
+  border-left: 1px solid var(--pm-primary-border);
 }
 
 .remaining-schedule-wrap {
@@ -482,13 +482,13 @@
 .remaining-schedule-cost {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: #0f88b7;
+  color: var(--pm-info-text);
   font-size: 12px;
 }
 
 .remaining-schedule-hint {
   font-size: 9px;
-  color: #888;
+  color: var(--pm-text-soft);
   font-weight: 500;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
@@ -510,7 +510,7 @@
 /* ✅ year-strip : hauteur fixe 33px */
 .year-strip {
   display: flex;
-  background: #eef2f6;
+  background: var(--pm-surface-sunken);
   border-bottom: 1px solid var(--border);
   height: 33px;
   align-items: center;
@@ -521,7 +521,7 @@
   padding: 0 12px;
   font-size: 12px;
   font-weight: 800;
-  color: #2459aa;
+  color: var(--pm-primary-text);
   border-right: 1px solid var(--border);
   min-width: 120px;
   display: flex;
@@ -536,7 +536,7 @@
   grid-auto-columns: 114px;
   height: 43px;
   align-items: center;
-  background: #eef2f6;
+  background: var(--pm-surface-sunken);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
@@ -547,10 +547,10 @@
   align-items: center;
   justify-content: center;
   padding: 0 8px;
-  border-right: 1px solid #d8e1eb;
+  border-right: 1px solid var(--pm-primary-border);
   font-size: 11px;
   font-weight: 800;
-  color: #5c6e86;
+  color: var(--pm-text-muted);
   white-space: nowrap;
   height: 43px;
 }
@@ -564,7 +564,7 @@
   overflow-y: auto;
   overflow-x: auto;
   flex: 1;
-  background: #fbfcfd;
+  background: var(--pm-surface);
 }
 
 #cal-canvas {
@@ -578,7 +578,7 @@
   grid-auto-columns: 114px;
   height: 43px;
   align-items: center;
-  border-bottom: 1px solid #e7edf4;
+  border-bottom: 1px solid var(--pm-border);
   overflow: hidden;
   flex-shrink: 0;
 }
@@ -588,15 +588,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-right: 1px solid #e1e8f0;
+  border-right: 1px solid var(--pm-border);
   font-variant-numeric: tabular-nums;
-  color: #6c7788;
+  color: var(--pm-text-muted);
   height: 43px;
 }
 
 .f-cell-total {
   font-weight: 800;
-  color: #5d6d84;
+  color: var(--pm-text-muted);
   min-width: 110px;
 }
 
@@ -611,18 +611,18 @@
   font-size: 13px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: #26354d;
+  color: var(--pm-text);
   transition: border-color .15s, background .15s;
 }
 
 .cell-input:hover {
-  background: #f1f5f9;
+  background: var(--pm-surface-muted);
 }
 
 .cell-input:focus {
   outline: none;
   border-color: var(--accent);
-  background: white;
+  background: var(--pm-surface);
 }
 
 .cell-input:disabled {
@@ -643,8 +643,8 @@
 /* Footer */
 #footer-strip {
   min-height: 44px;
-  background: #ffffff;
-  color: #1e293b;
+  background: var(--pm-surface);
+  color: var(--pm-text);
   display: flex;
   align-items: center;
   gap: 0;
@@ -676,26 +676,26 @@
 .ftr-sep {
   width: 1px;
   height: 24px;
-  background: #dbe3ec;
+  background: var(--pm-primary-soft);
   flex: 0 0 auto;
 }
 
 .pos {
-  color: #15803d;
+  color: var(--pm-success-text);
 }
 
 .neg {
-  color: #dc2626;
+  color: var(--pm-danger-text);
 }
 
  /* ✅ Dropdown pour la liaison WBS Schedule */
 .linked-wbs-select {
   padding: 2px 4px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--pm-border-strong);
   border-radius: 4px;
   font-size: 10px;
   font-weight: 600;
-  background: #fff;
+  background: var(--pm-surface);
   cursor: pointer;
   width: 100%;
   max-width: 140px;
@@ -705,7 +705,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   
-  &:hover { border-color: #3b82f6; }
+  &:hover { border-color: var(--pm-primary); }
   &:focus { outline: none; border-color: var(--pm-primary); }
 }
 // Keep the same viewport and row geometry, including scrollbar space.
@@ -732,5 +732,5 @@
 
 /* Delete forecast entry (trash) inside the description cell */
 .type-cell { display: flex; align-items: center; }
-.row-delete-btn { height: 26px; padding: 0 4px; flex-shrink: 0; color: #dc2626; border-radius: 6px; }
+.row-delete-btn { height: 26px; padding: 0 4px; flex-shrink: 0; color: var(--pm-danger-text); border-radius: 6px; }
 .row-delete-btn .material-symbols-outlined { font-size: 18px; }

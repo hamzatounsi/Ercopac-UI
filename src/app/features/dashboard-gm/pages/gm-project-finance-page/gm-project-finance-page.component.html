@@ -158,7 +158,7 @@
           <div *ngIf="settingsLoading" class="settings-empty">Loading settings...</div>
           <div *ngIf="settingsError && !settingsLoading" class="settings-error">{{ settingsError }}</div>
           
-          <div *ngIf="applyResultMessage" class="callout" style="margin: 16px; background:#effcf3; border-color:#bfead0; color:#166534; padding: 12px; border-radius: 8px;">
+          <div *ngIf="applyResultMessage" class="callout" style="margin: 16px; background:var(--pm-surface-muted); border-color:var(--pm-success-border); color:var(--pm-success-text); padding: 12px; border-radius: 8px;">
             {{ applyResultMessage }}
           </div>
 
@@ -304,11 +304,11 @@
               <div class="settings-card" style="margin-bottom: 24px;">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
                   <div>
-                    <label style="display:block; margin-bottom:8px; font-weight:600; color:#374151;">SALES VALUE (€)</label>
+                    <label style="display:block; margin-bottom:8px; font-weight:600; color:var(--pm-text);">SALES VALUE (€)</label>
                     <input type="number" class="tbl-input mono" [(ngModel)]="paymentSchedule.salesValue" placeholder="e.g. 480000" />
                   </div>
                   <div>
-                    <label style="display:block; margin-bottom:8px; font-weight:600; color:#374151;">CURRENCY</label>
+                    <label style="display:block; margin-bottom:8px; font-weight:600; color:var(--pm-text);">CURRENCY</label>
                     <select class="tbl-select" [(ngModel)]="paymentSchedule.currency">
                       <option value="EUR">EUR €</option>
                       <option value="USD">USD $</option>
@@ -320,16 +320,16 @@
 
               <!-- Total Allocation Bar -->
               <div *ngIf="paymentSchedule.milestones.length > 0" style="margin-bottom: 24px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 600; color: #374151;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 600; color: var(--pm-text);">
                   <span>Total allocation</span>
                   <span [style.color]="paymentSchedule.totalPercentage === 100 ? '#2563eb' : '#ef4444'">{{ paymentSchedule.totalPercentage }}%</span>
                 </div>
-                <div style="width: 100%; background: #e5e7eb; border-radius: 4px; height: 8px; overflow: hidden;">
+                <div style="width: 100%; background: var(--pm-surface-sunken); border-radius: 4px; height: 8px; overflow: hidden;">
                   <div [style.width.%]="getProgressBarWidth()" 
                        [style.background]="paymentSchedule.totalPercentage === 100 ? '#2563eb' : '#f97316'" 
                        style="height: 100%; transition: width 0.3s;"></div>
                 </div>
-                <p *ngIf="paymentSchedule.totalPercentage !== 100" style="color: #ef4444; font-size: 0.75rem; margin-top: 8px; display: flex; align-items: center; gap: 4px;">
+                <p *ngIf="paymentSchedule.totalPercentage !== 100" style="color: var(--pm-danger-text); font-size: 0.75rem; margin-top: 8px; display: flex; align-items: center; gap: 4px;">
                   <span class="material-symbols-outlined" style="font-size: 16px;">warning</span>
                   Percentages do not sum to 100%
                 </p>
@@ -340,11 +340,11 @@
                 <table class="settings-table">
                   <thead>
                     <tr>
-                      <th style="width: 150px; background: #f9fafb; text-align: left;">FIELD</th>
-                      <th *ngFor="let p of paymentSchedule.milestones; let i = index" style="background: #f9fafb; position: relative; min-width: 180px;">
+                      <th style="width: 150px; background: var(--pm-surface-muted); text-align: left;">FIELD</th>
+                      <th *ngFor="let p of paymentSchedule.milestones; let i = index" style="background: var(--pm-surface-muted); position: relative; min-width: 180px;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                           <span style="font-weight: 600;">Payment {{ i + 1 }}</span>
-                          <button (click)="removePaymentMilestone(i)" style="background: none; border: none; cursor: pointer; color: #ef4444; padding: 4px;">
+                          <button (click)="removePaymentMilestone(i)" style="background: none; border: none; cursor: pointer; color: var(--pm-danger-text); padding: 4px;">
                             <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
                           </button>
                         </div>
@@ -361,8 +361,8 @@
                                  [ngModel]="p.percentage" 
                                  (ngModelChange)="onPercentageChange(i, $event)"
                                  min="0" max="100"
-                                 style="width: 100px; text-align: right; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-family: monospace; font-size: 0.875rem;" />
-                          <span style="color: #6b7280; font-weight: 500;">%</span>
+                                 style="width: 100px; text-align: right; padding: 8px; border: 1px solid var(--pm-border-strong); border-radius: 6px; font-family: monospace; font-size: 0.875rem;" />
+                          <span style="color: var(--pm-text-muted); font-weight: 500;">%</span>
                         </div>
                       </td>
                     </tr>
@@ -371,10 +371,10 @@
                     <tr>
                       <td style="font-weight: 600;">VALUE</td>
                       <td *ngFor="let p of paymentSchedule.milestones" style="text-align: center;">
-                        <div style="font-family: monospace; font-size: 1.1rem; color: #111827;">
+                        <div style="font-family: monospace; font-size: 1.1rem; color: var(--pm-text);">
                           {{ calculatePaymentValue(p.percentage) }}
                         </div>
-                        <div *ngIf="!paymentSchedule.salesValue" style="font-size: 0.75rem; color: #9ca3af; margin-top: 2px;">set sales value</div>
+                        <div *ngIf="!paymentSchedule.salesValue" style="font-size: 0.75rem; color: var(--pm-text-soft); margin-top: 2px;">set sales value</div>
                       </td>
                     </tr>
 
@@ -385,7 +385,7 @@
                         <input type="date" 
                                [ngModel]="p.dueDate"
                                (ngModelChange)="p.dueDate = $event"
-                               style="width: 140px; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;" />
+                               style="width: 140px; padding: 8px; border: 1px solid var(--pm-border-strong); border-radius: 6px; font-size: 0.875rem;" />
                       </td>
                     </tr>
 
@@ -400,7 +400,7 @@
                                    (change)="togglePaymentStatus(p)"
                                    style="display: none;" />
                             <span [style.background]="p.status === 'PAID' ? '#16a34a' : '#9ca3af'"
-                                  style="display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; color: white; min-width: 48px; justify-content: center;">
+                                  style="display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; color: var(--pm-on-accent); min-width: 48px; justify-content: center;">
                               {{ p.status === 'PAID' ? 'PAID' : 'EXP' }}
                             </span>
                           </label>
@@ -420,10 +420,10 @@
               <!-- ========================================== -->
               <div *ngIf="paymentSchedule.milestones.length > 0" class="settings-card" style="margin-top: 24px;">
                 <div style="margin-bottom: 16px;">
-                  <h3 style="margin: 0 0 4px; font-size: 16px; font-weight: 800; color: #173b65;">
+                  <h3 style="margin: 0 0 4px; font-size: 16px; font-weight: 800; color: var(--pm-primary-text);">
                     📈 Cash Flow Chart
                   </h3>
-                  <p style="margin: 0; font-size: 12px; color: #6b7280;">
+                  <p style="margin: 0; font-size: 12px; color: var(--pm-text-muted);">
                     Payment tranches over time — bars = individual, line = cumulative
                   </p>
                 </div>
@@ -431,16 +431,16 @@
                 <!-- Legend -->
                 <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px; font-size: 12px;">
                   <div style="display: flex; align-items: center; gap: 6px;">
-                    <span style="display: inline-block; width: 12px; height: 12px; background: #3b82f6; border-radius: 2px;"></span>
-                    <span style="color: #374151;">Expected</span>
+                    <span style="display: inline-block; width: 12px; height: 12px; background: var(--pm-primary); border-radius: 2px;"></span>
+                    <span style="color: var(--pm-text);">Expected</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px;">
-                    <span style="display: inline-block; width: 12px; height: 12px; background: #16a34a; border-radius: 2px;"></span>
-                    <span style="color: #374151;">Paid</span>
+                    <span style="display: inline-block; width: 12px; height: 12px; background: var(--pm-success); border-radius: 2px;"></span>
+                    <span style="color: var(--pm-text);">Paid</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px;">
-                    <span style="display: inline-block; width: 20px; height: 3px; background: #f59e0b;"></span>
-                    <span style="color: #374151;">Cumulative</span>
+                    <span style="display: inline-block; width: 20px; height: 3px; background: var(--pm-warning);"></span>
+                    <span style="color: var(--pm-text);">Cumulative</span>
                   </div>
                 </div>
 
@@ -451,7 +451,7 @@
               </div>
               
               <div *ngIf="paymentSchedule.milestones.length === 0" class="settings-empty" style="padding: 40px; text-align: center;">
-                <p style="margin: 0; color: #6b7280;">Click <strong>+ Add Payment</strong> to build the schedule for this project.</p>
+                <p style="margin: 0; color: var(--pm-text-muted);">Click <strong>+ Add Payment</strong> to build the schedule for this project.</p>
               </div>
             </div>
 
@@ -477,18 +477,18 @@
                 </div>
               </div>
 
-              <div class="settings-card" *ngIf="forecastBaseline.hasBaseline" style="margin-bottom: 20px; background: #eff6ff; border-color: #bfdbfe;">
+              <div class="settings-card" *ngIf="forecastBaseline.hasBaseline" style="margin-bottom: 20px; background: var(--pm-primary-soft); border-color: var(--pm-primary-border);">
                 <div style="display: flex; align-items: center; gap: 12px;">
                   <span style="font-size: 24px;">📅</span>
                   <div>
-                    <div style="font-size: 13px; font-weight: 700; color: #1e40af;">Baseline captured on</div>
-                    <div style="font-size: 14px; color: #1e3a5f; font-weight: 600;">{{ forecastBaseline.baselineDate | date:'dd/MM/yyyy HH:mm' }}</div>
+                    <div style="font-size: 13px; font-weight: 700; color: var(--pm-primary-text);">Baseline captured on</div>
+                    <div style="font-size: 14px; color: var(--pm-primary-text); font-weight: 600;">{{ forecastBaseline.baselineDate | date:'dd/MM/yyyy HH:mm' }}</div>
                   </div>
                 </div>
               </div>
 
               <div *ngIf="!forecastBaseline.hasBaseline" class="settings-empty" style="padding: 40px; text-align: center; margin-bottom: 20px;">
-                <p style="margin: 0 0 12px; color: #6b7280;">No baseline defined yet.</p>
+                <p style="margin: 0 0 12px; color: var(--pm-text-muted);">No baseline defined yet.</p>
                 <button class="btn primary" (click)="onSetBaseline()" [disabled]="forecastBaselineLoading">
                   📸 Set your first baseline
                 </button>
@@ -496,15 +496,15 @@
 
               <div *ngIf="forecastBaseline.hasBaseline" class="settings-card" style="margin-bottom: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
                 <div>
-                  <div style="font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Total Baseline</div>
-                  <div style="font-size: 18px; font-weight: 800; color: #1e3a5f; font-family: monospace;">{{ forecastBaseline.totalBaselineForecast | number:'1.2-2' }}</div>
+                  <div style="font-size: 11px; font-weight: 700; color: var(--pm-text-muted); text-transform: uppercase;">Total Baseline</div>
+                  <div style="font-size: 18px; font-weight: 800; color: var(--pm-primary-text); font-family: monospace;">{{ forecastBaseline.totalBaselineForecast | number:'1.2-2' }}</div>
                 </div>
                 <div>
-                  <div style="font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Total Current</div>
-                  <div style="font-size: 18px; font-weight: 800; color: #1e3a5f; font-family: monospace;">{{ forecastBaseline.totalCurrentForecast | number:'1.2-2' }}</div>
+                  <div style="font-size: 11px; font-weight: 700; color: var(--pm-text-muted); text-transform: uppercase;">Total Current</div>
+                  <div style="font-size: 18px; font-weight: 800; color: var(--pm-primary-text); font-family: monospace;">{{ forecastBaseline.totalCurrentForecast | number:'1.2-2' }}</div>
                 </div>
                 <div>
-                  <div style="font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Total Variance</div>
+                  <div style="font-size: 11px; font-weight: 700; color: var(--pm-text-muted); text-transform: uppercase;">Total Variance</div>
                   <div [style.color]="forecastBaseline.totalVariance > 0 ? '#dc2626' : '#16a34a'" 
                        style="font-size: 18px; font-weight: 800; font-family: monospace;">
                     {{ forecastBaseline.totalVariance > 0 ? '+' : '' }}{{ forecastBaseline.totalVariance | number:'1.2-2' }}
@@ -527,11 +527,11 @@
                   </thead>
                   <tbody>
                     <tr *ngFor="let row of forecastBaseline.rows" [ngClass]="'row-l' + row.level">
-                      <td style="font-family: monospace; font-size: 12px; color: #244b74;">{{ row.wbsCode }}</td>
+                      <td style="font-family: monospace; font-size: 12px; color: var(--pm-primary-text);">{{ row.wbsCode }}</td>
                       <td [style.paddingLeft.px]="row.level > 1 ? (row.level - 1) * 18 + 14 : 14" style="font-weight: 600;">
                         {{ row.description }}
                       </td>
-                      <td style="text-align: center; color: #7990a6; font-weight: 700;">L{{ row.level }}</td>
+                      <td style="text-align: center; color: var(--pm-text-soft); font-weight: 700;">L{{ row.level }}</td>
                       <td style="text-align: right; font-family: monospace;">{{ row.baselineForecast | number:'1.2-2' }}</td>
                       <td style="text-align: right; font-family: monospace; font-weight: 600;">{{ row.currentForecast | number:'1.2-2' }}</td>
                       <td [ngClass]="getForecastVarianceClass(row.variance)" style="text-align: right; font-family: monospace; font-weight: 700;">

@@ -6,9 +6,10 @@ import { GmDashboardService } from '../../services/gm-dashboard.service';
 import { GmFinanceService } from '../../services/gm-finance.service';
 import { FinanceEntry, FinanceImportResult, FinanceSummary, FinanceSettings, FinanceWbsTemplateRow, FinanceWbsRowType, Department, AppUser } from '../../models/finance-settings.model';
 import { PermissionService } from 'src/app/core/services/PermissionService';
+import { ChartThemeService } from 'src/app/core/services/chart-theme.service';
 import { HttpClient } from '@angular/common/http';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { skip, takeUntil } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { assertSpreadsheetFile, assertSpreadsheetRowLimit, assertValidWorkbook } from 'src/app/core/utils/spreadsheet-import.utils';
 
@@ -116,7 +117,8 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     private dashboardService: GmDashboardService,
     private renderer: Renderer2,
     private http: HttpClient,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private chartTheme: ChartThemeService
   ) {}
 
   ngOnInit(): void {
@@ -127,6 +129,10 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
       this.canWriteFinance = this.permissionService.canWrite('FINANCE');
     });
     this.permissionService.loadPermissions();
+    this.chartTheme.changes$.pipe(skip(1), takeUntil(this.destroy$)).subscribe(() => {
+      this.scheduleChartRender();
+      if (this.cashFlowChart) this.createCashFlowChart();
+    });
   }
 
   ngOnDestroy(): void {
@@ -226,18 +232,19 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
   createCharts(): void {
     if (this.destroyed || !this.summary || !this.donutChartRef?.nativeElement || !this.barChartRef?.nativeElement) return;
     const s = this.summary;
+    const palette = this.chartTheme.applyDefaults(Chart);
     this.donutChart?.destroy();
     this.barChart?.destroy();
 
     this.donutChart = new Chart(this.donutChartRef.nativeElement, {
       type: 'doughnut',
-      data: { labels: ['Actual Cost', 'Forecast'], datasets: [{ data: [s.totalActualCost, s.totalForecast] }] },
+      data: { labels: ['Actual Cost', 'Forecast'], datasets: [{ data: [s.totalActualCost, s.totalForecast], backgroundColor: palette.series.slice(0, 2), borderColor: palette.surface }] },
       options: { responsive: true, maintainAspectRatio: false }
     });
 
     this.barChart = new Chart(this.barChartRef.nativeElement, {
       type: 'bar',
-      data: { labels: ['Budget', 'EAC', 'Variance'], datasets: [{ label: 'Project Cost', data: [s.totalBudget, s.totalEac, s.totalVariance] }] },
+      data: { labels: ['Budget', 'EAC', 'Variance'], datasets: [{ label: 'Project Cost', data: [s.totalBudget, s.totalEac, s.totalVariance], backgroundColor: palette.series[0] }] },
       options: { responsive: true, maintainAspectRatio: false }
     });
   }
@@ -917,6 +924,7 @@ ${row.wbsCode} – ${row.description}
 
     const milestones = this.paymentSchedule.milestones;
     if (!milestones || milestones.length === 0) return;
+    const palette = this.chartTheme.applyDefaults(Chart);
 
     const monthlyData = new Map<string, { expected: number; paid: number; date: Date }>();
     
@@ -965,7 +973,7 @@ ${row.wbsCode} – ${row.description}
             type: 'bar',
             label: 'Expected',
             data: expectedValues,
-            backgroundColor: '#3b82f6',
+            backgroundColor: palette.series[0],
             borderRadius: 4,
             order: 2
           },
@@ -973,7 +981,7 @@ ${row.wbsCode} – ${row.description}
             type: 'bar',
             label: 'Paid',
             data: paidValues,
-            backgroundColor: '#16a34a',
+            backgroundColor: palette.series[1],
             borderRadius: 4,
             order: 2
           },
@@ -981,10 +989,10 @@ ${row.wbsCode} – ${row.description}
             type: 'line',
             label: 'Cumulative',
             data: cumulativeValues,
-            borderColor: '#f59e0b',
-            backgroundColor: '#f59e0b',
+            borderColor: palette.series[2],
+            backgroundColor: palette.series[2],
             borderWidth: 3,
-            pointBackgroundColor: '#f59e0b',
+            pointBackgroundColor: palette.series[2],
             pointRadius: 6,
             pointHoverRadius: 8,
             tension: 0.1,
@@ -1002,7 +1010,6 @@ ${row.wbsCode} – ${row.description}
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
             callbacks: {
               // ✅ CORRECTION 1 : Conversion explicite en number pour éviter l'erreur 'null'
               label: (context) => `${context.dataset.label}: ${this.formatCurrency(Number(context.parsed.y))}`
@@ -1012,15 +1019,15 @@ ${row.wbsCode} – ${row.description}
         scales: {
           x: { 
             grid: { display: false }, 
-            ticks: { font: { size: 11 }, color: '#6b7280' } 
+            ticks: { font: { size: 11 }, color: palette.muted } 
           },
           y: {
             beginAtZero: true,
             // ✅ CORRECTION 2 : Suppression de 'drawBorder' qui n'existe plus dans Chart.js v4
-            grid: { color: '#e5e7eb' }, 
+            grid: { color: palette.grid }, 
             ticks: { 
               font: { size: 11 }, 
-              color: '#6b7280', 
+              color: palette.muted, 
               callback: (value) => this.formatCurrency(Number(value)) 
             }
           }

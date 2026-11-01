@@ -1,0 +1,267 @@
+// Design tokens: the only place where colours, shadows, radii, spacing, type and motion are defined.
+// Components use var(--pm-*) only. Three themes, chosen with <html data-theme="light|dim|dark">
+// (ThemeService; index.html applies the saved theme before Angular starts).
+// Every text/background pair is checked against WCAG AA by `npm run check:contrast`.
+
+:root {
+  color-scheme: light;
+
+  // ---------- type ----------
+  --pm-font-sans: Inter, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Arabic", "Noto Sans SC", Arial, sans-serif;
+  --pm-font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  --pm-text-xs: 11.5px;
+  --pm-text-sm: 13px;
+  --pm-text-md: 14px;
+  --pm-text-lg: 16px;
+  --pm-text-xl: 20px;
+  --pm-text-2xl: 24px;
+  --pm-text-3xl: 30px;
+  --pm-weight-regular: 400;
+  --pm-weight-medium: 500;
+  --pm-weight-semibold: 600;
+  --pm-weight-bold: 700;
+  --pm-leading: 1.5;
+
+  // ---------- spacing, radii ----------
+  --pm-space-1: 4px;
+  --pm-space-2: 8px;
+  --pm-space-3: 12px;
+  --pm-space-4: 16px;
+  --pm-space-5: 20px;
+  --pm-space-6: 24px;
+  --pm-space-8: 32px;
+  --pm-space-10: 40px;
+  --pm-radius-sm: 6px;
+  --pm-radius: 8px;
+  --pm-radius-lg: 12px;
+  --pm-radius-xl: 16px;
+  --pm-radius-pill: 999px;
+  --pm-touch: 40px;
+
+  // ---------- motion ----------
+  --pm-ease: cubic-bezier(.2, .8, .2, 1);
+  --pm-duration-fast: 150ms;
+  --pm-duration: 200ms;
+  --pm-duration-slow: 250ms;
+
+  // ---------- light theme colours ----------
+  --pm-bg: #f4f6fb;
+  --pm-surface: #ffffff;
+  --pm-surface-muted: #f8fafc;
+  --pm-surface-sunken: #f1f5f9;
+  --pm-surface-raised: #ffffff;
+  --pm-border: #e2e8f0;
+  --pm-border-strong: #cbd5e1;
+  --pm-input-border: #8592a6;
+  --pm-text: #0f172a;
+  --pm-text-muted: #475569;
+  --pm-text-soft: #5f6b7e;
+  --pm-on-accent: #ffffff;
+  --pm-overlay: rgba(15, 23, 42, .45);
+  --pm-chrome-bg: #0f1d33;
+  --pm-chrome-surface: #172a46;
+  --pm-chrome-text: #e2e8f0;
+  --pm-chrome-muted: #9fb0c8;
+
+  --pm-primary: #1d4ed8;
+  --pm-primary-strong: #1e40af;
+  --pm-primary-soft: #eef4ff;
+  --pm-primary-border: #bfd3fe;
+  --pm-primary-text: #1d4ed8;
+  --pm-success: #15803d;
+  --pm-success-strong: #166534;
+  --pm-success-soft: #ecfdf3;
+  --pm-success-border: #b7ebc8;
+  --pm-success-text: #166534;
+  --pm-warning: #b45309;
+  --pm-warning-strong: #92400e;
+  --pm-warning-soft: #fff8eb;
+  --pm-warning-border: #fcd99a;
+  --pm-warning-text: #92400e;
+  --pm-danger: #dc2626;
+  --pm-danger-strong: #b91c1c;
+  --pm-danger-soft: #fef2f2;
+  --pm-danger-border: #fecaca;
+  --pm-danger-text: #b91c1c;
+  --pm-info: #0369a1;
+  --pm-info-strong: #075985;
+  --pm-info-soft: #eff8ff;
+  --pm-info-border: #b9e2fb;
+  --pm-info-text: #075985;
+  --pm-accent: #6d28d9;
+  --pm-accent-strong: #5b21b6;
+  --pm-accent-soft: #f5f3ff;
+  --pm-accent-border: #ddd6fe;
+  --pm-accent-text: #5b21b6;
+
+  --pm-primary-gradient: linear-gradient(135deg, var(--pm-primary), var(--pm-accent));
+  --pm-shadow-xs: 0 1px 2px rgba(15, 23, 42, .05);
+  --pm-shadow-sm: 0 1px 3px rgba(15, 23, 42, .07), 0 1px 2px rgba(15, 23, 42, .04);
+  --pm-shadow: 0 8px 24px rgba(15, 23, 42, .08), 0 2px 6px rgba(15, 23, 42, .04);
+  --pm-shadow-lg: 0 18px 48px rgba(15, 23, 42, .16), 0 4px 12px rgba(15, 23, 42, .06);
+  --pm-focus: 0 0 0 3px rgba(29, 78, 216, .28);
+  --pm-skeleton: linear-gradient(90deg, var(--pm-surface-sunken) 25%, var(--pm-surface-muted) 50%, var(--pm-surface-sunken) 75%);
+
+  // Chart series (chart.js reads these through ChartThemeService)
+  --pm-chart-1: #2563eb;
+  --pm-chart-2: #0d9488;
+  --pm-chart-3: #d97706;
+  --pm-chart-4: #7c3aed;
+  --pm-chart-5: #db2777;
+  --pm-chart-6: #0891b2;
+  --pm-chart-grid: rgba(15, 23, 42, .08);
+
+  // Compatibility aliases for styles written before the token layer
+  --workspace-primary: var(--pm-primary);
+  --workspace-accent: var(--pm-accent);
+  --workspace-active: var(--pm-primary-strong);
+  --workspace-header-bg: color-mix(in srgb, var(--pm-surface) 78%, transparent);
+  --workspace-header-border: var(--pm-border);
+}
+
+// Twilight: a softer mid-tone between light and dark, with blue-grey surfaces and lower contrast.
+:root[data-theme="dim"] {
+  color-scheme: dark;
+  --pm-bg: #1f2735;
+  --pm-surface: #283244;
+  --pm-surface-muted: #2d384b;
+  --pm-surface-sunken: #333f54;
+  --pm-surface-raised: #303b50;
+  --pm-border: #3d4a61;
+  --pm-border-strong: #4f5d76;
+  --pm-input-border: #7a89a3;
+  --pm-text: #e4e9f1;
+  --pm-text-muted: #b7c1d1;
+  --pm-text-soft: #9eabbf;
+  --pm-on-accent: #ffffff;
+  --pm-overlay: rgba(10, 14, 22, .55);
+  --pm-chrome-bg: #19212d;
+  --pm-chrome-surface: #222c3b;
+  --pm-chrome-text: #e4e9f1;
+  --pm-chrome-muted: #a5b1c4;
+
+  --pm-primary: #3b6fe0;
+  --pm-primary-strong: #2f5fcc;
+  --pm-primary-soft: #2c3d5f;
+  --pm-primary-border: #3f5a8f;
+  --pm-primary-text: #a9c4ff;
+  --pm-success: #24834b;
+  --pm-success-strong: #1d7040;
+  --pm-success-soft: #27443d;
+  --pm-success-border: #31634f;
+  --pm-success-text: #93dcb0;
+  --pm-warning: #a8620f;
+  --pm-warning-strong: #8f520c;
+  --pm-warning-soft: #463d33;
+  --pm-warning-border: #6e5733;
+  --pm-warning-text: #f3c98a;
+  --pm-danger: #c93a3a;
+  --pm-danger-strong: #b33030;
+  --pm-danger-soft: #4a3240;
+  --pm-danger-border: #7a4150;
+  --pm-danger-text: #ffb3b3;
+  --pm-info: #1b78ad;
+  --pm-info-strong: #16679a;
+  --pm-info-soft: #26425a;
+  --pm-info-border: #2f5f80;
+  --pm-info-text: #9fd6f7;
+  --pm-accent: #7a4fd8;
+  --pm-accent-strong: #6a40c4;
+  --pm-accent-soft: #393656;
+  --pm-accent-border: #574b86;
+  --pm-accent-text: #cdbcff;
+
+  --pm-shadow-xs: 0 1px 2px rgba(5, 9, 16, .25);
+  --pm-shadow-sm: 0 1px 3px rgba(5, 9, 16, .3);
+  --pm-shadow: 0 8px 24px rgba(5, 9, 16, .32);
+  --pm-shadow-lg: 0 18px 48px rgba(5, 9, 16, .45);
+  --pm-focus: 0 0 0 3px rgba(129, 167, 255, .45);
+  --pm-chart-1: #7aa2ff;
+  --pm-chart-2: #4fd1c5;
+  --pm-chart-3: #f6b65c;
+  --pm-chart-4: #b79cff;
+  --pm-chart-5: #f58fc0;
+  --pm-chart-6: #5fcde4;
+  --pm-chart-grid: rgba(228, 233, 241, .1);
+}
+
+// Dark: true dark surfaces, softened text (never pure white on pure black), deeper shadows.
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --pm-bg: #0d1117;
+  --pm-surface: #151a23;
+  --pm-surface-muted: #1a202b;
+  --pm-surface-sunken: #1f2632;
+  --pm-surface-raised: #1c2330;
+  --pm-border: #2a3241;
+  --pm-border-strong: #3a4456;
+  --pm-input-border: #636f84;
+  --pm-text: #e6e9ef;
+  --pm-text-muted: #aab3c2;
+  --pm-text-soft: #8f99aa;
+  --pm-on-accent: #ffffff;
+  --pm-overlay: rgba(0, 0, 0, .62);
+  --pm-chrome-bg: #0a0e14;
+  --pm-chrome-surface: #131922;
+  --pm-chrome-text: #e6e9ef;
+  --pm-chrome-muted: #98a2b3;
+
+  --pm-primary: #2f62d8;
+  --pm-primary-strong: #2856c2;
+  --pm-primary-soft: #16254a;
+  --pm-primary-border: #2b4583;
+  --pm-primary-text: #9dbbff;
+  --pm-success: #1f7a43;
+  --pm-success-strong: #1a6b3a;
+  --pm-success-soft: #112b20;
+  --pm-success-border: #1f5137;
+  --pm-success-text: #86d9a6;
+  --pm-warning: #9c5a0c;
+  --pm-warning-strong: #864d0a;
+  --pm-warning-soft: #2e2313;
+  --pm-warning-border: #5b4320;
+  --pm-warning-text: #f0c27c;
+  --pm-danger: #c03535;
+  --pm-danger-strong: #a92e2e;
+  --pm-danger-soft: #34171b;
+  --pm-danger-border: #6b2a31;
+  --pm-danger-text: #ffa8a8;
+  --pm-info: #176f9f;
+  --pm-info-strong: #135f89;
+  --pm-info-soft: #0f2738;
+  --pm-info-border: #1d4a66;
+  --pm-info-text: #93cff2;
+  --pm-accent: #6f45cf;
+  --pm-accent-strong: #5f3abb;
+  --pm-accent-soft: #221a3d;
+  --pm-accent-border: #43357a;
+  --pm-accent-text: #c6b3ff;
+
+  --pm-shadow-xs: 0 1px 2px rgba(0, 0, 0, .4);
+  --pm-shadow-sm: 0 1px 3px rgba(0, 0, 0, .45);
+  --pm-shadow: 0 8px 24px rgba(0, 0, 0, .5);
+  --pm-shadow-lg: 0 18px 48px rgba(0, 0, 0, .6);
+  --pm-focus: 0 0 0 3px rgba(125, 160, 255, .5);
+  --pm-chart-1: #6f9bff;
+  --pm-chart-2: #3cc9bb;
+  --pm-chart-3: #f2a94a;
+  --pm-chart-4: #a98bff;
+  --pm-chart-5: #f07db4;
+  --pm-chart-6: #4cc3dd;
+  --pm-chart-grid: rgba(230, 233, 239, .08);
+}
+
+// Smooth theme changes: ThemeService adds this class for the duration of the switch only,
+// so normal hover/focus transitions are not slowed down.
+html.pm-theme-switching,
+html.pm-theme-switching *,
+html.pm-theme-switching *::before,
+html.pm-theme-switching *::after {
+  transition: background-color var(--pm-duration-slow) var(--pm-ease), border-color var(--pm-duration-slow) var(--pm-ease),
+    color var(--pm-duration-slow) var(--pm-ease), fill var(--pm-duration-slow) var(--pm-ease), box-shadow var(--pm-duration-slow) var(--pm-ease) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --pm-duration-fast: 0ms; --pm-duration: 0ms; --pm-duration-slow: 0ms; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}

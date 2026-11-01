@@ -1,9 +1,9 @@
 $border: var(--pm-border);
-$border-light: #edf0f5;
+$border-light: var(--pm-border);
 $text-muted: var(--pm-text-muted);
 $text: var(--pm-text);
 $accent: var(--pm-primary);
-$weekend-bg: #f7f9fc;
+$weekend-bg: var(--pm-surface-muted);
 $fixed-width: 320px;
 $col-stat: 70px;
 $col-pm: 60px;
@@ -13,17 +13,17 @@ $col-pm: 60px;
 .date-filter {
   display: flex; gap: 8px; align-items: flex-end;
   label { display: grid; gap: 4px; font-size: 12px; color: $text-muted; }
-  input, button { padding: 8px 10px; border: 1px solid #d9e0eb; border-radius: 7px; background: #fff; font-size: 13px; }
-  button { background: $accent; color: #fff; border-color: $accent; cursor: pointer; }
+  input, button { padding: 8px 10px; border: 1px solid var(--pm-primary-border); border-radius: 7px; background: var(--pm-surface); font-size: 13px; }
+  button { background: $accent; color: var(--pm-on-accent); border-color: $accent; cursor: pointer; }
 }
 
-.message, .empty-state { padding: 14px; border-radius: 10px; background: #eef3ff; }
-.error { color: #b42318; background: #fff0f0; }
+.message, .empty-state { padding: 14px; border-radius: 10px; background: var(--pm-primary-soft); }
+.error { color: var(--pm-danger-text); background: var(--pm-surface-muted); }
 
 .timeline-card {
   border: 1px solid $border;
   border-radius: 14px;
-  background: #fff;
+  background: var(--pm-surface);
   overflow: hidden;
 }
 
@@ -55,7 +55,7 @@ $col-pm: 60px;
   border-right: 2px solid $border;
   position: sticky;   // ← colonnes fixes sticky left, dans le MÊME conteneur de scroll
   left: 0;
-  background: #fff;
+  background: var(--pm-surface);
 }
 
 .fixed-cols--header {
@@ -81,24 +81,24 @@ $col-pm: 60px;
 .project-name { font-size: 13px; color: $text; }
 .project-code { font-size: 11px; color: $text-muted; }
 
-.stat-badge { padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; background: #eef1f6; color: #374151; white-space: nowrap; }
+.stat-badge { padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; background: var(--pm-surface-sunken); color: var(--pm-text); white-space: nowrap; }
 
-.pm-avatar { width: 28px; height: 28px; border-radius: 50%; background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 10px; }
+.pm-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--pm-primary-soft); color: var(--pm-primary-text); border: 1px solid var(--pm-primary-border); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 10px; }
 
 .header-timeline { display: flex; flex-direction: column; background: $weekend-bg; border-bottom: 2px solid $border; }
 .months-row { display: flex; border-bottom: 1px solid $border; height: 32px; }
-.month-cell { display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; color: $text-muted; border-right: 1px solid #d1d5db; flex-shrink: 0; }
+.month-cell { display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; color: $text-muted; border-right: 1px solid var(--pm-border-strong); flex-shrink: 0; }
 .days-row { display: flex; height: 22px; }
-.day-cell { display: flex; align-items: center; justify-content: center; font-size: 9px; color: $text-muted; border-right: 1px solid $border-light; flex-shrink: 0; &.is-weekend { background: $weekend-bg; color: #b7bfcc; } }
+.day-cell { display: flex; align-items: center; justify-content: center; font-size: 9px; color: $text-muted; border-right: 1px solid $border-light; flex-shrink: 0; &.is-weekend { background: $weekend-bg; color: var(--pm-text-soft); } }
 
 /* ---- Body ---- */
-.timeline-row { display: flex; min-height: 48px; border-bottom: 1px solid $border-light; background: #fff; &:hover { background: #fafbfd; } &:hover .fixed-cols--body { background: #fafbfd; } }
+.timeline-row { display: flex; min-height: 48px; border-bottom: 1px solid $border-light; background: var(--pm-surface); &:hover { background: var(--pm-surface-muted); } &:hover .fixed-cols--body { background: var(--pm-surface-muted); } }
 
 .timeline-track { position: relative; flex-shrink: 0; }
 .track-grid { position: absolute; inset: 0; display: flex; }
-.grid-day { flex-shrink: 0; border-right: 1px solid $border-light; &.is-weekend { background: #fbfcfe; } }
+.grid-day { flex-shrink: 0; border-right: 1px solid $border-light; &.is-weekend { background: $weekend-bg; } }
 
-.marker { position: absolute; top: 50%; transform: translate(-50%, -50%); padding: 3px 7px; border-radius: 5px; color: #fff; font-size: 10px; font-weight: 700; white-space: nowrap; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,.15); z-index: 1; }
+.marker { position: absolute; top: 50%; transform: translate(-50%, -50%); padding: 3px 7px; border-radius: 5px; color: var(--pm-on-accent); font-size: 10px; font-weight: 700; white-space: nowrap; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,.15); z-index: 1; }
 
 @media (max-width: 720px) {
   .milestone-page { padding: 16px; }

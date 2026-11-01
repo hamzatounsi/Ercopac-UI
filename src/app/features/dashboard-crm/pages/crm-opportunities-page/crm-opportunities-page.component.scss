@@ -1,4 +1,4 @@
-@import '../../crm-shared';.dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px}.stage-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:14px;font-size:11px;font-weight:700}.stage-badge i{width:7px;height:7px;border-radius:50%}.prob{display:flex;align-items:center;gap:7px}.prob>span{width:52px;height:4px;background:#f0f2f7;border-radius:2px;overflow:hidden}.prob i{display:block;height:100%;background:#1a56db}
+@import '../../crm-shared';.dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px}.stage-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:14px;font-size:11px;font-weight:700}.stage-badge i{width:7px;height:7px;border-radius:50%}.prob{display:flex;align-items:center;gap:7px}.prob>span{width:52px;height:4px;background:var(--pm-surface-sunken);border-radius:2px;overflow:hidden}.prob i{display:block;height:100%;background:var(--pm-primary)}
 .text-center {
   text-align: center;
 }
@@ -14,11 +14,11 @@
   transition: all 0.2s;
 
   &.danger {
-    color: #dc3545;
+    color: var(--pm-danger-text);
     
     &:hover {
-      background: #dc3545;
-      color: white;
+      background: var(--pm-danger);
+      color: var(--pm-on-accent);
     }
   }
 }

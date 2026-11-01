@@ -2,7 +2,7 @@
   max-height: 420px;
   overflow: auto;
   overflow-wrap: anywhere;
-  color: #1e293b;
+  color: var(--pm-text);
   font-size: 13px;
   line-height: 1.65;
 }
@@ -13,16 +13,16 @@ p {
 
 p.labelled {
   padding: 8px 10px;
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-left: 3px solid var(--pm-primary, #2563eb);
+  background: var(--pm-surface);
+  border: 1px solid var(--pm-border);
+  border-left: 3px solid var(--pm-primary, var(--pm-primary));
   border-radius: 8px;
 }
 
 .ai-label {
   display: block;
   margin-bottom: 2px;
-  color: var(--pm-primary, #2563eb);
+  color: var(--pm-primary, var(--pm-primary-text));
   font-size: 11px;
   font-weight: 800;
   letter-spacing: .04em;
@@ -39,7 +39,7 @@ li {
 }
 
 li::marker {
-  color: var(--pm-primary, #2563eb);
+  color: var(--pm-primary, var(--pm-primary-text));
 }
 
 .streaming > :last-child::after {
@@ -49,7 +49,7 @@ li::marker {
   height: 14px;
   margin-left: 3px;
   vertical-align: text-bottom;
-  background: var(--pm-primary, #2563eb);
+  background: var(--pm-primary, var(--pm-primary));
   animation: ai-caret .8s steps(2) infinite;
 }
 

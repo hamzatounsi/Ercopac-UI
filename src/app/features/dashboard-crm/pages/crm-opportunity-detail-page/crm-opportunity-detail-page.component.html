@@ -129,7 +129,7 @@
                   <option [ngValue]="null">{{ i18n.t('opportunityDetail.selectContact') }}</option>
                   <option *ngFor="let item of contacts" [ngValue]="item.id">{{ item.fullName }} — {{ item.jobTitle || i18n.t('opportunityDetail.contactPerson') }}</option>
                 </select>
-                <a *ngIf="contact" [routerLink]="['/crm/leads', contact.id]" style="display:block;margin-top:8px;padding:9px 10px;border-radius:6px;background:#f8f9fc;color:#1a56db;font-size:12px;font-weight:700;text-decoration:none">
+                <a *ngIf="contact" [routerLink]="['/crm/leads', contact.id]" style="display:block;margin-top:8px;padding:9px 10px;border-radius:6px;background:var(--pm-surface-muted);color:var(--pm-primary-text);font-size:12px;font-weight:700;text-decoration:none">
                   {{ contact.fullName }} · {{ contact.jobTitle || contact.email || i18n.t('opportunityDetail.contactPerson') }}
                 </a>
               </div>

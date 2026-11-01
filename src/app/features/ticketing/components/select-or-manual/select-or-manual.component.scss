@@ -4,10 +4,10 @@
 .som{display:flex;flex-direction:column;gap:6px}
 .som-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .som-label{font-weight:600;font-size:13px}
-.som-tag{background:#fff4dc;color:#a96900;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:700}
-.som-switch{margin-left:auto;border:0;background:none;padding:0;color:#263f8f;font:inherit;font-size:12px;font-weight:600;cursor:pointer;text-decoration:underline}
-.som-switch:focus-visible{outline:2px solid #263f8f;outline-offset:2px}
-.som-note{color:#71809a;font-size:11.5px}
+.som-tag{background:var(--pm-warning-soft);color:var(--pm-warning-text);border-radius:999px;padding:2px 8px;font-size:11px;font-weight:700}
+.som-switch{margin-left:auto;border:0;background:none;padding:0;color:var(--pm-primary-text);font:inherit;font-size:12px;font-weight:600;cursor:pointer;text-decoration:underline}
+.som-switch:focus-visible{outline:2px solid var(--pm-primary);outline-offset:2px}
+.som-note{color:var(--pm-text-soft);font-size:11.5px}
 .som-manual{display:grid;gap:8px}
 .compact .som-label{display:none}
 .compact .select,.compact .input{padding:5px 8px;font-size:12px}
