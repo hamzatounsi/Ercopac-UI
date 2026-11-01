@@ -1,6 +1,6 @@
 import { AppNavButtonsComponent } from 'src/app/core/navigation/app-nav-buttons.component';
 import { ProfileMenuComponent } from 'src/app/core/navigation/profile-menu.component';
-import { APP_INITIALIZER, NgModule } from '@angular/core';
+import { APP_INITIALIZER, LOCALE_ID, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HTTP_INTERCEPTORS, HttpClient, HttpClientModule } from '@angular/common/http';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
@@ -17,7 +17,7 @@ import { DashboardDmComponent } from './features/dashboard-dm/dashboard-dm.compo
 import { DashboardEmployeeComponent } from './features/dashboard-employee/dashboard-employee.component';
 import { DashboardDepartmentModule } from './features/dashboard-department/dashboard-department.module';
 import { ForbiddenComponent } from './features/forbidden/forbidden.component';
-import { LanguageService } from './core/i18n/language.service';
+import { ActiveLocale, LanguageService } from './core/i18n/language.service';
 
 // One JSON file per language, downloaded only when that language is used.
 export function createTranslateLoader(http: HttpClient): TranslateLoader {
@@ -55,7 +55,8 @@ export function initLanguage(language: LanguageService): () => Promise<void> {
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
-    { provide: APP_INITIALIZER, useFactory: initLanguage, deps: [LanguageService], multi: true }
+    { provide: APP_INITIALIZER, useFactory: initLanguage, deps: [LanguageService], multi: true },
+    { provide: LOCALE_ID, useFactory: (languages: LanguageService) => new ActiveLocale(languages), deps: [LanguageService] }
   ],
   bootstrap: [AppComponent]
 })

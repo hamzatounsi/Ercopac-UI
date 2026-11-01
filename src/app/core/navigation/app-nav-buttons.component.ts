@@ -16,18 +16,19 @@ import { Subscription } from 'rxjs';
   standalone: true,
   imports: [NgIf, TranslateModule],
   template: `
-    <button *ngIf="!isHome" type="button" class="nav-btn" (click)="back()" [title]="'common.backToPrevious' | translate">
-      <span class="material-symbols-outlined nav-flip" aria-hidden="true">arrow_back</span>{{ 'common.back' | translate }}
+    <button *ngIf="!isHome" type="button" class="nav-btn" (click)="back()" [title]="'common.backToPrevious' | translate" [attr.aria-label]="'common.back' | translate">
+      <span class="material-symbols-outlined nav-flip" aria-hidden="true">arrow_back</span><span class="nav-label">{{ 'common.back' | translate }}</span>
     </button>
-    <button type="button" class="nav-btn" (click)="workspace()" [title]="'common.backToWorkspace' | translate">
-      <span class="material-symbols-outlined" aria-hidden="true">apps</span>{{ 'common.workspaces' | translate }}
+    <button type="button" class="nav-btn" (click)="workspace()" [title]="'common.backToWorkspace' | translate" [attr.aria-label]="'common.workspaces' | translate">
+      <span class="material-symbols-outlined" aria-hidden="true">apps</span><span class="nav-label">{{ 'common.workspaces' | translate }}</span>
     </button>
   `,
   styles: [`
     :host { display:inline-flex; align-items:center; gap:8px; flex-shrink:0; }
-    .nav-btn { display:inline-flex; align-items:center; gap:5px; height:32px; padding:0 11px; border:1px solid var(--pm-border);
-      border-radius:7px; background:var(--pm-surface); color:var(--pm-text); font:inherit; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; }
-    .nav-btn:hover { background:var(--pm-surface-muted); color:var(--pm-text); }
+    .nav-btn { display:inline-flex; align-items:center; gap:6px; height:34px; padding:0 12px; border:1px solid var(--pm-border);
+      border-radius:var(--pm-radius); box-shadow:var(--pm-shadow-xs); transition:background-color var(--pm-duration-fast) var(--pm-ease), border-color var(--pm-duration-fast) var(--pm-ease); background:var(--pm-surface); color:var(--pm-text); font:inherit; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; }
+    .nav-btn:hover { background:var(--pm-surface-muted); border-color:var(--pm-border-strong); color:var(--pm-text); }
+    @media (max-width: 640px) { :host { gap:6px; } .nav-btn { width:34px; padding:0; justify-content:center; } .nav-label { display:none; } }
     .nav-btn .material-symbols-outlined { font-size:17px; }
     :host-context([dir="rtl"]) .nav-flip { transform:scaleX(-1); }
   `]

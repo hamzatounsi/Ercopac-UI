@@ -21,7 +21,7 @@
     </div>
     <form class="custom" *ngIf="customOpen || period === 'custom'" (ngSubmit)="applyCustom()">
       <input class="input" type="date" name="from" [(ngModel)]="customFrom" [attr.aria-label]="'ticketing.performance.from' | translate">
-      <span class="muted-sm">→</span>
+      <span class="muted-sm rtl-mirror">→</span>
       <input class="input" type="date" name="to" [(ngModel)]="customTo" [attr.aria-label]="'ticketing.performance.text' | translate">
       <button type="submit" class="primary small">{{ 'ticketing.performance.apply' | translate }}</button>
     </form>

@@ -1,0 +1,74 @@
+// UI refresh layer: shared modern behaviour for every page.
+// Everything here uses :where() (zero specificity), so a page's own stylesheet always wins;
+// this only fills gaps (typography, focus, motion, tables, scrollbars, small-screen overflow).
+
+:where(html) {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "cv11", "ss01";
+}
+
+:where(body) { font-family: var(--pm-font-sans); line-height: var(--pm-leading); }
+:where(h1, h2, h3, h4) { letter-spacing: -0.015em; }
+:where(h1) { font-weight: var(--pm-weight-bold); }
+
+::selection { background: color-mix(in srgb, var(--pm-primary) 22%, transparent); }
+
+// ---------- focus: one visible ring everywhere (keyboard only) ----------
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--pm-primary);
+  outline-offset: 2px;
+}
+:where(input, select, textarea):focus-visible { outline-offset: 0; box-shadow: var(--pm-focus); }
+
+// ---------- controls ----------
+:where(button, .btn, a.btn) {
+  transition: background-color var(--pm-duration-fast) var(--pm-ease), border-color var(--pm-duration-fast) var(--pm-ease),
+    color var(--pm-duration-fast) var(--pm-ease), box-shadow var(--pm-duration-fast) var(--pm-ease), transform var(--pm-duration-fast) var(--pm-ease);
+}
+:where(button:not(:disabled), .btn:not(:disabled)):active { transform: translateY(1px); }
+:where(button:disabled, .btn:disabled) { cursor: not-allowed; }
+:where(input, select, textarea) {
+  font: inherit;
+  transition: border-color var(--pm-duration-fast) var(--pm-ease), box-shadow var(--pm-duration-fast) var(--pm-ease);
+}
+:where(input, textarea)::placeholder { color: var(--pm-text-soft); opacity: 1; }
+
+// ---------- data: tables and numbers ----------
+:where(table) { border-collapse: collapse; font-variant-numeric: tabular-nums; }
+:where(table tbody tr) { transition: background-color var(--pm-duration-fast) var(--pm-ease); }
+:where(table tbody tr:hover) { background-color: color-mix(in srgb, var(--pm-primary) 4%, transparent); }
+:where(th) { font-weight: var(--pm-weight-semibold); }
+:where(.kpi-v, .kpi-val, .kpi-value, .value, .mono) { font-variant-numeric: tabular-nums; }
+
+// ---------- cards: subtle lift on interactive ones ----------
+:where(.kpi-card, .kpi-item, .section-card, .card) {
+  transition: box-shadow var(--pm-duration) var(--pm-ease), border-color var(--pm-duration) var(--pm-ease), transform var(--pm-duration) var(--pm-ease);
+}
+:where(a.card, button.card, .card.clickable, .kpi-card.clickable):hover { box-shadow: var(--pm-shadow); transform: translateY(-1px); }
+
+// ---------- page entrance (content behind each workspace router-outlet) ----------
+@keyframes pm-page-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+:where(router-outlet + *) { animation: pm-page-in var(--pm-duration-slow) var(--pm-ease) both; }
+
+// ---------- scrollbars ----------
+* { scrollbar-width: thin; scrollbar-color: var(--pm-border-strong) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--pm-border-strong); border-radius: var(--pm-radius-pill); border: 3px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background-color: var(--pm-text-soft); }
+
+// ---------- small screens: no horizontal page scroll ----------
+:where(.table-wrap, .table-container, .table-responsive, .table-scroll) { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+:where(img, svg, video, canvas) { max-width: 100%; }
+@media (max-width: 640px) {
+  :where(body) { overflow-x: hidden; }
+  :where(.page-header, .page-head, .header-actions, .toolbar, .actions, .filters, .filter-bar) { flex-wrap: wrap; }
+  :where(.form-grid, .row-2, .grid-2) { grid-template-columns: minmax(0, 1fr); }
+  :where(.span-2) { grid-column: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; scroll-behavior: auto !important; }
+}

@@ -17,6 +17,16 @@ const LOCALE_LOADERS: Record<Exclude<LanguageCode, 'en'>, () => Promise<{ defaul
   zh: () => import('@angular/common/locales/zh')
 };
 
+/**
+ * LOCALE_ID value that follows the active language, so date / number / currency pipes format in the UI language.
+ * Angular reads the locale through string operations, which go through toString().
+ */
+export class ActiveLocale extends String {
+  constructor(private readonly languages: LanguageService) { super(); }
+  override toString(): string { return this.languages.locale; }
+  override valueOf(): string { return this.languages.locale; }
+}
+
 @Injectable({ providedIn: 'root' })
 export class LanguageService {
   readonly languages = LANGUAGES;

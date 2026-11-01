@@ -1,6 +1,7 @@
 @import './styles/tokens';
 
 @import './styles/workspace-launcher';
+@import './styles/refresh';
 
 html, body {
   height: 100%;
@@ -4752,3 +4753,7 @@ html {
 .pm-shell:not(.mycs-schedule) .timeline-day-cell.non-working-day { background: var(--pm-surface-sunken); }
 .pm-shell:not(.mycs-schedule) .gantt-bar { background: var(--pm-primary); }
 .pm-shell:not(.mycs-schedule) .gantt-bar-progress { background: var(--pm-primary-gradient); }
+
+/* RTL: mirror directional arrows and chevrons */
+[dir='rtl'] .rtl-mirror,
+[dir='rtl'] .export-option-arrow { display: inline-block; transform: scaleX(-1); }
