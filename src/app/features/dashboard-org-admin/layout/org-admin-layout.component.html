@@ -27,14 +27,7 @@
         <span>Organisation</span>
         <strong>{{ organisationName }}</strong>
       </div>
-      <div class="oa-user">
-        <span class="oa-avatar" aria-hidden="true">{{ currentUserName.charAt(0) | uppercase }}</span>
-        <div><strong>{{ currentUserName }}</strong><span>Organisation Admin</span></div>
-      </div>
-      <button class="oa-signout" type="button" (click)="logout()" aria-label="Sign out">
-        <span class="material-symbols-outlined" aria-hidden="true">logout</span>
-        <span>Sign out</span>
-      </button>
+      <app-profile-menu></app-profile-menu>
     </div>
   </header>
 

@@ -1,4 +1,5 @@
 import { AppNavButtonsComponent } from 'src/app/core/navigation/app-nav-buttons.component';
+import { ProfileMenuComponent } from 'src/app/core/navigation/profile-menu.component';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -77,7 +78,7 @@ import { MilestoneDashboardComponent } from './pages/milestone-dashboard/milesto
     ReactiveFormsModule,
     GmDashboardRoutingModule,
     HttpClientModule,
-    AppNavButtonsComponent
+    AppNavButtonsComponent, ProfileMenuComponent
   ]
 })
 export class GmDashboardModule {}

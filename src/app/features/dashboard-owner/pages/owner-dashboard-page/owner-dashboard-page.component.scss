@@ -241,43 +241,6 @@
   }
 }
 
-.profile-chip {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--pm-surface-muted);
-  border: 1px solid var(--pm-border);
-  padding: 6px 8px;
-  border-radius: 12px;
-}
-
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--pm-chrome-bg);
-  color: var(--pm-on-accent);
-  display: grid;
-  place-items: center;
-  font-size: 11px;
-  font-weight: 800;
-}
-
-.profile-meta {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.15;
-
-  strong {
-    font-size: 12px;
-  }
-
-  span {
-    color: var(--pm-text-muted);
-    font-size: 11px;
-  }
-}
-
 /* STATE */
 .state-box {
   padding: 12px 14px;
@@ -958,10 +921,6 @@
   .topbar-right {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .profile-chip {
-    justify-content: center;
   }
 
   .signal-pill {

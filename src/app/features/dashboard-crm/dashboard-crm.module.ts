@@ -1,4 +1,5 @@
 import { AppNavButtonsComponent } from 'src/app/core/navigation/app-nav-buttons.component';
+import { ProfileMenuComponent } from 'src/app/core/navigation/profile-menu.component';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -25,6 +26,6 @@ import { CrmArchivedOpportunitiesPageComponent } from './pages/crm-archived-oppo
   declarations: [CrmLayoutComponent, CrmDashboardPageComponent, CrmLeadsPageComponent, CrmLeadDetailPageComponent,
     CrmAccountsPageComponent, CrmAccountDetailPageComponent, CrmOpportunitiesPageComponent,
     CrmOpportunityDetailPageComponent, CrmManagerViewPageComponent, CrmReportsPageComponent, CrmAnalyticsPageComponent, CrmSettingsPageComponent, CrmDatePipe, SalesDashboardComponent, CustomerSuccessDashboardComponent, CrmArchivedOpportunitiesPageComponent],
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule, DashboardCrmRoutingModule, AppNavButtonsComponent]
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule, DashboardCrmRoutingModule, AppNavButtonsComponent, ProfileMenuComponent]
 })
 export class DashboardCrmModule {}

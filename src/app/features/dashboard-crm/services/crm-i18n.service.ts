@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import { LanguageService } from 'src/app/core/i18n/language.service';
+import { LanguageCode } from 'src/app/core/i18n/languages';
 
 export type CrmLang = 'fr' | 'it' | 'en';
-
-const STORAGE_KEY = 'crm-lang';
 
 // Traductions pour les valeurs dynamiques (noms d'étapes, sources, etc.)
 const DYNAMIC_TRANSLATIONS: Record<string, Record<CrmLang, string>> = {
@@ -490,16 +490,25 @@ const DICTIONARIES: Record<CrmLang, Record<string, any>> = {
 
 @Injectable({ providedIn: 'root' })
 export class CrmI18nService {
-  private readonly langSubject = new BehaviorSubject<CrmLang>(this.readStoredLang());
-  readonly lang$ = this.langSubject.asObservable();
+  private readonly langSubject: BehaviorSubject<CrmLang>;
+  readonly lang$;
+
+  // The CRM follows the application language (profile menu); languages without a CRM dictionary use English.
+  constructor(private language: LanguageService) {
+    this.langSubject = new BehaviorSubject<CrmLang>(this.toCrmLang(language.current));
+    this.lang$ = this.langSubject.asObservable();
+    language.language$.subscribe(option => {
+      const lang = this.toCrmLang(option.code);
+      if (lang !== this.langSubject.value) this.langSubject.next(lang);
+    });
+  }
 
   get currentLang(): CrmLang {
     return this.langSubject.value;
   }
 
   setLang(lang: CrmLang): void {
-    this.langSubject.next(lang);
-    localStorage.setItem(STORAGE_KEY, lang);
+    void this.language.use(lang);
   }
 
   t(key: string): string {
@@ -561,8 +570,7 @@ export class CrmI18nService {
     return value;
   }
 
-  private readStoredLang(): CrmLang {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored === 'fr' || stored === 'it' || stored === 'en' ? (stored as CrmLang) : 'en';
+  private toCrmLang(code: LanguageCode): CrmLang {
+    return code === 'fr' || code === 'it' ? code : 'en';
   }
 }

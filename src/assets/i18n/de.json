@@ -1,0 +1,31 @@
+{
+  "common": {
+    "user": "Benutzer"
+  },
+  "profileMenu": {
+    "language": "Sprache",
+    "open": "Kontomenü",
+    "signOut": "Abmelden",
+    "theme": "Design"
+  },
+  "roles": {
+    "CLIENT": "Kunde",
+    "DEPARTMENT_MANAGER": "Abteilungsleiter",
+    "EMPLOYEE": "Mitarbeiter",
+    "H24": "H24-Supportmitarbeiter",
+    "H24_LEAD": "H24-Supportleiter",
+    "MANAGER": "Manager",
+    "ORG_ADMIN": "Organisationsadministrator",
+    "PLATFORM_OWNER": "Plattforminhaber",
+    "PROJECT_MANAGER": "Projektleiter",
+    "PROJECT_MANAGER_LEAD": "Leitender Projektleiter",
+    "SALES_MANAGER": "Vertriebsmanager",
+    "SALES_MANAGER_LEAD": "Vertriebsleiter",
+    "SYSTEM_ENGINEER": "Systemingenieur"
+  },
+  "theme": {
+    "dark": "Dunkel",
+    "dim": "Dämmerung",
+    "light": "Hell"
+  }
+}

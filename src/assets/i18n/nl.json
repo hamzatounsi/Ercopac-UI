@@ -1,0 +1,31 @@
+{
+  "common": {
+    "user": "Gebruiker"
+  },
+  "profileMenu": {
+    "language": "Taal",
+    "open": "Accountmenu",
+    "signOut": "Afmelden",
+    "theme": "Thema"
+  },
+  "roles": {
+    "CLIENT": "Klant",
+    "DEPARTMENT_MANAGER": "Afdelingsmanager",
+    "EMPLOYEE": "Medewerker",
+    "H24": "H24-supportmedewerker",
+    "H24_LEAD": "H24-supportleider",
+    "MANAGER": "Manager",
+    "ORG_ADMIN": "Organisatiebeheerder",
+    "PLATFORM_OWNER": "Platformeigenaar",
+    "PROJECT_MANAGER": "Projectmanager",
+    "PROJECT_MANAGER_LEAD": "Hoofdprojectmanager",
+    "SALES_MANAGER": "Salesmanager",
+    "SALES_MANAGER_LEAD": "Hoofd verkoop",
+    "SYSTEM_ENGINEER": "Systeemengineer"
+  },
+  "theme": {
+    "dark": "Donker",
+    "dim": "Schemering",
+    "light": "Licht"
+  }
+}

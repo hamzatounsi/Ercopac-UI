@@ -101,33 +101,6 @@
   border-top: 1px solid color-mix(in srgb, var(--pm-chrome-text) 8%, transparent);
 }
 
-.signout-btn {
-  width: 100%;
-  height: 42px;
-  background: transparent;
-  border: none;
-  color: var(--pm-chrome-text);
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  text-align: left;
-  padding: 0 16px;
-  border-radius: var(--pm-radius);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.signout-btn .material-symbols-outlined {
-  width: 20px;
-  font-size: 20px;
-}
-
-.signout-btn:hover {
-  background: color-mix(in srgb, var(--pm-danger) 12%, transparent);
-  color: var(--pm-chrome-danger);
-}
-
 .owner-card {
   margin-top: 12px;
   background: color-mix(in srgb, var(--pm-chrome-text) 8%, transparent);

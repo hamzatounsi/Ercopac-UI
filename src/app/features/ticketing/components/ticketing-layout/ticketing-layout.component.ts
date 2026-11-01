@@ -30,8 +30,6 @@ export class TicketingLayoutComponent implements OnInit {
   // The Settings link opens one section but stays highlighted on all of them
   get inSettings(): boolean { return this.router.url.startsWith('/tickets/settings'); }
 
-  get userName(): string { return this.auth.getCurrentUsername() || 'User'; }
-  get initials(): string { return this.userName.split(/\s+/).slice(0, 2).map(v => v[0]).join('').toUpperCase(); }
   get organisation(): string { return this.auth.getOrganisationName() || 'Organisation'; }
   get roleLabel(): string { return this.auth.getRoles().join(', ').replace(/_/g, ' ').toLowerCase(); }
 }

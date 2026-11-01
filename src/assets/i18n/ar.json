@@ -1,0 +1,31 @@
+{
+  "common": {
+    "user": "مستخدم"
+  },
+  "profileMenu": {
+    "language": "اللغة",
+    "open": "قائمة الحساب",
+    "signOut": "تسجيل الخروج",
+    "theme": "المظهر"
+  },
+  "roles": {
+    "CLIENT": "عميل",
+    "DEPARTMENT_MANAGER": "مدير القسم",
+    "EMPLOYEE": "موظف",
+    "H24": "وكيل دعم H24",
+    "H24_LEAD": "رئيس دعم H24",
+    "MANAGER": "مدير",
+    "ORG_ADMIN": "مسؤول المؤسسة",
+    "PLATFORM_OWNER": "مالك المنصة",
+    "PROJECT_MANAGER": "مدير المشروع",
+    "PROJECT_MANAGER_LEAD": "مدير المشاريع الرئيسي",
+    "SALES_MANAGER": "مدير المبيعات",
+    "SALES_MANAGER_LEAD": "رئيس المبيعات",
+    "SYSTEM_ENGINEER": "مهندس أنظمة"
+  },
+  "theme": {
+    "dark": "داكن",
+    "dim": "شفق",
+    "light": "فاتح"
+  }
+}

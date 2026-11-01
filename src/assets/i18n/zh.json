@@ -1,0 +1,31 @@
+{
+  "common": {
+    "user": "用户"
+  },
+  "profileMenu": {
+    "language": "语言",
+    "open": "账户菜单",
+    "signOut": "退出登录",
+    "theme": "主题"
+  },
+  "roles": {
+    "CLIENT": "客户",
+    "DEPARTMENT_MANAGER": "部门经理",
+    "EMPLOYEE": "员工",
+    "H24": "H24 支持专员",
+    "H24_LEAD": "H24 支持主管",
+    "MANAGER": "经理",
+    "ORG_ADMIN": "组织管理员",
+    "PLATFORM_OWNER": "平台所有者",
+    "PROJECT_MANAGER": "项目经理",
+    "PROJECT_MANAGER_LEAD": "首席项目经理",
+    "SALES_MANAGER": "销售经理",
+    "SALES_MANAGER_LEAD": "销售主管",
+    "SYSTEM_ENGINEER": "系统工程师"
+  },
+  "theme": {
+    "dark": "深色",
+    "dim": "暮光",
+    "light": "浅色"
+  }
+}

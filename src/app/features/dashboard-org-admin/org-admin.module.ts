@@ -1,3 +1,4 @@
+import { ProfileMenuComponent } from 'src/app/core/navigation/profile-menu.component';
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -24,6 +25,6 @@ import { AdminToastComponent } from './shared/admin-toast.component';
     OrgAdminSettingsComponent,
     AdminToastComponent
   ],
-  imports: [CommonModule, ReactiveFormsModule, OrgAdminRoutingModule]
+  imports: [CommonModule, ReactiveFormsModule, OrgAdminRoutingModule, ProfileMenuComponent]
 })
 export class OrgAdminModule {}

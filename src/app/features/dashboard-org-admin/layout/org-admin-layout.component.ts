@@ -26,7 +26,6 @@ export class OrgAdminLayoutComponent implements OnInit, OnDestroy {
   ];
 
   organisationName = '';
-  currentUserName = '';
   pageTitle = 'Organisation administration';
   pageDescription = 'Manage your organisation configuration and access.';
   mobileNavigationOpen = false;
@@ -40,7 +39,6 @@ export class OrgAdminLayoutComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.organisationName = this.authService.getOrganisationName() || 'Your organisation';
-    this.currentUserName = this.authService.getCurrentUsername() || 'Organisation Admin';
     this.updateRouteMetadata();
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd),
@@ -58,11 +56,6 @@ export class OrgAdminLayoutComponent implements OnInit, OnDestroy {
 
   toggleNavigation(): void {
     this.mobileNavigationOpen = !this.mobileNavigationOpen;
-  }
-
-  logout(): void {
-    this.authService.logout();
-    void this.router.navigate(['/login']);
   }
 
   private updateRouteMetadata(): void {

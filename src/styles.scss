@@ -100,7 +100,7 @@ textarea):focus {
   letter-spacing: 0;
 }
 
-:where(.btn, .btn-primary, .btn-secondary, .btn-light, .btn-outline, .btn-cancel, .toolbar-btn, .back-btn, .signout-btn) {
+:where(.btn, .btn-primary, .btn-secondary, .btn-light, .btn-outline, .btn-cancel, .toolbar-btn, .back-btn) {
   min-height: 34px;
   border-radius: var(--pm-radius);
   font-weight: 700;
@@ -332,7 +332,7 @@ textarea) {
   margin-bottom: var(--pm-space-4);
 }
 
-:where(.btn, .btn-primary, .btn-secondary, .btn-light, .btn-outline, .btn-cancel, .toolbar-btn, .back-btn, .signout-btn):focus-visible,
+:where(.btn, .btn-primary, .btn-secondary, .btn-light, .btn-outline, .btn-cancel, .toolbar-btn, .back-btn):focus-visible,
 :where(a, button, input, select, textarea):focus-visible {
   outline: none;
   box-shadow: var(--pm-focus);
@@ -662,8 +662,6 @@ textarea) {
 :where(.nav-item, .side-nav-item, .crm-nav-item) {
   letter-spacing: 0;
 }
-
-
 
 /* Original GM Projectum schedule styles moved out of component SCSS for budget compliance */
 .pm-shell {
@@ -2702,7 +2700,6 @@ textarea) {
   border-radius: 1px;
 }
 
-
 .progress-card {
   padding-bottom: 12px;
 }
@@ -4708,7 +4705,6 @@ html {
   color: var(--pm-text-soft);
   opacity: 1;
 }
-
 
 /* Coordinated Projectum palette; preserve each module's layout and status colours. */
 :is(.pm-shell, .finance-shell, .forecast-shell, .risk-shell, .cr-shell, .actions-shell, .projectum-shell, .project-details-shell, .milestone-page, .tasks-page, .schedule-init-page):not(.mycs-schedule) {

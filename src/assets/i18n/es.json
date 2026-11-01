@@ -1,0 +1,31 @@
+{
+  "common": {
+    "user": "Usuario"
+  },
+  "profileMenu": {
+    "language": "Idioma",
+    "open": "Menú de la cuenta",
+    "signOut": "Cerrar sesión",
+    "theme": "Tema"
+  },
+  "roles": {
+    "CLIENT": "Cliente",
+    "DEPARTMENT_MANAGER": "Jefe de departamento",
+    "EMPLOYEE": "Empleado",
+    "H24": "Agente de soporte H24",
+    "H24_LEAD": "Responsable de soporte H24",
+    "MANAGER": "Responsable",
+    "ORG_ADMIN": "Administrador de la organización",
+    "PLATFORM_OWNER": "Propietario de la plataforma",
+    "PROJECT_MANAGER": "Jefe de proyecto",
+    "PROJECT_MANAGER_LEAD": "Jefe de proyecto principal",
+    "SALES_MANAGER": "Gerente de ventas",
+    "SALES_MANAGER_LEAD": "Jefe de ventas",
+    "SYSTEM_ENGINEER": "Ingeniero de sistemas"
+  },
+  "theme": {
+    "dark": "Oscuro",
+    "dim": "Crepúsculo",
+    "light": "Claro"
+  }
+}

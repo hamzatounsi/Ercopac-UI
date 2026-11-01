@@ -44,9 +44,4 @@ export class GmWorkspacesPageComponent implements OnInit {
     // Comportement normal pour les autres applications
     void this.router.navigateByUrl(app.route);
   }
-
-  logout(): void {
-    this.authService.logout();
-    void this.router.navigate(['/']);
-  }
 }

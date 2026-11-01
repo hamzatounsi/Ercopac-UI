@@ -1,10 +1,10 @@
 /* Shared public and authenticated workspace-launcher presentation. */
 .launcher-page {
-  --launcher-navy: #202b3e;
-  --launcher-purple: #8c5b82;
-  --launcher-blue: #2f9bea;
-  --launcher-surface: #ffffff;
-  --launcher-stage: #f3f3f6;
+  --launcher-navy: var(--pm-text);
+  --launcher-purple: var(--pm-accent-text);
+  --launcher-blue: var(--pm-info);
+  --launcher-surface: var(--pm-surface);
+  --launcher-stage: var(--pm-surface-sunken);
   min-height: 100vh;
   overflow-x: clip;
   background: var(--pm-surface);
@@ -75,7 +75,7 @@
   border: 0;
   border-radius: 7px;
   padding: 0 21px;
-  background: var(--launcher-purple);
+  background: var(--pm-accent);
   box-shadow: 0 10px 18px rgba(105, 62, 94, .16);
   color: var(--pm-on-accent);
   cursor: pointer;

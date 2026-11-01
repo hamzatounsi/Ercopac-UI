@@ -9,10 +9,7 @@
         <a class="active" href="#applications">Applications</a>
       </nav>
       <div class="landing-account">
-        <button class="landing-logout" type="button" (click)="logout()">Logout</button>
-        <div class="landing-user" [attr.title]="currentUserName">
-          <span class="landing-user-name">{{ currentUserName }}</span>
-        </div>
+        <app-profile-menu logoutRoute="/"></app-profile-menu>
       </div>
     </header>
 

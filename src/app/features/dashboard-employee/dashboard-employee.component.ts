@@ -203,7 +203,6 @@ export class DashboardEmployeeComponent implements OnInit {
   }
 
   navigate(route: string): void { this.router.navigateByUrl(route); }
-  logout(): void { this.auth.logout(); this.router.navigate(['/login']); }
   openTask(task: EmployeeTask): void {
     this.selectedTask = task;
     this.selectedAction = null;

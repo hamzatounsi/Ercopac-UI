@@ -1,0 +1,31 @@
+{
+  "common": {
+    "user": "Kullanıcı"
+  },
+  "profileMenu": {
+    "language": "Dil",
+    "open": "Hesap menüsü",
+    "signOut": "Oturumu kapat",
+    "theme": "Tema"
+  },
+  "roles": {
+    "CLIENT": "Müşteri",
+    "DEPARTMENT_MANAGER": "Departman yöneticisi",
+    "EMPLOYEE": "Çalışan",
+    "H24": "H24 destek temsilcisi",
+    "H24_LEAD": "H24 destek lideri",
+    "MANAGER": "Yönetici",
+    "ORG_ADMIN": "Kuruluş yöneticisi",
+    "PLATFORM_OWNER": "Platform sahibi",
+    "PROJECT_MANAGER": "Proje yöneticisi",
+    "PROJECT_MANAGER_LEAD": "Kıdemli proje yöneticisi",
+    "SALES_MANAGER": "Satış yöneticisi",
+    "SALES_MANAGER_LEAD": "Satış lideri",
+    "SYSTEM_ENGINEER": "Sistem mühendisi"
+  },
+  "theme": {
+    "dark": "Koyu",
+    "dim": "Alacakaranlık",
+    "light": "Açık"
+  }
+}

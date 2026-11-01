@@ -1,7 +1,10 @@
 import { AppNavButtonsComponent } from 'src/app/core/navigation/app-nav-buttons.component';
-import { NgModule } from '@angular/core';
+import { ProfileMenuComponent } from 'src/app/core/navigation/profile-menu.component';
+import { APP_INITIALIZER, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClient, HttpClientModule } from '@angular/common/http';
+import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
@@ -14,6 +17,17 @@ import { DashboardDmComponent } from './features/dashboard-dm/dashboard-dm.compo
 import { DashboardEmployeeComponent } from './features/dashboard-employee/dashboard-employee.component';
 import { DashboardDepartmentModule } from './features/dashboard-department/dashboard-department.module';
 import { ForbiddenComponent } from './features/forbidden/forbidden.component';
+import { LanguageService } from './core/i18n/language.service';
+
+// One JSON file per language, downloaded only when that language is used.
+export function createTranslateLoader(http: HttpClient): TranslateLoader {
+  return new TranslateHttpLoader(http, 'assets/i18n/', '.json');
+}
+
+// Load the initial language before the first render, so no untranslated keys flash on screen.
+export function initLanguage(language: LanguageService): () => Promise<void> {
+  return () => language.use(language.initialLanguage());
+}
 
 
 @NgModule({
@@ -33,10 +47,15 @@ import { ForbiddenComponent } from './features/forbidden/forbidden.component';
     RouterModule,
     AppRoutingModule,
     DashboardDepartmentModule,
-    AppNavButtonsComponent,
+    AppNavButtonsComponent, ProfileMenuComponent,
+    TranslateModule.forRoot({
+      defaultLanguage: 'en',
+      loader: { provide: TranslateLoader, useFactory: createTranslateLoader, deps: [HttpClient] }
+    }),
   ],
   providers: [
-    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
+    { provide: APP_INITIALIZER, useFactory: initLanguage, deps: [LanguageService], multi: true }
   ],
   bootstrap: [AppComponent]
 })

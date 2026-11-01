@@ -29,6 +29,7 @@
   {{ selectedDepartmentCode }}
 </div>
 <app-nav-buttons *ngIf="!insideGmLayout" [homes]="['/department']"></app-nav-buttons>
+<app-profile-menu *ngIf="!insideGmLayout"></app-profile-menu>
   </header>
   <nav class="dept-toolbar">
     <div class="view-tabs">
