@@ -2,19 +2,19 @@
   <app-projectum-workspace-header
     [projectId]="projectId"
     [projectName]="projectName"
-    title="Milestones"
-    subtitle="Scheduled milestones by project.">
+    [title]="'gm.milestoneDashboard.milestones' | translate"
+    [subtitle]="'gm.milestoneDashboard.scheduledMilestonesProject' | translate">
     <div projectumHeaderActions class="date-filter">
-      <label>From <input type="date" [(ngModel)]="startDate"></label>
-      <label>To <input type="date" [(ngModel)]="endDate"></label>
-      <button type="button" (click)="applyFilter()">Apply</button>
-      <button type="button" class="btn-today" (click)="scrollToCurrentMonth()">Today</button>
+      <label>{{ 'gm.milestoneDashboard.from' | translate }} <input type="date" [(ngModel)]="startDate"></label>
+      <label>{{ 'gm.milestoneDashboard.text' | translate }} <input type="date" [(ngModel)]="endDate"></label>
+      <button type="button" (click)="applyFilter()">{{ 'gm.milestoneDashboard.apply' | translate }}</button>
+      <button type="button" class="btn-today" (click)="scrollToCurrentMonth()">{{ 'gm.milestoneDashboard.today' | translate }}</button>
     </div>
   </app-projectum-workspace-header>
 
   <p *ngIf="errorMessage" class="message error">{{ errorMessage }}</p>
-  <p *ngIf="loading" class="message">Loading milestones…</p>
-  <section *ngIf="!loading && !projects.length" class="empty-state">No accessible projects.</section>
+  <p *ngIf="loading" class="message">{{ 'gm.milestoneDashboard.loadingMilestones' | translate }}</p>
+  <section *ngIf="!loading && !projects.length" class="empty-state">{{ 'gm.milestoneDashboard.noAccessibleProjects' | translate }}</section>
 
   <section *ngIf="!loading && projects.length" class="timeline-card">
     <div class="timeline-scroll" #timelineScroll>
@@ -23,9 +23,9 @@
         <!-- HEADER: sticky top, fixed columns sticky left -->
         <div class="header-block">
           <div class="fixed-cols fixed-cols--header">
-            <div class="col col--project">Project</div>
-            <div class="col col--stat">Stat</div>
-            <div class="col col--pm">PM</div>
+            <div class="col col--project">{{ 'gm.milestoneDashboard.project' | translate }}</div>
+            <div class="col col--stat">{{ 'gm.milestoneDashboard.stat' | translate }}</div>
+            <div class="col col--pm">{{ 'gm.milestoneDashboard.pm' | translate }}</div>
           </div>
 
           <div class="header-timeline" [style.width.px]="timelineWidth">

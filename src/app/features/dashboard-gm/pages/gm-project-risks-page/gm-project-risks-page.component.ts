@@ -6,6 +6,7 @@ import { RiskItem } from '../../models/risk-item.model';
 import { RiskSummary } from '../../models/risk-summary.model';
 import { RiskApprovalRule, UpsertRiskApprovalRuleRequest } from '../../models/risk-approval-rule.model';
 import { ResourceTypeDto } from '../../models/resource-type.model';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 type SortColumn =
   | 'id'
@@ -100,7 +101,7 @@ export class GmProjectRisksPageComponent implements OnInit {
 
   private rowUsersCache: Map<number, any[]> = new Map();
 
-  constructor(
+  constructor(private readonly i18n: I18nService, 
     private route: ActivatedRoute,
     private router: Router,
     private riskService: GmRiskService,
@@ -124,7 +125,7 @@ export class GmProjectRisksPageComponent implements OnInit {
     },
     error: (err) => {
       console.error('LOAD PROJECT NAME ERROR:', err);
-      this.projectName = `Project #${this.projectId}`;
+      this.projectName = this.i18n.t('gm.risks.projectNumber', { id: this.projectId });
     }
   });
 }
@@ -155,7 +156,7 @@ export class GmProjectRisksPageComponent implements OnInit {
       },
       error: (err) => {
         console.error(err);
-        this.error = 'Failed to load risks.';
+        this.error = this.i18n.t('gm.risks.failedLoadRisks');
         this.loading = false;
       }
     });
@@ -179,7 +180,7 @@ export class GmProjectRisksPageComponent implements OnInit {
         });
       },
       error: () => {
-        this.error = 'Failed to load risk summary.';
+        this.error = this.i18n.t('gm.risks.failedLoadRiskSummary');
         this.applyFilters();
         this.loading = false;
       }
@@ -338,7 +339,7 @@ export class GmProjectRisksPageComponent implements OnInit {
     const payload = {
       riskType: 'risk',
       state: 'new',
-      description: 'New risk',
+      description: this.i18n.t('gm.risks.newRisk'),
       inputDate: new Date().toISOString().slice(0, 10),
       dueDate: null,
       mitigation: '',
@@ -360,7 +361,7 @@ export class GmProjectRisksPageComponent implements OnInit {
       },
       error: (err) => {
         console.error(err);
-        this.error = 'Failed to add risk.';
+        this.error = this.i18n.t('gm.risks.failedAddRisk');
         this.saving = false;
       }
     });
@@ -412,14 +413,14 @@ export class GmProjectRisksPageComponent implements OnInit {
       },
       error: (err) => {
         console.error('SAVE ERROR:', err.status, err.error);
-        this.error = 'Failed to save risk.';
+        this.error = this.i18n.t('gm.risks.failedSaveRisk');
         this.saving = false;
       }
     });
   }
 
   deleteRow(row: RiskItem): void {
-    if (!confirm('Delete this risk?')) return;
+    if (!confirm(this.i18n.t('gm.risks.deleteRisk'))) return;
 
     this.saving = true;
     this.riskService.deleteRisk(this.projectId, row.id).subscribe({
@@ -432,7 +433,7 @@ export class GmProjectRisksPageComponent implements OnInit {
       },
       error: (err) => {
         console.error(err);
-        this.error = 'Failed to delete risk.';
+        this.error = this.i18n.t('gm.risks.failedDeleteRisk');
         this.saving = false;
       }
     });
@@ -450,7 +451,7 @@ export class GmProjectRisksPageComponent implements OnInit {
       },
       error: (err) => {
         console.error(err);
-        this.error = 'Failed to approve risk.';
+        this.error = this.i18n.t('gm.risks.failedApproveRisk');
         this.saving = false;
       }
     });
@@ -468,7 +469,7 @@ export class GmProjectRisksPageComponent implements OnInit {
       },
       error: (err) => {
         console.error(err);
-        this.error = 'Failed to reject risk.';
+        this.error = this.i18n.t('gm.risks.failedRejectRisk');
         this.saving = false;
       }
     });
@@ -633,7 +634,7 @@ export class GmProjectRisksPageComponent implements OnInit {
         this.loadApprovalRules();
       },
       error: () => {
-        this.error = 'Failed to add approval rule.';
+        this.error = this.i18n.t('gm.risks.failedAddApprovalRule');
       }
     });
   }
@@ -642,7 +643,7 @@ export class GmProjectRisksPageComponent implements OnInit {
     if (!ruleId) return;
     this.riskService.deleteApprovalRule(this.projectId, ruleId).subscribe({
       next: () => this.loadApprovalRules(),
-      error: () => { this.error = 'Failed to delete rule.'; }
+      error: () => { this.error = this.i18n.t('gm.risks.failedDeleteRule'); }
     });
   }
 
@@ -718,10 +719,10 @@ export class GmProjectRisksPageComponent implements OnInit {
 
   getRiskLevelLabel(row: RiskItem): string {
     const level = this.getRiskLevel(row);
-    if (level === 'crit') return 'Critical';
-    if (level === 'hi') return 'High';
-    if (level === 'med') return 'Medium';
-    return 'Low';
+    if (level === 'crit') return this.i18n.t('gm.risks.levelLabel.crit');
+    if (level === 'hi') return this.i18n.t('gm.risks.levelLabel.hi');
+    if (level === 'med') return this.i18n.t('gm.risks.levelLabel.med');
+    return this.i18n.t('gm.risks.levelLabel.low');
   }
 
   getRiskClass(row: RiskItem): string { return 'rv-' + this.getRiskLevel(row); }

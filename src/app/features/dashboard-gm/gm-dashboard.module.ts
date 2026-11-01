@@ -36,6 +36,7 @@ import { CompanyDashboardComponent } from './pages/company-dashboard/company-das
 import { ProjectPerformanceComponent } from './pages/project-performance/project-performance.component';
 
 import { MilestoneDashboardComponent } from './pages/milestone-dashboard/milestone-dashboard.component';
+import { TranslateModule } from '@ngx-translate/core';
 
 
 
@@ -78,6 +79,7 @@ import { MilestoneDashboardComponent } from './pages/milestone-dashboard/milesto
     ReactiveFormsModule,
     GmDashboardRoutingModule,
     HttpClientModule,
+    TranslateModule,
     AppNavButtonsComponent, ProfileMenuComponent
   ]
 })

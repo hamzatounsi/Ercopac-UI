@@ -1,57 +1,57 @@
 <app-projectum-workspace-header
   [projectId]="projectId"
   [projectName]="projectName"
-  title="Actions"
-  subtitle="Track corrective actions, issues and ownership across this project.">
-  <button projectumHeaderActions class="add-btn" type="button" (click)="addAction()">New Action</button>
+  [title]="'common.actions' | translate"
+  [subtitle]="'gm.actions.trackCorrectiveActionsIssues' | translate">
+  <button projectumHeaderActions class="add-btn" type="button" (click)="addAction()">{{ 'gm.actions.newAction' | translate }}</button>
 </app-projectum-workspace-header>
 <div class="actions-shell">
   <div id="stats-bar">
-    <div class="stat-pill"><span>{{ getTotalCount() }}</span> Total</div>
-    <div class="stat-pill blue"><span>{{ getDoingCount() }}</span> In Progress</div>
-    <div class="stat-pill red"><span>{{ getOverdueCount() }}</span> Overdue</div>
-    <div class="stat-pill green"><span>{{ getDoneCount() }}</span> Done</div>
+    <div class="stat-pill"><span>{{ getTotalCount() }}</span> {{ 'gm.actions.total' | translate }}</div>
+    <div class="stat-pill blue"><span>{{ getDoingCount() }}</span> {{ 'gm.actions.progress' | translate }}</div>
+    <div class="stat-pill red"><span>{{ getOverdueCount() }}</span> {{ 'gm.actions.overdue' | translate }}</div>
+    <div class="stat-pill green"><span>{{ getDoneCount() }}</span> {{ 'gm.actions.done' | translate }}</div>
   </div>
 
   <div id="toolbar">
     <div id="toolbar-row1">
       <div class="tb-search">
         <span class="search-ico">🔍</span>
-        <input [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="Search actions...">
+        <input [(ngModel)]="searchTerm" (input)="applyFilters()" [placeholder]="'gm.actions.searchActions' | translate">
       </div>
 
       <div class="tb-sep"></div>
 
       <div class="view-grp">
-        <button class="view-btn" [class.on]="viewMode==='list'" (click)="setView('list')" title="List view">☰</button>
-        <button class="view-btn" [class.on]="viewMode==='kanban'" (click)="setView('kanban')" title="Kanban view">⋮</button>
+        <button class="view-btn" [class.on]="viewMode==='list'" (click)="setView('list')" [title]="'gm.actions.listView' | translate">☰</button>
+        <button class="view-btn" [class.on]="viewMode==='kanban'" (click)="setView('kanban')" [title]="'gm.actions.kanbanView' | translate">⋮</button>
       </div>
 
       <div class="toolbar-right">
         <span class="flt-summary" *ngIf="getActiveFilterCount() > 0">
-          {{ getActiveFilterCount() }} filter(s) active
+          {{ 'gm.actions.getactivefiltercountFilterSActive' | translate: { getActiveFilterCount: getActiveFilterCount() } }}
         </span>
 
-        <button class="clear-btn" *ngIf="getActiveFilterCount() > 0" (click)="clearFilters()">✕ Clear filters</button>
+        <button class="clear-btn" *ngIf="getActiveFilterCount() > 0" (click)="clearFilters()">{{ 'gm.actions.clearFilters' | translate }}</button>
 
         <div class="export-wrap">
-          <button class="export-btn" (click)="toggleExportMenu()">📤 Export ▾</button>
+          <button class="export-btn" (click)="toggleExportMenu()">{{ 'gm.actions.export' | translate }}</button>
           <div class="export-menu" *ngIf="exportMenuOpen">
-            <div class="exp-group-title">Internal report</div>
-            <button class="exp-item" (click)="exportCsv('internal')">CSV — Internal</button>
-            <button class="exp-item" (click)="exportJson('internal')">JSON — Internal</button>
+            <div class="exp-group-title">{{ 'gm.actions.internalReport' | translate }}</div>
+            <button class="exp-item" (click)="exportCsv('internal')">{{ 'gm.actions.csvInternal' | translate }}</button>
+            <button class="exp-item" (click)="exportJson('internal')">{{ 'gm.actions.jsonInternal' | translate }}</button>
 
             <div class="exp-divider"></div>
 
-            <div class="exp-group-title">Customer report</div>
-            <button class="exp-item" (click)="exportCsv('customer')">CSV — Customer</button>
-            <button class="exp-item" (click)="exportJson('customer')">JSON — Customer</button>
+            <div class="exp-group-title">{{ 'gm.actions.customerReport' | translate }}</div>
+            <button class="exp-item" (click)="exportCsv('customer')">{{ 'gm.actions.csvCustomer' | translate }}</button>
+            <button class="exp-item" (click)="exportJson('customer')">{{ 'gm.actions.jsonCustomer' | translate }}</button>
 
             <div class="exp-divider"></div>
 
-            <div class="exp-group-title">Full report</div>
-            <button class="exp-item" (click)="exportCsv('all')">CSV — All actions</button>
-            <button class="exp-item" (click)="exportJson('all')">JSON — All actions</button>
+            <div class="exp-group-title">{{ 'gm.actions.fullReport' | translate }}</div>
+            <button class="exp-item" (click)="exportCsv('all')">{{ 'gm.actions.csvAllActions' | translate }}</button>
+            <button class="exp-item" (click)="exportJson('all')">{{ 'gm.actions.jsonAllActions' | translate }}</button>
           </div>
         </div>
 
@@ -59,25 +59,25 @@
     </div>
 
     <div id="toolbar-row2">
-      <span class="tb-label">Type:</span>
+      <span class="tb-label">{{ 'gm.actions.type' | translate }}</span>
       <div class="filter-group">
         <button class="chip"
                 data-type="action"
                 [class.on]="selectedTypes.has('action')"
                 (click)="toggleType('action')">
-          <span class="sq blue"></span> Action
+          <span class="sq blue"></span> {{ 'gm.actions.action' | translate }}
         </button>
         <button class="chip"
                 data-type="issue"
                 [class.on]="selectedTypes.has('issue')"
                 (click)="toggleType('issue')">
-          <span class="sq red"></span> Issue
+          <span class="sq red"></span> {{ 'gm.actions.issue' | translate }}
         </button>
       </div>
 
       <div class="tb-sep"></div>
 
-      <span class="tb-label">Status:</span>
+      <span class="tb-label">{{ 'gm.actions.status' | translate }}</span>
       <div class="filter-group">
         <button class="chip"
                 *ngFor="let s of statuses"
@@ -90,20 +90,20 @@
 
       <div class="tb-sep"></div>
 
-      <span class="tb-label">Due:</span>
+      <span class="tb-label">{{ 'gm.actions.due' | translate }}</span>
       <select class="flt-sel" [(ngModel)]="dueFilter" (change)="applyFilters()">
-        <option value="">Any date</option>
-        <option value="overdue">Overdue</option>
-        <option value="today">Due today</option>
-        <option value="week">This week</option>
-        <option value="month">This month</option>
+        <option value="">{{ 'gm.actions.anyDate' | translate }}</option>
+        <option value="overdue">{{ 'gm.actions.overdue' | translate }}</option>
+        <option value="today">{{ 'gm.actions.dueToday' | translate }}</option>
+        <option value="week">{{ 'gm.actions.week' | translate }}</option>
+        <option value="month">{{ 'gm.actions.month' | translate }}</option>
       </select>
 
       <div class="tb-sep"></div>
 
-      <span class="tb-label">Assignee:</span>
+      <span class="tb-label">{{ 'gm.actions.assignee' | translate }}</span>
       <select class="flt-sel" (change)="toggleAssignee($any($event.target).value)">
-        <option value="">All assignees</option>
+        <option value="">{{ 'gm.actions.allAssignees' | translate }}</option>
         <option *ngFor="let a of availableAssignees" [value]="a">{{ a }}</option>
       </select>
 
@@ -118,15 +118,15 @@
   <div *ngIf="error" class="error-box">{{ error }}</div>
 
   <div id="summary-strip" *ngIf="summary">
-    <div class="sum-card"><div class="sum-lbl">Total</div><div class="sum-val">{{ summary.total }}</div></div>
-    <div class="sum-card"><div class="sum-lbl">To Do</div><div class="sum-val">{{ summary.todo }}</div></div>
-    <div class="sum-card"><div class="sum-lbl">In Progress</div><div class="sum-val">{{ summary.doing }}</div></div>
-    <div class="sum-card"><div class="sum-lbl">In Review</div><div class="sum-val">{{ summary.review }}</div></div>
-    <div class="sum-card"><div class="sum-lbl">Blocked</div><div class="sum-val">{{ summary.blocked }}</div></div>
-    <div class="sum-card"><div class="sum-lbl">Done</div><div class="sum-val">{{ summary.done }}</div></div>
-    <div class="sum-card"><div class="sum-lbl">Customer</div><div class="sum-val">{{ summary.customerVisible }}</div></div>
-    <div class="sum-card"><div class="sum-lbl">Internal</div><div class="sum-val">{{ summary.internalOnly }}</div></div>
-    <div class="sum-card"><div class="sum-lbl">Overdue</div><div class="sum-val">{{ summary.overdue }}</div></div>
+    <div class="sum-card"><div class="sum-lbl">{{ 'gm.actions.total' | translate }}</div><div class="sum-val">{{ summary.total }}</div></div>
+    <div class="sum-card"><div class="sum-lbl">{{ 'gm.actions.do' | translate }}</div><div class="sum-val">{{ summary.todo }}</div></div>
+    <div class="sum-card"><div class="sum-lbl">{{ 'gm.actions.progress' | translate }}</div><div class="sum-val">{{ summary.doing }}</div></div>
+    <div class="sum-card"><div class="sum-lbl">{{ 'gm.actions.review' | translate }}</div><div class="sum-val">{{ summary.review }}</div></div>
+    <div class="sum-card"><div class="sum-lbl">{{ 'gm.actions.blocked' | translate }}</div><div class="sum-val">{{ summary.blocked }}</div></div>
+    <div class="sum-card"><div class="sum-lbl">{{ 'gm.actions.done' | translate }}</div><div class="sum-val">{{ summary.done }}</div></div>
+    <div class="sum-card"><div class="sum-lbl">{{ 'gm.actions.customer' | translate }}</div><div class="sum-val">{{ summary.customerVisible }}</div></div>
+    <div class="sum-card"><div class="sum-lbl">{{ 'gm.actions.internal' | translate }}</div><div class="sum-val">{{ summary.internalOnly }}</div></div>
+    <div class="sum-card"><div class="sum-lbl">{{ 'gm.actions.overdue' | translate }}</div><div class="sum-val">{{ summary.overdue }}</div></div>
   </div>
 
   <div id="content" *ngIf="!loading">
@@ -135,16 +135,16 @@
         <table class="list-table">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Action</th>
-              <th>Type</th>
-              <th>Dept</th>
-              <th>Priority</th>
-              <th>Status</th>
-              <th>Customer</th>
-              <th>Inserted</th>
-              <th>Due Date</th>
-              <th>Assigned To</th>
+              <th>{{ 'gm.actions.id' | translate }}</th>
+              <th>{{ 'gm.actions.action' | translate }}</th>
+              <th>{{ 'gm.actions.type2' | translate }}</th>
+              <th>{{ 'gm.actions.dept' | translate }}</th>
+              <th>{{ 'gm.actions.priority' | translate }}</th>
+              <th>{{ 'common.status' | translate }}</th>
+              <th>{{ 'gm.actions.customer' | translate }}</th>
+              <th>{{ 'gm.actions.inserted' | translate }}</th>
+              <th>{{ 'gm.actions.dueDate' | translate }}</th>
+              <th>{{ 'gm.actions.assigned' | translate }}</th>
               <th></th>
             </tr>
           </thead>
@@ -166,7 +166,7 @@
 
               <td>
                 <span class="badge" [ngClass]="getTypeClass(row.actionType)">
-                  {{ row.actionType === 'issue' ? 'Issue' : 'Action' }}
+                  {{ row.actionType === 'issue' ? ('gm.actions.issue' | translate) : ('gm.actions.action' | translate) }}
                 </span>
               </td>
 
@@ -227,7 +227,7 @@
             </tr>
 
             <tr *ngIf="filteredRows.length === 0">
-              <td colspan="11" class="empty-state">No actions found</td>
+              <td colspan="11" class="empty-state">{{ 'gm.actions.noActionsFound' | translate }}</td>
             </tr>
           </tbody>
         </table>
@@ -268,7 +268,7 @@
                 <span class="badge" [ngClass]="getPriorityClass(row.priority)">{{ getPriorityLabel(row.priority) }}</span>
                 <span class="badge" [ngClass]="getTypeClass(row.actionType)">{{ row.actionType }}</span>
                 <span class="dept-badge" *ngIf="row.departmentCode">{{ row.departmentCode }}</span>
-                <span class="badge st-doing" *ngIf="row.customerVisible">Cust</span>
+                <span class="badge st-doing" *ngIf="row.customerVisible">{{ 'gm.actions.cust' | translate }}</span>
                 <span class="kb-card-date" [ngClass]="getDueClass(row)" *ngIf="row.dueDate">📅 {{ formatDate(row.dueDate) }}</span>
               </div>
 
@@ -286,21 +286,21 @@
               </div>
             </div>
 
-            <button class="kb-add" (click)="addAction(s)">+ Add action</button>
+            <button class="kb-add" (click)="addAction(s)">{{ 'gm.actions.addAction' | translate }}</button>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="loading-box" *ngIf="loading">Loading actions...</div>
+  <div class="loading-box" *ngIf="loading">{{ 'gm.actions.loadingActions' | translate }}</div>
 
   <div class="detail-overlay" *ngIf="selectedAction">
     <div class="detail-modal">
       <div class="modal-hdr">
         <h2>
           <ng-container *ngIf="isNewAction; else existingTitle">
-            New Action
+            {{ 'gm.actions.newAction' | translate }}
           </ng-container>
           <ng-template #existingTitle>
             {{ formatActionId(selectedAction) }} {{ selectedAction.title }}
@@ -312,16 +312,16 @@
 
       <div class="tabs">
         <div class="tab" [class.on]="detailTab==='details'" (click)="setDetailTab('details')">
-          Details
+          {{ 'gm.actions.details' | translate }}
         </div>
 
         <div class="tab" [class.on]="detailTab==='comments'" (click)="setDetailTab('comments')">
-          Comments
+          {{ 'gm.actions.comments' | translate }}
           <span class="mini-badge">{{ selectedAction.comments.length }}</span>
         </div>
 
         <div class="tab" [class.on]="detailTab==='attachments'" (click)="setDetailTab('attachments')">
-          Attachments
+          {{ 'gm.actions.attachments' | translate }}
           <span class="mini-badge">{{ selectedAction.attachments.length }}</span>
         </div>
       </div>
@@ -330,25 +330,25 @@
         <!-- DETAILS TAB -->
         <ng-container *ngIf="detailTab === 'details'">
           <div class="field">
-            <label>Action Title</label>
+            <label>{{ 'gm.actions.actionTitle' | translate }}</label>
             <input [(ngModel)]="selectedAction.title">
           </div>
 
           <div class="field">
-            <label>Description</label>
+            <label>{{ 'common.description' | translate }}</label>
             <textarea [(ngModel)]="selectedAction.description"></textarea>
           </div>
 
           <div class="field-row">
             <div class="field">
-              <label>Type</label>
+              <label>{{ 'gm.actions.type2' | translate }}</label>
               <select [(ngModel)]="selectedAction.actionType">
                 <option *ngFor="let t of actionTypes" [value]="t">{{ t }}</option>
               </select>
             </div>
 
             <div class="field">
-              <label>Department</label>
+              <label>{{ 'gm.actions.department' | translate }}</label>
               <select [(ngModel)]="selectedAction.departmentCode">
                 <option value="">—</option>
                 <option *ngFor="let d of departments" [value]="d">{{ d }}</option>
@@ -358,14 +358,14 @@
 
           <div class="field-row">
             <div class="field">
-              <label>Status</label>
+              <label>{{ 'common.status' | translate }}</label>
               <select [(ngModel)]="selectedAction.status">
                 <option *ngFor="let s of statuses" [value]="s">{{ getStatusLabel(s) }}</option>
               </select>
             </div>
 
             <div class="field">
-              <label>Priority</label>
+              <label>{{ 'gm.actions.priority' | translate }}</label>
               <select [(ngModel)]="selectedAction.priority">
                 <option *ngFor="let p of priorities" [value]="p">{{ getPriorityLabel(p) }}</option>
               </select>
@@ -374,12 +374,12 @@
 
           <div class="field-row">
             <div class="field">
-              <label>Inserted</label>
+              <label>{{ 'gm.actions.inserted' | translate }}</label>
               <input type="date" [(ngModel)]="selectedAction.insertedDate">
             </div>
 
             <div class="field">
-              <label>Due Date</label>
+              <label>{{ 'gm.actions.dueDate' | translate }}</label>
               <input type="date" [(ngModel)]="selectedAction.dueDate">
             </div>
           </div>
@@ -387,12 +387,12 @@
           <div class="field checkbox-row">
             <label>
               <input type="checkbox" [(ngModel)]="selectedAction.customerVisible">
-              Customer visible
+              {{ 'gm.actions.customerVisible' | translate }}
             </label>
           </div>
 
           <div class="field">
-            <label>Assigned To</label>
+            <label>{{ 'gm.actions.assigned' | translate }}</label>
 
             <div class="people-tags" *ngIf="selectedAction.assignees.length > 0">
               <span class="people-tag"
@@ -406,7 +406,7 @@
             <select class="assignee-add-select"
                     #assigneeSel
                     (change)="addAssigneeToSelected(assigneeSel.value); assigneeSel.value=''">
-              <option value="">Add assignee...</option>
+              <option value="">{{ 'gm.actions.addAssignee' | translate }}</option>
               <option *ngFor="let a of availableAssignees" [value]="a">{{ a }}</option>
             </select>
           </div>
@@ -415,7 +415,7 @@
         <!-- COMMENTS TAB -->
         <ng-container *ngIf="detailTab === 'comments'">
           <div class="empty-mini" *ngIf="isNewAction">
-            Save the action first to add comments.
+            {{ 'gm.actions.saveActionFirstAdd' | translate }}
           </div>
 
           <ng-container *ngIf="!isNewAction">
@@ -427,13 +427,13 @@
               </div>
 
               <div class="empty-mini" *ngIf="selectedAction.comments.length === 0">
-                No comments yet.
+                {{ 'gm.actions.noCommentsYet' | translate }}
               </div>
             </div>
 
             <div class="comment-add">
-              <textarea [(ngModel)]="commentText" placeholder="Write a comment..."></textarea>
-              <button class="tb-btn add" (click)="addComment()">Post</button>
+              <textarea [(ngModel)]="commentText" [placeholder]="'gm.actions.writeComment' | translate"></textarea>
+              <button class="tb-btn add" (click)="addComment()">{{ 'gm.actions.post' | translate }}</button>
             </div>
           </ng-container>
         </ng-container>
@@ -450,10 +450,10 @@
             >
 
             <button class="tb-btn add" type="button" (click)="fileInput.click()">
-              ＋ Attach files
+              {{ 'gm.actions.attachFiles' | translate }}
             </button>
 
-            <small>Allowed: PDF, CSV, Excel, Word, images, text, JSON</small>
+            <small>{{ 'gm.actions.allowedPdfCsvExcel' | translate }}</small>
           </div>
 
           <div class="attach-item" *ngFor="let a of selectedAction.attachments; trackBy: trackAttachment">
@@ -464,7 +464,7 @@
 
             <div class="attach-actions">
               <button type="button" class="row-btn edit" (click)="downloadActionAttachment(a)">
-                Download
+                {{ 'gm.actions.download' | translate }}
               </button>
 
               <button type="button" class="row-btn" (click)="deleteActionAttachment(a)">
@@ -476,9 +476,9 @@
       </div>
 
       <div class="modal-footer">
-        <button class="btn-ghost" (click)="closeDetail()">Cancel</button>
+        <button class="btn-ghost" (click)="closeDetail()">{{ 'common.cancel' | translate }}</button>
         <button class="btn-primary" (click)="saveSelectedAction()">
-          {{ isNewAction ? 'Create Action' : 'Save' }}
+          {{ isNewAction ? ('gm.actions.createAction' | translate) : ('common.save' | translate) }}
         </button>
       </div>
     </div>

@@ -7,6 +7,7 @@ import { GmProjectTemplateService } from '../../services/gm-project-template.ser
 import { GmResourceService } from '../../services/gm-resource.service';
 import { ProjectDashboardRow } from '../../models/project-dashboard-row.model';
 import { AuthService } from 'src/app/core/auth/auth.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 
 type SortColumn =
@@ -107,7 +108,7 @@ export class MyCsProjectsPageComponent implements OnInit {
   readonly typeOptions = ['Greenfield', 'Brownfield', 'Retrofit', 'Consulting', 'R&D', 'Service'];
   readonly riskOptions = ['LOW', 'MEDIUM', 'HIGH'];
 
-  constructor(
+  constructor(private readonly i18n: I18nService, 
     private gmDashboardService: GmDashboardService,
     private gmResourceService: GmResourceService,
     private router: Router,
@@ -157,13 +158,13 @@ export class MyCsProjectsPageComponent implements OnInit {
             this.loading = false;
           },
           error: () => {
-            this.error = 'Failed to load portfolio KPIs.';
+            this.error = this.i18n.t('gm.myCsProjects.failedLoadPortfolioKpis');
             this.loading = false;
           }
         });
       },
       error: () => {
-        this.error = 'Failed to load projects.';
+        this.error = this.i18n.t('gm.myCsProjects.failedLoadProjects');
         this.loading = false;
       }
     });
@@ -266,7 +267,7 @@ export class MyCsProjectsPageComponent implements OnInit {
         this.loading = false;
       },
       error: () => {
-        this.error = 'Failed to load selected project KPIs.';
+        this.error = this.i18n.t('gm.myCsProjects.failedLoadSelectedProject');
         this.loading = false;
       }
     });
@@ -280,7 +281,7 @@ export class MyCsProjectsPageComponent implements OnInit {
 
   openProject(projectId?: number | null): void {
     if (projectId == null) {
-      this.error = 'This project has no valid id.';
+      this.error = this.i18n.t('gm.myCsProjects.projectHasNoValid');
       return;
     }
 
@@ -313,7 +314,7 @@ export class MyCsProjectsPageComponent implements OnInit {
     event?.stopPropagation();
 
     if (project.id == null) {
-      this.error = 'This project cannot be edited because its id is missing.';
+      this.error = this.i18n.t('gm.myCsProjects.projectCannotEditedBecause');
       return;
     }
 
@@ -349,7 +350,7 @@ export class MyCsProjectsPageComponent implements OnInit {
 
   saveProject(): void {
     if (!this.projectForm.name?.trim() || !this.projectForm.code?.trim()) {
-      this.error = 'Project name and project code are required.';
+      this.error = this.i18n.t('gm.myCsProjects.projectNameProjectCode');
       return;
     }
 
@@ -373,8 +374,8 @@ export class MyCsProjectsPageComponent implements OnInit {
       },
       error: () => {
         this.error = this.editingProjectId
-          ? 'Failed to update MY CS project.'
-          : 'Failed to create MY CS project.';
+          ? this.i18n.t('gm.myCsProjects.failedUpdateProject')
+          : this.i18n.t('gm.myCsProjects.failedCreateProject');
         this.saving = false;
       }
     });
@@ -390,7 +391,7 @@ export class MyCsProjectsPageComponent implements OnInit {
     this.gmDashboardService.archiveProject(project.id).subscribe({
       next: () => this.loadInitialData(),
       error: () => {
-        this.error = 'Failed to archive project.';
+        this.error = this.i18n.t('gm.myCsProjects.failedArchiveProject');
       }
     });
   }
@@ -573,15 +574,15 @@ private average(values: number[]): number {
   getRiskLabel(project: ProjectDashboardRow): string {
     const risk = (project.riskLevel || '').toUpperCase();
 
-    if (risk === 'HIGH') return 'High';
-    if (risk === 'MEDIUM') return 'Medium';
-    return 'Low';
+    if (risk === 'HIGH') return this.i18n.t('gm.myCsProjects.risk.high');
+    if (risk === 'MEDIUM') return this.i18n.t('gm.myCsProjects.risk.medium');
+    return this.i18n.t('gm.myCsProjects.risk.low');
   }
 
   getRiskClass(project: ProjectDashboardRow): string {
-    const risk = this.getRiskLabel(project);
-    if (risk === 'High') return 'risk-high';
-    if (risk === 'Medium') return 'risk-med';
+    const risk = (project.riskLevel || '').toUpperCase();
+    if (risk === 'HIGH') return 'risk-high';
+    if (risk === 'MEDIUM') return 'risk-med';
     return 'risk-low';
   }
 
@@ -624,13 +625,13 @@ private average(values: number[]): number {
   }
 
   get activeKpiTitle(): string {
-    return 'Portfolio KPIs';
+    return this.i18n.t('gm.myCsProjects.portfolioKpis');
   }
 
   get activeKpiSubtitle(): string {
     return this.selectedProject
-      ? `Filtered: ${this.selectedProject.name}`
-      : `All Projects · ${this.filteredProjects.length} projects`;
+      ? this.i18n.t('gm.myCsProjects.filteredProject', { name: this.selectedProject.name })
+      : this.i18n.t('gm.myCsProjects.allProjectsCount', { count: this.filteredProjects.length });
   }
 
   get scheduleAverageProgress(): number {
@@ -761,9 +762,7 @@ private average(values: number[]): number {
   applyStandardTemplate(projectId: number, event?: MouseEvent): void {
     event?.stopPropagation();
 
-    const confirmed = window.confirm(
-      'Apply the standard template to this project? Existing schedule tasks will be replaced.'
-    );
+    const confirmed = window.confirm(this.i18n.t('gm.myCsProjects.applyStandardTemplateProject'));
 
     if (!confirmed) {
       return;
@@ -771,11 +770,11 @@ private average(values: number[]): number {
 
     this.gmProjectTemplateService.applyStandardTemplate(projectId).subscribe({
       next: (res) => {
-        alert(`Standard template applied successfully.\nTasks created: ${res.tasksCreated}\nDependencies created: ${res.dependenciesCreated}`);
+        alert(this.i18n.t('gm.myCsProjects.standardTemplateAppliedSuccessfully', { tasksCreated: res.tasksCreated, dependenciesCreated: res.dependenciesCreated }));
       },
       error: (err) => {
         console.error('Failed to apply standard template', err);
-        alert('Failed to apply standard template.');
+        alert(this.i18n.t('gm.myCsProjects.failedApplyStandardTemplate'));
       }
     });
   }

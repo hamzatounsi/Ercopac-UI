@@ -10,28 +10,28 @@
       [class.active]="activeTab === 'resources'"
       (click)="setTab('resources')"
     >
-      Resources
+      {{ 'gm.resourceManagement.resources' | translate }}
     </button>
 
     <button
       [class.active]="activeTab === 'suppliers'"
       (click)="setTab('suppliers')"
     >
-      Suppliers
+      {{ 'gm.resourceManagement.suppliers' | translate }}
     </button>
 
     <button
       [class.active]="activeTab === 'resourceTypes'"
       (click)="setTab('resourceTypes')"
     >
-      Resource Types
+      {{ 'gm.resourceManagement.resourceTypes' | translate }}
     </button>
 
     <button
       [class.active]="activeTab === 'departments'"
       (click)="setTab('departments')"
     >
-      Departments
+      {{ 'gm.resourceManagement.departments' | translate }}
     </button>
   </div>
 
@@ -44,29 +44,29 @@
     <section class="config-panel">
 
       <h2>
-        {{ editingResourceTypeId ? 'Edit Resource Type' : 'Create Resource Type' }}
+        {{ editingResourceTypeId ? ('gm.resourceManagement.editResourceType' | translate) : ('gm.resourceManagement.createResourceType' | translate) }}
       </h2>
 
       <div class="row-3">
 
         <div class="form-field">
-          <label>RES.TYPE</label>
+          <label>{{ 'gm.resourceManagement.resType' | translate }}</label>
           <input
             [(ngModel)]="resourceTypeForm.code"
-            placeholder="PM"
+            [placeholder]="'gm.resourceManagement.pm' | translate"
           />
         </div>
 
         <div class="form-field">
-          <label>Label</label>
+          <label>{{ 'gm.resourceManagement.label' | translate }}</label>
           <input
             [(ngModel)]="resourceTypeForm.label"
-            placeholder="Project Manager"
+            [placeholder]="'gm.resourceManagement.projectManager' | translate"
           />
         </div>
 
         <div class="form-field">
-          <label>Department</label>
+          <label>{{ 'gm.resourceManagement.department' | translate }}</label>
 
           <select [(ngModel)]="resourceTypeForm.departmentId">
             <option [ngValue]="null">—</option>
@@ -85,21 +85,21 @@
       <div class="row-3">
 
         <div class="form-field">
-          <label>Colour</label>
+          <label>{{ 'gm.resourceManagement.colour' | translate }}</label>
           <input type="color" [(ngModel)]="resourceTypeForm.colour" />
         </div>
 
         <div class="form-field">
-          <label>Default €/day</label>
+          <label>{{ 'gm.resourceManagement.defaultDay' | translate }}</label>
           <input type="number" [(ngModel)]="resourceTypeForm.defaultRate" />
         </div>
 
         <div class="form-field">
-          <label>Assignable</label>
+          <label>{{ 'gm.resourceManagement.assignable' | translate }}</label>
 
           <select [(ngModel)]="resourceTypeForm.assignable">
-            <option [ngValue]="true">Yes</option>
-            <option [ngValue]="false">No</option>
+            <option [ngValue]="true">{{ 'common.yes' | translate }}</option>
+            <option [ngValue]="false">{{ 'common.no' | translate }}</option>
           </select>
         </div>
 
@@ -112,7 +112,7 @@
           type="button"
           (click)="saveResourceType()"
         >
-          Save
+          {{ 'common.save' | translate }}
         </button>
 
         <button
@@ -120,7 +120,7 @@
           type="button"
           (click)="newResourceType()"
         >
-          Clear
+          {{ 'gm.resourceManagement.clear' | translate }}
         </button>
 
       </div>
@@ -133,13 +133,13 @@
 
         <thead>
           <tr>
-            <th>RES.TYPE</th>
-            <th>Label</th>
-            <th>Colour</th>
-            <th>Department</th>
-            <th>Rate</th>
-            <th>Assignable</th>
-            <th>Active</th>
+            <th>{{ 'gm.resourceManagement.resType' | translate }}</th>
+            <th>{{ 'gm.resourceManagement.label' | translate }}</th>
+            <th>{{ 'gm.resourceManagement.colour' | translate }}</th>
+            <th>{{ 'gm.resourceManagement.department' | translate }}</th>
+            <th>{{ 'gm.resourceManagement.rate' | translate }}</th>
+            <th>{{ 'gm.resourceManagement.assignable' | translate }}</th>
+            <th>{{ 'common.orgStatus.ACTIVE' | translate }}</th>
             <th></th>
           </tr>
         </thead>
@@ -174,11 +174,11 @@
             </td>
 
             <td>
-              {{ type.assignable ? 'Yes' : 'No' }}
+              {{ type.assignable ? ('common.yes' | translate) : ('common.no' | translate) }}
             </td>
 
             <td>
-              {{ type.active ? 'Active' : 'Inactive' }}
+              {{ type.active ? ('common.orgStatus.ACTIVE' | translate) : ('gm.resourceManagement.inactive' | translate) }}
             </td>
 
             <td>
@@ -219,12 +219,12 @@
 
     <section class="config-panel">
 
-      <h2>Department Configuration</h2>
+      <h2>{{ 'gm.resourceManagement.departmentConfiguration' | translate }}</h2>
 
       <div class="row-2">
 
         <div class="form-field">
-          <label>Department Code</label>
+          <label>{{ 'gm.resourceManagement.departmentCode' | translate }}</label>
 
           <input
             [(ngModel)]="departmentForm.code"
@@ -233,11 +233,11 @@
         </div>
 
         <div class="form-field">
-          <label>Label</label>
+          <label>{{ 'gm.resourceManagement.label' | translate }}</label>
 
           <input
             [(ngModel)]="departmentForm.label"
-            placeholder="Mechanical"
+            [placeholder]="'gm.resourceManagement.mechanical' | translate"
           />
         </div>
 
@@ -250,7 +250,7 @@
           type="button"
           (click)="saveDepartment()"
         >
-          Save Department
+          {{ 'gm.resourceManagement.saveDepartment' | translate }}
         </button>
 
       </div>
@@ -263,8 +263,8 @@
 
         <thead>
           <tr>
-            <th>Code</th>
-            <th>Label</th>
+            <th>{{ 'gm.resourceManagement.code' | translate }}</th>
+            <th>{{ 'gm.resourceManagement.label' | translate }}</th>
           </tr>
         </thead>
 
@@ -293,7 +293,7 @@
   <div *ngIf="activeTab === 'resources'" class="resources-layout" [class.panel-open]="resourceDrawerOpen">
     <!-- LEFT SIDEBAR -->
     <aside class="dept-sidebar">
-      <div class="sidebar-title">Department</div>
+      <div class="sidebar-title">{{ 'gm.resourceManagement.department' | translate }}</div>
 
       <button
         class="dept-item"
@@ -301,7 +301,7 @@
         (click)="selectedDepartment=''; applyResourceFilters()"
       >
         <span class="dept-dot"></span>
-        <span class="dept-name">All</span>
+        <span class="dept-name">{{ 'common.all' | translate }}</span>
         <span class="dept-count">{{ departmentCounts['ALL'] || 0 }}</span>
       </button>
 
@@ -325,14 +325,14 @@
           <input
             [(ngModel)]="resourceSearchTerm"
             (input)="applyResourceFilters()"
-            placeholder="Search name, code, role..."
+            [placeholder]="'gm.resourceManagement.searchNameCodeRole' | translate"
           />
         </div>
 
         <div class="toolbar-right">
-          <button class="toolbar-btn" type="button" (click)="exportResourcesExcel()">Export Excel</button>
+          <button class="toolbar-btn" type="button" (click)="exportResourcesExcel()">{{ 'gm.resourceManagement.exportExcel' | translate }}</button>
 
-          <button class="toolbar-btn" type="button" (click)="resourceExcelInput.click()">Import Excel</button>
+          <button class="toolbar-btn" type="button" (click)="resourceExcelInput.click()">{{ 'gm.resourceManagement.importExcel' | translate }}</button>
           <input
             #resourceExcelInput
             type="file"
@@ -341,9 +341,9 @@
             (change)="importResourcesExcel($event)"
           />
 
-          <button class="toolbar-btn" type="button" (click)="exportResourcesJson()">⬇ JSON</button>
+          <button class="toolbar-btn" type="button" (click)="exportResourcesJson()">{{ 'gm.resourceManagement.json' | translate }}</button>
 
-          <button class="toolbar-btn" type="button" (click)="resourceJsonInput.click()">⬆ JSON</button>
+          <button class="toolbar-btn" type="button" (click)="resourceJsonInput.click()">{{ 'gm.resourceManagement.json2' | translate }}</button>
           <input
             #resourceJsonInput
             type="file"
@@ -352,18 +352,18 @@
             (change)="importResourcesJson($event)"
           />
 
-          <button class="toolbar-btn primary" type="button" (click)="openNewResource()">+ New Resource</button>
+          <button class="toolbar-btn primary" type="button" (click)="openNewResource()">{{ 'gm.resourceManagement.newResource' | translate }}</button>
 
           <select [(ngModel)]="selectedSeniority" (change)="applyResourceFiltersLocalSort()">
-            <option value="">All Seniority</option>
+            <option value="">{{ 'gm.resourceManagement.allSeniority' | translate }}</option>
             <option *ngFor="let option of seniorityOptions" [value]="option">{{ option }}</option>
           </select>
 
           <select [(ngModel)]="selectedInternal" (change)="applyResourceFilters()">
-            <option *ngFor="let option of internalOptions" [value]="option.value">{{ option.label }}</option>
+            <option *ngFor="let option of internalOptions" [value]="option.value">{{ option.label | translate }}</option>
           </select>
 
-          <span class="count-label">{{ filteredResources.length }} of {{ totalResources }}</span>
+          <span class="count-label">{{ 'gm.resourceManagement.filteredresourcesTotalresources' | translate: { filteredResources: filteredResources.length, totalResources: totalResources } }}</span>
         </div>
       </div>
 
@@ -373,22 +373,22 @@
             <tr>
               <th (click)="setResourceSort('id')">#</th>
               <th></th>
-              <th (click)="setResourceSort('fullName')">Name</th>
-              <th (click)="setResourceSort('employeeCode')">Code</th>
-              <th (click)="setResourceSort('departmentCode')">Department</th>
-              <th (click)="setResourceSort('resourceType')">Res.Type</th>
-              <th (click)="setResourceSort('jobTitle')">Role</th>
-              <th (click)="setResourceSort('seniority')">Seniority</th>
-              <th (click)="setResourceSort('defaultRate')">Rate €/day</th>
-              <th>Email</th>
-              <th (click)="setResourceSort('internalUser')">Internal</th>
+              <th (click)="setResourceSort('fullName')">{{ 'common.name' | translate }}</th>
+              <th (click)="setResourceSort('employeeCode')">{{ 'gm.resourceManagement.code' | translate }}</th>
+              <th (click)="setResourceSort('departmentCode')">{{ 'gm.resourceManagement.department' | translate }}</th>
+              <th (click)="setResourceSort('resourceType')">{{ 'gm.resourceManagement.resType2' | translate }}</th>
+              <th (click)="setResourceSort('jobTitle')">{{ 'gm.resourceManagement.role' | translate }}</th>
+              <th (click)="setResourceSort('seniority')">{{ 'gm.resourceManagement.seniority' | translate }}</th>
+              <th (click)="setResourceSort('defaultRate')">{{ 'gm.resourceManagement.rateDay' | translate }}</th>
+              <th>{{ 'gm.resourceManagement.email' | translate }}</th>
+              <th (click)="setResourceSort('internalUser')">{{ 'gm.resourceManagement.internal' | translate }}</th>
               <th></th>
             </tr>
           </thead>
 
           <tbody>
             <tr *ngIf="loading">
-              <td colspan="12" class="empty-cell">Loading resources...</td>
+              <td colspan="12" class="empty-cell">{{ 'gm.resourceManagement.loadingResources' | translate }}</td>
             </tr>
 
             <tr
@@ -406,7 +406,7 @@
               <td>{{ resource.seniority || '—' }}</td>
               <td>{{ resource.defaultRate ?? 0 }}</td>
               <td class="email-cell">{{ resource.email || '—' }}</td>
-              <td>{{ resource.internalUser ? 'Inter' : 'Exter' }}</td>
+              <td>{{ resource.internalUser ? ('gm.resourceManagement.inter' | translate) : ('gm.resourceManagement.exter' | translate) }}</td>
               <td>
                 <button
                   class="icon-btn danger"
@@ -419,7 +419,7 @@
             </tr>
 
             <tr *ngIf="!loading && filteredResources.length === 0">
-              <td colspan="12" class="empty-cell">No resources found.</td>
+              <td colspan="12" class="empty-cell">{{ 'gm.resourceManagement.noResourcesFound' | translate }}</td>
             </tr>
           </tbody>
         </table>
@@ -429,27 +429,27 @@
     <!-- RIGHT RESOURCE PANEL -->
     <aside class="resource-side-panel" [class.open]="resourceDrawerOpen">
       <div class="drawer-head">
-        <h3>{{ selectedResourceId ? 'Resource Detail' : 'New Resource' }}</h3>
+        <h3>{{ selectedResourceId ? ('gm.resourceManagement.resourceDetail' | translate) : ('gm.resourceManagement.newResource2' | translate) }}</h3>
         <button class="close-btn" type="button" (click)="closeResourceDrawer()">×</button>
       </div>
 
       <div class="drawer-body">
         <ng-container *ngIf="!selectedResourceId; else updateResourceTpl">
-          <div class="section-title">Identity</div>
+          <div class="section-title">{{ 'gm.resourceManagement.identity' | translate }}</div>
 
           <div class="form-field full">
-            <label>Full Name</label>
+            <label>{{ 'gm.resourceManagement.fullName' | translate }}</label>
             <input [(ngModel)]="resourceCreateForm.fullName" />
           </div>
 
           <div class="row-2">
             <div class="form-field">
-              <label>Code</label>
+              <label>{{ 'gm.resourceManagement.code' | translate }}</label>
               <input [(ngModel)]="resourceCreateForm.employeeCode" />
             </div>
 
             <div class="form-field">
-              <label>Seniority</label>
+              <label>{{ 'gm.resourceManagement.seniority' | translate }}</label>
               <select [(ngModel)]="resourceCreateForm.seniority">
                 <option value="">—</option>
                 <option *ngFor="let option of seniorityOptions" [value]="option">{{ option }}</option>
@@ -459,7 +459,7 @@
 
           <div class="row-2">
             <div class="form-field">
-              <label>Res.Type</label>
+              <label>{{ 'gm.resourceManagement.resType2' | translate }}</label>
               <select [(ngModel)]="resourceCreateForm.resourceType">
                 <option value="">—</option>
                 <option *ngFor="let type of resourceTypeOptions" [value]="type">{{ type }}</option>
@@ -467,7 +467,7 @@
             </div>
 
             <div class="form-field">
-              <label>Department</label>
+              <label>{{ 'gm.resourceManagement.department' | translate }}</label>
               <select [(ngModel)]="resourceCreateForm.departmentCode">
                 <option value="">—</option>
                 <option *ngFor="let dept of departmentOptions" [value]="dept">{{ dept }}</option>
@@ -477,107 +477,107 @@
 
           <div class="row-2">
             <div class="form-field">
-              <label>Role</label>
+              <label>{{ 'gm.resourceManagement.role' | translate }}</label>
               <input [(ngModel)]="resourceCreateForm.jobTitle" />
             </div>
 
             <div class="form-field">
-              <label>Internal</label>
+              <label>{{ 'gm.resourceManagement.internal' | translate }}</label>
               <select [(ngModel)]="resourceCreateForm.internalUser">
-                <option [ngValue]="true">Internal</option>
-                <option [ngValue]="false">External</option>
+                <option [ngValue]="true">{{ 'gm.resourceManagement.internal' | translate }}</option>
+                <option [ngValue]="false">{{ 'gm.resourceManagement.external' | translate }}</option>
               </select>
             </div>
           </div>
 
           <div class="form-field full">
-            <label>Email</label>
+            <label>{{ 'gm.resourceManagement.email' | translate }}</label>
             <input [(ngModel)]="resourceCreateForm.email" />
           </div>
 
           <div class="row-2">
             <div class="form-field">
-              <label>Password</label>
+              <label>{{ 'gm.resourceManagement.password' | translate }}</label>
               <input type="password" [(ngModel)]="resourceCreateForm.password" />
             </div>
 
             <div class="form-field">
-              <label>System Role</label>
+              <label>{{ 'gm.resourceManagement.systemRole' | translate }}</label>
               <select [(ngModel)]="resourceCreateForm.roles[0]">
                 <option *ngFor="let role of roleOptions" [value]="role">{{ role }}</option>
               </select>
             </div>
           </div>
 
-          <div class="section-title">Cost</div>
+          <div class="section-title">{{ 'gm.resourceManagement.cost' | translate }}</div>
 
           <div class="row-3">
             <div class="form-field">
-              <label>Rate Type</label>
+              <label>{{ 'gm.resourceManagement.rateType' | translate }}</label>
               <select [(ngModel)]="resourceCreateForm.rateType">
                 <option *ngFor="let type of rateTypeOptions" [value]="type">{{ type }}</option>
               </select>
             </div>
 
             <div class="form-field">
-              <label>Rate (€)</label>
+              <label>{{ 'gm.resourceManagement.rate2' | translate }}</label>
               <input type="number" [(ngModel)]="resourceCreateForm.defaultRate" />
             </div>
 
             <div class="form-field">
-              <label>Currency</label>
+              <label>{{ 'gm.resourceManagement.currency' | translate }}</label>
               <select [(ngModel)]="resourceCreateForm.currency">
                 <option *ngFor="let currency of currencyOptions" [value]="currency">{{ currency }}</option>
               </select>
             </div>
           </div>
 
-          <div class="section-title">Calendar</div>
+          <div class="section-title">{{ 'gm.resourceManagement.calendar' | translate }}</div>
 
           <div class="row-2">
             <div class="form-field">
-              <label>Hours/Day</label>
+              <label>{{ 'gm.resourceManagement.hoursDay' | translate }}</label>
               <input type="number" [(ngModel)]="resourceCreateForm.hoursPerDay" />
             </div>
 
             <div class="form-field">
-              <label>Days/Week</label>
+              <label>{{ 'gm.resourceManagement.daysWeek' | translate }}</label>
               <input type="number" [(ngModel)]="resourceCreateForm.daysPerWeek" />
             </div>
           </div>
 
           <div class="form-field full">
-            <label>Workdays</label>
+            <label>{{ 'gm.resourceManagement.workdays' | translate }}</label>
             <input [(ngModel)]="resourceCreateForm.workdays" />
           </div>
 
           <div class="form-field full">
-            <label>Color</label>
+            <label>{{ 'gm.resourceManagement.color' | translate }}</label>
             <input [(ngModel)]="resourceCreateForm.color" />
           </div>
 
           <div class="form-field full">
-            <label>Notes</label>
+            <label>{{ 'gm.resourceManagement.notes' | translate }}</label>
             <textarea rows="4" [(ngModel)]="resourceCreateForm.notes"></textarea>
           </div>
         </ng-container>
 
         <ng-template #updateResourceTpl>
-          <div class="section-title">Identity</div>
+          <div class="section-title">{{ 'gm.resourceManagement.identity' | translate }}</div>
 
           <div class="form-field full">
-            <label>Full Name</label>
+            <label>{{ 'gm.resourceManagement.fullName' | translate }}</label>
             <input [(ngModel)]="resourceUpdateForm.fullName" />
           </div>
 
           <div class="row-2">
             <div class="form-field">
-              <label>Code</label>
+              <label>{{ 'gm.resourceManagement.code' | translate }}</label>
               <input [(ngModel)]="resourceUpdateForm.employeeCode" />
             </div>
 
             <div class="form-field">
-              <label>Seniority</label>
+              <label>{{ 'gm.resourceManagement.seniority' | translate }}</label>
               <select [(ngModel)]="resourceUpdateForm.seniority">
                 <option value="">—</option>
                 <option *ngFor="let option of seniorityOptions" [value]="option">{{ option }}</option>
@@ -587,7 +587,7 @@
 
           <div class="row-2">
             <div class="form-field">
-              <label>Res.Type</label>
+              <label>{{ 'gm.resourceManagement.resType2' | translate }}</label>
               <select [(ngModel)]="resourceUpdateForm.resourceType">
                 <option value="">—</option>
                 <option *ngFor="let type of resourceTypeOptions" [value]="type">{{ type }}</option>
@@ -595,7 +595,7 @@
             </div>
 
             <div class="form-field">
-              <label>Department</label>
+              <label>{{ 'gm.resourceManagement.department' | translate }}</label>
               <select [(ngModel)]="resourceUpdateForm.departmentCode">
                 <option value="">—</option>
                 <option *ngFor="let dept of departmentOptions" [value]="dept">{{ dept }}</option>
@@ -605,93 +605,93 @@
 
           <div class="row-2">
             <div class="form-field">
-              <label>Role</label>
+              <label>{{ 'gm.resourceManagement.role' | translate }}</label>
               <input [(ngModel)]="resourceUpdateForm.jobTitle" />
             </div>
 
             <div class="form-field">
-              <label>Internal</label>
+              <label>{{ 'gm.resourceManagement.internal' | translate }}</label>
               <select [(ngModel)]="resourceUpdateForm.internalUser">
-                <option [ngValue]="true">Internal</option>
-                <option [ngValue]="false">External</option>
+                <option [ngValue]="true">{{ 'gm.resourceManagement.internal' | translate }}</option>
+                <option [ngValue]="false">{{ 'gm.resourceManagement.external' | translate }}</option>
               </select>
             </div>
           </div>
 
           <div class="form-field full">
-            <label>Email</label>
+            <label>{{ 'gm.resourceManagement.email' | translate }}</label>
             <input [ngModel]="selectedResource?.email || ''" disabled />
           </div>
 
           <div class="form-field full">
-            <label>System Role</label>
+            <label>{{ 'gm.resourceManagement.systemRole' | translate }}</label>
             <input [ngModel]="selectedResource?.roles?.join(', ') || ''" disabled />
           </div>
 
-          <div class="section-title">Cost</div>
+          <div class="section-title">{{ 'gm.resourceManagement.cost' | translate }}</div>
 
           <div class="row-3">
             <div class="form-field">
-              <label>Rate Type</label>
+              <label>{{ 'gm.resourceManagement.rateType' | translate }}</label>
               <select [(ngModel)]="resourceUpdateForm.rateType">
                 <option *ngFor="let type of rateTypeOptions" [value]="type">{{ type }}</option>
               </select>
             </div>
 
             <div class="form-field">
-              <label>Rate (€)</label>
+              <label>{{ 'gm.resourceManagement.rate2' | translate }}</label>
               <input type="number" [(ngModel)]="resourceUpdateForm.defaultRate" />
             </div>
 
             <div class="form-field">
-              <label>Currency</label>
+              <label>{{ 'gm.resourceManagement.currency' | translate }}</label>
               <select [(ngModel)]="resourceUpdateForm.currency">
                 <option *ngFor="let currency of currencyOptions" [value]="currency">{{ currency }}</option>
               </select>
             </div>
           </div>
 
-          <div class="section-title">Calendar</div>
+          <div class="section-title">{{ 'gm.resourceManagement.calendar' | translate }}</div>
 
           <div class="row-2">
             <div class="form-field">
-              <label>Hours/Day</label>
+              <label>{{ 'gm.resourceManagement.hoursDay' | translate }}</label>
               <input type="number" [(ngModel)]="resourceUpdateForm.hoursPerDay" />
             </div>
 
             <div class="form-field">
-              <label>Days/Week</label>
+              <label>{{ 'gm.resourceManagement.daysWeek' | translate }}</label>
               <input type="number" [(ngModel)]="resourceUpdateForm.daysPerWeek" />
             </div>
           </div>
 
           <div class="form-field full">
-            <label>Workdays</label>
+            <label>{{ 'gm.resourceManagement.workdays' | translate }}</label>
             <input [(ngModel)]="resourceUpdateForm.workdays" />
           </div>
 
           <div class="form-field full">
-            <label>Color</label>
+            <label>{{ 'gm.resourceManagement.color' | translate }}</label>
             <input [(ngModel)]="resourceUpdateForm.color" />
           </div>
 
           <div class="form-field full">
-            <label>Active</label>
+            <label>{{ 'common.orgStatus.ACTIVE' | translate }}</label>
             <select [(ngModel)]="resourceUpdateForm.active">
-              <option [ngValue]="true">Active</option>
-              <option [ngValue]="false">Inactive</option>
+              <option [ngValue]="true">{{ 'common.orgStatus.ACTIVE' | translate }}</option>
+              <option [ngValue]="false">{{ 'gm.resourceManagement.inactive' | translate }}</option>
             </select>
           </div>
 
           <div class="form-field full">
-            <label>Notes</label>
+            <label>{{ 'gm.resourceManagement.notes' | translate }}</label>
             <textarea rows="4" [(ngModel)]="resourceUpdateForm.notes"></textarea>
           </div>
         </ng-template>
       </div>
 
       <div class="drawer-foot">
-        <button class="save-panel-btn" type="button" [disabled]="saving" (click)="saveResource()">✓ Save</button>
+        <button class="save-panel-btn" type="button" [disabled]="saving" (click)="saveResource()">{{ 'gm.resourceManagement.save' | translate }}</button>
 
         <button
           class="delete-panel-btn"
@@ -699,7 +699,7 @@
           *ngIf="selectedResourceId"
           (click)="deactivateResource(selectedResourceId)"
         >
-          Delete
+          {{ 'common.delete' | translate }}
         </button>
       </div>
     </aside>
@@ -713,17 +713,17 @@
         <input
           [(ngModel)]="supplierSearchTerm"
           (input)="applySupplierFilters()"
-          placeholder="Search supplier, department..."
+          [placeholder]="'gm.resourceManagement.searchSupplierDepartment' | translate"
         />
       </div>
 
       <div class="toolbar-right">
         <select [(ngModel)]="supplierDepartmentFilter" (change)="applySupplierFilters()">
-          <option value="">All Departments</option>
+          <option value="">{{ 'gm.resourceManagement.allDepartments' | translate }}</option>
           <option *ngFor="let dept of departmentOptions" [value]="dept">{{ dept }}</option>
         </select>
 
-        <button class="toolbar-btn primary" type="button" (click)="openNewSupplier()">+ New Supplier</button>
+        <button class="toolbar-btn primary" type="button" (click)="openNewSupplier()">{{ 'gm.resourceManagement.newSupplier' | translate }}</button>
       </div>
     </div>
 
@@ -732,19 +732,19 @@
         <thead>
           <tr>
             <th>#</th>
-            <th>Supplier Name</th>
-            <th>Short Code</th>
-            <th>Departments</th>
-            <th>Resource Types</th>
-            <th>Contact</th>
-            <th>Country</th>
+            <th>{{ 'gm.resourceManagement.supplierName' | translate }}</th>
+            <th>{{ 'gm.resourceManagement.shortCode' | translate }}</th>
+            <th>{{ 'gm.resourceManagement.departments' | translate }}</th>
+            <th>{{ 'gm.resourceManagement.resourceTypes' | translate }}</th>
+            <th>{{ 'gm.resourceManagement.contact' | translate }}</th>
+            <th>{{ 'gm.resourceManagement.country' | translate }}</th>
             <th></th>
           </tr>
         </thead>
 
         <tbody>
           <tr *ngIf="loading">
-            <td colspan="8" class="empty-cell">Loading suppliers...</td>
+            <td colspan="8" class="empty-cell">{{ 'gm.resourceManagement.loadingSuppliers' | translate }}</td>
           </tr>
 
           <tr *ngFor="let supplier of filteredSuppliers">
@@ -762,7 +762,7 @@
           </tr>
 
           <tr *ngIf="!loading && filteredSuppliers.length === 0">
-            <td colspan="8" class="empty-cell">No suppliers yet.</td>
+            <td colspan="8" class="empty-cell">{{ 'gm.resourceManagement.noSuppliersYet' | translate }}</td>
           </tr>
         </tbody>
       </table>
@@ -774,44 +774,44 @@
 
   <aside class="supplier-drawer" [class.open]="supplierDrawerOpen">
     <div class="drawer-head">
-      <h3>{{ selectedSupplierId ? 'Supplier' : 'New Supplier' }}</h3>
+      <h3>{{ selectedSupplierId ? ('gm.resourceManagement.supplier' | translate) : ('gm.resourceManagement.newSupplier2' | translate) }}</h3>
       <button class="close-btn" type="button" (click)="closeSupplierDrawer()">×</button>
     </div>
 
     <div class="drawer-body">
-      <div class="section-title">Identity</div>
+      <div class="section-title">{{ 'gm.resourceManagement.identity' | translate }}</div>
 
       <div class="form-field full">
-        <label>Supplier Name</label>
+        <label>{{ 'gm.resourceManagement.supplierName' | translate }}</label>
         <input [(ngModel)]="supplierForm.name" />
       </div>
 
       <div class="row-2">
         <div class="form-field">
-          <label>Short Code</label>
+          <label>{{ 'gm.resourceManagement.shortCode' | translate }}</label>
           <input [(ngModel)]="supplierForm.shortCode" />
         </div>
 
         <div class="form-field">
-          <label>Country</label>
+          <label>{{ 'gm.resourceManagement.country' | translate }}</label>
           <input [(ngModel)]="supplierForm.country" />
         </div>
       </div>
 
       <div class="form-field full">
-        <label>Contact</label>
+        <label>{{ 'gm.resourceManagement.contact' | translate }}</label>
         <input [(ngModel)]="supplierForm.contact" />
       </div>
 
       <div class="form-field full">
-        <label>Website</label>
+        <label>{{ 'gm.resourceManagement.website' | translate }}</label>
         <input [(ngModel)]="supplierForm.website" />
       </div>
 
-      <div class="section-title">Scope</div>
+      <div class="section-title">{{ 'gm.resourceManagement.scope' | translate }}</div>
 
       <div class="form-field full">
-        <label>Departments</label>
+        <label>{{ 'gm.resourceManagement.departments' | translate }}</label>
         <div class="chip-wrap">
           <button
             type="button"
@@ -826,7 +826,7 @@
       </div>
 
       <div class="form-field full">
-        <label>Resource Types</label>
+        <label>{{ 'gm.resourceManagement.resourceTypes' | translate }}</label>
         <div class="chip-wrap">
           <button
             type="button"
@@ -841,14 +841,14 @@
       </div>
 
       <div class="form-field full">
-        <label>Notes</label>
+        <label>{{ 'gm.resourceManagement.notes' | translate }}</label>
         <textarea rows="4" [(ngModel)]="supplierForm.notes"></textarea>
       </div>
     </div>
 
     <div class="drawer-foot">
-      <button class="save-panel-btn" type="button" [disabled]="saving" (click)="saveSupplier()">✓ Save</button>
-      <button class="delete-panel-btn" type="button" (click)="closeSupplierDrawer()">Cancel</button>
+      <button class="save-panel-btn" type="button" [disabled]="saving" (click)="saveSupplier()">{{ 'gm.resourceManagement.save' | translate }}</button>
+      <button class="delete-panel-btn" type="button" (click)="closeSupplierDrawer()">{{ 'common.cancel' | translate }}</button>
     </div>
   </aside>
 </div>

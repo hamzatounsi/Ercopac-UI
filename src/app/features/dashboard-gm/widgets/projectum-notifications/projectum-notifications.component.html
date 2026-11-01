@@ -6,15 +6,15 @@
 
       <div class="hdr-bell-drop" *ngIf="bellOpen">
         <div class="hdr-bell-hdr">
-          <span>Notifications</span>
+          <span>{{ 'gm.notifications.notifications' | translate }}</span>
           <button type="button" class="hdr-bell-mark-all" (click)="markAllRead()" *ngIf="unreadCount > 0">
-            Mark all read
+            {{ 'gm.notifications.markAllRead' | translate }}
           </button>
         </div>
 
         <div class="hdr-bell-body">
           <div *ngIf="notifications.length === 0" class="hdr-bell-empty">
-            No notifications ✓
+            {{ 'gm.notifications.noNotifications' | translate }}
           </div>
 
           <div *ngFor="let n of notifications"

@@ -1,41 +1,41 @@
 <div class="security-page">
   <div class="security-header">
     <div>
-      <h2>Security Center</h2>
-      <p>Manage account security and password reset requests.</p>
+      <h2>{{ 'gm.securityTab.securityCenter' | translate }}</h2>
+      <p>{{ 'gm.securityTab.manageAccountSecurityPassword' | translate }}</p>
     </div>
 
     <button class="refresh-btn" type="button" (click)="loadRequests()">
-      Refresh
+      {{ 'gm.securityTab.refresh' | translate }}
     </button>
   </div>
 
   <section class="security-card">
     <div class="card-title-row">
       <div>
-        <h3>Password Reset Requests</h3>
-        <p>Pending requests from organisation users.</p>
+        <h3>{{ 'gm.securityTab.passwordResetRequests' | translate }}</h3>
+        <p>{{ 'gm.securityTab.pendingRequestsFromOrganisation' | translate }}</p>
       </div>
 
-      <span class="counter">{{ requests.length }} pending</span>
+      <span class="counter">{{ 'gm.securityTab.requestsPending' | translate: { requests: requests.length } }}</span>
     </div>
 
     <div *ngIf="loading" class="empty-state">
-      Loading requests...
+      {{ 'gm.securityTab.loadingRequests' | translate }}
     </div>
 
     <div *ngIf="!loading && requests.length === 0" class="empty-state">
-      No pending password reset requests.
+      {{ 'gm.securityTab.noPendingPasswordReset' | translate }}
     </div>
 
     <table *ngIf="!loading && requests.length > 0" class="security-table">
       <thead>
         <tr>
-          <th>User</th>
-          <th>Email</th>
-          <th>Requested At</th>
-          <th>Status</th>
-          <th class="actions-col">Actions</th>
+          <th>{{ 'common.user' | translate }}</th>
+          <th>{{ 'gm.securityTab.email' | translate }}</th>
+          <th>{{ 'gm.securityTab.requested' | translate }}</th>
+          <th>{{ 'common.status' | translate }}</th>
+          <th class="actions-col">{{ 'common.actions' | translate }}</th>
         </tr>
       </thead>
 
@@ -57,11 +57,11 @@
 
           <td class="actions-col">
             <button class="approve-btn" type="button" (click)="approve(request.id)">
-              Approve
+              {{ 'gm.securityTab.approve' | translate }}
             </button>
 
             <button class="reject-btn" type="button" (click)="reject(request.id)">
-              Reject
+              {{ 'gm.securityTab.reject' | translate }}
             </button>
           </td>
         </tr>

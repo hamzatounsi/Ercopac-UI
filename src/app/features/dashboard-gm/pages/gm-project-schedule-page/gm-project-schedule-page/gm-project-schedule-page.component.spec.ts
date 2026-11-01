@@ -6,8 +6,9 @@ describe('Gantt display and name editing regressions', () => {
   let component: GmProjectSchedulePageComponent;
 
   beforeEach(() => {
-    const dependencies = Array.from({ length: 13 }, () => ({}));
-    dependencies[9] = { getCurrentUserId: () => 7 };
+    const dependencies = Array.from({ length: 14 }, () => ({}));
+    dependencies[0] = { t: (key: string) => key, error: (_error: unknown, key: string) => key };
+    dependencies[10] = { getCurrentUserId: () => 7 };
     component = new GmProjectSchedulePageComponent(
       ...dependencies as ConstructorParameters<typeof GmProjectSchedulePageComponent>
     );

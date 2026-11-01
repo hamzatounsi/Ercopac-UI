@@ -36,6 +36,7 @@ import { AuthService } from '../../../../../core/auth/auth.service';
 import { ResourceConfigService } from '../../../services/resource-config.service';
 import * as XLSX from 'xlsx';
 import { assertSpreadsheetFile, assertSpreadsheetRowLimit, assertValidWorkbook } from 'src/app/core/utils/spreadsheet-import.utils';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 type ScheduleImportField = 'name' | 'wbs' | 'ref' | 'level' | 'type' | 'baselineStart' | 'baselineEnd' | 'actualStart'
   | 'actualEnd' | 'start' | 'end' | 'duration' | 'progress' | 'predecessors' | 'resource' | 'department'
@@ -301,7 +302,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
   private readonly destroy$ = new Subject<void>();
   isMyCsSchedule = false;
 
-  constructor(
+  constructor(private readonly i18n: I18nService, 
     private route: ActivatedRoute,
     private router: Router,
     private fb: FormBuilder,
@@ -865,8 +866,8 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
       assignees: task.assignedUserName ? [task.assignedUserName] : []
     };
     this.projectTimelineService.createAction(this.projectId, payload).subscribe({
-      next: () => { this.closeContextMenu(); this.loadActionsSummary(); alert('Action created successfully'); },
-      error: (error) => { console.error(error); alert('Failed to create action'); }
+      next: () => { this.closeContextMenu(); this.loadActionsSummary(); alert(this.i18n.t('gm.schedule.actionCreatedSuccessfully')); },
+      error: (error) => { console.error(error); alert(this.i18n.t('gm.schedule.failedCreateAction')); }
     });
   }
 
@@ -905,7 +906,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
         : null;
     }
     if (!potentialParent || !this.isSummary(potentialParent)) {
-      alert('A task can only be indented under a Summary task.');
+      alert(this.i18n.t('gm.schedule.taskCanOnlyIndented'));
       return;
     }
     this.pushHistory();
@@ -991,7 +992,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
       ? previous
       : this.tasks.find(task => task.id === previous.parentId) ?? null;
     if (!parent || !this.isSummary(parent)) {
-      alert('A task can only be indented under a Summary task.');
+      alert(this.i18n.t('gm.schedule.taskCanOnlyIndented'));
       return;
     }
     if (parent.id === current.id || this.getSubtreeTaskIds(current.id).has(parent.id)) return;
@@ -1090,13 +1091,13 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
           this.openTaskDrawer(savedCopy);
         }, 300);
       },
-      error: (err) => { console.error('Failed to copy task below', err); alert('Failed to copy task below'); }
+      error: (err) => { console.error('Failed to copy task below', err); alert(this.i18n.t('gm.schedule.failedCopyTaskBelow')); }
     });
   }
 
   deleteTaskFromContext(): void {
     if (!this.contextMenuTask) return;
-    const confirmed = window.confirm(`Delete task "${this.contextMenuTask.name}"?`);
+    const confirmed = window.confirm(this.i18n.t('gm.schedule.deleteTask2', { name: this.contextMenuTask.name }));
     if (!confirmed) return;
     const taskId = this.contextMenuTask.id;
     this.service.deleteTask(taskId).subscribe({
@@ -1516,7 +1517,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
         this.importStatus = '';
         const message = err?.error?.message || err?.error?.detail || 'Unexpected error.';
         console.error('Import failed', err);
-        alert(`Import failed. Nothing was imported. ${message}`);
+        alert(this.i18n.t('gm.schedule.importFailedNothingWas', { message }));
       }
     });
   }
@@ -1965,7 +1966,7 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
           this.saving = false;
           this.templateImportStatus = '';
           console.error('Failed to import template', err);
-          alert(err?.error?.message || 'Failed to import template.');
+          alert(this.i18n.error(err, 'gm.schedule.failedImportTemplate'));
         }
       });
     } catch (error) {
@@ -3163,7 +3164,7 @@ get visibleMilestoneTypes(): any[] {
       { code: 'SAT', label: 'SAT', letterCode: 'S', color: '#800080' }
     ];
     if (this.milestoneTypes.length > 0) {
-      if (!confirm('This will attempt to add default milestones. Existing ones will be skipped. Continue?')) return;
+      if (!confirm(this.i18n.t('gm.schedule.willAttemptAddDefault'))) return;
     }
     let createdCount = 0;
     let skippedCount = 0;
@@ -3173,13 +3174,13 @@ get visibleMilestoneTypes(): any[] {
           this.milestoneTypes.push(created);
           createdCount++;
           if (createdCount + skippedCount === defaultMilestones.length) {
-            alert(`✅ Success: ${createdCount} added, ${skippedCount} skipped (already exist).`);
+            alert(this.i18n.t('gm.schedule.successAddedSkippedAlready', { createdCount, skippedCount }));
           }
         },
         error: (err) => {
           skippedCount++;
           if (createdCount + skippedCount === defaultMilestones.length) {
-            alert(`✅ Finished: ${createdCount} added, ${skippedCount} skipped.`);
+            alert(this.i18n.t('gm.schedule.finishedAddedSkipped', { createdCount, skippedCount }));
           }
         }
       });
@@ -3187,7 +3188,7 @@ get visibleMilestoneTypes(): any[] {
   }
 
   deleteMilestoneType(id: number): void {
-    if (!confirm('Delete this milestone type?')) return;
+    if (!confirm(this.i18n.t('gm.schedule.deleteMilestoneType'))) return;
     this.milestoneService.deleteMilestoneType(this.projectId, id).subscribe({
       next: () => { this.milestoneTypes = this.milestoneTypes.filter(m => m.id !== id); },
       error: (err) => console.error('Failed to delete milestone type', err)
@@ -3232,7 +3233,7 @@ toggleMilestoneSharing(milestoneType: any): void {
     },
     error: (err) => {
       console.error('Failed to update milestone sharing', err);
-      alert('Could not update sharing status.');
+      alert(this.i18n.t('gm.schedule.updateSharingStatus'));
     }
   });
 }

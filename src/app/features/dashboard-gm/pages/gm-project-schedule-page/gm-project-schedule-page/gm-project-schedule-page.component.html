@@ -4,35 +4,35 @@
     *ngIf="!isMyCsSchedule; else myCsScheduleHeader"
     [projectId]="projectId"
     [projectName]="projectName"
-    title="Schedule"
-    subtitle="Plan, sequence and monitor the project delivery timeline.">
+    [title]="'gm.schedule.schedule' | translate"
+    [subtitle]="'gm.schedule.planSequenceMonitorProject' | translate">
     <div projectumHeaderActions class="mode-switch light-mode-switch">
-      <span class="switch-label">BAR</span>
-      <button type="button" class="mode-btn" [class.active]="activeMode === 'baseline'" (click)="setMode('baseline')">Baseline</button>
-      <button type="button" class="mode-btn" [class.active]="activeMode === 'actual'" (click)="setMode('actual')">Actual</button>
+      <span class="switch-label">{{ 'gm.schedule.bar' | translate }}</span>
+      <button type="button" class="mode-btn" [class.active]="activeMode === 'baseline'" (click)="setMode('baseline')">{{ 'gm.schedule.baseline' | translate }}</button>
+      <button type="button" class="mode-btn" [class.active]="activeMode === 'actual'" (click)="setMode('actual')">{{ 'gm.schedule.actual' | translate }}</button>
     </div>
-    <button projectumHeaderActions type="button" class="icon-header-btn" title="Settings" (click)="toggleSettings()">
+    <button projectumHeaderActions type="button" class="icon-header-btn" [title]="'gm.schedule.settings' | translate" (click)="toggleSettings()">
       <span class="material-symbols-outlined">settings</span>
     </button>
-    <button projectumHeaderActions type="button" class="export-header-btn" title="Refresh" (click)="loadSchedule()">
+    <button projectumHeaderActions type="button" class="export-header-btn" [title]="'gm.schedule.refresh' | translate" (click)="loadSchedule()">
       <span class="material-symbols-outlined">refresh</span>
-      <span>Refresh</span>
+      <span>{{ 'gm.schedule.refresh' | translate }}</span>
     </button>
   </app-projectum-workspace-header>
 
   <ng-template #myCsScheduleHeader>
     <app-projectum-project-header>
       <div class="mode-switch light-mode-switch">
-        <span class="switch-label">BAR</span>
-        <button type="button" class="mode-btn" [class.active]="activeMode === 'baseline'" (click)="setMode('baseline')">Baseline</button>
-        <button type="button" class="mode-btn" [class.active]="activeMode === 'actual'" (click)="setMode('actual')">Actual</button>
+        <span class="switch-label">{{ 'gm.schedule.bar' | translate }}</span>
+        <button type="button" class="mode-btn" [class.active]="activeMode === 'baseline'" (click)="setMode('baseline')">{{ 'gm.schedule.baseline' | translate }}</button>
+        <button type="button" class="mode-btn" [class.active]="activeMode === 'actual'" (click)="setMode('actual')">{{ 'gm.schedule.actual' | translate }}</button>
       </div>
-      <button type="button" class="icon-header-btn" title="Settings" (click)="toggleSettings()">
+      <button type="button" class="icon-header-btn" [title]="'gm.schedule.settings' | translate" (click)="toggleSettings()">
         <span class="material-symbols-outlined">settings</span>
       </button>
-      <button type="button" class="export-header-btn" title="Refresh" (click)="loadSchedule()">
+      <button type="button" class="export-header-btn" [title]="'gm.schedule.refresh' | translate" (click)="loadSchedule()">
         <span class="material-symbols-outlined">refresh</span>
-        <span>Refresh</span>
+        <span>{{ 'gm.schedule.refresh' | translate }}</span>
       </button>
     </app-projectum-project-header>
   </ng-template>
@@ -43,16 +43,16 @@
       <div class="action-cluster">
         <button type="button" class="toolbar-main-btn export-btn" (click)="openExportModal()">
           <span class="material-symbols-outlined">download</span>
-          <span>Export</span>
+          <span>{{ 'gm.schedule.export' | translate }}</span>
         </button>
         <div class="import-menu">
           <button type="button" class="toolbar-main-btn import-btn" [disabled]="saving" (click)="importMenuOpen = !importMenuOpen" [attr.aria-expanded]="importMenuOpen">
             <span class="material-symbols-outlined">upload</span>
-            <span>Import</span>
+            <span>{{ 'gm.schedule.import' | translate }}</span>
           </button>
           <div class="import-menu-options" *ngIf="importMenuOpen">
-            <button type="button" (click)="openImportPicker(jsonImportInput)">JSON</button>
-            <button type="button" (click)="openImportPicker(excelImportInput)">Excel</button>
+            <button type="button" (click)="openImportPicker(jsonImportInput)">{{ 'gm.schedule.json' | translate }}</button>
+            <button type="button" (click)="openImportPicker(excelImportInput)">{{ 'gm.schedule.excel' | translate }}</button>
           </div>
           <input #jsonImportInput type="file" hidden accept=".json,application/json" (change)="importScheduleFile($event)" />
           <input #excelImportInput type="file" hidden accept=".xlsx,.xls,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" (change)="importScheduleFile($event)" />
@@ -60,11 +60,11 @@
         <span class="import-status" *ngIf="importStatus">{{ importStatus }}</span>
         <button type="button" class="toolbar-main-btn" (click)="undo()" [disabled]="history.length === 0">
           <span class="material-symbols-outlined">undo</span>
-          <span>Undo</span>
+          <span>{{ 'gm.schedule.undo' | translate }}</span>
         </button>
         <button type="button" class="toolbar-main-btn" (click)="redo()" [disabled]="future.length === 0">
           <span class="material-symbols-outlined">redo</span>
-          <span>Redo</span>
+          <span>{{ 'gm.schedule.redo' | translate }}</span>
         </button>
       </div>
 
@@ -72,41 +72,41 @@
 
       <button type="button" class="toolbar-main-btn" (click)="outdentTaskPersisted()" [disabled]="!selectedTask || structureSaving">
         <span class="material-symbols-outlined">format_indent_decrease</span>
-        <span>Outdent</span>
+        <span>{{ 'gm.schedule.outdent' | translate }}</span>
       </button>
       <button type="button" class="toolbar-main-btn" (click)="indentTaskPersisted()" [disabled]="!selectedTask || structureSaving">
         <span class="material-symbols-outlined">format_indent_increase</span>
-        <span>Indent</span>
+        <span>{{ 'gm.schedule.indent' | translate }}</span>
       </button>
 
       <div class="toolbar-divider"></div>
 
-      <span class="toolbar-inline-label">Level:</span>
+      <span class="toolbar-inline-label">{{ 'gm.schedule.level' | translate }}</span>
       <div class="toolbar-menu-wrap">
         <button type="button" class="toolbar-icon-square level-square-btn" (click)="toggleLevelMenu()">
           <span class="material-symbols-outlined">segment</span>
           <span class="level-badge">{{ getLevelButtonLabel() }}</span>
         </button>
         <div class="toolbar-dropdown-menu compact-menu dark-menu" *ngIf="levelMenuOpen">
-          <button type="button" class="toolbar-dropdown-item" (click)="setLevelFilter('ALL')">All levels</button>
-          <button type="button" class="toolbar-dropdown-item" (click)="setLevelFilter(1)">Level 1 only</button>
-          <button type="button" class="toolbar-dropdown-item" (click)="setLevelFilter(2)">Up to level 2</button>
-          <button type="button" class="toolbar-dropdown-item" (click)="setLevelFilter(3)">Up to level 3</button>
-          <button type="button" class="toolbar-dropdown-item" (click)="setLevelFilter(4)">Up to level 4</button>
-          <button type="button" class="toolbar-dropdown-item" (click)="setLevelFilter(5)">Up to level 5</button>
+          <button type="button" class="toolbar-dropdown-item" (click)="setLevelFilter('ALL')">{{ 'gm.schedule.allLevels' | translate }}</button>
+          <button type="button" class="toolbar-dropdown-item" (click)="setLevelFilter(1)">{{ 'gm.schedule.level1Only' | translate }}</button>
+          <button type="button" class="toolbar-dropdown-item" (click)="setLevelFilter(2)">{{ 'gm.schedule.upLevel2' | translate }}</button>
+          <button type="button" class="toolbar-dropdown-item" (click)="setLevelFilter(3)">{{ 'gm.schedule.upLevel3' | translate }}</button>
+          <button type="button" class="toolbar-dropdown-item" (click)="setLevelFilter(4)">{{ 'gm.schedule.upLevel4' | translate }}</button>
+          <button type="button" class="toolbar-dropdown-item" (click)="setLevelFilter(5)">{{ 'gm.schedule.upLevel5' | translate }}</button>
         </div>
       </div>
 
       <div class="toolbar-divider"></div>
 
-      <span class="toolbar-inline-label">Dept:</span>
+      <span class="toolbar-inline-label">{{ 'gm.schedule.dept' | translate }}</span>
       <div class="toolbar-menu-wrap">
         <button type="button" class="toolbar-select-btn dark-select-btn" [class.active]="deptMenuOpen" (click)="toggleDeptMenu()">
           <span>{{ selectedDepartmentFilter }}</span>
           <span class="material-symbols-outlined mini-arrow">expand_more</span>
         </button>
         <div class="toolbar-dropdown-menu compact-menu dark-menu" *ngIf="deptMenuOpen">
-          <button type="button" class="toolbar-dropdown-item" (click)="setDepartmentFilter('ALL')">All</button>
+          <button type="button" class="toolbar-dropdown-item" (click)="setDepartmentFilter('ALL')">{{ 'common.all' | translate }}</button>
           <button type="button" class="toolbar-dropdown-item" *ngFor="let dept of departmentCodes" (click)="setDepartmentFilter(dept)">{{ dept }}</button>
         </div>
       </div>
@@ -114,14 +114,14 @@
       <div class="toolbar-divider"></div>
 
       <div class="toolbar-inline zoom-toolbar">
-        <span class="toolbar-label">Zoom:</span>
+        <span class="toolbar-label">{{ 'gm.schedule.zoom' | translate }}</span>
         <button type="button" class="zoom-step-btn dark-zoom-step" (click)="zoomOut()">
           <span class="material-symbols-outlined">remove</span>
         </button>
         <button type="button" class="zoom-chip" [class.active]="activeZoom === '2W'" (click)="setZoom('2W')">2W</button>
         <button type="button" class="zoom-chip" [class.active]="activeZoom === '1M'" (click)="setZoom('1M')">1M</button>
         <button type="button" class="zoom-chip" [class.active]="activeZoom === '2M'" (click)="setZoom('2M')">2M</button>
-        <button type="button" class="zoom-chip" [class.active]="activeZoom === 'Day'" (click)="setZoom('Day')">Day</button>
+        <button type="button" class="zoom-chip" [class.active]="activeZoom === 'Day'" (click)="setZoom('Day')">{{ 'gm.schedule.day' | translate }}</button>
         <button type="button" class="zoom-step-btn dark-zoom-step" (click)="zoomIn()">
           <span class="material-symbols-outlined">add</span>
         </button>
@@ -132,34 +132,34 @@
       <div class="toolbar-menu-wrap">
         <button type="button" class="toolbar-select-btn dark-select-btn" [class.active]="columnsMenuOpen" (click)="toggleColumnsMenu()">
           <span class="material-symbols-outlined">view_column</span>
-          <span>Columns</span>
+          <span>{{ 'gm.schedule.columns' | translate }}</span>
           <span class="material-symbols-outlined mini-arrow">expand_more</span>
         </button>
         <div class="toolbar-dropdown-menu columns-menu dark-menu" *ngIf="columnsMenuOpen">
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.id" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>ID</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.wbs" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Level (WBS)</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.customer" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Customer (C)</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.name" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Activity</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.type" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Type</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.resourceType" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Resource Type</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.department" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Department</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.actualStart" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Actual Start</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.actualFinish" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Actual Finish</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.duration" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Duration</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.predecessors" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Predecessors</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.progress" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>% Done</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.baselineStart" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Baseline Start</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.milestone" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Milestone</span></label>
-          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.baselineEnd" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>Baseline End</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.id" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>{{ 'gm.schedule.id' | translate }}</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.wbs" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>{{ 'gm.schedule.levelWbs' | translate }}</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.customer" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>{{ 'gm.schedule.customerC' | translate }}</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.name" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>{{ 'gm.schedule.activity' | translate }}</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.type" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>{{ 'gm.schedule.type' | translate }}</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.resourceType" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>{{ 'gm.schedule.resourceType' | translate }}</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.department" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>{{ 'gm.schedule.department' | translate }}</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.actualStart" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>{{ 'gm.schedule.actualStart' | translate }}</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.actualFinish" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>{{ 'gm.schedule.actualFinish' | translate }}</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.duration" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>{{ 'gm.schedule.duration' | translate }}</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.predecessors" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>{{ 'gm.schedule.predecessors' | translate }}</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.progress" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>{{ 'gm.schedule.done' | translate }}</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.baselineStart" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>{{ 'gm.schedule.baselineStart' | translate }}</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.milestone" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>{{ 'gm.schedule.milestone' | translate }}</span></label>
+          <label class="toolbar-check-item"><input type="checkbox" [(ngModel)]="columnVisibility.baselineEnd" (ngModelChange)="onColumnVisibilityChange()" [ngModelOptions]="{ standalone: true }" /><span>{{ 'gm.schedule.baselineEnd' | translate }}</span></label>
         </div>
       </div>
     </div>
 
     <div class="toolbar-stats">
-      <div class="toolbar-stat"><strong>{{ stats.total }}</strong><small>Tasks</small></div>
-      <div class="toolbar-stat"><strong class="accent-purple">{{ stats.milestones }}</strong><small>Milest.</small></div>
-      <div class="toolbar-stat"><strong>{{ stats.avgProgress }}%</strong><small>Avg %</small></div>
-      <div class="toolbar-stat"><strong class="accent-orange">{{ stats.summaries }}</strong><small>Summary</small></div>
+      <div class="toolbar-stat"><strong>{{ stats.total }}</strong><small>{{ 'gm.schedule.tasks' | translate }}</small></div>
+      <div class="toolbar-stat"><strong class="accent-purple">{{ stats.milestones }}</strong><small>{{ 'gm.schedule.milest' | translate }}</small></div>
+      <div class="toolbar-stat"><strong>{{ stats.avgProgress }}%</strong><small>{{ 'gm.schedule.avg' | translate }}</small></div>
+      <div class="toolbar-stat"><strong class="accent-orange">{{ stats.summaries }}</strong><small>{{ 'gm.schedule.summary' | translate }}</small></div>
     </div>
   </section>
 
@@ -167,7 +167,7 @@
   <section class="legend-strip project-title-strip">
     <div class="legend-chip project-name-chip">
       <span class="material-symbols-outlined">folder_open</span>
-      <span>{{ isMyCsSchedule ? 'MY CS · ' + projectName : projectName }}</span>
+      <span>{{ isMyCsSchedule ? ('gm.schedule.myCs' | translate) + projectName : projectName }}</span>
     </div>
   </section>
 
@@ -177,21 +177,21 @@
     <div class="planner-left" [style.width.px]="leftPaneWidth">
       <div class="left-header" #leftHeaderScroll>
         <div class="group-header-row schedule-grid" [style.grid-template-columns]="visibleColumnTemplate" [style.min-width.px]="visibleColumnMinWidth">
-          <div class="gh col-id" *ngIf="columnVisibility.id">ID</div>
-          <div class="gh col-wbs" *ngIf="columnVisibility.wbs">WBS</div>
+          <div class="gh col-id" *ngIf="columnVisibility.id">{{ 'gm.schedule.id' | translate }}</div>
+          <div class="gh col-wbs" *ngIf="columnVisibility.wbs">{{ 'gm.schedule.wbs' | translate }}</div>
           <div class="gh col-customer" *ngIf="columnVisibility.customer">C</div>
-          <div class="gh col-name" *ngIf="columnVisibility.name">Activity</div>
-          <div class="gh col-type" *ngIf="columnVisibility.type">Type</div>
-          <div class="gh col-restype" *ngIf="columnVisibility.resourceType">Res.Type</div>
-          <div class="gh col-dept" *ngIf="columnVisibility.department">Department</div>
-          <div class="gh col-date" *ngIf="columnVisibility.actualStart">Actual Start</div>
-          <div class="gh col-date" *ngIf="columnVisibility.actualFinish">Actual Finish</div>
-          <div class="gh col-dur" *ngIf="columnVisibility.duration">Dur.</div>
-          <div class="gh col-progress" *ngIf="columnVisibility.progress">% Done</div>
-          <div class="gh col-pred" *ngIf="columnVisibility.predecessors">Pred.</div>
-          <div class="gh col-date" *ngIf="columnVisibility.baselineStart">Baseline Start</div>
-          <div class="gh col-milestone" *ngIf="columnVisibility.milestone">Milestone</div>
-          <div class="gh col-date" *ngIf="columnVisibility.baselineEnd">Baseline End</div>
+          <div class="gh col-name" *ngIf="columnVisibility.name">{{ 'gm.schedule.activity' | translate }}</div>
+          <div class="gh col-type" *ngIf="columnVisibility.type">{{ 'gm.schedule.type' | translate }}</div>
+          <div class="gh col-restype" *ngIf="columnVisibility.resourceType">{{ 'gm.schedule.resType' | translate }}</div>
+          <div class="gh col-dept" *ngIf="columnVisibility.department">{{ 'gm.schedule.department' | translate }}</div>
+          <div class="gh col-date" *ngIf="columnVisibility.actualStart">{{ 'gm.schedule.actualStart' | translate }}</div>
+          <div class="gh col-date" *ngIf="columnVisibility.actualFinish">{{ 'gm.schedule.actualFinish' | translate }}</div>
+          <div class="gh col-dur" *ngIf="columnVisibility.duration">{{ 'gm.schedule.dur' | translate }}</div>
+          <div class="gh col-progress" *ngIf="columnVisibility.progress">{{ 'gm.schedule.done' | translate }}</div>
+          <div class="gh col-pred" *ngIf="columnVisibility.predecessors">{{ 'gm.schedule.pred' | translate }}</div>
+          <div class="gh col-date" *ngIf="columnVisibility.baselineStart">{{ 'gm.schedule.baselineStart' | translate }}</div>
+          <div class="gh col-milestone" *ngIf="columnVisibility.milestone">{{ 'gm.schedule.milestone' | translate }}</div>
+          <div class="gh col-date" *ngIf="columnVisibility.baselineEnd">{{ 'gm.schedule.baselineEnd' | translate }}</div>
         </div>
       </div>
 
@@ -237,7 +237,7 @@
     (ngModelChange)="onMilestoneTypeSelect(task, $event)"
     style="flex: 1; padding: 2px 4px; border: 1px solid var(--pm-border-strong); border-radius: 3px; font-size: 12px;"
   >
-    <option [ngValue]="null">-- Select milestone --</option>
+    <option [ngValue]="null">{{ 'gm.schedule.selectMilestone' | translate }}</option>
    <option *ngFor="let mt of milestoneTypes" [value]="mt.code" [style.background]="mt.color">
   {{ mt.code }} - {{ mt.label }}
 </option>
@@ -263,9 +263,9 @@
               [class.milestone]="getNormalizedTaskType(task) === 'MILESTONE'"
               (ngModelChange)="updateLocalTaskField(task, 'taskType', $event); saveInlineTask(task)"
             >
-              <option value="ACTIVITY">Acti</option>
-              <option value="SUMMARY">Sum</option>
-              <option value="MILESTONE">Mile</option>
+              <option value="ACTIVITY">{{ 'gm.schedule.acti' | translate }}</option>
+              <option value="SUMMARY">{{ 'gm.schedule.sum' | translate }}</option>
+              <option value="MILESTONE">{{ 'gm.schedule.mile' | translate }}</option>
             </select>
           </div>
 
@@ -300,12 +300,12 @@
 
           <div class="cell editable-cell col-date mono-date" *ngIf="columnVisibility.actualStart" [class.milestone-date-cell]="isMilestone(task) && columnVisibility.actualFinish" (click)="$event.stopPropagation()">
             <span *ngIf="isSummary(task); else actualStartPicker" class="readonly-date-value">{{ formatDateForDisplay(task.actualStart) }}</span>
-            <ng-template #actualStartPicker><app-gantt-date-picker [value]="formatDateForInput(task.actualStart)" [workingDays]="activeWorkingDays" [ariaLabel]="isMilestone(task) ? 'Milestone Date' : 'Actual Start'" (valueChange)="onInlineDateChange(task, 'actualStart', $event)"></app-gantt-date-picker></ng-template>
+            <ng-template #actualStartPicker><app-gantt-date-picker [value]="formatDateForInput(task.actualStart)" [workingDays]="activeWorkingDays" [ariaLabel]="isMilestone(task) ? ('gm.schedule.milestoneDate' | translate) : ('gm.schedule.actualStart' | translate)" (valueChange)="onInlineDateChange(task, 'actualStart', $event)"></app-gantt-date-picker></ng-template>
           </div>
 
           <div class="cell editable-cell col-date mono-date" *ngIf="columnVisibility.actualFinish && (!isMilestone(task) || !columnVisibility.actualStart)" (click)="$event.stopPropagation()">
             <span *ngIf="isSummary(task); else actualEndPicker" class="readonly-date-value">{{ formatDateForDisplay(task.actualEnd) }}</span>
-            <ng-template #actualEndPicker><app-gantt-date-picker [value]="formatDateForInput(isMilestone(task) ? task.actualStart : task.actualEnd)" [workingDays]="activeWorkingDays" [ariaLabel]="isMilestone(task) ? 'Milestone Date' : 'Actual Finish'" (valueChange)="onInlineDateChange(task, isMilestone(task) ? 'actualStart' : 'actualEnd', $event)"></app-gantt-date-picker></ng-template>
+            <ng-template #actualEndPicker><app-gantt-date-picker [value]="formatDateForInput(isMilestone(task) ? task.actualStart : task.actualEnd)" [workingDays]="activeWorkingDays" [ariaLabel]="isMilestone(task) ? ('gm.schedule.milestoneDate' | translate) : ('gm.schedule.actualFinish' | translate)" (valueChange)="onInlineDateChange(task, isMilestone(task) ? 'actualStart' : 'actualEnd', $event)"></app-gantt-date-picker></ng-template>
           </div>
 
           <div class="cell editable-cell col-dur" *ngIf="columnVisibility.duration" (click)="$event.stopPropagation()">
@@ -357,7 +357,7 @@
 
           <div class="cell editable-cell col-date mono-date" *ngIf="columnVisibility.baselineStart" [class.milestone-date-cell]="isMilestone(task) && columnVisibility.baselineEnd" (click)="$event.stopPropagation()">
             <span *ngIf="isSummary(task); else baselineStartPicker" class="readonly-date-value">{{ formatDateForDisplay(getBaselineStart(task)) }}</span>
-            <ng-template #baselineStartPicker><app-gantt-date-picker [value]="formatDateForInput(getBaselineStart(task))" [workingDays]="activeWorkingDays" [ariaLabel]="isMilestone(task) ? 'Milestone Baseline Date' : 'Baseline Start'" (valueChange)="onInlineDateChange(task, 'baselineStart', $event)"></app-gantt-date-picker></ng-template>
+            <ng-template #baselineStartPicker><app-gantt-date-picker [value]="formatDateForInput(getBaselineStart(task))" [workingDays]="activeWorkingDays" [ariaLabel]="isMilestone(task) ? ('gm.schedule.milestoneBaselineDate' | translate) : ('gm.schedule.baselineStart' | translate)" (valueChange)="onInlineDateChange(task, 'baselineStart', $event)"></app-gantt-date-picker></ng-template>
           </div>
 
           <!-- ✅ MILESTONE DROPDOWN CELL -->
@@ -377,16 +377,16 @@
 
           <div class="cell editable-cell col-date mono-date" *ngIf="columnVisibility.baselineEnd && (!isMilestone(task) || !columnVisibility.baselineStart)" (click)="$event.stopPropagation()">
             <span *ngIf="isSummary(task); else baselineEndPicker" class="readonly-date-value">{{ formatDateForDisplay(getBaselineEnd(task)) }}</span>
-            <ng-template #baselineEndPicker><app-gantt-date-picker [value]="formatDateForInput(isMilestone(task) ? getBaselineStart(task) : getBaselineEnd(task))" [workingDays]="activeWorkingDays" [ariaLabel]="isMilestone(task) ? 'Milestone Baseline Date' : 'Baseline End'" (valueChange)="onInlineDateChange(task, isMilestone(task) ? 'baselineStart' : 'baselineEnd', $event)"></app-gantt-date-picker></ng-template>
+            <ng-template #baselineEndPicker><app-gantt-date-picker [value]="formatDateForInput(isMilestone(task) ? getBaselineStart(task) : getBaselineEnd(task))" [workingDays]="activeWorkingDays" [ariaLabel]="isMilestone(task) ? ('gm.schedule.milestoneBaselineDate' | translate) : ('gm.schedule.baselineEnd' | translate)" (valueChange)="onInlineDateChange(task, isMilestone(task) ? 'baselineStart' : 'baselineEnd', $event)"></app-gantt-date-picker></ng-template>
           </div>
         </div>
 
-        <div *ngIf="visibleTasks.length === 0" class="empty-state-line">No schedule tasks found for this project.</div>
+        <div *ngIf="visibleTasks.length === 0" class="empty-state-line">{{ 'gm.schedule.noScheduleTasksFound' | translate }}</div>
       </div>
     </div>
 
     <!-- RESIZER -->
-    <div class="planner-resizer" (mousedown)="startResize($event)" title="Drag to resize"></div>
+    <div class="planner-resizer" (mousedown)="startResize($event)" [title]="'gm.schedule.dragResize' | translate"></div>
 
     <!-- RIGHT -->
     <div class="planner-right">
@@ -471,17 +471,17 @@
             <div *ngIf="isMilestone(task)" class="gantt-milestone-label" [style.left.px]="getMilestoneLeft(task) + 16">{{ task.name }}</div>
           </div>
 
-          <div *ngIf="visibleTasks.length === 0" class="gantt-empty">No timeline to display.</div>
+          <div *ngIf="visibleTasks.length === 0" class="gantt-empty">{{ 'gm.schedule.noTimelineDisplay' | translate }}</div>
         </div>
       </div>
     </div>
 
     <!-- SCROLL SHORTCUTS -->
     <div class="scroll-shortcuts" *ngIf="visibleTasks.length > 8">
-      <button type="button" class="scroll-shortcut-btn" title="Go to top" (click)="scrollToTop()">
+      <button type="button" class="scroll-shortcut-btn" [title]="'gm.schedule.goTop' | translate" (click)="scrollToTop()">
         <span class="material-symbols-outlined">keyboard_double_arrow_up</span>
       </button>
-      <button type="button" class="scroll-shortcut-btn" title="Go to bottom" (click)="scrollToBottom()">
+      <button type="button" class="scroll-shortcut-btn" [title]="'gm.schedule.goBottom' | translate" (click)="scrollToBottom()">
         <span class="material-symbols-outlined">keyboard_double_arrow_down</span>
       </button>
     </div>
@@ -491,41 +491,41 @@
     (cancel)="closeNameEditor(false, $event)"
     (click)="onNameEditorBackdrop($event)">
     <ng-container *ngIf="nameEditorTask as task">
-      <h2 id="name-editor-title">Edit activity name</h2>
-      <textarea autofocus rows="4" aria-label="Activity name" aria-describedby="name-editor-help"
+      <h2 id="name-editor-title">{{ 'gm.schedule.editActivityName' | translate }}</h2>
+      <textarea autofocus rows="4" [attr.aria-label]="'gm.schedule.activityName' | translate" aria-describedby="name-editor-help"
         [value]="getInlineNameValue(task)"
         (input)="updateInlineNameDraft(task, $any($event.target).value)"
         (keydown.enter)="closeNameEditor(true, $event)"></textarea>
-      <p id="name-editor-help">Enter to save · Escape to cancel</p>
+      <p id="name-editor-help">{{ 'gm.schedule.enterSaveEscapeCancel' | translate }}</p>
       <div class="name-editor-actions">
-        <button type="button" (click)="closeNameEditor(false)">Cancel</button>
-        <button type="button" class="name-save" (click)="closeNameEditor(true)">Save name</button>
+        <button type="button" (click)="closeNameEditor(false)">{{ 'common.cancel' | translate }}</button>
+        <button type="button" class="name-save" (click)="closeNameEditor(true)">{{ 'gm.schedule.saveName' | translate }}</button>
       </div>
     </ng-container>
   </dialog>
 
-  <div class="loading-card" *ngIf="loading">Loading project schedule...</div>
+  <div class="loading-card" *ngIf="loading">{{ 'gm.schedule.loadingProjectSchedule' | translate }}</div>
 
   <!-- BOTTOM PANEL -->
   <section class="supervisor-panel" [class.open]="drawerOpen" *ngIf="taskForm">
     <div class="sp-topbar">
       <div class="sp-task-chip">{{ getRowId(selectedTask) }}</div>
       <div class="sp-task-meta">
-        <div class="sp-task-name">{{ selectedTask?.name || 'Select a task' }}</div>
+        <div class="sp-task-name">{{ selectedTask?.name || ('gm.schedule.selectTask' | translate) }}</div>
         <div class="sp-task-sub">
-          ID {{ getRowId(selectedTask) }}
+          {{ 'gm.schedule.idSelectedtask' | translate: { selectedTask: getRowId(selectedTask) } }}
           <span>·</span>
-          WBS {{ selectedTask?.wbsCode || '—' }}
+          {{ 'gm.schedule.wbsWbscode' | translate: { wbsCode: (selectedTask?.wbsCode || '—') } }}
           <span>·</span>
           {{ normalizeTaskType(selectedTask?.taskType) | titlecase }}
         </div>
       </div>
       <div class="sp-tabs">
-        <button type="button" class="sp-tab" [class.active]="activeDetailTab === 'general'" (click)="activeDetailTab = 'general'">General</button>
-        <button type="button" class="sp-tab" [class.active]="activeDetailTab === 'predecessors'" (click)="activeDetailTab = 'predecessors'">Predecessors</button>
-        <button type="button" class="sp-tab" [class.active]="activeDetailTab === 'resources'" (click)="activeDetailTab = 'resources'">Resources</button>
-        <button type="button" class="sp-tab" [class.active]="activeDetailTab === 'history'" (click)="setDetailTab('history')">History</button>
-        <button type="button" class="sp-tab" [class.active]="activeDetailTab === 'console'" (click)="setDetailTab('console')">🔔 Console</button>
+        <button type="button" class="sp-tab" [class.active]="activeDetailTab === 'general'" (click)="activeDetailTab = 'general'">{{ 'gm.schedule.general' | translate }}</button>
+        <button type="button" class="sp-tab" [class.active]="activeDetailTab === 'predecessors'" (click)="activeDetailTab = 'predecessors'">{{ 'gm.schedule.predecessors' | translate }}</button>
+        <button type="button" class="sp-tab" [class.active]="activeDetailTab === 'resources'" (click)="activeDetailTab = 'resources'">{{ 'gm.schedule.resources' | translate }}</button>
+        <button type="button" class="sp-tab" [class.active]="activeDetailTab === 'history'" (click)="setDetailTab('history')">{{ 'gm.schedule.history' | translate }}</button>
+        <button type="button" class="sp-tab" [class.active]="activeDetailTab === 'console'" (click)="setDetailTab('console')">{{ 'gm.schedule.console' | translate }}</button>
       </div>
       <button type="button" class="sp-close-btn" (click)="closeDrawer()">
         <span class="material-symbols-outlined">close</span>
@@ -537,32 +537,32 @@
         <div class="sp-general-layout">
           <div class="sp-general-main">
             <div class="sp-card">
-              <div class="sp-card-title blue-dot">Task Details</div>
+              <div class="sp-card-title blue-dot">{{ 'gm.schedule.taskDetails' | translate }}</div>
               <div class="sp-task-grid">
                 <div class="sp-field sp-col-name">
-                  <label>Name</label>
+                  <label>{{ 'common.name' | translate }}</label>
                   <input type="text" formControlName="name" />
                 </div>
                 <div class="sp-field sp-col-duration" *ngIf="!isMilestone(selectedTask)">
-                  <label>Duration (d)</label>
+                  <label>{{ 'gm.schedule.durationD' | translate }}</label>
                   <span *ngIf="isSummary(selectedTask); else detailDurationInput" class="sp-readonly-value">{{ taskForm.get('durationDays')?.value ?? 0 }}</span>
                   <ng-template #detailDurationInput><input type="number" formControlName="durationDays" /></ng-template>
                 </div>
                 <div class="sp-field sp-col-priority">
-                  <label>Priority</label>
+                  <label>{{ 'gm.schedule.priority' | translate }}</label>
                   <input type="number" formControlName="priority" />
                 </div>
                 <div class="sp-field sp-col-type">
-                  <label>Type</label>
+                  <label>{{ 'gm.schedule.type' | translate }}</label>
                   <select formControlName="taskType">
                     <option *ngFor="let t of taskTypes" [value]="t">{{ t }}</option>
                   </select>
                 </div>
                 <div class="sp-field sp-col-customer">
-                  <label>Customer</label>
+                  <label>{{ 'gm.schedule.customer' | translate }}</label>
                   <select formControlName="customerMilestone">
-                    <option [ngValue]="false">No</option>
-                    <option [ngValue]="true">Yes</option>
+                    <option [ngValue]="false">{{ 'common.no' | translate }}</option>
+                    <option [ngValue]="true">{{ 'common.yes' | translate }}</option>
                   </select>
                 </div>
               </div>
@@ -571,34 +571,34 @@
             <div class="sp-card">
               <div class="sp-dates-grid two-date-modes">
                 <div class="sp-date-box actual">
-                  <div class="sp-card-title blue-dot">Actual Dates</div>
+                  <div class="sp-card-title blue-dot">{{ 'gm.schedule.actualDates' | translate }}</div>
                   <div class="sp-date-row" [class.milestone-date-row]="isMilestone(selectedTask)">
                     <ng-container *ngIf="isSummary(selectedTask); else actualDateEditor">
-                      <div class="sp-field"><label>Actual Start</label><span class="sp-readonly-value">{{ formatDateForDisplay(taskForm.get('actualStart')?.value) }}</span></div>
-                      <div class="sp-field"><label>Actual End</label><span class="sp-readonly-value">{{ formatDateForDisplay(taskForm.get('actualEnd')?.value) }}</span></div>
+                      <div class="sp-field"><label>{{ 'gm.schedule.actualStart' | translate }}</label><span class="sp-readonly-value">{{ formatDateForDisplay(taskForm.get('actualStart')?.value) }}</span></div>
+                      <div class="sp-field"><label>{{ 'gm.schedule.actualEnd' | translate }}</label><span class="sp-readonly-value">{{ formatDateForDisplay(taskForm.get('actualEnd')?.value) }}</span></div>
                     </ng-container>
                     <ng-template #actualDateEditor><ng-container *ngIf="isMilestone(selectedTask); else actualDateRange">
-                      <div class="sp-field"><label>Actual Date</label><app-gantt-date-picker [value]="taskForm.get('actualStart')?.value" [workingDays]="activeWorkingDays" ariaLabel="Actual milestone date" (valueChange)="setTaskFormDate('actualStart', $event)"></app-gantt-date-picker></div>
+                      <div class="sp-field"><label>{{ 'gm.schedule.actualDate' | translate }}</label><app-gantt-date-picker [value]="taskForm.get('actualStart')?.value" [workingDays]="activeWorkingDays" [ariaLabel]="'gm.schedule.actualMilestoneDate' | translate" (valueChange)="setTaskFormDate('actualStart', $event)"></app-gantt-date-picker></div>
                     </ng-container></ng-template>
                     <ng-template #actualDateRange>
-                      <div class="sp-field"><label>Actual Start</label><app-gantt-date-picker [value]="taskForm.get('actualStart')?.value" [workingDays]="activeWorkingDays" ariaLabel="Actual start" (valueChange)="setTaskFormDate('actualStart', $event)"></app-gantt-date-picker></div>
-                      <div class="sp-field"><label>Actual End</label><app-gantt-date-picker [value]="taskForm.get('actualEnd')?.value" [workingDays]="activeWorkingDays" ariaLabel="Actual end" (valueChange)="setTaskFormDate('actualEnd', $event)"></app-gantt-date-picker></div>
+                      <div class="sp-field"><label>{{ 'gm.schedule.actualStart' | translate }}</label><app-gantt-date-picker [value]="taskForm.get('actualStart')?.value" [workingDays]="activeWorkingDays" [ariaLabel]="'gm.schedule.actualStart2' | translate" (valueChange)="setTaskFormDate('actualStart', $event)"></app-gantt-date-picker></div>
+                      <div class="sp-field"><label>{{ 'gm.schedule.actualEnd' | translate }}</label><app-gantt-date-picker [value]="taskForm.get('actualEnd')?.value" [workingDays]="activeWorkingDays" [ariaLabel]="'gm.schedule.actualEnd2' | translate" (valueChange)="setTaskFormDate('actualEnd', $event)"></app-gantt-date-picker></div>
                     </ng-template>
                   </div>
                 </div>
                 <div class="sp-date-box baseline">
-                  <div class="sp-card-title amber-dot">Baseline Dates</div>
+                  <div class="sp-card-title amber-dot">{{ 'gm.schedule.baselineDates' | translate }}</div>
                   <div class="sp-date-row" [class.milestone-date-row]="isMilestone(selectedTask)">
                     <ng-container *ngIf="isSummary(selectedTask); else baselineDateEditor">
-                      <div class="sp-field"><label>Baseline Start</label><span class="sp-readonly-value">{{ formatDateForDisplay(taskForm.get('baselineStart')?.value) }}</span></div>
-                      <div class="sp-field"><label>Baseline End</label><span class="sp-readonly-value">{{ formatDateForDisplay(taskForm.get('baselineEnd')?.value) }}</span></div>
+                      <div class="sp-field"><label>{{ 'gm.schedule.baselineStart' | translate }}</label><span class="sp-readonly-value">{{ formatDateForDisplay(taskForm.get('baselineStart')?.value) }}</span></div>
+                      <div class="sp-field"><label>{{ 'gm.schedule.baselineEnd' | translate }}</label><span class="sp-readonly-value">{{ formatDateForDisplay(taskForm.get('baselineEnd')?.value) }}</span></div>
                     </ng-container>
                     <ng-template #baselineDateEditor><ng-container *ngIf="isMilestone(selectedTask); else baselineDateRange">
-                      <div class="sp-field"><label>Baseline Date</label><app-gantt-date-picker [value]="taskForm.get('baselineStart')?.value" [workingDays]="activeWorkingDays" ariaLabel="Baseline milestone date" (valueChange)="setTaskFormDate('baselineStart', $event)"></app-gantt-date-picker></div>
+                      <div class="sp-field"><label>{{ 'gm.schedule.baselineDate' | translate }}</label><app-gantt-date-picker [value]="taskForm.get('baselineStart')?.value" [workingDays]="activeWorkingDays" [ariaLabel]="'gm.schedule.baselineMilestoneDate' | translate" (valueChange)="setTaskFormDate('baselineStart', $event)"></app-gantt-date-picker></div>
                     </ng-container></ng-template>
                     <ng-template #baselineDateRange>
-                      <div class="sp-field"><label>Baseline Start</label><app-gantt-date-picker [value]="taskForm.get('baselineStart')?.value" [workingDays]="activeWorkingDays" ariaLabel="Baseline start" (valueChange)="setTaskFormDate('baselineStart', $event)"></app-gantt-date-picker></div>
-                      <div class="sp-field"><label>Baseline End</label><app-gantt-date-picker [value]="taskForm.get('baselineEnd')?.value" [workingDays]="activeWorkingDays" ariaLabel="Baseline end" (valueChange)="setTaskFormDate('baselineEnd', $event)"></app-gantt-date-picker></div>
+                      <div class="sp-field"><label>{{ 'gm.schedule.baselineStart' | translate }}</label><app-gantt-date-picker [value]="taskForm.get('baselineStart')?.value" [workingDays]="activeWorkingDays" [ariaLabel]="'gm.schedule.baselineStart2' | translate" (valueChange)="setTaskFormDate('baselineStart', $event)"></app-gantt-date-picker></div>
+                      <div class="sp-field"><label>{{ 'gm.schedule.baselineEnd' | translate }}</label><app-gantt-date-picker [value]="taskForm.get('baselineEnd')?.value" [workingDays]="activeWorkingDays" [ariaLabel]="'gm.schedule.baselineEnd2' | translate" (valueChange)="setTaskFormDate('baselineEnd', $event)"></app-gantt-date-picker></div>
                     </ng-template>
                   </div>
                 </div>
@@ -608,7 +608,7 @@
 
           <aside class="sp-general-side">
             <div class="sp-side-card progress-card">
-              <div class="sp-card-title purple-dot">Progress</div>
+              <div class="sp-card-title purple-dot">{{ 'gm.schedule.progress' | translate }}</div>
               <div class="sp-progress-top">
                 <div class="sp-progress-value">{{ taskForm.get('percentComplete')?.value || 0 }}%</div>
               </div>
@@ -626,23 +626,23 @@
             </div>
 
             <div class="sp-side-card">
-              <div class="sp-card-title orange-dot">Options</div>
+              <div class="sp-card-title orange-dot">{{ 'gm.schedule.options' | translate }}</div>
               <div class="sp-options-grid">
                 <label class="sp-check-pill">
                   <input type="checkbox" [checked]="taskForm.get('scheduleMode')?.value === 'MANUAL'" (change)="taskForm.patchValue({ scheduleMode: $any($event.target).checked ? 'MANUAL' : 'AUTO' })" />
-                  <span>Manual</span>
+                  <span>{{ 'gm.schedule.manual' | translate }}</span>
                 </label>
                 <label class="sp-check-pill">
                   <input type="checkbox" [checked]="taskForm.get('active')?.value === false" (change)="taskForm.patchValue({ active: !$any($event.target).checked })" />
-                  <span>Inactive</span>
+                  <span>{{ 'gm.schedule.inactive' | translate }}</span>
                 </label>
                 <label class="sp-check-pill">
                   <input type="checkbox" [checked]="taskForm.get('customerMilestone')?.value === true" (change)="taskForm.patchValue({ customerMilestone: $any($event.target).checked })" />
-                  <span>Customer MS</span>
+                  <span>{{ 'gm.schedule.customerMs' | translate }}</span>
                 </label>
                 <label class="sp-check-pill">
                   <input type="checkbox" [checked]="isMilestone(selectedTask)" [disabled]="true" />
-                  <span>Milestone</span>
+                  <span>{{ 'gm.schedule.milestone' | translate }}</span>
                 </label>
               </div>
             </div>
@@ -650,7 +650,7 @@
             <div class="sp-side-card">
               <button type="button" class="toolbar-main-btn save-btn full-save-btn" (click)="saveTask()" [disabled]="!selectedTask || saving">
                 <span class="material-symbols-outlined">save</span>
-                <span>{{ saving ? 'Saving...' : 'Save Task' }}</span>
+                <span>{{ saving ? ('gm.schedule.saving' | translate) : ('gm.schedule.saveTask' | translate) }}</span>
               </button>
             </div>
           </aside>
@@ -660,7 +660,7 @@
       <ng-container *ngIf="activeDetailTab === 'predecessors'">
         <div class="sp-table-card">
           <div class="sp-table-head predecessor-head">
-            <div>#</div><div>ID</div><div>Task Name</div><div>Relation Type</div><div>Lag (days)</div><div></div>
+            <div>#</div><div>{{ 'gm.schedule.id' | translate }}</div><div>{{ 'gm.schedule.taskName' | translate }}</div><div>{{ 'gm.schedule.relationType' | translate }}</div><div>{{ 'gm.schedule.lagDays' | translate }}</div><div></div>
           </div>
           <div class="sp-table-row predecessor-row" *ngFor="let dep of selectedTask?.dependencies; let i = index">
             <div><span class="sp-row-badge">{{ i + 1 }}</span></div>
@@ -685,7 +685,7 @@
             <div>{{ newDependency.predecessorTaskId ? getTaskWbsById(newDependency.predecessorTaskId) : '—' }}</div>
             <div>
               <select class="sp-inline-select" [(ngModel)]="newDependency.predecessorTaskId" [ngModelOptions]="{ standalone: true }">
-                <option [ngValue]="null">-- Select predecessor --</option>
+                <option [ngValue]="null">{{ 'gm.schedule.selectPredecessor' | translate }}</option>
                 <option *ngFor="let task of availablePredecessorTasks" [ngValue]="task.id">{{ task.wbsCode || task.id }} - {{ task.name }}</option>
               </select>
             </div>
@@ -710,7 +710,7 @@
         <ng-container *ngIf="isActivity(selectedTask); else resourcesNotApplicable">
           <div class="sp-table-card">
             <div class="sp-table-head resource-head">
-              <div>#</div><div>Type</div><div>Assignment</div><div>Qty</div><div>Units (%)</div><div>Cost (€)</div><div></div>
+              <div>#</div><div>{{ 'gm.schedule.type' | translate }}</div><div>{{ 'gm.schedule.assignment' | translate }}</div><div>{{ 'gm.schedule.qty' | translate }}</div><div>{{ 'gm.schedule.units' | translate }}</div><div>{{ 'gm.schedule.cost' | translate }}</div><div></div>
             </div>
             <div class="sp-table-row resource-row" *ngFor="let res of taskResources; let i = index">
               <div><span class="sp-row-badge">{{ i + 1 }}</span></div>
@@ -723,7 +723,7 @@
               <div>
                 <ng-container *ngIf="isSupplierResourceAssignment(res); else resourceAssignmentName">
                   <select class="sp-inline-select" [ngModel]="res.supplierId" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onExistingSupplierChange(res, $event)">
-                    <option [ngValue]="null" disabled>-- Select supplier --</option>
+                    <option [ngValue]="null" disabled>{{ 'gm.schedule.selectSupplier' | translate }}</option>
                     <option *ngFor="let supplier of getSupplierOptionsFor(res)" [ngValue]="supplier.id">{{ supplierLabel(supplier) }}</option>
                   </select>
                 </ng-container>
@@ -751,7 +751,7 @@
               </div>
               <div>
                 <select class="sp-inline-select" [(ngModel)]="newResource.assignedUserId" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onNewResourceUserChange($event)">
-                  <option [ngValue]="null">-- Select resource --</option>
+                  <option [ngValue]="null">{{ 'gm.schedule.selectResource' | translate }}</option>
                   <option *ngFor="let user of filteredResourceOptions" [ngValue]="user.id">{{ user.fullName }} - {{ user.resourceType }} - {{ user.departmentCode }}</option>
                 </select>
               </div>
@@ -769,13 +769,13 @@
               <div><span class="sp-row-badge">S</span></div>
               <div>
                 <select class="sp-inline-select" [(ngModel)]="newSupplier.resourceType" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onNewSupplierResourceTypeChange($event)">
-                  <option value="">-- Resource type --</option>
+                  <option value="">{{ 'gm.schedule.resourceType2' | translate }}</option>
                   <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
                 </select>
               </div>
               <div>
                 <select class="sp-inline-select" [(ngModel)]="newSupplier.supplierId" [ngModelOptions]="{ standalone: true }" [disabled]="!newSupplier.resourceType">
-                  <option [ngValue]="null">{{ newSupplier.resourceType ? '-- Select supplier --' : '-- Select Resource Type first --' }}</option>
+                  <option [ngValue]="null">{{ newSupplier.resourceType ? ('gm.schedule.selectSupplier' | translate) : ('gm.schedule.selectResourceTypeFirst' | translate) }}</option>
                   <option *ngFor="let supplier of getNewSupplierOptions()" [ngValue]="supplier.id">{{ supplierLabel(supplier) }}</option>
                 </select>
               </div>
@@ -789,19 +789,19 @@
               </div>
             </div>
 
-            <div *ngIf="!taskResources?.length" class="empty-state-line">No resources or suppliers assigned to this task yet.</div>
+            <div *ngIf="!taskResources?.length" class="empty-state-line">{{ 'gm.schedule.noResourcesSuppliersAssigned' | translate }}</div>
           </div>
         </ng-container>
         <ng-template #resourcesNotApplicable>
-          <div class="sp-not-applicable">Resources are not applicable to {{ normalizeTaskType(selectedTask?.taskType) | titlecase }} tasks.</div>
+          <div class="sp-not-applicable">{{ 'gm.schedule.resourcesNotApplicableTasktype' | translate: { taskType: (normalizeTaskType(selectedTask?.taskType) | titlecase) } }}</div>
         </ng-template>
       </ng-container>
 
       <ng-container *ngIf="activeDetailTab === 'history'">
         <div class="sp-table-card history-card">
-          <div class="history-loading" *ngIf="historyLoading">Loading history...</div>
+          <div class="history-loading" *ngIf="historyLoading">{{ 'gm.schedule.loadingHistory' | translate }}</div>
           <div class="sp-table-head history-head" *ngIf="!historyLoading">
-            <div>Date</div><div>Task</div><div>Field</div><div>Old Value</div><div>New Value</div><div>Changed By</div>
+            <div>{{ 'gm.schedule.date' | translate }}</div><div>{{ 'gm.schedule.task' | translate }}</div><div>{{ 'gm.schedule.field' | translate }}</div><div>{{ 'gm.schedule.oldValue' | translate }}</div><div>{{ 'gm.schedule.newValue' | translate }}</div><div>{{ 'gm.schedule.changed' | translate }}</div>
           </div>
           <div class="sp-table-row history-row" *ngFor="let h of taskHistory">
             <div>{{ formatHistoryDate(h.changedAt) }}</div>
@@ -809,19 +809,19 @@
             <div><span class="history-field-pill">{{ h.fieldName }}</span></div>
             <div class="history-old">{{ h.oldValue || '—' }}</div>
             <div class="history-new">{{ h.newValue || '—' }}</div>
-            <div>{{ h.changedByName || 'System' }}</div>
+            <div>{{ h.changedByName || ('gm.schedule.system' | translate) }}</div>
           </div>
-          <div *ngIf="!historyLoading && taskHistory.length === 0" class="empty-state-line">No history found for this task yet.</div>
+          <div *ngIf="!historyLoading && taskHistory.length === 0" class="empty-state-line">{{ 'gm.schedule.noHistoryFoundTask' | translate }}</div>
         </div>
       </ng-container>
 
       <ng-container *ngIf="activeDetailTab === 'console'">
         <div class="console-card" *ngIf="!consoleLoading && consoleConfig; else consoleLoadingTpl">
           <div class="console-section">
-            <div class="console-title">📊 Status</div>
+            <div class="console-title">{{ 'gm.schedule.status' | translate }}</div>
             <div class="console-status-row">
-              <span class="status-pill danger">{{ selectedTask?.percentComplete || 0 }}% complete</span>
-              <span>Task: {{ selectedTask?.name || '—' }}</span>
+              <span class="status-pill danger">{{ 'gm.schedule.percentcompleteComplete' | translate: { percentComplete: (selectedTask?.percentComplete || 0) } }}</span>
+              <span>{{ 'gm.schedule.taskName2' | translate: { name: (selectedTask?.name || '—') } }}</span>
             </div>
             <div class="console-progress">
               <div class="console-progress-fill" [style.width.%]="selectedTask?.percentComplete || 0"></div>
@@ -829,8 +829,8 @@
           </div>
 
           <div class="console-section">
-            <div class="console-title">🎯 Checkpoints</div>
-            <p class="console-help">Fire a notification each time the task reaches a selected checkpoint.</p>
+            <div class="console-title">{{ 'gm.schedule.checkpoints' | translate }}</div>
+            <p class="console-help">{{ 'gm.schedule.fireNotificationEachTime' | translate }}</p>
             <div class="console-pill-row">
               <button type="button" class="console-pill" [class.active]="consoleConfig.checkpoint25" (click)="toggleConsoleCheckpoint('checkpoint25')">25%</button>
               <button type="button" class="console-pill" [class.active]="consoleConfig.checkpoint50" (click)="toggleConsoleCheckpoint('checkpoint50')">50%</button>
@@ -839,43 +839,43 @@
           </div>
 
           <div class="console-section">
-            <div class="console-title">🔔 Channel</div>
+            <div class="console-title">{{ 'gm.schedule.channel' | translate }}</div>
             <div class="console-pill-row">
-              <button type="button" class="console-pill" [class.active]="consoleConfig.channel === 'APP_ALERT'" (click)="setConsoleChannel('APP_ALERT')">App Alert</button>
-              <button type="button" class="console-pill" [class.active]="consoleConfig.channel === 'EMAIL'" (click)="setConsoleChannel('EMAIL')">Email</button>
-              <button type="button" class="console-pill" [class.active]="consoleConfig.channel === 'BOTH'" (click)="setConsoleChannel('BOTH')">Both</button>
+              <button type="button" class="console-pill" [class.active]="consoleConfig.channel === 'APP_ALERT'" (click)="setConsoleChannel('APP_ALERT')">{{ 'gm.schedule.appAlert' | translate }}</button>
+              <button type="button" class="console-pill" [class.active]="consoleConfig.channel === 'EMAIL'" (click)="setConsoleChannel('EMAIL')">{{ 'gm.schedule.email' | translate }}</button>
+              <button type="button" class="console-pill" [class.active]="consoleConfig.channel === 'BOTH'" (click)="setConsoleChannel('BOTH')">{{ 'gm.schedule.both' | translate }}</button>
             </div>
           </div>
 
           <div class="console-section">
-            <div class="console-title">👥 Notify</div>
+            <div class="console-title">{{ 'gm.schedule.notify' | translate }}</div>
             <div class="console-pill-row">
-              <button type="button" class="console-pill" [class.active]="consoleConfig.notifyPm" (click)="toggleConsoleNotify('notifyPm')">PM</button>
-              <button type="button" class="console-pill" [class.active]="consoleConfig.notifyOwner" (click)="toggleConsoleNotify('notifyOwner')">Owner</button>
-              <button type="button" class="console-pill" [class.active]="consoleConfig.notifyDeptManager" (click)="toggleConsoleNotify('notifyDeptManager')">Dept. Mgr</button>
-              <button type="button" class="console-pill" [class.active]="consoleConfig.notifyEveryone" (click)="toggleConsoleNotify('notifyEveryone')">All</button>
+              <button type="button" class="console-pill" [class.active]="consoleConfig.notifyPm" (click)="toggleConsoleNotify('notifyPm')">{{ 'gm.schedule.pm' | translate }}</button>
+              <button type="button" class="console-pill" [class.active]="consoleConfig.notifyOwner" (click)="toggleConsoleNotify('notifyOwner')">{{ 'gm.schedule.owner' | translate }}</button>
+              <button type="button" class="console-pill" [class.active]="consoleConfig.notifyDeptManager" (click)="toggleConsoleNotify('notifyDeptManager')">{{ 'gm.schedule.deptMgr' | translate }}</button>
+              <button type="button" class="console-pill" [class.active]="consoleConfig.notifyEveryone" (click)="toggleConsoleNotify('notifyEveryone')">{{ 'common.all' | translate }}</button>
             </div>
           </div>
 
           <div class="console-actions">
-            <button type="button" class="console-save-btn" (click)="saveConsoleConfig()">💾 Save</button>
-            <button type="button" class="console-delete-btn" (click)="clearConsoleLogs()">🗑 Clear Logs</button>
+            <button type="button" class="console-save-btn" (click)="saveConsoleConfig()">{{ 'gm.schedule.save' | translate }}</button>
+            <button type="button" class="console-delete-btn" (click)="clearConsoleLogs()">{{ 'gm.schedule.clearLogs' | translate }}</button>
           </div>
 
           <div class="console-section">
-            <div class="console-title">📝 Log</div>
+            <div class="console-title">{{ 'gm.schedule.log' | translate }}</div>
             <div class="console-log-row" *ngFor="let log of consoleLogs">
               <div class="console-log-date">{{ formatHistoryDate(log.createdAt) }}</div>
               <div class="console-log-message">{{ log.message }}</div>
               <div class="console-log-meta">{{ log.severity }} · {{ log.channel }} · {{ log.notifyTarget }}</div>
             </div>
-            <div class="console-empty" *ngIf="consoleLogs.length === 0">No notifications yet.</div>
+            <div class="console-empty" *ngIf="consoleLogs.length === 0">{{ 'gm.schedule.noNotificationsYet' | translate }}</div>
           </div>
         </div>
 
         <ng-template #consoleLoadingTpl>
           <div class="console-card">
-            <div class="console-empty">Loading console...</div>
+            <div class="console-empty">{{ 'gm.schedule.loadingConsole' | translate }}</div>
           </div>
         </ng-template>
       </ng-container>
@@ -888,7 +888,7 @@
       <div class="settings-drawer-header">
         <div class="settings-drawer-title-wrap">
           <span class="material-symbols-outlined settings-drawer-icon">settings</span>
-          <div class="settings-drawer-title">Project Settings</div>
+          <div class="settings-drawer-title">{{ 'gm.schedule.projectSettings' | translate }}</div>
         </div>
         <button type="button" class="settings-close-btn" (click)="toggleSettings()">
           <span class="material-symbols-outlined">close</span>
@@ -897,17 +897,17 @@
 
       <div class="settings-tab-bar">
         <button type="button" class="settings-tab-btn" [class.active]="settingsTab === 'templates'" (click)="openTemplateTab()">
-          <span class="material-symbols-outlined tab-mini-icon">article</span><span>Templates</span>
+          <span class="material-symbols-outlined tab-mini-icon">article</span><span>{{ 'gm.schedule.templates' | translate }}</span>
         </button>
         <button type="button" class="settings-tab-btn" [class.active]="settingsTab === 'calendar'" (click)="settingsTab = 'calendar'">
-          <span class="material-symbols-outlined tab-mini-icon">calendar_month</span><span>Calendars</span>
+          <span class="material-symbols-outlined tab-mini-icon">calendar_month</span><span>{{ 'gm.schedule.calendars' | translate }}</span>
         </button>
         <button type="button" class="settings-tab-btn" [class.active]="settingsTab === 'baseline'" (click)="openBaselineTab()">
-          <span class="material-symbols-outlined tab-mini-icon">flag</span><span>Baselines</span>
+          <span class="material-symbols-outlined tab-mini-icon">flag</span><span>{{ 'gm.schedule.baselines' | translate }}</span>
         </button>
         <!-- ✅ MILESTONES TAB BUTTON -->
         <button type="button" class="settings-tab-btn" [class.active]="settingsTab === 'milestones'" (click)="settingsTab = 'milestones'; loadMilestoneTypes()">
-          <span class="material-symbols-outlined tab-mini-icon">flag</span><span>Milestones</span>
+          <span class="material-symbols-outlined tab-mini-icon">flag</span><span>{{ 'gm.schedule.milestones' | translate }}</span>
         </button>
       </div>
 
@@ -918,10 +918,10 @@
            <div class="drawer-section-header">
               <div class="drawer-section-title">
                 <span class="material-symbols-outlined sec-icon">dashboard_customize</span>
-                <span>Saved Templates</span>
+                <span>{{ 'gm.schedule.savedTemplates' | translate }}</span>
               </div>
                    <label class="mini-outline-btn" style="cursor:pointer;">
-                ↑ Import .xlsx / .xls 2/ .json
+                {{ 'gm.schedule.importXlsxXls2' | translate }}
                 <input
                   #templateImportInput
                   type="file"
@@ -935,8 +935,8 @@
  
             <div class="drawer-empty-card" *ngIf="templates.length === 0">
               <span class="material-symbols-outlined empty-icon">inventory_2</span>
-              <div class="empty-title">No templates saved yet.</div>
-              <div class="empty-subtitle">Create one below.</div>
+              <div class="empty-title">{{ 'gm.schedule.noTemplatesSavedYet' | translate }}</div>
+              <div class="empty-subtitle">{{ 'gm.schedule.createOneBelow' | translate }}</div>
             </div>
             <div class="drawer-list-card" *ngFor="let template of templates">
               <div class="list-card-main">
@@ -954,36 +954,36 @@
             <div class="drawer-section-header no-border">
               <div class="drawer-section-title">
                 <span class="material-symbols-outlined sec-icon">add_circle</span>
-                <span>Create New Template</span>
+                <span>{{ 'gm.schedule.createNewTemplate' | translate }}</span>
               </div>
             </div>
             <div class="template-builder-card">
               <div class="template-scope-row">
                 <button type="button" class="template-scope-btn" [class.active]="selectedTemplateScope === 'all'" (click)="setTemplateScope('all')">
-                  <div class="scope-title">📋 Full Schedule</div>
-                  <div class="scope-sub">All tasks in project</div>
+                  <div class="scope-title">{{ 'gm.schedule.fullSchedule' | translate }}</div>
+                  <div class="scope-sub">{{ 'gm.schedule.allTasksProject' | translate }}</div>
                 </button>
                 <button type="button" class="template-scope-btn" [class.active]="selectedTemplateScope === 'selected'" (click)="setTemplateScope('selected')">
-                  <div class="scope-title">✂️ Selected Tasks</div>
-                  <div class="scope-sub">Select tasks below</div>
+                  <div class="scope-title">{{ 'gm.schedule.selectedTasks' | translate }}</div>
+                  <div class="scope-sub">{{ 'gm.schedule.selectTasksBelow' | translate }}</div>
                 </button>
               </div>
               <div class="template-create-row">
-                <input type="text" class="template-name-input" [(ngModel)]="templateName" placeholder="Template name..." />
-                <button type="button" class="primary-action-btn" (click)="saveTemplateWithName()" [disabled]="selectedTemplateScope === 'selected' && getSelectedTemplateCount() === 0">Save Template</button>
+                <input type="text" class="template-name-input" [(ngModel)]="templateName" [placeholder]="'gm.schedule.templateName' | translate" />
+                <button type="button" class="primary-action-btn" (click)="saveTemplateWithName()" [disabled]="selectedTemplateScope === 'selected' && getSelectedTemplateCount() === 0">{{ 'gm.schedule.saveTemplate' | translate }}</button>
               </div>
               <div class="template-create-row">
-                <input type="text" class="template-name-input" [(ngModel)]="templateDescription" placeholder="Template description (optional)..." />
+                <input type="text" class="template-name-input" [(ngModel)]="templateDescription" [placeholder]="'gm.schedule.templateDescriptionOptional' | translate" />
               </div>
               <ng-container *ngIf="selectedTemplateScope === 'selected'">
                 <div class="template-selection-head">
-                  <div class="template-selection-title">Select tasks to include:</div>
+                  <div class="template-selection-title">{{ 'gm.schedule.selectTasksInclude' | translate }}</div>
                   <div class="template-selection-actions">
-                    <button type="button" class="mini-outline-btn" (click)="toggleAllTemplateTasks(true)">Select all</button>
-                    <button type="button" class="mini-outline-btn" (click)="clearTemplateSelection()">Clear</button>
+                    <button type="button" class="mini-outline-btn" (click)="toggleAllTemplateTasks(true)">{{ 'gm.schedule.selectAll' | translate }}</button>
+                    <button type="button" class="mini-outline-btn" (click)="clearTemplateSelection()">{{ 'gm.schedule.clear' | translate }}</button>
                   </div>
                 </div>
-                <div class="template-selection-count">{{ getSelectedTemplateCount() }} task(s) selected</div>
+                <div class="template-selection-count">{{ 'gm.schedule.getselectedtemplatecountTaskSSelected' | translate: { getSelectedTemplateCount: getSelectedTemplateCount() } }}</div>
                 <div class="template-task-picker">
                   <div class="template-task-row" *ngFor="let task of visibleTasks; let i = index" [class.summary]="isSummary(task)">
                     <label class="template-task-check">
@@ -1008,39 +1008,39 @@
             <div class="drawer-section-header">
               <div class="drawer-section-title">
                 <span class="material-symbols-outlined sec-icon">calendar_month</span>
-                <span>Project Calendar</span>
+                <span>{{ 'gm.schedule.projectCalendar' | translate }}</span>
               </div>
-              <button type="button" class="primary-action-btn small-btn" (click)="createDefaultCalendar()">+ New Calendar</button>
+              <button type="button" class="primary-action-btn small-btn" (click)="createDefaultCalendar()">{{ 'gm.schedule.newCalendar' | translate }}</button>
             </div>
             <div class="drawer-list-card calendar-card" *ngFor="let cal of calendars">
               <div class="calendar-avatar"><span class="material-symbols-outlined">calendar_month</span></div>
               <div class="list-card-main">
-                <div class="list-card-title">{{ cal.isDefault ? '✓ ' : '' }}{{ cal.name }}<span class="default-badge" *ngIf="cal.isDefault">Applied</span></div>
-                <div class="list-card-sub">{{ getCalendarDaysLabel(cal.workingDays) }} · {{ cal.hoursPerDay }}h/day · Start {{ cal.startTime }}</div>
+                <div class="list-card-title">{{ cal.isDefault ? '✓ ' : '' }}{{ cal.name }}<span class="default-badge" *ngIf="cal.isDefault">{{ 'gm.schedule.applied' | translate }}</span></div>
+                <div class="list-card-sub">{{ 'gm.schedule.workingdaysHoursperdayHDay' | translate: { workingDays: getCalendarDaysLabel(cal.workingDays), hoursPerDay: cal.hoursPerDay, startTime: cal.startTime } }}</div>
               </div>
               <div class="list-card-actions">
-                <button type="button" class="icon-square-btn" title="Edit" (click)="editCalendar(cal)"><span class="material-symbols-outlined">edit</span></button>
-                <button type="button" class="icon-square-btn" title="Apply to project" (click)="makeCalendarDefault(cal.id)"><span class="material-symbols-outlined">check_circle</span></button>
-                <button type="button" class="icon-square-btn danger" title="Delete" (click)="deleteCalendar(cal.id)" [disabled]="cal.isDefault"><span class="material-symbols-outlined">delete</span></button>
+                <button type="button" class="icon-square-btn" [title]="'common.edit' | translate" (click)="editCalendar(cal)"><span class="material-symbols-outlined">edit</span></button>
+                <button type="button" class="icon-square-btn" [title]="'gm.schedule.applyProject' | translate" (click)="makeCalendarDefault(cal.id)"><span class="material-symbols-outlined">check_circle</span></button>
+                <button type="button" class="icon-square-btn danger" [title]="'common.delete' | translate" (click)="deleteCalendar(cal.id)" [disabled]="cal.isDefault"><span class="material-symbols-outlined">delete</span></button>
               </div>
             </div>
             <div class="baseline-create-card" *ngIf="calendarEditorOpen">
               <div class="template-create-row">
-                <input type="text" class="template-name-input" [(ngModel)]="calendarName" placeholder="Calendar name" />
+                <input type="text" class="template-name-input" [(ngModel)]="calendarName" [placeholder]="'gm.schedule.calendarName' | translate" />
               </div>
-              <div class="baseline-help-text">Working days</div>
+              <div class="baseline-help-text">{{ 'gm.schedule.workingDays' | translate }}</div>
               <label class="toolbar-check-item" *ngFor="let day of [{ id: 1, name: 'Monday' }, { id: 2, name: 'Tuesday' }, { id: 3, name: 'Wednesday' }, { id: 4, name: 'Thursday' }, { id: 5, name: 'Friday' }, { id: 6, name: 'Saturday' }, { id: 7, name: 'Sunday' }]">
                 <input type="checkbox" [checked]="calendarWorkingDays.includes(day.id)" (change)="toggleCalendarWorkingDay(day.id, $any($event.target).checked)" />
                 <span>{{ day.name }}</span>
               </label>
               <div class="template-create-row">
-                <button type="button" class="primary-action-btn" (click)="saveCalendar()" [disabled]="!calendarName.trim() || !calendarWorkingDays.length">Save</button>
-                <button type="button" class="secondary-action-btn" (click)="calendarEditorOpen = false">Cancel</button>
+                <button type="button" class="primary-action-btn" (click)="saveCalendar()" [disabled]="!calendarName.trim() || !calendarWorkingDays.length">{{ 'common.save' | translate }}</button>
+                <button type="button" class="secondary-action-btn" (click)="calendarEditorOpen = false">{{ 'common.cancel' | translate }}</button>
               </div>
             </div>
             <div class="drawer-empty-card" *ngIf="calendars.length === 0">
               <span class="material-symbols-outlined empty-icon">calendar_month</span>
-              <div class="empty-title">No calendars saved yet.</div>
+              <div class="empty-title">{{ 'gm.schedule.noCalendarsSavedYet' | translate }}</div>
             </div>
           </section>
         </ng-container>
@@ -1051,16 +1051,16 @@
             <div class="drawer-section-header no-border">
               <div class="drawer-section-title">
                 <span class="material-symbols-outlined sec-icon">add</span>
-                <span>Set New Baseline</span>
+                <span>{{ 'gm.schedule.setNewBaseline' | translate }}</span>
               </div>
             </div>
             <div class="baseline-create-card">
               <div class="baseline-help-text">
-                Captures the current Actual/Planned schedule as an immutable task snapshot. Applying a saved baseline changes only the displayed baseline, never the current schedule.
+                {{ 'gm.schedule.capturesCurrentActualPlanned' | translate }}
               </div>
               <div class="template-create-row">
-                <input type="text" class="template-name-input" [(ngModel)]="baselineName" placeholder="Optional name (defaults to Baseline 1, 2...)" />
-                <button type="button" class="primary-action-btn" (click)="saveBaselineWithName()" [disabled]="saving">📌 Set Baseline</button>
+                <input type="text" class="template-name-input" [(ngModel)]="baselineName" [placeholder]="'gm.schedule.optionalNameDefaultsBaseline' | translate" />
+                <button type="button" class="primary-action-btn" (click)="saveBaselineWithName()" [disabled]="saving">{{ 'gm.schedule.setBaseline' | translate }}</button>
               </div>
             </div>
           </section>
@@ -1069,7 +1069,7 @@
             <div class="drawer-section-header">
               <div class="drawer-section-title">
                 <span class="material-symbols-outlined sec-icon">inventory_2</span>
-                <span>Saved Baselines</span>
+                <span>{{ 'gm.schedule.savedBaselines' | translate }}</span>
               </div>
             </div>
             <ng-container *ngIf="baselines && baselines.length > 0; else noBaselines">
@@ -1078,28 +1078,28 @@
                   <div class="baseline-card-icon">📌</div>
                   <div class="baseline-card-info">
                     <div class="baseline-card-name">{{ baseline.name }}</div>
-                    <div class="baseline-card-meta">Saved {{ baseline.createdAt | date:'dd MMM yyyy' }} · {{ baseline.taskCount || 0 }} tasks · Avg {{ baseline.avgProgress || 0 }}%</div>
+                    <div class="baseline-card-meta">{{ 'gm.schedule.savedCreatedatTaskcountTasks' | translate: { createdAt: (baseline.createdAt | date:'dd MMM yyyy'), taskCount: (baseline.taskCount || 0), avgProgress: (baseline.avgProgress || 0) } }}</div>
                   </div>
-                  <span class="baseline-status-badge" [class.active]="baseline.active">{{ baseline.active ? 'Applied' : 'Saved' }}</span>
+                  <span class="baseline-status-badge" [class.active]="baseline.active">{{ baseline.active ? ('gm.schedule.applied' | translate) : ('gm.schedule.saved' | translate) }}</span>
                   <button type="button" class="baseline-mini-btn" (click)="toggleBaselineDetails(baseline)">{{ baseline.expanded ? '▴' : '▾' }}</button>
                   <button type="button" class="baseline-mini-btn edit" (click)="renameBaseline(baseline)">✏️</button>
                   <button type="button" class="baseline-mini-btn danger" (click)="deleteBaseline(baseline.id)">🗑</button>
                 </div>
                 <div class="baseline-detail" [class.open]="baseline.expanded">
                   <div class="baseline-stats-grid">
-                    <div class="baseline-stat"><strong>{{ baseline.taskCount || 0 }}</strong><span>Tasks</span></div>
-                    <div class="baseline-stat"><strong>{{ baseline.avgProgress || 0 }}%</strong><span>Avg Done</span></div>
-                    <div class="baseline-stat"><strong>{{ baseline.completedCount || 0 }}</strong><span>Complete</span></div>
+                    <div class="baseline-stat"><strong>{{ baseline.taskCount || 0 }}</strong><span>{{ 'gm.schedule.tasks' | translate }}</span></div>
+                    <div class="baseline-stat"><strong>{{ baseline.avgProgress || 0 }}%</strong><span>{{ 'gm.schedule.avgDone' | translate }}</span></div>
+                    <div class="baseline-stat"><strong>{{ baseline.completedCount || 0 }}</strong><span>{{ 'gm.schedule.complete' | translate }}</span></div>
                   </div>
-                  <button type="button" class="apply-baseline-btn" (click)="applyBaselineToSchedule(baseline)" [disabled]="saving">↩ Apply to Schedule</button>
+                  <button type="button" class="apply-baseline-btn" (click)="applyBaselineToSchedule(baseline)" [disabled]="saving">{{ 'gm.schedule.applySchedule' | translate }}</button>
                 </div>
               </div>
             </ng-container>
             <ng-template #noBaselines>
               <div class="drawer-empty-card">
                 <span class="material-symbols-outlined empty-icon">add</span>
-                <div class="empty-title">No baselines saved yet.</div>
-                <div class="empty-subtitle">Set one above to begin tracking.</div>
+                <div class="empty-title">{{ 'gm.schedule.noBaselinesSavedYet' | translate }}</div>
+                <div class="empty-subtitle">{{ 'gm.schedule.setOneAboveBegin' | translate }}</div>
               </div>
             </ng-template>
           </section>
@@ -1111,32 +1111,32 @@
             <div class="drawer-section-header">
               <div class="drawer-section-title">
                 <span class="material-symbols-outlined sec-icon">flag</span>
-                <span>Milestones</span>
+                <span>{{ 'gm.schedule.milestones' | translate }}</span>
               </div>
               <!-- ✅ NEW: Load Default Milestones Button -->
               <button type="button" class="mini-outline-btn" (click)="loadDefaultMilestones()">
-                📥 Load Defaults
+                {{ 'gm.schedule.loadDefaults' | translate }}
               </button>
             </div>
             
             <!-- Create New Milestone -->
             <div class="baseline-create-card" style="margin-bottom: 16px;">
               <div class="template-create-row">
-                <input type="text" class="template-name-input" [(ngModel)]="newMilestoneType.label" placeholder="Milestone name (e.g. FAT)" />
-                <input type="text" class="template-name-input" [(ngModel)]="newMilestoneType.code" placeholder="Code (optional)" style="width: 110px;" />
+                <input type="text" class="template-name-input" [(ngModel)]="newMilestoneType.label" [placeholder]="'gm.schedule.milestoneNameEG' | translate" />
+                <input type="text" class="template-name-input" [(ngModel)]="newMilestoneType.code" [placeholder]="'gm.schedule.codeOptional' | translate" style="width: 110px;" />
                 
                 <!-- ✅ IMPROVED: More Visible Color Picker -->
                 <div style="display: flex; align-items: center; gap: 8px;">
-                  <label style="font-size: 12px; color: var(--pm-text-muted);">Color:</label>
+                  <label style="font-size: 12px; color: var(--pm-text-muted);">{{ 'gm.schedule.color' | translate }}</label>
                   <input type="color" [(ngModel)]="newMilestoneType.color" 
                          style="width: 50px; height: 36px; border: 2px solid var(--pm-border-strong); border-radius: 6px; cursor: pointer;" 
-                         title="Click to choose milestone color" />
+                         [title]="'gm.schedule.clickChooseMilestoneColor' | translate" />
                 </div>
                 
-                <button type="button" class="primary-action-btn" (click)="saveNewMilestoneType()">Add milestone</button>
+                <button type="button" class="primary-action-btn" (click)="saveNewMilestoneType()">{{ 'gm.schedule.addMilestone' | translate }}</button>
               </div>
               <div style="font-size: 11px; color: var(--pm-text-muted); margin-top: 8px; padding-left: 4px;">
-                💡 Tip: Click "Load Defaults" to add all 13 standard milestones (RT, KOM, FAT, SPEDIZIONE, etc.) with their colors
+                {{ 'gm.schedule.tipClickLoadDefaults' | translate }}
               </div>
             </div>
 
@@ -1147,19 +1147,19 @@
               </div>
               <div class="list-card-main" *ngIf="editingMilestoneType?.id !== mt.id; else editMilestoneType">
                 <div class="list-card-title">{{ mt.code }} - {{ mt.label }}</div>
-                <div class="list-card-sub">Letter: {{ mt.letterCode || '—' }}</div>
+                <div class="list-card-sub">{{ 'gm.schedule.letterLettercode' | translate: { letterCode: (mt.letterCode || '—') } }}</div>
               </div>
               <ng-template #editMilestoneType>
                 <div class="list-card-main template-create-row">
-                  <input class="template-name-input" [(ngModel)]="editingMilestoneType.label" placeholder="Milestone name" />
-                  <input class="template-name-input" [(ngModel)]="editingMilestoneType.code" placeholder="Code" style="width: 90px;" />
-                  <input type="color" [(ngModel)]="editingMilestoneType.color" title="Milestone colour" />
+                  <input class="template-name-input" [(ngModel)]="editingMilestoneType.label" [placeholder]="'gm.schedule.milestoneName' | translate" />
+                  <input class="template-name-input" [(ngModel)]="editingMilestoneType.code" [placeholder]="'gm.schedule.code' | translate" style="width: 90px;" />
+                  <input type="color" [(ngModel)]="editingMilestoneType.color" [title]="'gm.schedule.milestoneColour' | translate" />
                 </div>
               </ng-template>
             <div class="list-card-actions">
   <ng-container *ngIf="editingMilestoneType?.id === mt.id; else viewActions">
-    <button type="button" class="icon-square-btn" (click)="saveMilestoneTypeEdit()" title="Save milestone"><span class="material-symbols-outlined">check</span></button>
-    <button type="button" class="icon-square-btn" (click)="cancelMilestoneTypeEdit()" title="Cancel edit"><span class="material-symbols-outlined">close</span></button>
+    <button type="button" class="icon-square-btn" (click)="saveMilestoneTypeEdit()" [title]="'gm.schedule.saveMilestone' | translate"><span class="material-symbols-outlined">check</span></button>
+    <button type="button" class="icon-square-btn" (click)="cancelMilestoneTypeEdit()" [title]="'gm.schedule.cancelEdit' | translate"><span class="material-symbols-outlined">close</span></button>
   </ng-container>
   <ng-template #viewActions>
     <!-- ✅ NEW: Shared checkbox button -->
@@ -1167,7 +1167,7 @@
   type="button"
   class="icon-square-btn shared-toggle-btn"
   [class.shared]="mt.shared"
-  [title]="mt.shared ? 'Visible in Milestone Dashboard' : 'Hidden from Milestone Dashboard'"
+  [title]="mt.shared ? ('gm.schedule.visibleMilestoneDashboard' | translate) : ('gm.schedule.hiddenFromMilestoneDashboard' | translate)"
   (click)="toggleMilestoneSharing(mt)"
 >
   <span class="material-symbols-outlined">
@@ -1175,7 +1175,7 @@
   </span>
 </button>
 
-    <button type="button" class="icon-square-btn" (click)="beginEditMilestoneType(mt)" title="Edit milestone"><span class="material-symbols-outlined">edit</span></button>
+    <button type="button" class="icon-square-btn" (click)="beginEditMilestoneType(mt)" [title]="'gm.schedule.editMilestone' | translate"><span class="material-symbols-outlined">edit</span></button>
     <button type="button" class="icon-square-btn danger" (click)="deleteMilestoneType(mt.id)">
       <span class="material-symbols-outlined">delete</span>
     </button>
@@ -1185,8 +1185,8 @@
 
             <div class="drawer-empty-card" *ngIf="milestoneTypes.length === 0">
               <span class="material-symbols-outlined empty-icon">flag</span>
-              <div class="empty-title">No milestone types defined yet.</div>
-              <div class="empty-subtitle">Click "Load Defaults" to add 13 standard milestones, or create your own above.</div>
+              <div class="empty-title">{{ 'gm.schedule.noMilestoneTypesDefined' | translate }}</div>
+              <div class="empty-subtitle">{{ 'gm.schedule.clickLoadDefaultsAdd' | translate }}</div>
             </div>
           </section>
         </ng-container>
@@ -1194,10 +1194,10 @@
       </div>
 
       <div class="settings-drawer-footer">
-        <span class="footer-note">Changes are applied immediately</span>
+        <span class="footer-note">{{ 'gm.schedule.changesAppliedImmediately' | translate }}</span>
         <button type="button" class="save-settings-btn" (click)="toggleSettings()">
           <span class="material-symbols-outlined">save</span>
-          <span>Save Settings</span>
+          <span>{{ 'gm.schedule.saveSettings' | translate }}</span>
         </button>
       </div>
     </aside>
@@ -1207,27 +1207,27 @@
   <div class="task-context-menu-backdrop" *ngIf="contextMenuOpen" (click)="closeContextMenu()"></div>
   <div class="task-context-menu" *ngIf="contextMenuOpen && contextMenuTask" [style.left.px]="contextMenuX" [style.top.px]="contextMenuY" (click)="$event.stopPropagation()">
     <button type="button" class="context-menu-item" (click)="createActionFromTask()">
-      <span class="material-symbols-outlined">add_task</span><span>Create Action from task</span>
+      <span class="material-symbols-outlined">add_task</span><span>{{ 'gm.schedule.createActionFromTask' | translate }}</span>
     </button>
     <button type="button" class="context-menu-item" (click)="insertTaskBelowContext()">
-      <span class="material-symbols-outlined">subdirectory_arrow_right</span><span>Insert task below</span>
+      <span class="material-symbols-outlined">subdirectory_arrow_right</span><span>{{ 'gm.schedule.insertTaskBelow' | translate }}</span>
     </button>
     <button type="button" class="context-menu-item" (click)="copyTaskBelowContext()">
-      <span class="material-symbols-outlined">content_copy</span><span>Copy below</span>
+      <span class="material-symbols-outlined">content_copy</span><span>{{ 'gm.schedule.copyBelow' | translate }}</span>
     </button>
     <button type="button" class="context-menu-item" (click)="editTaskFromContext()">
-      <span class="material-symbols-outlined">edit_square</span><span>Edit task</span>
+      <span class="material-symbols-outlined">edit_square</span><span>{{ 'gm.schedule.editTask' | translate }}</span>
     </button>
     <div class="context-menu-divider"></div>
     <button type="button" class="context-menu-item" (click)="indentTaskFromContext()">
-      <span class="material-symbols-outlined">format_indent_increase</span><span>Indent</span>
+      <span class="material-symbols-outlined">format_indent_increase</span><span>{{ 'gm.schedule.indent' | translate }}</span>
     </button>
     <button type="button" class="context-menu-item" (click)="outdentTaskFromContext()">
-      <span class="material-symbols-outlined">format_indent_decrease</span><span>Outdent</span>
+      <span class="material-symbols-outlined">format_indent_decrease</span><span>{{ 'gm.schedule.outdent' | translate }}</span>
     </button>
     <div class="context-menu-divider"></div>
     <button type="button" class="context-menu-item danger" (click)="deleteTaskFromContext()">
-      <span class="material-symbols-outlined">delete</span><span>Delete task</span>
+      <span class="material-symbols-outlined">delete</span><span>{{ 'gm.schedule.deleteTask' | translate }}</span>
     </button>
   </div>
 
@@ -1237,31 +1237,31 @@
       <div class="export-modal-header">
         <div class="export-modal-title-wrap">
           <span class="material-symbols-outlined export-modal-icon">warning</span>
-          <div class="export-modal-title">Import Schedule</div>
+          <div class="export-modal-title">{{ 'gm.schedule.importSchedule' | translate }}</div>
         </div>
         <button type="button" class="export-close-btn" (click)="cancelScheduleImport()">
           <span class="material-symbols-outlined">close</span>
         </button>
       </div>
       <div class="export-modal-body" style="max-height: 60vh; overflow-y: auto;">
-        <div class="export-help-text">This file does not match the expected structure. Do you want to import it anyway?</div>
-        <div class="export-note">{{ preview.tasks.length }} row(s) will be imported. Missing or unreadable values will be left empty.</div>
+        <div class="export-help-text">{{ 'gm.schedule.fileDoesNotMatch' | translate }}</div>
+        <div class="export-note">{{ 'gm.schedule.tasksRowSWill' | translate: { tasks: preview.tasks.length } }}</div>
         <div class="export-note" *ngIf="preview.replacedTaskCount">
-          The import replaces the current schedule: all {{ preview.replacedTaskCount }} existing task(s) of this project, with their dependencies and resource assignments, will be deleted.
+          {{ 'gm.schedule.importReplacesCurrentSchedule' | translate: { replacedTaskCount: preview.replacedTaskCount } }}
         </div>
-        <div class="export-help-text">Recognised columns</div>
+        <div class="export-help-text">{{ 'gm.schedule.recognisedColumns' | translate }}</div>
         <ul><li *ngFor="let column of preview.recognised">{{ column }}</li></ul>
         <ng-container *ngIf="preview.missing.length">
-          <div class="export-help-text">Missing expected columns</div>
+          <div class="export-help-text">{{ 'gm.schedule.missingExpectedColumns' | translate }}</div>
           <ul><li *ngFor="let column of preview.missing">{{ column }}</li></ul>
         </ng-container>
         <ng-container *ngIf="preview.notes.length">
-          <div class="export-help-text">Values left empty or skipped</div>
+          <div class="export-help-text">{{ 'gm.schedule.valuesLeftEmptySkipped' | translate }}</div>
           <ul><li *ngFor="let note of importNotesSummary(preview.notes)">{{ note }}</li></ul>
         </ng-container>
         <div style="display: flex; justify-content: flex-end; gap: 8px;">
-          <button type="button" class="btn-cancel" (click)="cancelScheduleImport()">Cancel</button>
-          <button type="button" class="btn-primary" (click)="confirmScheduleImport()">Import anyway</button>
+          <button type="button" class="btn-cancel" (click)="cancelScheduleImport()">{{ 'common.cancel' | translate }}</button>
+          <button type="button" class="btn-primary" (click)="confirmScheduleImport()">{{ 'gm.schedule.importAnyway' | translate }}</button>
         </div>
       </div>
     </div>
@@ -1272,18 +1272,18 @@
       <div class="export-modal-header">
         <div class="export-modal-title-wrap">
           <span class="material-symbols-outlined export-modal-icon">task_alt</span>
-          <div class="export-modal-title">Import Finished</div>
+          <div class="export-modal-title">{{ 'gm.schedule.importFinished' | translate }}</div>
         </div>
         <button type="button" class="export-close-btn" (click)="importResult = null">
           <span class="material-symbols-outlined">close</span>
         </button>
       </div>
       <div class="export-modal-body" style="max-height: 60vh; overflow-y: auto;">
-        <div class="export-help-text">{{ result.count }} task(s) imported.</div>
-        <div class="export-help-text">Left empty or skipped</div>
+        <div class="export-help-text">{{ 'gm.schedule.countTaskSImported' | translate: { count: result.count } }}</div>
+        <div class="export-help-text">{{ 'gm.schedule.leftEmptySkipped' | translate }}</div>
         <ul><li *ngFor="let note of importNotesSummary(result.notes)">{{ note }}</li></ul>
         <div style="display: flex; justify-content: flex-end;">
-          <button type="button" class="btn-primary" (click)="importResult = null">OK</button>
+          <button type="button" class="btn-primary" (click)="importResult = null">{{ 'gm.schedule.ok' | translate }}</button>
         </div>
       </div>
     </div>
@@ -1294,26 +1294,26 @@
       <div class="export-modal-header">
         <div class="export-modal-title-wrap">
           <span class="material-symbols-outlined export-modal-icon">download</span>
-          <div class="export-modal-title">Export Schedule</div>
+          <div class="export-modal-title">{{ 'gm.schedule.exportSchedule' | translate }}</div>
         </div>
         <button type="button" class="export-close-btn" (click)="closeExportModal()">
           <span class="material-symbols-outlined">close</span>
         </button>
       </div>
       <div class="export-modal-body">
-        <div class="export-help-text">Choose format and scope.</div>
+        <div class="export-help-text">{{ 'gm.schedule.chooseFormatScope' | translate }}</div>
         <div class="export-scope-box">
-          <div class="export-scope-label">Scope:</div>
-          <label class="export-radio"><input type="radio" name="exportScope" value="ALL" [(ngModel)]="exportScope" /><span>All</span></label>
-          <label class="export-radio"><input type="radio" name="exportScope" value="CUSTOMER_NO" [(ngModel)]="exportScope" /><span>Customer = No</span></label>
+          <div class="export-scope-label">{{ 'gm.schedule.scope' | translate }}</div>
+          <label class="export-radio"><input type="radio" name="exportScope" value="ALL" [(ngModel)]="exportScope" /><span>{{ 'common.all' | translate }}</span></label>
+          <label class="export-radio"><input type="radio" name="exportScope" value="CUSTOMER_NO" [(ngModel)]="exportScope" /><span>{{ 'gm.schedule.customerNo' | translate }}</span></label>
         </div>
-        <div class="export-note">The schedule data will be downloaded to your device.</div>
+        <div class="export-note">{{ 'gm.schedule.scheduleDataWillDownloaded' | translate }}</div>
         <button type="button" class="export-option-card" (click)="exportAsMsProjectXml()">
           <div class="export-option-left">
             <div class="export-option-icon purple"><span class="material-symbols-outlined">description</span></div>
             <div class="export-option-text">
-              <div class="export-option-title">Microsoft Project (.xml)</div>
-              <div class="export-option-sub">Full MPP-compatible XML — open directly in MS Project</div>
+              <div class="export-option-title">{{ 'gm.schedule.microsoftProjectXml' | translate }}</div>
+              <div class="export-option-sub">{{ 'gm.schedule.fullMppCompatibleXml' | translate }}</div>
             </div>
           </div>
           <span class="material-symbols-outlined export-option-arrow">arrow_forward</span>
@@ -1322,8 +1322,8 @@
           <div class="export-option-left">
             <div class="export-option-icon red"><span class="material-symbols-outlined">picture_as_pdf</span></div>
             <div class="export-option-text">
-              <div class="export-option-title">PDF Report</div>
-              <div class="export-option-sub">Printable task list with dates and progress — no Gantt chart</div>
+              <div class="export-option-title">{{ 'gm.schedule.pdfReport' | translate }}</div>
+              <div class="export-option-sub">{{ 'gm.schedule.printableTaskListDates' | translate }}</div>
             </div>
           </div>
           <span class="material-symbols-outlined export-option-arrow">arrow_forward</span>
@@ -1332,8 +1332,8 @@
           <div class="export-option-left">
             <div class="export-option-icon green"><span class="material-symbols-outlined">table</span></div>
             <div class="export-option-text">
-              <div class="export-option-title">Excel (.xlsx)</div>
-              <div class="export-option-sub">Task table with all columns — no Gantt, opens in Excel/Sheets</div>
+              <div class="export-option-title">{{ 'gm.schedule.excelXlsx' | translate }}</div>
+              <div class="export-option-sub">{{ 'gm.schedule.taskTableAllColumns' | translate }}</div>
             </div>
           </div>
           <span class="material-symbols-outlined export-option-arrow">arrow_forward</span>

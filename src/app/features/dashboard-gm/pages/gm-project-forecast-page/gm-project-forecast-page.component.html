@@ -2,39 +2,39 @@
   <app-projectum-workspace-header
     [projectId]="projectId"
     [projectName]="projectName"
-    title="Forecast"
-    subtitle="Time-phased project cost and hours outlook.">
+    [title]="'gm.forecast.forecast' | translate"
+    [subtitle]="'gm.forecast.timePhasedProjectCost' | translate">
   </app-projectum-workspace-header>
 
   <div id="toolbar">
-    <span class="tb-lbl">View  :</span>
+    <span class="tb-lbl">{{ 'gm.forecast.view' | translate }}</span>
     <div class="tb-mode-group">
-      <button class="tb-btn" [class.on]="viewMode === 'week'" (click)="setViewMode('week')">Week</button>
-      <button class="tb-btn" [class.on]="viewMode === 'month'" (click)="setViewMode('month')">Month</button>
+      <button class="tb-btn" [class.on]="viewMode === 'week'" (click)="setViewMode('week')">{{ 'gm.forecast.week' | translate }}</button>
+      <button class="tb-btn" [class.on]="viewMode === 'month'" (click)="setViewMode('month')">{{ 'gm.forecast.month' | translate }}</button>
     </div>
     <div class="tb-sep"></div>
-    <button class="tb-icon-btn" type="button" title="Jump to previous"><span class="material-symbols-outlined">first_page</span></button>
-    <button class="tb-icon-btn" type="button" title="Previous period"><span class="material-symbols-outlined">chevron_left</span></button>
-    <button class="tb-btn tb-today" type="button">Today</button>
-    <button class="tb-icon-btn" type="button" title="Next period"><span class="material-symbols-outlined">chevron_right</span></button>
-    <button class="tb-icon-btn" type="button" title="Jump to next"><span class="material-symbols-outlined">last_page</span></button>
+    <button class="tb-icon-btn" type="button" [title]="'gm.forecast.jumpPrevious' | translate"><span class="material-symbols-outlined">first_page</span></button>
+    <button class="tb-icon-btn" type="button" [title]="'gm.forecast.previousPeriod' | translate"><span class="material-symbols-outlined">chevron_left</span></button>
+    <button class="tb-btn tb-today" type="button">{{ 'gm.forecast.today' | translate }}</button>
+    <button class="tb-icon-btn" type="button" [title]="'gm.forecast.nextPeriod' | translate"><span class="material-symbols-outlined">chevron_right</span></button>
+    <button class="tb-icon-btn" type="button" [title]="'gm.forecast.jumpNext' | translate"><span class="material-symbols-outlined">last_page</span></button>
     <div class="tb-sep"></div>
-    <span class="tb-lbl">Periods:</span>
+    <span class="tb-lbl">{{ 'gm.forecast.periods' | translate }}</span>
     <select class="tb-sel small" [(ngModel)]="periods" (change)="onPeriodsChange()">
       <option [ngValue]="6">6</option>
       <option [ngValue]="12">12</option>
       <option [ngValue]="18">18</option>
       <option [ngValue]="24">24</option>
     </select>
-    <select class="tb-sel medium"><option>All Levels</option></select>
+    <select class="tb-sel medium"><option>{{ 'gm.forecast.allLevels' | translate }}</option></select>
     <select class="tb-sel small"><option>EUR</option></select>
     <div class="tb-spacer"></div>
-    <span class="saving-indicator" *ngIf="saving">Saving...</span>
-    <button class="save-btn" (click)="loadData()">Refresh</button>
+    <span class="saving-indicator" *ngIf="saving">{{ 'gm.forecast.saving' | translate }}</span>
+    <button class="save-btn" (click)="loadData()">{{ 'gm.forecast.refresh' | translate }}</button>
   </div>
 
   <div *ngIf="error" class="error-box">{{ error }}</div>
-  <div class="loading-box" *ngIf="loading">Loading forecast...</div>
+  <div class="loading-box" *ngIf="loading">{{ 'gm.forecast.loadingForecast' | translate }}</div>
 
   <div id="main-wrap" *ngIf="!loading">
     
@@ -44,14 +44,14 @@
         <!-- ✅ SPACER : égale la hauteur de year-strip du calendrier (33px) -->
         <div class="wbs-year-spacer"></div>
         <div class="wbs-hdr-row">
-          <div class="col-wbs hdr-cell">WBS</div>
-          <div class="col-icon hdr-cell">Type</div>
-          <div class="col-type hdr-cell">Description</div>
-          <div class="col-level hdr-cell">Level</div>
-          <div class="col-budget hdr-cell">Budget</div>
-          <div class="col-actual hdr-cell">Actual</div>
-          <div class="col-remaining hdr-cell">Remaining</div>
-          <div class="col-remaining-schedule hdr-cell">Remaining Schedule</div>
+          <div class="col-wbs hdr-cell">{{ 'gm.forecast.wbs' | translate }}</div>
+          <div class="col-icon hdr-cell">{{ 'gm.forecast.type' | translate }}</div>
+          <div class="col-type hdr-cell">{{ 'common.description' | translate }}</div>
+          <div class="col-level hdr-cell">{{ 'gm.forecast.level' | translate }}</div>
+          <div class="col-budget hdr-cell">{{ 'gm.forecast.budget' | translate }}</div>
+          <div class="col-actual hdr-cell">{{ 'gm.forecast.actual' | translate }}</div>
+          <div class="col-remaining hdr-cell">{{ 'gm.forecast.remaining' | translate }}</div>
+          <div class="col-remaining-schedule hdr-cell">{{ 'gm.forecast.remainingSchedule' | translate }}</div>
         </div>
       </div>
 
@@ -64,15 +64,15 @@
           <div class="col-type type-cell">
             <div class="desc-main" [title]="row.description">{{ row.description }}</div>
             <button *ngIf="canDeleteForecastEntry(row)" type="button" class="tb-icon-btn row-delete-btn"
-                    [disabled]="saving" (click)="deleteForecastEntry(row)" title="Delete forecast entry (the WBS node is kept)">
+                    [disabled]="saving" (click)="deleteForecastEntry(row)" [title]="'gm.forecast.deleteForecastEntryWbs' | translate">
               <span class="material-symbols-outlined">delete</span>
             </button>
           </div>
           
           <!-- ✅ INPUT EDITABLE : Sélection d'une tâche Schedule -->
           <div class="col-level level-cell">
-            <select *ngIf="getRowType(row) === 'HOUR'" [(ngModel)]="row.linkedScheduleWbs" (change)="onLinkedWbsChange(row)" class="linked-wbs-select" [title]="row.linkedScheduleWbs || 'Select schedule task'">
-              <option [ngValue]="null">-- Select Task --</option>
+            <select *ngIf="getRowType(row) === 'HOUR'" [(ngModel)]="row.linkedScheduleWbs" (change)="onLinkedWbsChange(row)" class="linked-wbs-select" [title]="row.linkedScheduleWbs || ('gm.forecast.selectScheduleTask' | translate)">
+              <option [ngValue]="null">{{ 'gm.forecast.selectTask' | translate }}</option>
               <option *ngFor="let task of row.availableScheduleTasks" [ngValue]="task.wbsCode">
                 {{ task.wbsCode }} - {{ task.name }} (L{{ task.outlineLevel }})
               </option>
@@ -96,7 +96,7 @@
           </div>
         </div>
         
-        <div *ngIf="filteredRows.length === 0" class="empty-box">No forecast rows found.</div>
+        <div *ngIf="filteredRows.length === 0" class="empty-box">{{ 'gm.forecast.noForecastRowsFound' | translate }}</div>
       </div>
     </div>
 
@@ -109,7 +109,7 @@
         </div>
         <div id="cal-hdr-top">
           <div class="period-cell" *ngFor="let period of getPeriodKeys()">{{ formatMonth(period) }}</div>
-          <div class="period-total">Total Forecast</div>
+          <div class="period-total">{{ 'gm.forecast.totalForecast' | translate }}</div>
         </div>
       </div>
 
@@ -124,7 +124,7 @@
                 [ngModel]="getCellAmount(row, period)"
                 (change)="onCellChange(row, period, $any($event.target).value)"
                 [disabled]="saving || !isEditableRow(row) || viewMode === 'month'"
-                [attr.title]="!isEditableRow(row) ? 'Summary row — computed from children' : (viewMode === 'month' ? 'Month view is read-only' : (getRowType(row) === 'HOUR' ? 'Hours' : 'Amount'))"
+                [attr.title]="!isEditableRow(row) ? ('gm.forecast.summaryRowComputedFrom' | translate) : (viewMode === 'month' ? ('gm.forecast.monthViewReadOnly' | translate) : (getRowType(row) === 'HOUR' ? ('gm.forecast.hours' | translate) : ('gm.forecast.amount' | translate)))"
               />
             </div>
             <div class="f-cell-total">{{ formatTotalForecast(row) }}</div>
@@ -136,27 +136,27 @@
 
   <div id="footer-strip" *ngIf="summary">
     <div class="footer-item">
-      <span class="ftr-lbl">TOTAL FORECAST</span>
+      <span class="ftr-lbl">{{ 'gm.forecast.totalForecast2' | translate }}</span>
       <span class="ftr-val">{{ formatMoney(summary.totalForecast) }}</span>
     </div>
     <div class="ftr-sep"></div>
     <div class="footer-item">
-      <span class="ftr-lbl">TOTAL BUDGET</span>
+      <span class="ftr-lbl">{{ 'gm.forecast.totalBudget' | translate }}</span>
       <span class="ftr-val">{{ formatMoney(summary.totalBudget) }}</span>
     </div>
     <div class="ftr-sep"></div>
     <div class="footer-item">
-      <span class="ftr-lbl">TOTAL AC</span>
+      <span class="ftr-lbl">{{ 'gm.forecast.totalAc' | translate }}</span>
       <span class="ftr-val">{{ formatMoney(summary.totalActualCost) }}</span>
     </div>
     <div class="ftr-sep"></div>
     <div class="footer-item">
-      <span class="ftr-lbl">EAC (AC + F)</span>
+      <span class="ftr-lbl">{{ 'gm.forecast.eacAcF' | translate }}</span>
       <span class="ftr-val">{{ formatMoney(summary.totalEac) }}</span>
     </div>
     <div class="ftr-sep"></div>
     <div class="footer-item">
-      <span class="ftr-lbl">VARIANCE (B - EAC)</span>
+      <span class="ftr-lbl">{{ 'gm.forecast.varianceBEac' | translate }}</span>
       <span class="ftr-val" [class.pos]="summary.totalVariance >= 0" [class.neg]="summary.totalVariance < 0">
         {{ formatMoney(summary.totalVariance) }}
       </span>

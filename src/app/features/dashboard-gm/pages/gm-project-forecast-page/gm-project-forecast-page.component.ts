@@ -6,6 +6,7 @@ import { ForecastSummary } from '../../models/forecast-summary.model';
 import { GmDashboardService } from '../../services/gm-dashboard.service';
 import { HttpClient } from '@angular/common/http';
 import { PermissionService } from 'src/app/core/services/PermissionService';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 @Component({
   selector: 'app-gm-project-forecast-page',
@@ -40,7 +41,7 @@ export class GmProjectForecastPageComponent implements OnInit {
   @ViewChild('wbsHeader') wbsHeader!: ElementRef<HTMLElement>;
   @ViewChild('calHeader') calHeader!: ElementRef<HTMLElement>;
 
-  constructor(
+  constructor(private readonly i18n: I18nService, 
     private route: ActivatedRoute,
     private router: Router,
     private forecastService: GmForecastService,
@@ -91,14 +92,14 @@ export class GmProjectForecastPageComponent implements OnInit {
           },
           error: (err) => {
             console.error(err);
-            this.error = err?.error?.message || 'Failed to load forecast summary.';
+            this.error = this.i18n.error(err, 'gm.forecast.failedLoadForecastSummary');
             this.loading = false;
           }
         });
       },
       error: (err) => {
         console.error(err);
-        this.error = err?.error?.message || 'Failed to load forecast data.';
+        this.error = this.i18n.error(err, 'gm.forecast.failedLoadForecastData');
         this.loading = false;
       }
     });
@@ -111,8 +112,8 @@ export class GmProjectForecastPageComponent implements OnInit {
   getTypeLabel(row: ForecastRow): string {
     const type = this.getRowType(row);
     if (type === 'SUMMARY') return '—';
-    if (type === 'HOUR') return 'Hours';
-    return 'Cost';
+    if (type === 'HOUR') return this.i18n.t('gm.forecast.typeHours');
+    return this.i18n.t('gm.forecast.typeCost');
   }
 
   getTypeBadgeClass(row: ForecastRow): string {
@@ -165,8 +166,8 @@ export class GmProjectForecastPageComponent implements OnInit {
     const result = this.formatRemainingSchedule(row);
     if (row.leaf === false) {
       return {
-        text: `Total of sub-rows: ${hours} h = ${result}`,
-        title: `Sum of the Remaining Schedule of every row under this one (${hours} h in total) = ${result}`
+        text: this.i18n.t('gm.forecast.subRowsTotal', { hours, result }),
+        title: this.i18n.t('gm.forecast.subRowsTotalTitle', { hours, result })
       };
     }
     if (this.getRowType(row) !== 'HOUR') return null;
@@ -287,12 +288,12 @@ export class GmProjectForecastPageComponent implements OnInit {
 
   onCellChange(row: ForecastRow, periodKey: string, rawValue: string): void {
     if (!this.isEditableRow(row)) {
-      this.error = 'Select a leaf Finance WBS row to enter a forecast amount.';
+      this.error = this.i18n.t('gm.forecast.selectLeafFinanceWbs');
       return;
     }
     const amount = Number(rawValue || 0);
     if (Number.isNaN(amount) || amount < 0) {
-      this.error = 'Invalid value entered.';
+      this.error = this.i18n.t('gm.forecast.invalidValueEntered');
       return;
     }
 
@@ -322,7 +323,7 @@ export class GmProjectForecastPageComponent implements OnInit {
       },
       error: (err) => {
         console.error(err);
-        this.error = err?.error?.message || 'Failed to update forecast value.';
+        this.error = this.i18n.error(err, 'gm.forecast.failedUpdateForecastValue');
         this.saving = false;
         this.savingCellKey = null;
         if (cell) cell.amount = previousAmount;
@@ -342,8 +343,7 @@ export class GmProjectForecastPageComponent implements OnInit {
 ${row.wbsCode} – ${row.description}
 
 ` +
-      'All forecast values of this row are removed and the parent totals are recalculated. ' +
-      'The WBS node itself stays in Finance and Forecast.'
+      this.i18n.t('gm.forecast.clearRowWarning')
     );
     if (!confirmed) return;
     this.saving = true;
@@ -355,7 +355,7 @@ ${row.wbsCode} – ${row.description}
       },
       error: (err) => {
         console.error(err);
-        this.error = err?.error?.message || 'Failed to delete forecast entry.';
+        this.error = this.i18n.error(err, 'gm.forecast.failedDeleteForecastEntry');
         this.saving = false;
       }
     });
@@ -414,7 +414,7 @@ ${row.wbsCode} – ${row.description}
       },
       error: (err: any) => {
         console.error(err);
-        this.error = 'Failed to update linked task.';
+        this.error = this.i18n.t('gm.forecast.failedUpdateLinkedTask');
         this.saving = false;
       }
     });

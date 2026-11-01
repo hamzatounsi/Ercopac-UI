@@ -5,6 +5,7 @@ import { GmChangeRequestService } from '../../services/gm-change-request.service
 import { ChangeRequestSummary } from '../../models/change-request-summary.model';
 import { GmDashboardService } from '../../services/gm-dashboard.service';
 import { ChangeRequest, ChangeRequestAttachment } from '../../models/change-request.model';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 @Component({
   selector: 'app-gm-project-change-requests-page',
   templateUrl: './gm-project-change-requests-page.component.html',
@@ -28,7 +29,7 @@ projectName = '';
 
   readonly statuses = ['open', 'submitted', 'accepted', 'refused', 'cancelled'];
 
-  constructor(
+  constructor(private readonly i18n: I18nService, 
     private route: ActivatedRoute,
     private router: Router,
     private crService: GmChangeRequestService,
@@ -69,7 +70,7 @@ uploadCrAttachment(event: Event): void {
     },
     error: (err) => {
       console.error(err);
-      this.error = 'Failed to upload attachment.';
+      this.error = this.i18n.t('gm.changeRequests.failedUploadAttachment');
       this.saving = false;
       input.value = '';
     }
@@ -91,13 +92,13 @@ downloadCrAttachment(att: ChangeRequestAttachment): void {
     },
     error: (err) => {
       console.error(err);
-      this.error = 'Failed to download attachment.';
+      this.error = this.i18n.t('gm.changeRequests.failedDownloadAttachment');
     }
   });
 }
 
 deleteCrAttachment(att: ChangeRequestAttachment): void {
-  if (!this.selectedCr || !confirm('Delete this attachment?')) return;
+  if (!this.selectedCr || !confirm(this.i18n.t('gm.changeRequests.deleteAttachment'))) return;
   this.saving = true;
   this.crService.deleteAttachment(this.projectId, this.selectedCr.id, att.id).subscribe({
     next: () => {
@@ -109,7 +110,7 @@ deleteCrAttachment(att: ChangeRequestAttachment): void {
     },
     error: (err) => {
       console.error(err);
-      this.error = 'Failed to delete attachment.';
+      this.error = this.i18n.t('gm.changeRequests.failedDeleteAttachment');
       this.saving = false;
     }
   });
@@ -142,14 +143,14 @@ formatFileSize(bytes: number | null): string {
           },
           error: (err) => {
             console.error(err);
-            this.error = 'Failed to load CR summary.';
+            this.error = this.i18n.t('gm.changeRequests.failedLoadCrSummary');
             this.loading = false;
           }
         });
       },
       error: (err) => {
         console.error(err);
-        this.error = 'Failed to load change requests.';
+        this.error = this.i18n.t('gm.changeRequests.failedLoadChangeRequests');
         this.loading = false;
       }
     });
@@ -173,7 +174,7 @@ formatFileSize(bytes: number | null): string {
 
   addCr(): void {
     const payload = {
-      title: 'New Change Request',
+      title: this.i18n.t('gm.changeRequests.newChangeRequest'),
       status: 'open',
       requestDate: new Date().toISOString().slice(0, 10),
       valueAmount: 0,
@@ -191,7 +192,7 @@ formatFileSize(bytes: number | null): string {
       },
       error: (err) => {
         console.error(err);
-        this.error = 'Failed to add change request.';
+        this.error = this.i18n.t('gm.changeRequests.failedAddChangeRequest');
         this.saving = false;
       }
     });
@@ -217,14 +218,14 @@ formatFileSize(bytes: number | null): string {
       },
       error: (err) => {
         console.error(err);
-        this.error = 'Failed to save change request.';
+        this.error = this.i18n.t('gm.changeRequests.failedSaveChangeRequest');
         this.saving = false;
       }
     });
   }
 
   deleteRow(row: ChangeRequest): void {
-    if (!confirm('Delete this change request?')) {
+    if (!confirm(this.i18n.t('gm.changeRequests.deleteChangeRequest'))) {
       return;
     }
 
@@ -239,7 +240,7 @@ formatFileSize(bytes: number | null): string {
       },
       error: (err) => {
         console.error(err);
-        this.error = 'Failed to delete change request.';
+        this.error = this.i18n.t('gm.changeRequests.failedDeleteChangeRequest');
         this.saving = false;
       }
     });
@@ -281,11 +282,11 @@ formatFileSize(bytes: number | null): string {
 
   getStatusLabel(status: string): string {
     switch (status) {
-      case 'open': return 'Open';
-      case 'submitted': return 'Submitted to Customer';
-      case 'accepted': return 'Accepted';
-      case 'refused': return 'Refused';
-      case 'cancelled': return 'Cancelled';
+      case 'open': return this.i18n.t('gm.changeRequests.statusLabel.open');
+      case 'submitted': return this.i18n.t('gm.changeRequests.statusLabel.submitted');
+      case 'accepted': return this.i18n.t('gm.changeRequests.statusLabel.accepted');
+      case 'refused': return this.i18n.t('gm.changeRequests.statusLabel.refused');
+      case 'cancelled': return this.i18n.t('gm.changeRequests.statusLabel.cancelled');
       default: return status;
     }
   }

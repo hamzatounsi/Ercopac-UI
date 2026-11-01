@@ -17,7 +17,7 @@ export class GanttDatePickerComponent implements OnChanges, OnDestroy {
   @Input() value: string | null | undefined = null;
   @Input() workingDays: readonly number[] = [1, 2, 3, 4, 5];
   @Input() disabled = false;
-  @Input() ariaLabel = 'Select date';
+  @Input() ariaLabel = '';
   @Output() valueChange = new EventEmitter<string>();
   @ViewChild('trigger') trigger?: ElementRef<HTMLButtonElement>;
   @ViewChild('popover') popover?: ElementRef<HTMLDivElement>;
@@ -26,7 +26,11 @@ export class GanttDatePickerComponent implements OnChanges, OnDestroy {
   viewDate = new Date();
   popoverLeft = 8;
   popoverTop = 8;
-  readonly weekdayLabels = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+  // Monday-first narrow weekday names in the active UI language (1 Jan 2024 is a Monday)
+  get weekdayLabels(): string[] {
+    const format = new Intl.DateTimeFormat(document.documentElement.lang || 'en', { weekday: 'short' });
+    return Array.from({ length: 7 }, (_, index) => format.format(new Date(2024, 0, 1 + index)));
+  }
 
   private removeOutsideClickListener?: () => void;
   private removeResizeListener?: () => void;

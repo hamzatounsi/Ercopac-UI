@@ -1,23 +1,23 @@
 <section class="performance-page" *ngIf="!loading && dashboard as d">
-  <div class="crumb"><button (click)="back()">← Back to Command Center</button><span>/ Project Performance</span></div>
+  <div class="crumb"><button (click)="back()">{{ 'gm.performance.backCommandCenter' | translate }}</button><span>{{ 'gm.performance.projectPerformance' | translate }}</span></div>
 
   <nav class="tabs">
-    <button [class.on]="view === 'performance'" (click)="setView('performance')">📊 Performance</button>
-    <button [class.on]="view === 'revenue-forecast'" (click)="setView('revenue-forecast')">💰 Revenue Forecast</button>
-    <button [class.on]="view === 'milestone'" (click)="setView('milestone')">🚩 Milestone</button>
+    <button [class.on]="view === 'performance'" (click)="setView('performance')">{{ 'gm.performance.performance' | translate }}</button>
+    <button [class.on]="view === 'revenue-forecast'" (click)="setView('revenue-forecast')">{{ 'gm.performance.revenueForecast' | translate }}</button>
+    <button [class.on]="view === 'milestone'" (click)="setView('milestone')">{{ 'gm.performance.milestone' | translate }}</button>
   </nav>
 
   <ng-container *ngIf="view === 'performance'">
-    <div class="detail-card stats"><div><b class="blue">{{d.totalProjects}}</b><small>Total Projects</small></div><div><b class="green">{{d.onScheduleProjects}}</b><small>On Schedule</small></div><div><b class="amber">{{d.atRiskProjects}}</b><small>At Risk</small></div><div><b class="red">{{d.delayedProjects}}</b><small>Overdue</small></div><div><b>{{money(d.totalBudget)}}</b><small>Total Budget</small></div></div>
+    <div class="detail-card stats"><div><b class="blue">{{d.totalProjects}}</b><small>{{ 'gm.performance.totalProjects' | translate }}</small></div><div><b class="green">{{d.onScheduleProjects}}</b><small>{{ 'gm.performance.schedule' | translate }}</small></div><div><b class="amber">{{d.atRiskProjects}}</b><small>{{ 'gm.performance.risk' | translate }}</small></div><div><b class="red">{{d.delayedProjects}}</b><small>{{ 'gm.performance.overdue' | translate }}</small></div><div><b>{{money(d.totalBudget)}}</b><small>{{ 'gm.performance.totalBudget' | translate }}</small></div></div>
     <div class="grid">
       <article class="detail-card">
-        <header><b>Projects Overview</b><span>All active projects</span></header>
-        <table><thead><tr><th>Project</th><th>Status</th><th>Progress</th><th>Schedule</th><th>Budget</th><th>PM</th></tr></thead><tbody><tr *ngFor="let p of d.projects"><td><b>{{p.name}}</b><small>{{p.code}}</small></td><td>{{p.phase}}</td><td>{{p.progress}}%</td><td><mark [class.warn]="p.health !== 'On track'">{{p.health}}</mark></td><td>{{money(p.budget)}}</td><td>{{p.manager || 'Unassigned'}}</td></tr></tbody></table>
+        <header><b>{{ 'gm.performance.projectsOverview' | translate }}</b><span>{{ 'gm.performance.allActiveProjects' | translate }}</span></header>
+        <table><thead><tr><th>{{ 'gm.performance.project' | translate }}</th><th>{{ 'common.status' | translate }}</th><th>{{ 'gm.performance.progress' | translate }}</th><th>{{ 'gm.performance.schedule2' | translate }}</th><th>{{ 'gm.performance.budget' | translate }}</th><th>{{ 'gm.performance.pm' | translate }}</th></tr></thead><tbody><tr *ngFor="let p of d.projects"><td><b>{{p.name}}</b><small>{{p.code}}</small></td><td>{{p.phase}}</td><td>{{p.progress}}%</td><td><mark [class.warn]="p.health !== 'On track'">{{p.health}}</mark></td><td>{{money(p.budget)}}</td><td>{{p.manager || ('gm.performance.unassigned' | translate)}}</td></tr></tbody></table>
       </article>
       <aside>
         <article class="detail-card">
-          <header><b>Schedule Health</b><span>All projects</span></header>
-          <div class="health"><div><b class="green">{{pct(d.onScheduleProjects,d.activeProjects)}}%</b><small>On time</small></div><div><b class="amber">{{pct(d.atRiskProjects,d.activeProjects)}}%</b><small>At risk</small></div><div><b class="red">{{pct(d.delayedProjects,d.activeProjects)}}%</b><small>Overdue</small></div></div>
+          <header><b>{{ 'gm.performance.scheduleHealth' | translate }}</b><span>{{ 'gm.performance.allProjects' | translate }}</span></header>
+          <div class="health"><div><b class="green">{{pct(d.onScheduleProjects,d.activeProjects)}}%</b><small>{{ 'gm.performance.time' | translate }}</small></div><div><b class="amber">{{pct(d.atRiskProjects,d.activeProjects)}}%</b><small>{{ 'gm.performance.risk2' | translate }}</small></div><div><b class="red">{{pct(d.delayedProjects,d.activeProjects)}}%</b><small>{{ 'gm.performance.overdue' | translate }}</small></div></div>
         </article>
       </aside>
     </div>
@@ -25,34 +25,34 @@
 
   <ng-container *ngIf="view === 'revenue-forecast' && revenue as r">
     <div class="revenue-toolbar">
-      <div class="actual-control"><span>Actuals</span><button class="switch" [class.off]="!actuals" (click)="actuals=!actuals"><i></i></button></div>
+      <div class="actual-control"><span>{{ 'gm.performance.actuals' | translate }}</span><button class="switch" [class.off]="!actuals" (click)="actuals=!actuals"><i></i></button></div>
       <span class="sep"></span>
-      <label>Year:</label>
+      <label>{{ 'gm.performance.year' | translate }}</label>
       <select [(ngModel)]="year" (change)="changeYear()"><option *ngFor="let y of [year-1,year,year+1]" [value]="y">{{y}}</option></select>
-      <span class="muted">Jan 1</span>
+      <span class="muted">{{ 'gm.performance.jan1' | translate }}</span>
       <span class="sep"></span>
       <button [class.on]="revenueWindow===6" (click)="revenueWindow=6">6</button>
       <button [class.on]="revenueWindow===12" (click)="revenueWindow=12">12</button>
       <span class="sep"></span>
-      <button [class.on]="revenueMode==='forecast'" (click)="revenueMode='forecast'">Forecast</button>
-      <button [class.on]="revenueMode==='budget'" (click)="revenueMode='budget'">Budget</button>
-      <button [class.on]="revenueMode==='variance'" (click)="revenueMode='variance'">Variance</button>
+      <button [class.on]="revenueMode==='forecast'" (click)="revenueMode='forecast'">{{ 'gm.performance.forecast' | translate }}</button>
+      <button [class.on]="revenueMode==='budget'" (click)="revenueMode='budget'">{{ 'gm.performance.budget' | translate }}</button>
+      <button [class.on]="revenueMode==='variance'" (click)="revenueMode='variance'">{{ 'gm.performance.variance' | translate }}</button>
     </div>
     <div class="revenue-kpis">
-      <article><small>Actuals YTD</small><b class="blue">{{actuals ? money(r.totalActual) : '—'}}</b></article>
-      <article><small>Forecast (Period)</small><b>{{money(r.totalForecast)}}</b></article>
-      <article><small>Total Budget</small><b>{{money(r.totalBudget)}}</b></article>
-      <article><small>Forecast vs Budget</small><b [class.red]="r.variance < 0" [class.green]="r.variance >= 0">{{money(r.variance)}}</b></article>
-      <article><small>Best Month</small><b class="green">{{bestMonth(r)}}</b></article>
+      <article><small>{{ 'gm.performance.actualsYtd' | translate }}</small><b class="blue">{{actuals ? money(r.totalActual) : '—'}}</b></article>
+      <article><small>{{ 'gm.performance.forecastPeriod' | translate }}</small><b>{{money(r.totalForecast)}}</b></article>
+      <article><small>{{ 'gm.performance.totalBudget' | translate }}</small><b>{{money(r.totalBudget)}}</b></article>
+      <article><small>{{ 'gm.performance.forecastVsBudget' | translate }}</small><b [class.red]="r.variance < 0" [class.green]="r.variance >= 0">{{money(r.variance)}}</b></article>
+      <article><small>{{ 'gm.performance.bestMonth' | translate }}</small><b class="green">{{bestMonth(r)}}</b></article>
     </div>
     <article class="detail-card revenue">
       <div class="scroll">
         <table>
-          <thead><tr><th class="project-cell">Project</th><th *ngIf="actuals" class="actual-cell">Actual</th><th *ngFor="let m of displayedMonths(r)">{{m.label}}</th><th class="total-cell">Total</th></tr></thead>
+          <thead><tr><th class="project-cell">{{ 'gm.performance.project' | translate }}</th><th *ngIf="actuals" class="actual-cell">{{ 'gm.performance.actual' | translate }}</th><th *ngFor="let m of displayedMonths(r)">{{m.label}}</th><th class="total-cell">{{ 'gm.performance.total' | translate }}</th></tr></thead>
           <tbody>
-            <tr class="portfolio-total"><td class="project-cell">Portfolio total</td><td *ngIf="actuals" class="actual-cell">{{money(r.totalActual)}}</td><td *ngFor="let m of displayedMonths(r);let i=index">{{money(monthValue(r,i))}}</td><td class="total-cell">{{money(revenueMode === 'forecast' ? r.totalForecast : revenueMode === 'budget' ? r.totalBudget : r.variance)}}</td></tr>
+            <tr class="portfolio-total"><td class="project-cell">{{ 'gm.performance.portfolioTotal' | translate }}</td><td *ngIf="actuals" class="actual-cell">{{money(r.totalActual)}}</td><td *ngFor="let m of displayedMonths(r);let i=index">{{money(monthValue(r,i))}}</td><td class="total-cell">{{money(revenueMode === 'forecast' ? r.totalForecast : revenueMode === 'budget' ? r.totalBudget : r.variance)}}</td></tr>
             <tr *ngFor="let p of r.projects"><td class="project-cell"><b>{{p.name}}</b><small>{{p.code}} · {{p.status}}</small></td><td *ngIf="actuals" class="actual-cell">{{money(p.actual)}}</td><td *ngFor="let m of displayedMonths(r);let i=index" [class.negative]="revenueMode === 'variance' && displayedValue(p,i) < 0">{{money(displayedValue(p,i))}}</td><td class="total-cell">{{money(revenueMode === 'forecast' ? p.forecast : revenueMode === 'budget' ? p.budget : p.forecast-p.budget)}}</td></tr>
-            <tr *ngIf="!r.projects.length"><td colspan="15" class="empty">No forecast data is available for the selected period.</td></tr>
+            <tr *ngIf="!r.projects.length"><td colspan="15" class="empty">{{ 'gm.performance.noForecastDataAvailable' | translate }}</td></tr>
           </tbody>
         </table>
       </div>
@@ -64,7 +64,7 @@
 
     <div class="filter-toolbar" *ngIf="d.projects.length > 0">
       <div class="filter-group">
-        <span class="filter-label">STAT:</span>
+        <span class="filter-label">{{ 'gm.performance.stat' | translate }}</span>
         <div class="filter-dropdown" (click)="toggleStatusMenu()">
           <span>{{ statusFilter }}</span>
           <span class="material-symbols-outlined">expand_more</span>
@@ -74,7 +74,7 @@
         </div>
       </div>
       <div class="filter-group">
-        <span class="filter-label">PM:</span>
+        <span class="filter-label">{{ 'gm.performance.pm2' | translate }}</span>
         <div class="filter-dropdown" (click)="togglePMMenu()">
           <span>{{ pmFilter }}</span>
           <span class="material-symbols-outlined">expand_more</span>
@@ -83,21 +83,21 @@
           <div *ngFor="let pm of uniquePMs" class="dropdown-item" [class.active]="pm === pmFilter" (click)="setPMFilter(pm)">{{ pm }}</div>
         </div>
       </div>
-      <button class="clear-filters-btn" (click)="setStatusFilter('ALL'); setPMFilter('ALL')">Clear Filters</button>
+      <button class="clear-filters-btn" (click)="setStatusFilter('ALL'); setPMFilter('ALL')">{{ 'gm.performance.clearFilters' | translate }}</button>
     </div>
 
-    <div *ngIf="milestonesLoading" class="loading-state">Loading milestones...</div>
+    <div *ngIf="milestonesLoading" class="loading-state">{{ 'gm.performance.loadingMilestones' | translate }}</div>
 
     <div *ngIf="!milestonesLoading && filteredMilestoneProjects.length === 0" class="empty-state">
-      <p>No projects found matching the selected filters.</p>
+      <p>{{ 'gm.performance.noProjectsFoundMatching' | translate }}</p>
     </div>
 
     <div *ngIf="!milestonesLoading && filteredMilestoneProjects.length > 0" class="dashboard-content">
       <div class="timeline-header">
         <div class="project-columns-header">
-          <div class="col-project">PROJECT</div>
-          <div class="col-stat">STAT</div>
-          <div class="col-pm">PM</div>
+          <div class="col-project">{{ 'gm.performance.project2' | translate }}</div>
+          <div class="col-stat">{{ 'gm.performance.stat2' | translate }}</div>
+          <div class="col-pm">{{ 'gm.performance.pm' | translate }}</div>
         </div>
         <div class="timeline-scroll-header" #timelineHeaderScroll>
           <div class="timeline-header-content" [style.width.px]="getTimelineWidth()">
@@ -144,5 +144,5 @@
   </ng-container>
 
 </section>
-<section class="performance-page state" *ngIf="loading">Loading Project Performance…</section>
+<section class="performance-page state" *ngIf="loading">{{ 'gm.performance.loadingProjectPerformance' | translate }}</section>
 <section class="performance-page state error" *ngIf="error">{{error}}</section>

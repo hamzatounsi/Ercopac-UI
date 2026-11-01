@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { GmAdminService } from 'src/app/features/dashboard-gm/services/gm-admin.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 @Component({
   selector: 'app-types-tab',
@@ -30,7 +31,7 @@ export class TypesTabComponent implements OnInit {
 
   icons = ['📄', '🏢', '🔧', '💰', '⭐', '🤝', '🎯', '🚧', '📝', '🔍'];
 
-  constructor(private adminService: GmAdminService) {}
+  constructor(private readonly i18n: I18nService, private adminService: GmAdminService) {}
 
   ngOnInit(): void {
     this.load();
@@ -76,7 +77,7 @@ export class TypesTabComponent implements OnInit {
 
   save(): void {
     if (!this.form.name.trim() || !this.form.code.trim()) {
-      alert('Name and code are required');
+      alert(this.i18n.t('gm.typesTab.nameCodeRequired'));
       return;
     }
 
@@ -99,7 +100,7 @@ export class TypesTabComponent implements OnInit {
   }
 
   delete(type: any): void {
-    if (!confirm(`Delete project type "${type.name}"?`)) {
+    if (!confirm(this.i18n.t('gm.typesTab.deleteProjectType', { name: type.name }))) {
       return;
     }
 

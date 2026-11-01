@@ -4,6 +4,7 @@ import { GmDashboardService } from '../../../services/gm-dashboard.service';
 import { ProjectDetails } from '../../../models/project-details.model';
 import { GmAiAssistantService } from '../../../services/gm-ai-assistant.service';
 import { AiPdfExportService } from '../../../services/ai-pdf-export.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 @Component({
   selector: 'app-gm-project-details',
@@ -23,7 +24,7 @@ export class GmProjectDetailsComponent implements OnInit {
   aiOpen = false;
   aiGeneratePdf = false;
 
-  constructor(
+  constructor(private readonly i18n: I18nService, 
     private route: ActivatedRoute,
     private router: Router,
     private gmService: GmDashboardService,
@@ -34,7 +35,7 @@ export class GmProjectDetailsComponent implements OnInit {
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (!id) {
-      this.error = 'Invalid project id';
+      this.error = this.i18n.t('gm.projectDetails.invalidProjectId');
       return;
     }
 
@@ -46,7 +47,7 @@ export class GmProjectDetailsComponent implements OnInit {
         this.project = p;
       },
       error: (err) => {
-        this.error = err?.error?.message || 'Failed to load project';
+        this.error = this.i18n.error(err, 'gm.projectDetails.failedLoadProject');
         this.loading = false;
       },
       complete: () => {
@@ -75,13 +76,13 @@ export class GmProjectDetailsComponent implements OnInit {
     this.aiService.streamProjectAssistant(this.project.id, finalQuestion).subscribe({
       next: (answer) => { this.aiAnswer = answer; },
       complete: () => {
-        if (!this.aiAnswer.trim()) this.aiError = 'The assistant returned an empty response. Please retry.';
+        if (!this.aiAnswer.trim()) this.aiError = this.i18n.t('gm.projectDetails.assistantReturnedEmptyResponse');
         this.aiUpdatedAt = new Date();
         this.aiLoading = false;
         if (this.aiAnswer.trim() && this.aiGeneratePdf) this.downloadAiPdf();
       },
       error: (err) => {
-        this.aiError = err?.message || 'The AI assistant is unavailable right now. Please retry.';
+        this.aiError = err?.message || this.i18n.t('gm.projectDetails.assistantUnavailable');
         this.aiLoading = false;
       }
     });
@@ -100,7 +101,7 @@ export class GmProjectDetailsComponent implements OnInit {
   downloadAiPdf(): void {
     if (this.project && this.aiAnswer.trim()) {
       void this.aiPdf.download(this.project.name, this.aiLastQuestion, this.aiAnswer)
-        .catch(() => { this.aiError = 'The answer is ready, but the PDF could not be downloaded.'; });
+        .catch(() => { this.aiError = this.i18n.t('gm.projectDetails.answerReadyButPdf'); });
     }
   }
 

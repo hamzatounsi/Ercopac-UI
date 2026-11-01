@@ -5,6 +5,7 @@ import { ProjectScheduleInitRequest } from '../../../models/project-schedule-ini
 
 import { GmProjectScheduleService } from '../../../services/gm-project-schedule.service';
 import { InitializedProjectResponse } from '../../../models/initialized-project-response.model';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 @Component({
   selector: 'app-gm-project-schedule-init',
@@ -22,7 +23,7 @@ export class GmProjectScheduleInitComponent implements OnInit {
   projectPhases = ['Initiation', 'Design', 'Execution', 'Closure'];
   portfolios = ['Packaging', 'Production', 'Operations', 'Digitalization'];
 
-  constructor(
+  constructor(private readonly i18n: I18nService, 
     private fb: FormBuilder,
     private gmProjectScheduleService: GmProjectScheduleService,
     private router: Router
@@ -65,18 +66,18 @@ export class GmProjectScheduleInitComponent implements OnInit {
     const formValue = this.scheduleForm.value;
 
     if (formValue.plannedStart && formValue.plannedEnd && formValue.plannedEnd < formValue.plannedStart) {
-      this.errorMessage = 'Planned end date cannot be before planned start date.';
+      this.errorMessage = this.i18n.t('gm.scheduleInit.plannedEndDateCannot');
       return;
     }
 
     if (formValue.expectedStart && formValue.expectedEnd && formValue.expectedEnd < formValue.expectedStart) {
-      this.errorMessage = 'Expected end date cannot be before expected start date.';
+      this.errorMessage = this.i18n.t('gm.scheduleInit.expectedEndDateCannot');
       return;
     }
 
     if (formValue.probability !== null && formValue.probability !== undefined) {
       if (formValue.probability < 0 || formValue.probability > 100) {
-        this.errorMessage = 'Probability must be between 0 and 100.';
+        this.errorMessage = this.i18n.t('gm.scheduleInit.probabilityMustBetween0');
         return;
       }
     }
@@ -95,7 +96,7 @@ export class GmProjectScheduleInitComponent implements OnInit {
       error: (error: any) => {
         this.isSubmitting = false;
         this.errorMessage =
-          error?.error?.message || 'Failed to initialize the project schedule.';
+          this.i18n.error(error, 'gm.scheduleInit.failedInitializeProjectSchedule');
       }
     });
   }

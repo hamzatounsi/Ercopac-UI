@@ -2,27 +2,27 @@
   <!-- TABS -->
   <div class="tab-bar">
     <button (click)="setTab('licences')" [class.active]="activeTab==='licences'">
-      🔒 Licences
+      {{ 'gm.adminSettings.licences' | translate }}
     </button>
 
     <button (click)="setTab('categories')" [class.active]="activeTab==='categories'">
-      🏷️ Categories
+      {{ 'gm.adminSettings.categories' | translate }}
     </button>
 
     <button (click)="setTab('types')" [class.active]="activeTab==='types'">
-      📄 Project Types
+      {{ 'gm.adminSettings.projectTypes' | translate }}
     </button>
 
     <button (click)="setTab('customers')" [class.active]="activeTab==='customers'">
-      🏢 Customers
+      {{ 'gm.adminSettings.customers' | translate }}
     </button>
 
     <button (click)="setTab('resources')" [class.active]="activeTab==='resources'">
-      👥 Resources
+      {{ 'gm.adminSettings.resources' | translate }}
     </button>
 
     <button (click)="setTab('security')" [class.active]="activeTab==='security'">
-      🛡️ Security
+      {{ 'gm.adminSettings.security' | translate }}
     </button>
   </div>
 

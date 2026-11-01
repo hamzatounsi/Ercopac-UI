@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CompanyDashboard, CompanyDashboardService } from '../../services/company-dashboard.service';
 import { CrmService } from '../../../dashboard-crm/services/crm.service'; 
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 @Component({ 
   selector: 'app-company-dashboard', 
@@ -15,7 +16,7 @@ export class CompanyDashboardComponent implements OnInit {
   loading = true;
   error = '';
 
-  constructor(
+  constructor(private readonly i18n: I18nService, 
     private readonly service: CompanyDashboardService, 
     private readonly router: Router,
     private readonly crm: CrmService 
@@ -54,7 +55,7 @@ export class CompanyDashboardComponent implements OnInit {
       }, 
       error: (err) => { 
         console.error('❌ ERROR LOADING MAIN DASHBOARD:', err);
-        this.error = 'Company performance data could not be loaded.'; 
+        this.error = this.i18n.t('gm.companyDashboard.companyPerformanceDataLoaded'); 
         this.loading = false; 
       } 
     });

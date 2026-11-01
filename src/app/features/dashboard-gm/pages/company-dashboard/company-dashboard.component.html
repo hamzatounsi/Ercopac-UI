@@ -1,19 +1,19 @@
 <section class="command-center" *ngIf="dashboard as d">
   <div class="command-head">
     <div>
-      <span class="eyebrow">Executive workspace</span>
-      <h1>Command Center</h1>
-      <p>{{ d.organisationName }} · Live organisation performance overview</p>
+      <span class="eyebrow">{{ 'gm.companyDashboard.executiveWorkspace' | translate }}</span>
+      <h1>{{ 'gm.companyDashboard.commandCenter' | translate }}</h1>
+      <p>{{ 'gm.companyDashboard.organisationnameLiveOrganisationPerformance' | translate: { organisationName: d.organisationName } }}</p>
     </div>
-    <button type="button" class="refresh" (click)="refresh()">Refresh</button>
+    <button type="button" class="refresh" (click)="refresh()">{{ 'gm.companyDashboard.refresh' | translate }}</button>
   </div>
 
   <div class="overview-stats">
-    <article><span>Active Projects</span><strong>{{ d.activeProjects }}</strong><div class="bar blue" [style.width.%]="percentage(d.activeProjects, d.totalProjects)"></div></article>
-    <article><span>On-Time Delivery</span><strong class="green-text">{{ percentage(d.onScheduleProjects, d.activeProjects) }}%</strong><div class="bar green" [style.width.%]="percentage(d.onScheduleProjects, d.activeProjects)"></div></article>
-    <article><span>Portfolio Budget</span><strong class="blue-text">{{ currency(d.totalBudget) }}</strong><small>Forecast: {{ currency(d.forecastCost) }}</small></article>
-    <article><span>Open Risks</span><strong class="amber-text">{{ d.openRisks }}</strong><small>{{ d.highRisks }} high exposure</small></article>
-    <article><span>Open Actions</span><strong class="red-text">{{ d.openActions }}</strong><small>{{ d.overdueActions }} overdue</small></article>
+    <article><span>{{ 'gm.companyDashboard.activeProjects' | translate }}</span><strong>{{ d.activeProjects }}</strong><div class="bar blue" [style.width.%]="percentage(d.activeProjects, d.totalProjects)"></div></article>
+    <article><span>{{ 'gm.companyDashboard.timeDelivery' | translate }}</span><strong class="green-text">{{ percentage(d.onScheduleProjects, d.activeProjects) }}%</strong><div class="bar green" [style.width.%]="percentage(d.onScheduleProjects, d.activeProjects)"></div></article>
+    <article><span>{{ 'gm.companyDashboard.portfolioBudget' | translate }}</span><strong class="blue-text">{{ currency(d.totalBudget) }}</strong><small>{{ 'gm.companyDashboard.forecastForecastcost' | translate: { forecastCost: currency(d.forecastCost) } }}</small></article>
+    <article><span>{{ 'gm.companyDashboard.openRisks' | translate }}</span><strong class="amber-text">{{ d.openRisks }}</strong><small>{{ 'gm.companyDashboard.highrisksHighExposure' | translate: { highRisks: d.highRisks } }}</small></article>
+    <article><span>{{ 'gm.companyDashboard.openActions' | translate }}</span><strong class="red-text">{{ d.openActions }}</strong><small>{{ 'gm.companyDashboard.overdueactionsOverdue' | translate: { overdueActions: d.overdueActions } }}</small></article>
   </div>
 
   <div class="section-grid">
@@ -22,17 +22,17 @@
       <header>
         <span>📊</span>
         <div>
-          <h2>Project Performance</h2>
-          <p>Schedule · Budget · Delivery · Risk</p>
+          <h2>{{ 'gm.companyDashboard.projectPerformance' | translate }}</h2>
+          <p>{{ 'gm.companyDashboard.scheduleBudgetDeliveryRisk' | translate }}</p>
         </div>
-        <b [class.warn]="d.delayedProjects || d.atRiskProjects">{{ d.delayedProjects || d.atRiskProjects ? 'Attention' : 'On Track' }}</b>
+        <b [class.warn]="d.delayedProjects || d.atRiskProjects">{{ d.delayedProjects || d.atRiskProjects ? ('gm.companyDashboard.attention' | translate) : ('gm.companyDashboard.track' | translate) }}</b>
       </header>
       <div class="kpis">
-        <div><strong>{{ d.totalProjects }}</strong><span>Total Projects</span></div>
-        <div><strong class="green-text">{{ d.onScheduleProjects }}</strong><span>On Schedule</span></div>
-        <div><strong class="amber-text">{{ d.atRiskProjects }}</strong><span>At Risk</span></div>
+        <div><strong>{{ d.totalProjects }}</strong><span>{{ 'gm.companyDashboard.totalProjects' | translate }}</span></div>
+        <div><strong class="green-text">{{ d.onScheduleProjects }}</strong><span>{{ 'gm.companyDashboard.schedule' | translate }}</span></div>
+        <div><strong class="amber-text">{{ d.atRiskProjects }}</strong><span>{{ 'gm.companyDashboard.risk' | translate }}</span></div>
       </div>
-      <footer>{{ d.delayedProjects }} delayed · {{ d.averageProgress }}% average progress</footer>
+      <footer>{{ 'gm.companyDashboard.delayedprojectsDelayedAverageprogressAverage' | translate: { delayedProjects: d.delayedProjects, averageProgress: d.averageProgress } }}</footer>
     </article>
 
     <!-- ✅ Sales Performance Card (Fully corrected & safe) -->
@@ -40,29 +40,29 @@
       <header>
         <span>💰</span>
         <div>
-          <h2>Sales Performance</h2>
-          <p>Order Intake · Pipeline · Opportunities</p>
+          <h2>{{ 'gm.companyDashboard.salesPerformance' | translate }}</h2>
+          <p>{{ 'gm.companyDashboard.orderIntakePipelineOpportunities' | translate }}</p>
         </div>
-        <b>Live</b>
+        <b>{{ 'gm.companyDashboard.live' | translate }}</b>
       </header>
       <div class="kpis">
         <div>
           <strong class="green-text">{{ currency(getSalesOrderIntakeToday()) }}</strong>
-          <span>Order Intake MTD</span>
-          <small>Win Rate: {{ getSalesWonVsTarget() | number:'1.1-1' }}%</small>
+          <span>{{ 'gm.companyDashboard.orderIntakeMtd' | translate }}</span>
+          <small>{{ 'gm.companyDashboard.winRateGetsaleswonvstarget' | translate: { getSalesWonVsTarget: (getSalesWonVsTarget() | number:'1.1-1') } }}</small>
         </div>
         <div>
           <strong class="blue-text">{{ currency(salesData?.pipelineValue) }}</strong>
-          <span>Pipeline Value</span>
-          <small>{{ salesData?.openOpportunities || 0 }} open deals</small>
+          <span>{{ 'gm.companyDashboard.pipelineValue' | translate }}</span>
+          <small>{{ 'gm.companyDashboard.openopportunitiesOpenDeals' | translate: { openOpportunities: (salesData?.openOpportunities || 0) } }}</small>
         </div>
         <div>
           <strong class="amber-text">{{ salesData?.topOpportunities?.length || 0 }}</strong>
-          <span>Top Opportunities</span>
-          <small>Active pipeline</small>
+          <span>{{ 'gm.companyDashboard.topOpportunities' | translate }}</span>
+          <small>{{ 'gm.companyDashboard.activePipeline' | translate }}</small>
         </div>
       </div>
-      <footer>Click to view detailed sales dashboard →</footer>
+      <footer>{{ 'gm.companyDashboard.clickViewDetailedSales' | translate }}</footer>
     </article>
 
     <!-- Delivery & Risk Card -->
@@ -71,29 +71,29 @@
       <header>
         <span>🤝</span>
         <div>
-          <h2>Customer Success</h2>
-          <p>CS Order Intake · Retention · CS Pipeline</p>
+          <h2>{{ 'gm.companyDashboard.customerSuccess' | translate }}</h2>
+          <p>{{ 'gm.companyDashboard.csOrderIntakeRetention' | translate }}</p>
         </div>
-        <b>Live</b>
+        <b>{{ 'gm.companyDashboard.live' | translate }}</b>
       </header>
       <div class="kpis">
         <div>
           <strong class="green-text">{{ currency(getCsOrderIntakeMtd()) }}</strong>
-          <span>CS Order Intake MTD</span>
-          <small>Renewal Rate: {{ getCsRenewalRate() | number:'1.1-1' }}%</small>
+          <span>{{ 'gm.companyDashboard.csOrderIntakeMtd' | translate }}</span>
+          <small>{{ 'gm.companyDashboard.renewalRateGetcsrenewalrate' | translate: { getCsRenewalRate: (getCsRenewalRate() | number:'1.1-1') } }}</small>
         </div>
         <div>
           <strong class="blue-text">{{ currency(csData?.pipelineValue) }}</strong>
-          <span>CS Pipeline Value</span>
-          <small>{{ csData?.openOpportunities || 0 }} open CS deals</small>
+          <span>{{ 'gm.companyDashboard.csPipelineValue' | translate }}</span>
+          <small>{{ 'gm.companyDashboard.openopportunitiesOpenCsDeals' | translate: { openOpportunities: (csData?.openOpportunities || 0) } }}</small>
         </div>
         <div>
           <strong class="amber-text">{{ csData?.topOpportunities?.length || 0 }}</strong>
-          <span>Top CS Opportunities</span>
-          <small>Active pipeline</small>
+          <span>{{ 'gm.companyDashboard.topCsOpportunities' | translate }}</span>
+          <small>{{ 'gm.companyDashboard.activePipeline' | translate }}</small>
         </div>
       </div>
-      <footer>Click to view detailed CS dashboard →</footer>
+      <footer>{{ 'gm.companyDashboard.clickViewDetailedCs' | translate }}</footer>
     </article>
   </div>
 
@@ -101,14 +101,14 @@
     <article class="detail-card">
       <header>
         <div>
-          <h2>Projects Overview</h2>
-          <p>Organisation portfolio</p>
+          <h2>{{ 'gm.companyDashboard.projectsOverview' | translate }}</h2>
+          <p>{{ 'gm.companyDashboard.organisationPortfolio' | translate }}</p>
         </div>
       </header>
       <div class="table-scroll">
         <table>
           <thead>
-            <tr><th>Project</th><th>Status</th><th>Progress</th><th>Health</th><th>Budget</th><th>PM</th></tr>
+            <tr><th>{{ 'gm.companyDashboard.project' | translate }}</th><th>{{ 'common.status' | translate }}</th><th>{{ 'gm.companyDashboard.progress' | translate }}</th><th>{{ 'gm.companyDashboard.health' | translate }}</th><th>{{ 'gm.companyDashboard.budget' | translate }}</th><th>{{ 'gm.companyDashboard.pm' | translate }}</th></tr>
           </thead>
           <tbody>
             <tr *ngFor="let p of d.projects">
@@ -117,10 +117,10 @@
               <td>{{ p.progress }}%</td>
               <td><span class="pill" [class.delayed]="p.health === 'Delayed'" [class.at-risk]="p.health === 'At risk'">{{ p.health }}</span></td>
               <td>{{ currency(p.budget) }}</td>
-              <td>{{ p.manager || 'Unassigned' }}</td>
+              <td>{{ p.manager || ('gm.companyDashboard.unassigned' | translate) }}</td>
             </tr>
             <tr *ngIf="!d.projects.length">
-              <td colspan="6" class="empty">No projects available.</td>
+              <td colspan="6" class="empty">{{ 'gm.companyDashboard.noProjectsAvailable' | translate }}</td>
             </tr>
           </tbody>
         </table>
@@ -131,19 +131,19 @@
       <article class="detail-card">
         <header>
           <div>
-            <h2>Schedule Health</h2>
-            <p>All active projects</p>
+            <h2>{{ 'gm.companyDashboard.scheduleHealth' | translate }}</h2>
+            <p>{{ 'gm.companyDashboard.allActiveProjects' | translate }}</p>
           </div>
         </header>
         <div class="health-grid">
-          <div><strong class="green-text">{{ percentage(d.onScheduleProjects, d.activeProjects) }}%</strong><span>On time</span></div>
-          <div><strong class="amber-text">{{ percentage(d.atRiskProjects, d.activeProjects) }}%</strong><span>At risk</span></div>
-          <div><strong class="red-text">{{ percentage(d.delayedProjects, d.activeProjects) }}%</strong><span>Delayed</span></div>
+          <div><strong class="green-text">{{ percentage(d.onScheduleProjects, d.activeProjects) }}%</strong><span>{{ 'gm.companyDashboard.time' | translate }}</span></div>
+          <div><strong class="amber-text">{{ percentage(d.atRiskProjects, d.activeProjects) }}%</strong><span>{{ 'gm.companyDashboard.risk2' | translate }}</span></div>
+          <div><strong class="red-text">{{ percentage(d.delayedProjects, d.activeProjects) }}%</strong><span>{{ 'gm.companyDashboard.delayed' | translate }}</span></div>
         </div>
       </article>
     </div>
   </div>
 </section>
 
-<section class="command-center state" *ngIf="loading">Loading Command Center…</section>
+<section class="command-center state" *ngIf="loading">{{ 'gm.companyDashboard.loadingCommandCenter' | translate }}</section>
 <section class="command-center state error" *ngIf="error">{{ error }}</section>

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { GmAdminService } from 'src/app/features/dashboard-gm/services/gm-admin.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 interface LicenceRole {
   key: string;
@@ -52,7 +53,7 @@ export class LicencesTabComponent implements OnInit {
     { key: 'CLIENT', label: 'Client', icon: '🎫', cssClass: 'lic-client', description: 'Organisation-scoped external ticketing user.' }
   ];
 
-  constructor(private adminService: GmAdminService) {}
+  constructor(private readonly i18n: I18nService, private adminService: GmAdminService) {}
 
   ngOnInit(): void {
     this.load();
@@ -73,7 +74,7 @@ export class LicencesTabComponent implements OnInit {
         this.loading = false;
       },
       error: () => {
-        this.errorMessage = 'Failed to load licence allocation.';
+        this.errorMessage = this.i18n.t('gm.licencesTab.failedLoadLicenceAllocation');
         this.loading = false;
       }
     });
@@ -109,14 +110,14 @@ export class LicencesTabComponent implements OnInit {
 
     this.adminService.assignLicence({ userId, licenceType: role.key }).subscribe({
       next: () => { select.value = ''; this.load(); },
-      error: error => { this.errorMessage = error?.error?.message || 'Failed to assign licence.'; }
+      error: error => { this.errorMessage = this.i18n.error(error, 'gm.licencesTab.failedAssignLicence'); }
     });
   }
 
   removeLicence(userId: number): void {
     this.adminService.removeLicence(userId).subscribe({
       next: () => this.load(),
-      error: error => { this.errorMessage = error?.error?.message || 'Failed to remove licence.'; }
+      error: error => { this.errorMessage = this.i18n.error(error, 'gm.licencesTab.failedRemoveLicence'); }
     });
   }
 
