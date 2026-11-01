@@ -1,6 +1,49 @@
 {
   "common": {
-    "user": "User"
+    "actions": "Actions",
+    "add": "Add",
+    "all": "All",
+    "back": "Back",
+    "backToPrevious": "Back to the previous page",
+    "backToWorkspace": "Back to the workspace",
+    "cancel": "Cancel",
+    "close": "Close",
+    "confirm": "Confirm",
+    "create": "Create",
+    "delete": "Delete",
+    "description": "Description",
+    "dismiss": "Dismiss",
+    "edit": "Edit",
+    "loading": "Loading…",
+    "name": "Name",
+    "no": "No",
+    "noData": "Nothing to show yet.",
+    "none": "None",
+    "optional": "Optional",
+    "organisation": "Organisation",
+    "required": "Required",
+    "retry": "Retry",
+    "save": "Save",
+    "search": "Search",
+    "status": "Status",
+    "user": "User",
+    "workspaces": "Workspaces",
+    "yes": "Yes"
+  },
+  "errors": {
+    "BAD_REQUEST": "The request is not valid. Check the information and try again.",
+    "CONFLICT": "This change conflicts with existing data. Reload and try again.",
+    "FORBIDDEN": "You do not have permission to do this.",
+    "INTERNAL_ERROR": "Something went wrong on our side. Please try again.",
+    "NETWORK": "The server cannot be reached. Check your connection and try again.",
+    "NOT_FOUND": "This item no longer exists or is not available.",
+    "PAYLOAD_TOO_LARGE": "The file is too large.",
+    "SERVICE_UNAVAILABLE": "The service is temporarily unavailable. Try again shortly.",
+    "TOO_MANY_REQUESTS": "Too many attempts. Please wait a moment and try again.",
+    "UNAUTHORIZED": "Your session has expired. Please sign in again.",
+    "UNKNOWN": "An unexpected error occurred.",
+    "VALIDATION_ERROR": "Some fields are missing or not valid.",
+    "preferencesSave": "Your preference could not be saved. It is kept on this device and will be saved with your next change."
   },
   "profileMenu": {
     "language": "Language",
@@ -27,5 +70,12 @@
     "dark": "Dark",
     "dim": "Twilight",
     "light": "Light"
+  },
+  "validation": {
+    "email": "Enter a valid e-mail address.",
+    "maxLength": "Use at most {{max}} characters.",
+    "minLength": "Enter at least {{min}} characters.",
+    "number": "Enter a valid number.",
+    "required": "This field is required."
   }
 }

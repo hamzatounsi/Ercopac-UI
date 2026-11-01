@@ -1,6 +1,49 @@
 {
   "common": {
-    "user": "Utilisateur"
+    "actions": "Actions",
+    "add": "Ajouter",
+    "all": "Tous",
+    "back": "Retour",
+    "backToPrevious": "Retour à la page précédente",
+    "backToWorkspace": "Retour à l'espace de travail",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "confirm": "Confirmer",
+    "create": "Créer",
+    "delete": "Supprimer",
+    "description": "Description",
+    "dismiss": "Fermer",
+    "edit": "Modifier",
+    "loading": "Chargement…",
+    "name": "Nom",
+    "no": "Non",
+    "noData": "Rien à afficher pour le moment.",
+    "none": "Aucun",
+    "optional": "Facultatif",
+    "organisation": "Organisation",
+    "required": "Obligatoire",
+    "retry": "Réessayer",
+    "save": "Enregistrer",
+    "search": "Rechercher",
+    "status": "Statut",
+    "user": "Utilisateur",
+    "workspaces": "Espaces de travail",
+    "yes": "Oui"
+  },
+  "errors": {
+    "BAD_REQUEST": "La demande n'est pas valide. Vérifiez les informations et réessayez.",
+    "CONFLICT": "Cette modification est en conflit avec des données existantes. Rechargez et réessayez.",
+    "FORBIDDEN": "Vous n'avez pas l'autorisation d'effectuer cette action.",
+    "INTERNAL_ERROR": "Une erreur s'est produite de notre côté. Veuillez réessayer.",
+    "NETWORK": "Le serveur est injoignable. Vérifiez votre connexion et réessayez.",
+    "NOT_FOUND": "Cet élément n'existe plus ou n'est pas disponible.",
+    "PAYLOAD_TOO_LARGE": "Le fichier est trop volumineux.",
+    "SERVICE_UNAVAILABLE": "Le service est temporairement indisponible. Réessayez dans quelques instants.",
+    "TOO_MANY_REQUESTS": "Trop de tentatives. Patientez un instant puis réessayez.",
+    "UNAUTHORIZED": "Votre session a expiré. Veuillez vous reconnecter.",
+    "UNKNOWN": "Une erreur inattendue s'est produite.",
+    "VALIDATION_ERROR": "Certains champs sont manquants ou invalides.",
+    "preferencesSave": "Votre préférence n'a pas pu être enregistrée. Elle est conservée sur cet appareil et sera enregistrée lors de votre prochaine modification."
   },
   "profileMenu": {
     "language": "Langue",
@@ -27,5 +70,12 @@
     "dark": "Sombre",
     "dim": "Crépuscule",
     "light": "Clair"
+  },
+  "validation": {
+    "email": "Saisissez une adresse e-mail valide.",
+    "maxLength": "Utilisez au maximum {{max}} caractères.",
+    "minLength": "Saisissez au moins {{min}} caractères.",
+    "number": "Saisissez un nombre valide.",
+    "required": "Ce champ est obligatoire."
   }
 }

@@ -1,6 +1,49 @@
 {
   "common": {
-    "user": "Gebruiker"
+    "actions": "Acties",
+    "add": "Toevoegen",
+    "all": "Alle",
+    "back": "Terug",
+    "backToPrevious": "Terug naar de vorige pagina",
+    "backToWorkspace": "Terug naar de werkruimte",
+    "cancel": "Annuleren",
+    "close": "Sluiten",
+    "confirm": "Bevestigen",
+    "create": "Aanmaken",
+    "delete": "Verwijderen",
+    "description": "Beschrijving",
+    "dismiss": "Sluiten",
+    "edit": "Bewerken",
+    "loading": "Laden…",
+    "name": "Naam",
+    "no": "Nee",
+    "noData": "Nog niets om te tonen.",
+    "none": "Geen",
+    "optional": "Optioneel",
+    "organisation": "Organisatie",
+    "required": "Verplicht",
+    "retry": "Opnieuw proberen",
+    "save": "Opslaan",
+    "search": "Zoeken",
+    "status": "Status",
+    "user": "Gebruiker",
+    "workspaces": "Werkruimten",
+    "yes": "Ja"
+  },
+  "errors": {
+    "BAD_REQUEST": "Het verzoek is ongeldig. Controleer de gegevens en probeer het opnieuw.",
+    "CONFLICT": "Deze wijziging botst met bestaande gegevens. Laad opnieuw en probeer het nog eens.",
+    "FORBIDDEN": "Je hebt geen toestemming om dit te doen.",
+    "INTERNAL_ERROR": "Er ging aan onze kant iets mis. Probeer het opnieuw.",
+    "NETWORK": "De server is niet bereikbaar. Controleer je verbinding en probeer het opnieuw.",
+    "NOT_FOUND": "Dit item bestaat niet meer of is niet beschikbaar.",
+    "PAYLOAD_TOO_LARGE": "Het bestand is te groot.",
+    "SERVICE_UNAVAILABLE": "De dienst is tijdelijk niet beschikbaar. Probeer het straks opnieuw.",
+    "TOO_MANY_REQUESTS": "Te veel pogingen. Wacht even en probeer het opnieuw.",
+    "UNAUTHORIZED": "Je sessie is verlopen. Meld je opnieuw aan.",
+    "UNKNOWN": "Er is een onverwachte fout opgetreden.",
+    "VALIDATION_ERROR": "Sommige velden ontbreken of zijn ongeldig.",
+    "preferencesSave": "Je voorkeur kon niet worden opgeslagen. Deze blijft op dit apparaat bewaard en wordt bij je volgende wijziging opgeslagen."
   },
   "profileMenu": {
     "language": "Taal",
@@ -27,5 +70,12 @@
     "dark": "Donker",
     "dim": "Schemering",
     "light": "Licht"
+  },
+  "validation": {
+    "email": "Voer een geldig e-mailadres in.",
+    "maxLength": "Gebruik maximaal {{max}} tekens.",
+    "minLength": "Voer minstens {{min}} tekens in.",
+    "number": "Voer een geldig getal in.",
+    "required": "Dit veld is verplicht."
   }
 }

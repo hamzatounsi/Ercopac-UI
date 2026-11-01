@@ -1,6 +1,49 @@
 {
   "common": {
-    "user": "用户"
+    "actions": "操作",
+    "add": "添加",
+    "all": "全部",
+    "back": "返回",
+    "backToPrevious": "返回上一页",
+    "backToWorkspace": "返回工作区",
+    "cancel": "取消",
+    "close": "关闭",
+    "confirm": "确认",
+    "create": "创建",
+    "delete": "删除",
+    "description": "描述",
+    "dismiss": "关闭",
+    "edit": "编辑",
+    "loading": "正在加载…",
+    "name": "名称",
+    "no": "否",
+    "noData": "暂无内容。",
+    "none": "无",
+    "optional": "可选",
+    "organisation": "组织",
+    "required": "必填",
+    "retry": "重试",
+    "save": "保存",
+    "search": "搜索",
+    "status": "状态",
+    "user": "用户",
+    "workspaces": "工作区",
+    "yes": "是"
+  },
+  "errors": {
+    "BAD_REQUEST": "请求无效。请检查信息后重试。",
+    "CONFLICT": "此更改与现有数据冲突。请刷新后重试。",
+    "FORBIDDEN": "您无权执行此操作。",
+    "INTERNAL_ERROR": "我们这边出了点问题，请重试。",
+    "NETWORK": "无法连接服务器。请检查网络连接后重试。",
+    "NOT_FOUND": "该项目已不存在或不可用。",
+    "PAYLOAD_TOO_LARGE": "文件过大。",
+    "SERVICE_UNAVAILABLE": "服务暂时不可用，请稍后重试。",
+    "TOO_MANY_REQUESTS": "尝试次数过多，请稍后重试。",
+    "UNAUTHORIZED": "您的会话已过期，请重新登录。",
+    "UNKNOWN": "发生意外错误。",
+    "VALIDATION_ERROR": "部分字段缺失或无效。",
+    "preferencesSave": "无法保存您的偏好设置。它已保留在此设备上，并将在您下次更改时保存。"
   },
   "profileMenu": {
     "language": "语言",
@@ -27,5 +70,12 @@
     "dark": "深色",
     "dim": "暮光",
     "light": "浅色"
+  },
+  "validation": {
+    "email": "请输入有效的电子邮件地址。",
+    "maxLength": "最多使用 {{max}} 个字符。",
+    "minLength": "请至少输入 {{min}} 个字符。",
+    "number": "请输入有效的数字。",
+    "required": "此字段为必填项。"
   }
 }

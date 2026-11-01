@@ -1,6 +1,49 @@
 {
   "common": {
-    "user": "Utente"
+    "actions": "Azioni",
+    "add": "Aggiungi",
+    "all": "Tutti",
+    "back": "Indietro",
+    "backToPrevious": "Torna alla pagina precedente",
+    "backToWorkspace": "Torna all'area di lavoro",
+    "cancel": "Annulla",
+    "close": "Chiudi",
+    "confirm": "Conferma",
+    "create": "Crea",
+    "delete": "Elimina",
+    "description": "Descrizione",
+    "dismiss": "Chiudi",
+    "edit": "Modifica",
+    "loading": "Caricamento…",
+    "name": "Nome",
+    "no": "No",
+    "noData": "Ancora niente da mostrare.",
+    "none": "Nessuno",
+    "optional": "Facoltativo",
+    "organisation": "Organizzazione",
+    "required": "Obbligatorio",
+    "retry": "Riprova",
+    "save": "Salva",
+    "search": "Cerca",
+    "status": "Stato",
+    "user": "Utente",
+    "workspaces": "Aree di lavoro",
+    "yes": "Sì"
+  },
+  "errors": {
+    "BAD_REQUEST": "La richiesta non è valida. Controlla i dati e riprova.",
+    "CONFLICT": "Questa modifica è in conflitto con dati esistenti. Ricarica e riprova.",
+    "FORBIDDEN": "Non hai il permesso di eseguire questa operazione.",
+    "INTERNAL_ERROR": "Si è verificato un errore da parte nostra. Riprova.",
+    "NETWORK": "Il server non è raggiungibile. Controlla la connessione e riprova.",
+    "NOT_FOUND": "Questo elemento non esiste più o non è disponibile.",
+    "PAYLOAD_TOO_LARGE": "Il file è troppo grande.",
+    "SERVICE_UNAVAILABLE": "Il servizio è temporaneamente non disponibile. Riprova tra poco.",
+    "TOO_MANY_REQUESTS": "Troppi tentativi. Attendi un momento e riprova.",
+    "UNAUTHORIZED": "La sessione è scaduta. Accedi di nuovo.",
+    "UNKNOWN": "Si è verificato un errore imprevisto.",
+    "VALIDATION_ERROR": "Alcuni campi mancano o non sono validi.",
+    "preferencesSave": "Non è stato possibile salvare la tua preferenza. Resta su questo dispositivo e verrà salvata con la prossima modifica."
   },
   "profileMenu": {
     "language": "Lingua",
@@ -27,5 +70,12 @@
     "dark": "Scuro",
     "dim": "Crepuscolo",
     "light": "Chiaro"
+  },
+  "validation": {
+    "email": "Inserisci un indirizzo e-mail valido.",
+    "maxLength": "Usa al massimo {{max}} caratteri.",
+    "minLength": "Inserisci almeno {{min}} caratteri.",
+    "number": "Inserisci un numero valido.",
+    "required": "Questo campo è obbligatorio."
   }
 }

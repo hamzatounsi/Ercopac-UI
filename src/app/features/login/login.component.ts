@@ -1,6 +1,7 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from 'src/app/core/auth/auth.service';
+import { PreferencesService } from 'src/app/core/services/preferences.service';
 import { APPLICATION_ICONS } from 'src/app/core/config/application-icons';
 
 type LoginMessageType = 'error' | 'success' | 'info';
@@ -115,7 +116,8 @@ export class LoginComponent {
   constructor(
     private auth: AuthService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private preferences: PreferencesService
   ) {}
 
   ngOnInit(): void {
@@ -189,6 +191,7 @@ export class LoginComponent {
           return;
         }
         this.setMessage('Login successful. Opening your workspace…', 'success');
+        this.preferences.loadFromServer();
         const destination = this.auth.getHomeRoute();
         this.setMessage('Login successful. Opening your account...', 'success');
         setTimeout(() => this.router.navigateByUrl(destination), 350);

@@ -1,6 +1,49 @@
 {
   "common": {
-    "user": "Kullanıcı"
+    "actions": "İşlemler",
+    "add": "Ekle",
+    "all": "Tümü",
+    "back": "Geri",
+    "backToPrevious": "Önceki sayfaya dön",
+    "backToWorkspace": "Çalışma alanına dön",
+    "cancel": "İptal",
+    "close": "Kapat",
+    "confirm": "Onayla",
+    "create": "Oluştur",
+    "delete": "Sil",
+    "description": "Açıklama",
+    "dismiss": "Kapat",
+    "edit": "Düzenle",
+    "loading": "Yükleniyor…",
+    "name": "Ad",
+    "no": "Hayır",
+    "noData": "Henüz gösterilecek bir şey yok.",
+    "none": "Yok",
+    "optional": "İsteğe bağlı",
+    "organisation": "Kuruluş",
+    "required": "Zorunlu",
+    "retry": "Yeniden dene",
+    "save": "Kaydet",
+    "search": "Ara",
+    "status": "Durum",
+    "user": "Kullanıcı",
+    "workspaces": "Çalışma alanları",
+    "yes": "Evet"
+  },
+  "errors": {
+    "BAD_REQUEST": "İstek geçerli değil. Bilgileri kontrol edip tekrar deneyin.",
+    "CONFLICT": "Bu değişiklik mevcut verilerle çakışıyor. Yenileyip tekrar deneyin.",
+    "FORBIDDEN": "Bunu yapma izniniz yok.",
+    "INTERNAL_ERROR": "Bizim tarafımızda bir sorun oluştu. Lütfen tekrar deneyin.",
+    "NETWORK": "Sunucuya ulaşılamıyor. Bağlantınızı kontrol edip tekrar deneyin.",
+    "NOT_FOUND": "Bu öğe artık mevcut değil veya kullanılamıyor.",
+    "PAYLOAD_TOO_LARGE": "Dosya çok büyük.",
+    "SERVICE_UNAVAILABLE": "Hizmet geçici olarak kullanılamıyor. Kısa süre sonra tekrar deneyin.",
+    "TOO_MANY_REQUESTS": "Çok fazla deneme. Lütfen biraz bekleyip tekrar deneyin.",
+    "UNAUTHORIZED": "Oturumunuzun süresi doldu. Lütfen tekrar giriş yapın.",
+    "UNKNOWN": "Beklenmeyen bir hata oluştu.",
+    "VALIDATION_ERROR": "Bazı alanlar eksik veya geçersiz.",
+    "preferencesSave": "Tercihiniz kaydedilemedi. Bu cihazda tutuluyor ve bir sonraki değişikliğinizle kaydedilecek."
   },
   "profileMenu": {
     "language": "Dil",
@@ -27,5 +70,12 @@
     "dark": "Koyu",
     "dim": "Alacakaranlık",
     "light": "Açık"
+  },
+  "validation": {
+    "email": "Geçerli bir e-posta adresi girin.",
+    "maxLength": "En fazla {{max}} karakter kullanın.",
+    "minLength": "En az {{min}} karakter girin.",
+    "number": "Geçerli bir sayı girin.",
+    "required": "Bu alan zorunludur."
   }
 }

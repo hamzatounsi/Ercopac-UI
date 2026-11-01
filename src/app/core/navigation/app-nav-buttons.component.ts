@@ -1,5 +1,6 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { Location, NgIf } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
@@ -13,13 +14,13 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-nav-buttons',
   standalone: true,
-  imports: [NgIf],
+  imports: [NgIf, TranslateModule],
   template: `
-    <button *ngIf="!isHome" type="button" class="nav-btn" (click)="back()" title="Back to the previous page">
-      <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>Back
+    <button *ngIf="!isHome" type="button" class="nav-btn" (click)="back()" [title]="'common.backToPrevious' | translate">
+      <span class="material-symbols-outlined nav-flip" aria-hidden="true">arrow_back</span>{{ 'common.back' | translate }}
     </button>
-    <button type="button" class="nav-btn" (click)="workspace()" title="Back to the workspace">
-      <span class="material-symbols-outlined" aria-hidden="true">apps</span>Workspaces
+    <button type="button" class="nav-btn" (click)="workspace()" [title]="'common.backToWorkspace' | translate">
+      <span class="material-symbols-outlined" aria-hidden="true">apps</span>{{ 'common.workspaces' | translate }}
     </button>
   `,
   styles: [`
@@ -28,6 +29,7 @@ import { Subscription } from 'rxjs';
       border-radius:7px; background:var(--pm-surface); color:var(--pm-text); font:inherit; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; }
     .nav-btn:hover { background:var(--pm-surface-muted); color:var(--pm-text); }
     .nav-btn .material-symbols-outlined { font-size:17px; }
+    :host-context([dir="rtl"]) .nav-flip { transform:scaleX(-1); }
   `]
 })
 export class AppNavButtonsComponent implements OnInit, OnDestroy {

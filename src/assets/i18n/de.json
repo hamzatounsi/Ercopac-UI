@@ -1,6 +1,49 @@
 {
   "common": {
-    "user": "Benutzer"
+    "actions": "Aktionen",
+    "add": "Hinzufügen",
+    "all": "Alle",
+    "back": "Zurück",
+    "backToPrevious": "Zurück zur vorherigen Seite",
+    "backToWorkspace": "Zurück zum Arbeitsbereich",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "confirm": "Bestätigen",
+    "create": "Erstellen",
+    "delete": "Löschen",
+    "description": "Beschreibung",
+    "dismiss": "Schließen",
+    "edit": "Bearbeiten",
+    "loading": "Wird geladen…",
+    "name": "Name",
+    "no": "Nein",
+    "noData": "Noch nichts anzuzeigen.",
+    "none": "Keine",
+    "optional": "Optional",
+    "organisation": "Organisation",
+    "required": "Erforderlich",
+    "retry": "Erneut versuchen",
+    "save": "Speichern",
+    "search": "Suchen",
+    "status": "Status",
+    "user": "Benutzer",
+    "workspaces": "Arbeitsbereiche",
+    "yes": "Ja"
+  },
+  "errors": {
+    "BAD_REQUEST": "Die Anfrage ist ungültig. Prüfen Sie die Angaben und versuchen Sie es erneut.",
+    "CONFLICT": "Diese Änderung steht im Konflikt mit vorhandenen Daten. Laden Sie neu und versuchen Sie es erneut.",
+    "FORBIDDEN": "Sie haben keine Berechtigung dafür.",
+    "INTERNAL_ERROR": "Bei uns ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
+    "NETWORK": "Der Server ist nicht erreichbar. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+    "NOT_FOUND": "Dieses Element existiert nicht mehr oder ist nicht verfügbar.",
+    "PAYLOAD_TOO_LARGE": "Die Datei ist zu groß.",
+    "SERVICE_UNAVAILABLE": "Der Dienst ist vorübergehend nicht verfügbar. Versuchen Sie es gleich noch einmal.",
+    "TOO_MANY_REQUESTS": "Zu viele Versuche. Bitte warten Sie einen Moment und versuchen Sie es erneut.",
+    "UNAUTHORIZED": "Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.",
+    "UNKNOWN": "Ein unerwarteter Fehler ist aufgetreten.",
+    "VALIDATION_ERROR": "Einige Felder fehlen oder sind ungültig.",
+    "preferencesSave": "Ihre Einstellung konnte nicht gespeichert werden. Sie bleibt auf diesem Gerät erhalten und wird bei Ihrer nächsten Änderung gespeichert."
   },
   "profileMenu": {
     "language": "Sprache",
@@ -27,5 +70,12 @@
     "dark": "Dunkel",
     "dim": "Dämmerung",
     "light": "Hell"
+  },
+  "validation": {
+    "email": "Geben Sie eine gültige E-Mail-Adresse ein.",
+    "maxLength": "Verwenden Sie höchstens {{max}} Zeichen.",
+    "minLength": "Geben Sie mindestens {{min}} Zeichen ein.",
+    "number": "Geben Sie eine gültige Zahl ein.",
+    "required": "Dieses Feld ist erforderlich."
   }
 }
