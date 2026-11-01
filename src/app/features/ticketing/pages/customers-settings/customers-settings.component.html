@@ -122,13 +122,14 @@
         <button class="primary small" *ngIf="isLead" (click)="editEquipment()">+ Add equipment</button></div>
       <div class="empty" *ngIf="!equipment.length && !tabError">No equipment registered.</div>
       <table class="set-table" *ngIf="equipment.length">
-        <thead><tr><th>Equipment</th><th>Type</th><th>Serial number</th><th>Site</th><th *ngIf="isLead"></th></tr></thead>
+        <thead><tr><th>Equipment</th><th>Type</th><th>Serial number</th><th>Site</th><th>Project</th><th *ngIf="isLead"></th></tr></thead>
         <tbody>
           <tr *ngFor="let e of equipment">
             <td class="strong">{{ e.name }}<small>{{ e.note }}</small></td>
             <td>{{ e.typeName || '—' }}</td>
             <td class="mono">{{ e.serialNumber || '—' }}</td>
             <td>{{ e.siteName || '—' }}</td>
+            <td>{{ e.projectName || '—' }}<span class="badge c-amber" *ngIf="e.customerProjectId">Manual</span></td>
             <td *ngIf="isLead" class="row-actions">
               <button class="ghost small" (click)="editEquipment(e)">Edit</button>
               <button class="ghost small danger" (click)="remove('equipment', e.id, e.name)">Remove</button>
@@ -138,14 +139,24 @@
       </table>
     </ng-container>
 
-    <!-- Projects (read-only, managed in Projectum) -->
+    <!-- Projects: Projectum projects (read-only, managed in Projectum) and projects added by hand -->
     <ng-container *ngIf="tab === 'projects' && !tabLoading">
-      <div class="tab-head"><span class="muted-sm">Projectum projects of this customer. Tickets can be linked to them; projects are managed in Projectum.</span></div>
-      <div class="empty" *ngIf="!projects.length && !tabError">No project is linked to this customer in Projectum.</div>
+      <div class="tab-head"><span class="muted-sm">Projectum projects of this customer, plus historical or external projects added by hand. Equipment and tickets can refer to them.</span>
+        <button class="primary small" *ngIf="isLead" (click)="editProject()">+ Add project manually</button></div>
+      <div class="empty" *ngIf="!projects.length && !tabError">No project yet: link the customer to projects in Projectum or add one manually.</div>
       <table class="set-table" *ngIf="projects.length">
-        <thead><tr><th>Project</th><th>Code</th><th>Phase</th></tr></thead>
+        <thead><tr><th>Project</th><th>Number</th><th>Year</th><th>Phase</th><th>Source</th><th *ngIf="isLead"></th></tr></thead>
         <tbody>
-          <tr *ngFor="let p of projects"><td class="strong">{{ p.name }}</td><td class="mono">{{ p.code || '—' }}</td><td>{{ p.phase || '—' }}</td></tr>
+          <tr *ngFor="let p of projects">
+            <td class="strong">{{ p.name }}</td><td class="mono">{{ p.code || '—' }}</td><td>{{ p.year || '—' }}</td><td>{{ p.phase || '—' }}</td>
+            <td><span class="badge" [ngClass]="p.manual ? 'c-amber' : 'c-blue'">{{ p.manual ? 'Manual' : 'Projectum' }}</span></td>
+            <td *ngIf="isLead" class="row-actions">
+              <ng-container *ngIf="p.manual">
+                <button class="ghost small" (click)="editProject(p)">Edit</button>
+                <button class="ghost small danger" (click)="remove('project', p.id, p.name)">Remove</button>
+              </ng-container>
+            </td>
+          </tr>
         </tbody>
       </table>
     </ng-container>
@@ -201,6 +212,16 @@
         </div>
       </ng-container>
 
+      <ng-container *ngSwitchCase="'project'">
+        <h3>{{ form.id ? 'Edit project' : 'New project (manual)' }}</h3>
+        <p class="muted-sm">For projects not tracked in Projectum (historical or external). Projectum projects appear here automatically.</p>
+        <div class="grid">
+          <label class="full">Project name *<input class="input" name="name" [(ngModel)]="form.name" maxlength="250" [class.invalid]="submitted && !form.name?.trim()"></label>
+          <label>Project number<input class="input" name="projectNumber" [(ngModel)]="form.projectNumber" maxlength="60"></label>
+          <label>Year<input class="input" name="year" type="number" min="1900" max="2100" step="1" [(ngModel)]="form.year"></label>
+        </div>
+      </ng-container>
+
       <ng-container *ngSwitchCase="'equipment'">
         <h3>{{ form.id ? 'Edit equipment' : 'New equipment' }}</h3>
         <div class="grid">
@@ -217,6 +238,13 @@
               <option [ngValue]="null">{{ sites.length ? 'No site' : 'No sites yet' }}</option>
               <option *ngFor="let s of sites" [ngValue]="s.id">{{ s.name }}</option>
             </select>
+          </label>
+          <label class="full">Project
+            <select class="select" name="project" [(ngModel)]="form.projectKey" [disabled]="projectsLoading">
+              <option [ngValue]="null">{{ projectsLoading ? 'Loading projects…' : projectsError ? 'Projects unavailable' : projects.length ? 'No project' : 'No project in the Projects tab' }}</option>
+              <option *ngFor="let p of projects" [ngValue]="projectKey(p)">{{ p.name }}<ng-container *ngIf="p.code"> ({{ p.code }})</ng-container><ng-container *ngIf="p.manual"> · manual</ng-container></option>
+            </select>
+            <small class="field-error" *ngIf="projectsError">{{ projectsError }} <button type="button" class="ghost small" (click)="loadProjects()">Retry</button></small>
           </label>
           <label class="full">Note<textarea class="textarea" name="note" [(ngModel)]="form.note" maxlength="500" rows="2"></textarea></label>
         </div>

@@ -6,12 +6,12 @@ import { TicketSettingsService } from '../../services/ticket-settings.service';
 import { TICKETING_LEAD_ROLES } from '../../ticketing-roles';
 
 type Tab = 'info' | 'contacts' | 'sites' | 'equipment' | 'projects';
-type Dialog = 'customer' | 'contact' | 'site' | 'equipment';
+type Dialog = 'customer' | 'contact' | 'site' | 'equipment' | 'project';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Customer companies served by the support team, with their contacts (and portal accounts), sites,
-// installed equipment and Projectum projects. Staff can browse; leads create and edit.
+// installed equipment and projects (Projectum projects plus ones added by hand). Staff can browse; leads create and edit.
 @Component({
   selector: 'app-customers-settings',
   templateUrl: './customers-settings.component.html',
@@ -32,6 +32,8 @@ export class CustomersSettingsComponent implements OnInit {
   projects: CustomerProject[] = [];
   tabLoading = false;
   tabError = '';
+  projectsLoading = false;
+  projectsError = '';
 
   equipmentTypes: Ref[] = [];
   portalUsers: UserSummary[] = [];
@@ -93,8 +95,9 @@ export class CustomersSettingsComponent implements OnInit {
       case 'contacts': this.settings.contacts(c.id).subscribe({ ...done, next: v => { this.contacts = v; this.tabLoading = false; } }); break;
       case 'sites': this.settings.sites(c.id).subscribe({ ...done, next: v => { this.sites = v; this.tabLoading = false; } }); break;
       case 'equipment':
-        // Sites feed the equipment form's site choice
+        // Sites and projects feed the equipment form's site and project choices
         this.settings.sites(c.id).subscribe({ next: v => this.sites = v });
+        this.loadProjects();
         this.settings.equipment(c.id).subscribe({ ...done, next: v => { this.equipment = v; this.tabLoading = false; } });
         break;
       case 'projects': this.settings.projects(c.id).subscribe({ ...done, next: v => { this.projects = v; this.tabLoading = false; } }); break;
@@ -114,8 +117,28 @@ export class CustomersSettingsComponent implements OnInit {
 
   editEquipment(e?: Equipment): void {
     if (!this.equipmentTypes.length) this.settings.equipmentTypes().subscribe({ next: t => this.equipmentTypes = t });
-    this.openDialog('equipment', e ? { ...e } : { typeId: null, siteId: null });
+    const projectKey = e?.projectId ? `P:${e.projectId}` : e?.customerProjectId ? `M:${e.customerProjectId}` : null;
+    this.openDialog('equipment', e ? { ...e, projectKey } : { typeId: null, siteId: null, projectKey: null });
   }
+
+  editProject(p?: CustomerProject): void {
+    this.openDialog('project', p ? { id: p.id, name: p.name, projectNumber: p.code ?? '', year: p.year ?? null } : { year: null });
+  }
+
+  /** Projects tab of the selected customer (Projectum and manual), used by the equipment project choice. */
+  loadProjects(): void {
+    const c = this.selected;
+    if (!c) return;
+    this.projectsLoading = true;
+    this.projectsError = '';
+    this.settings.projects(c.id).subscribe({
+      next: v => { this.projects = v; this.projectsLoading = false; },
+      error: e => { this.projectsLoading = false; this.projectsError = e.error?.message || 'Projects could not be loaded.'; }
+    });
+  }
+
+  /** Equipment projects are either a Projectum project (P:id) or a manual one (M:id). */
+  projectKey(p: CustomerProject): string { return `${p.manual ? 'M' : 'P'}:${p.id}`; }
 
   closeDialog(): void { this.dialog = undefined; }
 
@@ -132,6 +155,10 @@ export class CustomersSettingsComponent implements OnInit {
         return '';
       case 'site': return f.name?.trim() ? '' : 'A site name is required.';
       case 'equipment': return f.name?.trim() ? '' : 'An equipment name is required.';
+      case 'project':
+        if (!f.name?.trim()) return 'A project name is required.';
+        if (f.year != null && f.year !== '' && (!Number.isInteger(+f.year) || +f.year < 1900 || +f.year > 2100)) return 'Year must be between 1900 and 2100.';
+        return '';
       default: return '';
     }
   }
@@ -151,7 +178,15 @@ export class CustomersSettingsComponent implements OnInit {
       case 'customer': request = f.id ? this.settings.updateCustomer(f.id, f) : this.settings.createCustomer(f); break;
       case 'contact': request = this.settings.saveContact(c!.id, f); break;
       case 'site': request = this.settings.saveSite(c!.id, f); break;
-      case 'equipment': request = this.settings.saveEquipment(c!.id, f); break;
+      case 'equipment': {
+        const [kind, id] = (f.projectKey as string | null)?.split(':') ?? [];
+        const { projectKey, projectName, ...item } = f;
+        request = this.settings.saveEquipment(c!.id, { ...item, projectId: kind === 'P' ? +id : null, customerProjectId: kind === 'M' ? +id : null });
+        break;
+      }
+      case 'project':
+        request = this.settings.saveManualProject(c!.id, { id: f.id, name: f.name, projectNumber: f.projectNumber, year: f.year == null || f.year === '' ? null : +f.year });
+        break;
     }
     const kind = this.dialog;
     this.saving = true;
@@ -174,12 +209,13 @@ export class CustomersSettingsComponent implements OnInit {
     });
   }
 
-  remove(kind: 'contact' | 'site' | 'equipment', id: number, name: string): void {
+  remove(kind: 'contact' | 'site' | 'equipment' | 'project', id: number, name: string): void {
     const c = this.selected;
     if (!c) return;
     const extra = kind === 'site' ? ' Equipment installed there stays registered without a site.' : '';
     if (!confirm(`Remove ${name}?${extra}`)) return;
-    const request = kind === 'contact' ? this.settings.deleteContact(c.id, id) : kind === 'site' ? this.settings.deleteSite(c.id, id) : this.settings.deleteEquipment(c.id, id);
+    const request = kind === 'contact' ? this.settings.deleteContact(c.id, id) : kind === 'site' ? this.settings.deleteSite(c.id, id)
+      : kind === 'project' ? this.settings.deleteManualProject(c.id, id) : this.settings.deleteEquipment(c.id, id);
     request.subscribe({
       next: () => { this.loadTab(); this.load(); this.flash(`${name} removed`); },
       error: e => { this.tabError = e.error?.message || `${name} could not be removed.`; }

@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, shareReplay, tap } from 'rxjs';
 import { API_BASE_URL } from 'src/app/core/config/api.config';
 import {
-  Agent, Contact, Customer, CustomerProject, Equipment, MySettings, PrioritySetting, Ref, Site, StatusColor,
+  Agent, Contact, Customer, CustomerProject, EmployeeOption, Equipment, MySettings, PrioritySetting, Ref, ResourceTypeOption, Site, StatusColor,
   StatusSetting, TicketAnalytics, TicketPriority, TicketSettings, TicketStatus, UserSummary
 } from '../models/ticket.models';
 
@@ -19,6 +19,7 @@ export class TicketSettingsService {
   private readonly settingsSource = new BehaviorSubject<TicketSettings | null>(null);
   readonly settings$ = this.settingsSource.asObservable();
   private requested = false;
+  private resourceTypes$?: Observable<ResourceTypeOption[]>;
 
   constructor(private http: HttpClient) {}
 
@@ -54,7 +55,25 @@ export class TicketSettingsService {
     return this.http.put<TicketSettings>(`${this.base}/settings/priorities`, priorities).pipe(tap(s => this.settingsSource.next(s)));
   }
 
-  agents(): Observable<Agent[]> { return this.http.get<Agent[]>(`${this.base}/settings/agents`); }
+  /** Support team and L2 technicians; group 'H24' returns the H24 configuration list (H24 role or H24 resource type). */
+  agents(group?: 'H24'): Observable<Agent[]> {
+    const params = group ? new HttpParams().set('group', group) : undefined;
+    return this.http.get<Agent[]>(`${this.base}/settings/agents`, { params });
+  }
+
+  /** Active Projectum resource types, loaded once per session (a failed request is retried next time). */
+  resourceTypes(): Observable<ResourceTypeOption[]> {
+    if (!this.resourceTypes$) {
+      this.resourceTypes$ = this.http.get<ResourceTypeOption[]>(`${this.base}/resource-types`).pipe(
+        tap({ error: () => this.resourceTypes$ = undefined }), shareReplay(1));
+    }
+    return this.resourceTypes$;
+  }
+
+  /** Employees of one resource type, filtered by the backend; l2Only keeps the L2 technicians. */
+  employees(resourceTypeId: number, l2Only = false): Observable<EmployeeOption[]> {
+    return this.http.get<EmployeeOption[]>(`${this.base}/employees`, { params: new HttpParams().set('resourceTypeId', resourceTypeId).set('l2Only', l2Only) });
+  }
   updateAgent(id: number, profile: { l2Technician: boolean; specialization: string | null; preferredLanguage: string | null }): Observable<Agent> {
     return this.http.put<Agent>(`${this.base}/settings/agents/${id}`, profile);
   }
@@ -86,12 +105,16 @@ export class TicketSettingsService {
   deleteContact(customerId: number, id: number): Observable<void> { return this.http.delete<void>(`${this.base}/customers/${customerId}/contacts/${id}`); }
 
   equipment(customerId: number): Observable<Equipment[]> { return this.http.get<Equipment[]>(`${this.base}/customers/${customerId}/equipment`); }
-  saveEquipment(customerId: number, item: Partial<Equipment>): Observable<Equipment> {
+  saveEquipment(customerId: number, item: Partial<Equipment> & { projectId?: number | null; customerProjectId?: number | null }): Observable<Equipment> {
     return item.id ? this.http.put<Equipment>(`${this.base}/customers/${customerId}/equipment/${item.id}`, item) : this.http.post<Equipment>(`${this.base}/customers/${customerId}/equipment`, item);
   }
   deleteEquipment(customerId: number, id: number): Observable<void> { return this.http.delete<void>(`${this.base}/customers/${customerId}/equipment/${id}`); }
 
   projects(customerId: number): Observable<CustomerProject[]> { return this.http.get<CustomerProject[]>(`${this.base}/customers/${customerId}/projects`); }
+  saveManualProject(customerId: number, project: { id?: number; name: string; projectNumber: string | null; year: number | null }): Observable<CustomerProject> {
+    return project.id ? this.http.put<CustomerProject>(`${this.base}/customers/${customerId}/projects/${project.id}`, project) : this.http.post<CustomerProject>(`${this.base}/customers/${customerId}/projects`, project);
+  }
+  deleteManualProject(customerId: number, id: number): Observable<void> { return this.http.delete<void>(`${this.base}/customers/${customerId}/projects/${id}`); }
   equipmentTypes(): Observable<Ref[]> { return this.http.get<Ref[]>(`${this.base}/equipment-types`); }
   portalUsers(): Observable<UserSummary[]> { return this.http.get<UserSummary[]>(`${this.base}/portal-users`); }
 }

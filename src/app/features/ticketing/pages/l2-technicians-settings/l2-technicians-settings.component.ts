@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from 'src/app/core/auth/auth.service';
-import { Agent } from '../../models/ticket.models';
+import { Agent, EmployeeOption } from '../../models/ticket.models';
 import { TicketSettingsService } from '../../services/ticket-settings.service';
 import { TICKETING_LEAD_ROLES } from '../../ticketing-roles';
 
-// Level 2 specialists: support staff flagged as L2 can be assigned to tickets next to the H24 agent.
+// Level 2 specialists: Projectum employees (or support staff) flagged as L2 can be assigned to tickets next to the H24 agent.
+// A new L2 is picked with the cascading Resource type -> employee choice.
 @Component({
   selector: 'app-l2-technicians-settings',
   templateUrl: './l2-technicians-settings.component.html',
@@ -16,14 +17,14 @@ export class L2TechniciansSettingsComponent implements OnInit {
   error = '';
   notice = '';
   adding = false;
-  candidateId: number | null = null;
+  candidate: EmployeeOption | null = null;
   busyId?: number;
   readonly isLead = this.auth.hasAnyRole(TICKETING_LEAD_ROLES);
 
   constructor(private settings: TicketSettingsService, private auth: AuthService) {}
 
   get technicians(): Agent[] { return this.agents.filter(a => a.l2Technician); }
-  get candidates(): Agent[] { return this.agents.filter(a => !a.l2Technician && a.active); }
+  get technicianIds(): number[] { return this.technicians.map(t => t.id); }
 
   ngOnInit(): void { this.load(); }
 
@@ -37,8 +38,11 @@ export class L2TechniciansSettingsComponent implements OnInit {
   }
 
   add(): void {
-    const a = this.agents.find(x => x.id === this.candidateId);
-    if (a) this.setL2(a, true, () => { this.adding = false; this.candidateId = null; });
+    const c = this.candidate;
+    if (!c) return;
+    // Keep the profile values of someone already known to Ticketing (support staff)
+    const known = this.agents.find(x => x.id === c.id);
+    this.setL2(known ?? { id: c.id, fullName: c.fullName, specialization: c.specialization }, true, () => { this.adding = false; this.candidate = null; });
   }
 
   remove(a: Agent): void {
@@ -46,12 +50,12 @@ export class L2TechniciansSettingsComponent implements OnInit {
     this.setL2(a, false);
   }
 
-  private setL2(a: Agent, l2: boolean, done?: () => void): void {
+  private setL2(a: Pick<Agent, 'id' | 'fullName' | 'specialization' | 'preferredLanguage'>, l2: boolean, done?: () => void): void {
     this.busyId = a.id;
     this.error = '';
     this.settings.updateAgent(a.id, { l2Technician: l2, specialization: a.specialization ?? null, preferredLanguage: a.preferredLanguage ?? null }).subscribe({
       next: updated => {
-        this.agents = this.agents.map(x => x.id === updated.id ? updated : x);
+        this.agents = this.agents.some(x => x.id === updated.id) ? this.agents.map(x => x.id === updated.id ? updated : x) : [...this.agents, updated];
         this.busyId = undefined;
         done?.();
         this.flash(l2 ? `${updated.fullName} is now an L2 technician` : `${updated.fullName} removed from L2`);

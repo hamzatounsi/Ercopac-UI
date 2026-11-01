@@ -1,0 +1,16 @@
+<div class="rep" [class.compact]="compact">
+  <select class="select" [ngModel]="typeId" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onType($event)"
+          [disabled]="disabled || loadingTypes" aria-label="Resource type">
+    <option [ngValue]="null">{{ loadingTypes ? 'Loading resource types…' : typesError ? 'Resource types unavailable' : types.length ? 'Resource type…' : 'No resource types' }}</option>
+    <option *ngFor="let t of types" [ngValue]="t.id">{{ t.label }}</option>
+  </select>
+  <select class="select" [ngModel]="selectedId" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onEmployee($event)"
+          [disabled]="disabled || !typeId || loadingEmployees" aria-label="Employee">
+    <option [ngValue]="null">{{ employeeHint }}</option>
+    <option *ngIf="missing" [ngValue]="selectedId">{{ employeeName || 'Current selection' }}</option>
+    <option *ngFor="let e of available" [ngValue]="e.id">{{ e.fullName }}<ng-container *ngIf="e.specialization"> · {{ e.specialization }}</ng-container></option>
+  </select>
+  <small class="field-error" *ngIf="typesError || employeesError">
+    {{ typesError || employeesError }} <button type="button" class="rep-retry" (click)="retry()">Retry</button>
+  </small>
+</div>

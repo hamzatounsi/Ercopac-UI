@@ -24,6 +24,10 @@ import { LanguageSettingsComponent } from './pages/language-settings/language-se
 import { TicketingLayoutComponent } from './components/ticketing-layout/ticketing-layout.component';
 import { TicketNotificationsComponent } from './components/ticket-notifications/ticket-notifications.component';
 
+// Reusable form parts
+import { SelectOrManualComponent } from './components/select-or-manual/select-or-manual.component';
+import { ResourceEmployeePickerComponent } from './components/resource-employee-picker/resource-employee-picker.component';
+
 @NgModule({
   declarations: [
     TicketDashboardPageComponent,
@@ -39,7 +43,9 @@ import { TicketNotificationsComponent } from './components/ticket-notifications/
     L2TechniciansSettingsComponent,
     LanguageSettingsComponent,
     TicketingLayoutComponent,
-    TicketNotificationsComponent
+    TicketNotificationsComponent,
+    SelectOrManualComponent,
+    ResourceEmployeePickerComponent
   ],
   imports: [
     CommonModule,

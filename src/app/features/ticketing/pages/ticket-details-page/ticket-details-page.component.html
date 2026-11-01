@@ -59,11 +59,13 @@
           <div class="field"><label>Case #</label><div class="mono">{{ d.ticket.ticketNumber }}</div></div>
           <div class="field"><label>Customer</label>
             <div>
-              <span class="link" *ngIf="!editable">{{ d.ticket.customer?.name || 'No customer' }}</span>
-              <select *ngIf="editable" class="inline-select" [ngModel]="d.ticket.customer?.id ?? null" (ngModelChange)="setCustomer($event)" [disabled]="saving" aria-label="Customer">
-                <option [ngValue]="null">No customer</option>
-                <option *ngFor="let c of options.customers" [ngValue]="c.id">{{ c.name }}</option>
-              </select>
+              <span class="link" *ngIf="!editable">{{ d.ticket.customer?.name || 'No customer' }}<small class="manual-tag" *ngIf="d.ticket.customer && d.ticket.customer.id == null">manual</small></span>
+              <app-select-or-manual *ngIf="editable" label="Customer" [compact]="true" [options]="customerOptions" [selectedId]="customerManual ? null : (d.ticket.customer?.id ?? null)"
+                                    [selectedLabel]="d.ticket.customer?.name" (selectedIdChange)="setCustomer($event)" [manual]="customerManual" (manualChange)="setCustomerManual($event)"
+                                    [disabled]="saving" noneLabel="No customer" emptyText="No customers yet" manualLabel="Enter manually" linkedLabel="Choose existing">
+                <input class="inline-select" [(ngModel)]="customerDraft" [ngModelOptions]="{ standalone: true }" maxlength="180" placeholder="Customer name" aria-label="Customer name" (keydown.enter)="saveManualCustomer()">
+                <button type="button" class="ghost small" (click)="saveManualCustomer()" [disabled]="saving || !customerDraft.trim()">Save customer</button>
+              </app-select-or-manual>
             </div>
           </div>
           <div class="field"><label>Site</label>
@@ -110,12 +112,20 @@
           </div>
           <div class="field"><label>Project</label>
             <div>
-              <span *ngIf="d.ticket.project; else noProject"><span class="material-symbols-outlined">folder</span> {{ d.ticket.project.name }}</span>
+              <span *ngIf="d.ticket.project; else noProject"><span class="material-symbols-outlined">folder</span> {{ d.ticket.project.name }}<small class="manual-tag" *ngIf="d.ticket.project.id == null">manual</small></span>
               <ng-template #noProject><span class="muted">None</span></ng-template>
-              <select *ngIf="editable && d.ticket.customer" class="inline-select" [ngModel]="d.ticket.project?.id ?? null" (ngModelChange)="setContext({ projectId: $event })" [disabled]="saving" aria-label="Project">
-                <option [ngValue]="null">{{ options.projects.length ? 'No project' : 'No project for this customer' }}</option>
-                <option *ngFor="let p of options.projects" [ngValue]="p.id">{{ p.name }}</option>
-              </select>
+              <small class="muted block" *ngIf="d.ticket.project && (d.ticket.projectNumber || d.ticket.projectYear)">
+                <ng-container *ngIf="d.ticket.projectNumber">No. {{ d.ticket.projectNumber }}</ng-container><ng-container *ngIf="d.ticket.projectNumber && d.ticket.projectYear"> · </ng-container><ng-container *ngIf="d.ticket.projectYear">{{ d.ticket.projectYear }}</ng-container>
+              </small>
+              <app-select-or-manual *ngIf="editable" label="Project" [compact]="true" [options]="projectOptions" [selectedId]="projectManual ? null : (d.ticket.project?.id ?? null)"
+                                    [selectedLabel]="d.ticket.project?.name" (selectedIdChange)="setProject($event)" [manual]="projectManual" (manualChange)="setProjectManual($event)"
+                                    [disabled]="saving" noneLabel="No project" [emptyText]="d.ticket.customer?.id ? 'No project for this customer' : 'No Projectum project'"
+                                    manualLabel="Enter manually" linkedLabel="Choose from Projectum">
+                <input class="inline-select" [(ngModel)]="projectDraft.name" [ngModelOptions]="{ standalone: true }" maxlength="250" placeholder="Project name *" aria-label="Project name">
+                <input class="inline-select" [(ngModel)]="projectDraft.number" [ngModelOptions]="{ standalone: true }" maxlength="60" placeholder="Project number" aria-label="Project number">
+                <input class="inline-select" type="number" min="1900" max="2100" step="1" [(ngModel)]="projectDraft.year" [ngModelOptions]="{ standalone: true }" placeholder="Year" aria-label="Project year">
+                <button type="button" class="ghost small" (click)="saveManualProject()" [disabled]="saving || !projectDraft.name.trim()">Save project</button>
+              </app-select-or-manual>
             </div>
           </div>
           <div class="field"><label>Equipment</label>
@@ -126,7 +136,7 @@
                 <small class="muted block" *ngIf="e.typeName">{{ e.typeName }}</small>
               </ng-container>
               <ng-template #noEquipment><span class="muted">None</span></ng-template>
-              <select *ngIf="editable && d.ticket.customer" class="inline-select" [ngModel]="d.equipment?.id ?? null" (ngModelChange)="setContext({ equipmentId: $event })" [disabled]="saving" aria-label="Equipment">
+              <select *ngIf="editable && d.ticket.customer?.id" class="inline-select" [ngModel]="d.equipment?.id ?? null" (ngModelChange)="setContext({ equipmentId: $event })" [disabled]="saving" aria-label="Equipment">
                 <option [ngValue]="null">{{ options.equipment.length ? 'No equipment' : 'No registered equipment' }}</option>
                 <option *ngFor="let e of options.equipment" [ngValue]="e.id">{{ e.name }}<ng-container *ngIf="e.serialNumber"> ({{ e.serialNumber }})</ng-container></option>
               </select>
@@ -275,11 +285,14 @@
             <div><strong>{{ t.fullName }}</strong><small>{{ t.email }}</small></div>
           </div>
           <ng-template #noL2><p class="muted">None assigned</p></ng-template>
-          <select *ngIf="editable" class="inline-select" [ngModel]="d.ticket.l2Technician?.id ?? null" (ngModelChange)="assignL2($event)" [disabled]="saving" aria-label="L2 technician">
-            <option [ngValue]="null">{{ l2Technicians.length ? 'No L2 technician' : 'No L2 technicians configured' }}</option>
-            <option *ngIf="l2OptionMissing(d.ticket.l2Technician?.id)" [ngValue]="d.ticket.l2Technician?.id">{{ d.ticket.l2Technician?.fullName }}</option>
-            <option *ngFor="let t of l2Technicians" [ngValue]="t.id">{{ t.fullName }}<ng-container *ngIf="t.specialization"> · {{ t.specialization }}</ng-container></option>
-          </select>
+          <ng-container *ngIf="editable">
+            <!-- Resource type first, then the L2 technicians of that type -->
+            <app-resource-employee-picker [compact]="true" [l2Only]="true" [resourceTypeId]="l2ResourceTypeId"
+                                          [employeeId]="d.ticket.l2Technician?.id ?? null" [employeeName]="d.ticket.l2Technician?.fullName"
+                                          [disabled]="saving" employeePlaceholder="Assign an L2 technician…" emptyText="No L2 technician of this type"
+                                          (picked)="$event.id !== d.ticket.l2Technician?.id && assignL2($event.id)"></app-resource-employee-picker>
+            <button type="button" class="ghost small l2-remove" *ngIf="d.ticket.l2Technician" (click)="assignL2(null)" [disabled]="saving">Remove L2 technician</button>
+          </ng-container>
         </div>
       </section>
 

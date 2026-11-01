@@ -11,25 +11,49 @@
     <p class="error" *ngIf="error">{{ error }}</p>
 
     <form class="form-grid" (ngSubmit)="submit()" novalidate>
-      <!-- 1. Customer -->
-      <label class="full">Customer
-        <select *ngIf="isStaff; else ownCustomer" class="select" name="customer" [ngModel]="form.customerId" (ngModelChange)="loadOptions($event)">
-          <option [ngValue]="null">No customer</option>
-          <option *ngFor="let c of options.customers" [ngValue]="c.id">{{ c.name }}</option>
-        </select>
-        <ng-template #ownCustomer>
+      <!-- 1. Customer: a Projectum customer, or a manual entry for historical / external customers (staff) -->
+      <div class="full" *ngIf="isStaff; else ownCustomer">
+        <app-select-or-manual label="Customer" [options]="customerOptions" [selectedId]="form.customerId" (selectedIdChange)="loadOptions($event)"
+                              [manual]="customerManual" (manualChange)="setCustomerManual($event)" [loading]="loadingOptions" [error]="optionsError"
+                              (retry)="loadOptions(form.customerId)" noneLabel="No customer" emptyText="No customers yet"
+                              manualLabel="Add customer manually" linkedLabel="Choose an existing customer">
+          <input class="input" name="customerName" [(ngModel)]="form.customerName" maxlength="180" placeholder="Customer name (historical or external)"
+                 aria-label="Customer name" [class.invalid]="submitted && customerError">
+          <span class="field-error" *ngIf="submitted && customerError">{{ customerError }}</span>
+        </app-select-or-manual>
+        <small class="muted-sm" *ngIf="!customerManual && !options.customers.length && !loadingOptions && !optionsError">No customers yet: add them in Settings › Customers or enter one manually.</small>
+      </div>
+      <ng-template #ownCustomer>
+        <label class="full">Customer
           <input class="input" [value]="options.customers.length ? options.customers[0].name : 'Not linked to a customer yet'" disabled>
-        </ng-template>
-        <small class="muted-sm" *ngIf="isStaff && !options.customers.length && !loadingOptions">No customers yet: add them in Settings › Customers.</small>
-      </label>
+        </label>
+      </ng-template>
 
-      <!-- 2. Project, 3. Site, 4. Equipment of that customer -->
-      <label>Project
-        <select class="select" name="project" [(ngModel)]="form.projectId" [disabled]="!form.customerId || loadingOptions">
-          <option [ngValue]="null">{{ form.customerId ? (options.projects.length ? 'No project' : 'No project for this customer') : 'Choose a customer first' }}</option>
-          <option *ngFor="let p of options.projects" [ngValue]="p.id">{{ p.name }}<ng-container *ngIf="p.code"> ({{ p.code }})</ng-container></option>
-        </select>
-      </label>
+      <!-- 2. Project: Projectum project (of the chosen customer when there is one) or manual entry -->
+      <div class="full project-block">
+        <app-select-or-manual label="Project" [options]="projectOptions" [selectedId]="form.projectId" (selectedIdChange)="selectProject($event)"
+                              [manual]="projectManual" (manualChange)="setProjectManual($event)" [allowManual]="isStaff" [loading]="loadingOptions"
+                              [disabled]="!isStaff && !form.customerId" noneLabel="No project"
+                              [emptyText]="form.customerId ? 'No Projectum project for this customer' : 'No Projectum project'"
+                              manualLabel="Enter project manually" linkedLabel="Choose a Projectum project"></app-select-or-manual>
+        <div class="project-fields" *ngIf="projectManual || form.projectId">
+          <label>Project name<ng-container *ngIf="projectManual"> *</ng-container>
+            <input class="input" name="projectName" [(ngModel)]="form.projectName" maxlength="250" [readonly]="!projectManual"
+                   [class.invalid]="submitted && projectError">
+          </label>
+          <label>Project number
+            <input class="input" name="projectNumber" [(ngModel)]="form.projectNumber" maxlength="60" [readonly]="!projectManual">
+          </label>
+          <label>Year
+            <input class="input" name="projectYear" type="number" min="1900" max="2100" step="1" [(ngModel)]="form.projectYear" [readonly]="!projectManual"
+                   [class.invalid]="submitted && yearError">
+          </label>
+          <span class="field-error full" *ngIf="submitted && (projectError || yearError)">{{ projectError || yearError }}</span>
+          <small class="muted-sm full" *ngIf="!projectManual">Filled from Projectum and saved with the ticket.</small>
+        </div>
+      </div>
+
+      <!-- 3. Site, 4. Equipment of a registered customer -->
 
       <label>Site
         <select *ngIf="options.sites.length; else freeSite" class="select" name="site" [(ngModel)]="form.site">
@@ -43,7 +67,7 @@
 
       <label class="full">Equipment
         <select class="select" name="equipment" [(ngModel)]="form.equipmentId" (ngModelChange)="onEquipment($event)" [disabled]="!form.customerId || loadingOptions">
-          <option [ngValue]="null">{{ options.equipment.length ? 'No equipment' : 'No registered equipment' }}</option>
+          <option [ngValue]="null">{{ !form.customerId ? 'Equipment is registered on existing customers' : options.equipment.length ? 'No equipment' : 'No registered equipment' }}</option>
           <option *ngFor="let e of options.equipment" [ngValue]="e.id">{{ e.name }}<ng-container *ngIf="e.typeName"> · {{ e.typeName }}</ng-container><ng-container *ngIf="e.serialNumber"> — S/N {{ e.serialNumber }}</ng-container></option>
         </select>
       </label>

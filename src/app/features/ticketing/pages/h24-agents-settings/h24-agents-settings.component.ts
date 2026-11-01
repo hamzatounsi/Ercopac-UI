@@ -4,8 +4,8 @@ import { Agent, LANGUAGES } from '../../models/ticket.models';
 import { TicketSettingsService } from '../../services/ticket-settings.service';
 import { TICKETING_LEAD_ROLES } from '../../ticketing-roles';
 
-// Support team (H24 agents and leads) with their workload; leads edit specialisation, language and the L2 flag.
-// Accounts themselves are created in the admin user management.
+// H24 team with their workload: users holding the H24 / H24_LEAD role or the H24 resource type (queried by the backend).
+// Leads edit specialisation, language and the L2 flag; accounts themselves are created in the admin user management.
 @Component({
   selector: 'app-h24-agents-settings',
   templateUrl: './h24-agents-settings.component.html',
@@ -29,7 +29,7 @@ export class H24AgentsSettingsComponent implements OnInit {
   load(): void {
     this.loading = true;
     this.error = '';
-    this.settings.agents().subscribe({
+    this.settings.agents('H24').subscribe({
       next: a => { this.agents = a; this.loading = false; },
       error: e => { this.error = e.error?.message || 'The support team could not be loaded.'; this.loading = false; }
     });

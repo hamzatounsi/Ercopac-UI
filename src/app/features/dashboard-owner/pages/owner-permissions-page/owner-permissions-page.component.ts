@@ -176,7 +176,9 @@ export class OwnerPermissionsPageComponent implements OnInit {
       SALES_MANAGER_LEAD: 'Sales Manager Lead',
       SALES_MANAGER: 'Sales Manager',
       SYSTEM_ENGINEER: 'System Engineer',
-      CLIENT: 'Client'
+      CLIENT: 'Client',
+      H24: 'H24 Agent',
+      H24_LEAD: 'H24 Lead'
     } as Record<string, string>)[role] || role.replaceAll('_', ' ');
   }
 

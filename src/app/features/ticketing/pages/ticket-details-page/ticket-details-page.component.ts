@@ -7,6 +7,7 @@ import {
   TicketPriority, TicketStatus, UserSummary
 } from '../../models/ticket.models';
 import { TicketContext, TicketService } from '../../services/ticket.service';
+import { PickOption } from '../../components/select-or-manual/select-or-manual.component';
 import { TicketSettingsService } from '../../services/ticket-settings.service';
 import { TicketChatService } from '../../services/ticket-chat.service';
 import { TicketPdfService } from '../../services/ticket-pdf.service';
@@ -58,6 +59,12 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
   internal = false;
   collapsed: Record<string, boolean> = { activities: true };
   editing: Partial<Record<RcaField, string>> = {};
+
+  // Customer / project: linked to Projectum or entered by hand (drafts are saved with the Save button)
+  customerManual = false;
+  projectManual = false;
+  customerDraft = '';
+  projectDraft = { name: '', number: '', year: null as number | null };
 
   // Translation: messages from others are shown in my language; my public replies are sent in the client's language
   myLanguage = 'en';
@@ -124,6 +131,7 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
       next: d => {
         const customerChanged = d.ticket.customer?.id !== this.details?.ticket.customer?.id || !this.details;
         this.details = d;
+        this.syncContextDrafts();
         this.busy = false;
         if (d.canManage) {
           if (!this.agents.length) this.api.agents().subscribe({ next: a => this.agents = a, error: () => this.agents = [] });
@@ -144,13 +152,49 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
   assignTo(assigneeId: number | null): void { this.apply(this.api.assign(this.id, assigneeId, this.version), assigneeId ? 'H24 agent assigned' : 'H24 agent removed'); }
   assignL2(assigneeId: number | null): void { this.apply(this.api.assignL2(this.id, assigneeId, this.version), assigneeId ? 'L2 technician assigned' : 'L2 technician removed'); }
 
-  setCustomer(customerId: number | null): void {
-    // Site, project and equipment belong to the previous customer
-    this.saveContext({ customerId, site: null, projectId: null, equipmentId: null }, 'Customer updated');
+  get customerOptions(): PickOption[] { return this.options.customers.map(c => ({ id: c.id, label: c.name })); }
+  get projectOptions(): PickOption[] {
+    return this.options.projects.map(p => ({ id: p.id, label: p.name, hint: [p.code, p.year].filter(v => v != null && v !== '').join(' · ') || undefined }));
   }
-  setContext(change: Partial<TicketContext>): void {
+  /** Resource type of the current L2 technician, so the cascading choice opens on it. */
+  get l2ResourceTypeId(): number | null {
+    const id = this.details?.ticket.l2Technician?.id;
+    return this.l2Technicians.find(a => a.id === id)?.resourceTypeId ?? null;
+  }
+
+  setCustomer(customerId: number | null): void {
+    // Site, project and equipment belong to the previous customer; a manual project is kept
     const t = this.details!.ticket;
-    const next: TicketContext = { customerId: t.customer?.id ?? null, site: t.site ?? null, projectId: t.project?.id ?? null, equipmentId: this.details!.equipment?.id ?? null, ...change };
+    const keep = t.project && t.project.id == null ? this.currentContext() : null;
+    this.saveContext({ customerId, site: null, projectId: null, equipmentId: null,
+      projectName: keep?.projectName ?? null, projectNumber: keep?.projectNumber ?? null, projectYear: keep?.projectYear ?? null }, 'Customer updated');
+  }
+  setCustomerManual(on: boolean): void {
+    this.customerManual = on;
+    this.customerDraft = on && this.details?.ticket.customer?.id == null ? this.details?.ticket.customer?.name ?? '' : '';
+  }
+  saveManualCustomer(): void {
+    const name = this.customerDraft.trim();
+    if (!name) { this.flash('Enter the customer name.'); return; }
+    this.saveContext({ ...this.currentContext(), customerId: null, customerName: name, site: null, equipmentId: null }, 'Customer updated');
+  }
+
+  setProject(projectId: number | null): void { this.setContext({ projectId, projectName: null, projectNumber: null, projectYear: null }); }
+  setProjectManual(on: boolean): void {
+    this.projectManual = on;
+    const p = this.details?.ticket;
+    this.projectDraft = on && p?.project && p.project.id == null ? { name: p.project.name, number: p.projectNumber ?? '', year: p.projectYear ?? null } : { name: '', number: '', year: null };
+  }
+  saveManualProject(): void {
+    const name = this.projectDraft.name.trim();
+    const year = this.projectDraft.year;
+    if (!name) { this.flash('Enter the project name.'); return; }
+    if (year != null && (!Number.isInteger(+year) || +year < 1900 || +year > 2100)) { this.flash('Year must be between 1900 and 2100.'); return; }
+    this.setContext({ projectId: null, projectName: name, projectNumber: this.projectDraft.number.trim() || null, projectYear: year == null ? null : +year });
+  }
+
+  setContext(change: Partial<TicketContext>): void {
+    const next: TicketContext = { ...this.currentContext(), ...change };
     // Picking equipment fills the site it is installed at
     if (change.equipmentId) {
       const item = this.options.equipment.find(e => e.id === change.equipmentId);
@@ -227,9 +271,29 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
   label(v: string): string { return (v || '').replace(/_/g, ' ').toLowerCase().replace(/^\w/, c => c.toUpperCase()); }
   languageName(code: string): string { return LANGUAGES.find(l => l.code === code)?.label ?? code; }
   agentOptionMissing(id?: number): boolean { return !!id && !this.agents.some(a => a.id === id); }
-  l2OptionMissing(id?: number): boolean { return !!id && !this.l2Technicians.some(a => a.id === id); }
 
   private get version(): number { return this.details!.version; }
+
+  /** Context as saved on the ticket; manual customers / projects are sent back by name so they are kept. */
+  private currentContext(): TicketContext {
+    const t = this.details!.ticket;
+    const manualCustomer = !!t.customer && t.customer.id == null;
+    const manualProject = !!t.project && t.project.id == null;
+    return {
+      customerId: t.customer?.id ?? null, customerName: manualCustomer ? t.customer!.name : null,
+      site: t.site ?? null, equipmentId: this.details!.equipment?.id ?? null,
+      projectId: t.project?.id ?? null, projectName: manualProject ? t.project!.name : null,
+      projectNumber: manualProject ? t.projectNumber ?? null : null, projectYear: manualProject ? t.projectYear ?? null : null
+    };
+  }
+
+  private syncContextDrafts(): void {
+    const t = this.details?.ticket;
+    this.customerManual = !!t?.customer && t.customer.id == null;
+    this.projectManual = !!t?.project && t.project.id == null;
+    this.setCustomerManual(this.customerManual);
+    this.setProjectManual(this.projectManual);
+  }
 
   private apply(request: ReturnType<TicketService['status']>, done: string): void {
     if (!this.details?.canManage) return;
@@ -248,6 +312,7 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
       next: d => {
         const customerChanged = d.ticket.customer?.id !== this.details?.ticket.customer?.id;
         this.details = d;
+        this.syncContextDrafts();
         this.saving = false;
         if (customerChanged) this.loadOptions(d.ticket.customer?.id ?? null);
         this.flash(done);

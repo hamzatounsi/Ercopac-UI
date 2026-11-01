@@ -1,0 +1,24 @@
+<div class="som" [class.compact]="compact">
+  <div class="som-head">
+    <span class="som-label" *ngIf="label">{{ label }}</span>
+    <span class="som-tag" *ngIf="manual">Manual entry</span>
+    <button type="button" class="som-switch" *ngIf="allowManual && !disabled" (click)="toggle()">{{ manual ? linkedLabel : manualLabel }}</button>
+  </div>
+
+  <ng-container *ngIf="!manual; else manualFields">
+    <input *ngIf="searchable" class="input som-search" type="search" [(ngModel)]="query" [ngModelOptions]="{ standalone: true }"
+           placeholder="Search…" [attr.aria-label]="'Search ' + label" [disabled]="disabled || loading">
+    <select class="select" [ngModel]="selectedId" [ngModelOptions]="{ standalone: true }" (ngModelChange)="select($event)"
+            [disabled]="disabled || loading" [attr.aria-label]="label">
+      <option [ngValue]="null">{{ placeholder }}</option>
+      <option *ngIf="pinned as p" [ngValue]="p.id">{{ p.label }}</option>
+      <option *ngFor="let o of filtered" [ngValue]="o.id">{{ o.label }}<ng-container *ngIf="o.hint"> · {{ o.hint }}</ng-container></option>
+    </select>
+    <small class="som-note" *ngIf="searchable && query && !filtered.length">No match for “{{ query }}”.</small>
+    <small class="field-error" *ngIf="error">{{ error }} <button type="button" class="som-switch" (click)="retry.emit()">Retry</button></small>
+  </ng-container>
+
+  <ng-template #manualFields>
+    <div class="som-manual"><ng-content></ng-content></div>
+  </ng-template>
+</div>

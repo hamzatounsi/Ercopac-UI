@@ -1,19 +1,17 @@
 <div class="set-head">
   <div>
     <h2>L2 Technicians</h2>
-    <p>Level 2 specialists assigned by H24 agents when escalation is needed.</p>
+    <p>Level 2 specialists assigned by H24 agents when escalation is needed. Pick them among the Projectum employees by resource type.</p>
   </div>
-  <button class="primary small" *ngIf="isLead && !adding" (click)="adding = true" [disabled]="loading || !candidates.length">+ Add L2</button>
+  <button class="primary small" *ngIf="isLead && !adding" (click)="adding = true" [disabled]="loading">+ Add L2</button>
 </div>
 <p class="readonly-note" *ngIf="!isLead">Only support leads can change who is an L2 technician.</p>
 
 <form class="add-row" *ngIf="adding" (ngSubmit)="add()">
-  <select class="select" name="candidate" [(ngModel)]="candidateId" aria-label="Support member">
-    <option [ngValue]="null">Choose a support member…</option>
-    <option *ngFor="let c of candidates" [ngValue]="c.id">{{ c.fullName }}<ng-container *ngIf="c.specialization"> · {{ c.specialization }}</ng-container></option>
-  </select>
-  <button type="button" class="ghost small" (click)="adding = false; candidateId = null">Cancel</button>
-  <button type="submit" class="primary small" [disabled]="!candidateId || busyId">Add</button>
+  <app-resource-employee-picker class="picker" [excludeIds]="technicianIds" employeePlaceholder="Choose an employee…"
+                                emptyText="No other employee of this type" (picked)="candidate = $event"></app-resource-employee-picker>
+  <button type="button" class="ghost small" (click)="adding = false; candidate = null">Cancel</button>
+  <button type="submit" class="primary small" [disabled]="!candidate || busyId">Add</button>
 </form>
 
 <div class="state" *ngIf="loading">Loading…</div>
@@ -22,10 +20,11 @@
 
 <div class="table-wrap" *ngIf="!loading && technicians.length">
   <table class="set-table">
-    <thead><tr><th>Name</th><th>Specialisation</th><th>Level</th><th>Open L2 tickets</th><th>Status</th><th *ngIf="isLead"></th></tr></thead>
+    <thead><tr><th>Name</th><th>Resource type</th><th>Specialisation</th><th>Level</th><th>Open L2 tickets</th><th>Status</th><th *ngIf="isLead"></th></tr></thead>
     <tbody>
       <tr *ngFor="let t of technicians">
         <td class="strong">{{ t.fullName }}<small>{{ t.email }}</small></td>
+        <td>{{ t.resourceType || '—' }}</td>
         <td>{{ t.specialization || '—' }}</td>
         <td><span class="badge c-red">L2</span></td>
         <td>{{ t.l2OpenTickets }}</td>
