@@ -47,7 +47,9 @@ for (const s of statuses) {
 }
 for (const bg of ['pm-surface', 'pm-surface-muted']) checks.push(['pm-input-border', bg, 3, 'input border (UI component)']);
 for (let i = 1; i <= 6; i++) checks.push([`pm-chart-${i}`, 'pm-surface', 3, 'chart series (graphics)']);
-checks.push(['pm-chrome-text', 'pm-chrome-bg', 4.5, 'sidebar text'], ['pm-chrome-muted', 'pm-chrome-bg', 4.5, 'sidebar muted'], ['pm-chrome-text', 'pm-chrome-surface', 4.5, 'sidebar active']);
+checks.push(['pm-chrome-text', 'pm-chrome-bg', 4.5, 'sidebar text'], ['pm-chrome-muted', 'pm-chrome-bg', 4.5, 'sidebar muted'], ['pm-chrome-text', 'pm-chrome-surface', 4.5, 'sidebar active'],
+  ['pm-chrome-muted', 'pm-chrome-surface', 4.5, 'sidebar muted on card'], ['pm-chrome-accent', 'pm-chrome-bg', 4.5, 'sidebar accent'],
+  ['pm-chrome-accent', 'pm-chrome-surface', 4.5, 'sidebar accent on card'], ['pm-chrome-danger', 'pm-chrome-bg', 4.5, 'sidebar danger']);
 
 let failures = 0;
 for (const [name, t] of Object.entries(themes)) {

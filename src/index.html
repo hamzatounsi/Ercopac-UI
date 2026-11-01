@@ -11,7 +11,7 @@
       }
       root.setAttribute('data-theme', theme);
       if (lang && /^[a-z]{2}$/.test(lang)) {
-        root.setAttribute('lang', lang);
+        root.setAttribute('lang', lang === 'zh' ? 'zh-Hans' : lang);
         root.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
       }
     })();

@@ -9,10 +9,10 @@
 .owner-sidebar {
   width: 276px;
   background: linear-gradient(180deg, var(--pm-chrome-bg) 0%, var(--pm-chrome-bg) 100%);
-  color: var(--pm-text-soft);
+  color: var(--pm-chrome-muted);
   display: flex;
   flex-direction: column;
-  border-right: 1px solid color-mix(in srgb, var(--pm-surface) 8%, transparent);
+  border-right: 1px solid color-mix(in srgb, var(--pm-chrome-text) 8%, transparent);
   box-shadow: 8px 0 28px rgba(15, 23, 42, 0.16);
 }
 
@@ -22,7 +22,7 @@
   align-items: center;
   gap: 14px;
   padding: 0 20px;
-  border-bottom: 1px solid color-mix(in srgb, var(--pm-surface) 8%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--pm-chrome-text) 8%, transparent);
 }
 
 .brand-mark,
@@ -47,13 +47,13 @@
 }
 
 .brand-title span {
-  color: var(--pm-primary-text);
+  color: var(--pm-chrome-accent);
 }
 
 .brand-subtitle {
   margin-top: 3px;
   font-size: 12px;
-  color: var(--pm-text-soft);
+  color: var(--pm-chrome-muted);
 }
 
 .sidebar-nav {
@@ -70,7 +70,7 @@
   display: flex;
   align-items: center;
   gap: 13px;
-  color: var(--pm-text-soft);
+  color: var(--pm-chrome-text);
   text-decoration: none;
   font-size: 14px;
   font-weight: 600;
@@ -78,7 +78,7 @@
 }
 
 .nav-item:hover {
-  background: color-mix(in srgb, var(--pm-surface) 8%, transparent);
+  background: color-mix(in srgb, var(--pm-chrome-text) 8%, transparent);
   color: var(--pm-on-accent);
 }
 
@@ -98,7 +98,7 @@
 .sidebar-bottom {
   margin-top: auto;
   padding: 16px 12px 18px;
-  border-top: 1px solid color-mix(in srgb, var(--pm-surface) 8%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--pm-chrome-text) 8%, transparent);
 }
 
 .signout-btn {
@@ -106,7 +106,7 @@
   height: 42px;
   background: transparent;
   border: none;
-  color: var(--pm-text-soft);
+  color: var(--pm-chrome-text);
   display: flex;
   align-items: center;
   gap: 13px;
@@ -125,13 +125,13 @@
 
 .signout-btn:hover {
   background: color-mix(in srgb, var(--pm-danger) 12%, transparent);
-  color: var(--pm-danger-text);
+  color: var(--pm-chrome-danger);
 }
 
 .owner-card {
   margin-top: 12px;
-  background: color-mix(in srgb, var(--pm-surface) 8%, transparent);
-  border: 1px solid color-mix(in srgb, var(--pm-surface) 10%, transparent);
+  background: color-mix(in srgb, var(--pm-chrome-text) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--pm-chrome-text) 10%, transparent);
   border-radius: var(--pm-radius-lg);
   padding: 13px;
   display: flex;
@@ -156,7 +156,7 @@
   display: block;
   margin-top: 2px;
   font-size: 11px;
-  color: var(--pm-text-soft);
+  color: var(--pm-chrome-muted);
 }
 
 .owner-main {

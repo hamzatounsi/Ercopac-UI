@@ -233,7 +233,7 @@
 
 .kpi-sub {
   font-size: 12px;
-  color: var(--pm-text-soft);
+  color: var(--pm-chrome-muted);
   margin-top: 4px;
 }
 
@@ -1019,7 +1019,7 @@ body > .settings-overlay * {
 }
 
 .hero-btn.ghost {
-  background: color-mix(in srgb, var(--pm-surface) 14%, transparent);
+  background: color-mix(in srgb, var(--pm-chrome-text) 14%, transparent);
   color: var(--pm-on-accent);
 }
 

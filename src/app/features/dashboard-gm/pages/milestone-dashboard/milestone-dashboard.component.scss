@@ -89,7 +89,7 @@ $col-pm: 60px;
 .months-row { display: flex; border-bottom: 1px solid $border; height: 32px; }
 .month-cell { display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; color: $text-muted; border-right: 1px solid var(--pm-border-strong); flex-shrink: 0; }
 .days-row { display: flex; height: 22px; }
-.day-cell { display: flex; align-items: center; justify-content: center; font-size: 9px; color: $text-muted; border-right: 1px solid $border-light; flex-shrink: 0; &.is-weekend { background: $weekend-bg; color: var(--pm-text-soft); } }
+.day-cell { display: flex; align-items: center; justify-content: center; font-size: 9px; color: $text-muted; border-right: 1px solid $border-light; flex-shrink: 0; &.is-weekend { background: $weekend-bg; color: var(--pm-chrome-muted); } }
 
 /* ---- Body ---- */
 .timeline-row { display: flex; min-height: 48px; border-bottom: 1px solid $border-light; background: var(--pm-surface); &:hover { background: var(--pm-surface-muted); } &:hover .fixed-cols--body { background: var(--pm-surface-muted); } }
