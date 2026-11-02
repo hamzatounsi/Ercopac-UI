@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { GmDashboardService } from '../../services/gm-dashboard.service';
 import { ProjectDashboardRow } from '../../models/project-dashboard-row.model';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 @Component({
   selector: 'app-gm-dashboard-page',
@@ -17,7 +18,7 @@ export class GmDashboardPageComponent implements OnInit {
 
   search = '';
 
-  constructor(private gmService: GmDashboardService) {}
+  constructor(private readonly i18n: I18nService, private gmService: GmDashboardService) {}
 
   ngOnInit(): void {
     this.load();
@@ -37,7 +38,7 @@ export class GmDashboardPageComponent implements OnInit {
       },
       error: (err) => {
         this.projects = [];
-        this.error = err?.error?.message || err?.message || 'Failed to load projects';
+        this.error = this.i18n.error(err, 'gm.dashboard.failedLoadProjects');
         this.loading = false;
       },
       complete: () => {

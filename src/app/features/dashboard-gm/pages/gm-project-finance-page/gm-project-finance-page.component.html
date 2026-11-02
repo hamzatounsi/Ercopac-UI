@@ -1,57 +1,57 @@
 <div class="finance-shell">
-  <app-projectum-workspace-header [projectId]="projectId" [projectName]="projectName" title="Finance" subtitle="Budget, actual cost, forecast, EAC, variance and CPI tracking.">
+  <app-projectum-workspace-header [projectId]="projectId" [projectName]="projectName" [title]="'gm.finance.finance' | translate" [subtitle]="'gm.finance.budgetActualCostForecast' | translate">
     <button projectumHeaderActions class="hero-btn ghost" type="button" (click)="loadData()">
-      <span class="material-symbols-outlined">refresh</span> Refresh
+      <span class="material-symbols-outlined">refresh</span> {{ 'gm.finance.refresh' | translate }}
     </button>
     <button projectumHeaderActions class="hero-btn primary" type="button" (click)="openSettings()">
-      <span class="material-symbols-outlined">settings</span> Finance Settings
+      <span class="material-symbols-outlined">settings</span> {{ 'gm.finance.financeSettings' | translate }}
     </button>
   </app-projectum-workspace-header>
 
   <section class="erp-toolbar">
     <button class="tb-btn success" type="button" (click)="connectErp()" [disabled]="erpConnecting">
-      <span class="material-symbols-outlined">hub</span> {{ erpConnecting ? 'Connecting...' : 'Connect ERP' }}
+      <span class="material-symbols-outlined">hub</span> {{ erpConnecting ? ('gm.finance.connecting' | translate) : ('gm.finance.connectErp' | translate) }}
     </button>
     <label class="tb-btn file-btn">
-      <span class="material-symbols-outlined">upload_file</span> Import Excel
+      <span class="material-symbols-outlined">upload_file</span> {{ 'gm.finance.importExcel' | translate }}
       <input type="file" (change)="onFileUpload($event)" accept=".xlsx,.xls" hidden />
     </label>
     <div class="toolbar-spacer"></div>
     <select class="tb-sel" [(ngModel)]="levelFilter" (change)="applyFilters()">
-      <option value="">All Levels</option>
-      <option value="1">Level 1</option>
-      <option value="2">Level 2</option>
-      <option value="3">Level 3</option>
-      <option value="4">Level 4</option>
+      <option value="">{{ 'gm.finance.allLevels' | translate }}</option>
+      <option value="1">{{ 'gm.finance.level1' | translate }}</option>
+      <option value="2">{{ 'gm.finance.level2' | translate }}</option>
+      <option value="3">{{ 'gm.finance.level3' | translate }}</option>
+      <option value="4">{{ 'gm.finance.level4' | translate }}</option>
     </select>
-    <input class="tb-search" [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="Search WBS or description..." />
+    <input class="tb-search" [(ngModel)]="searchTerm" (input)="applyFilters()" [placeholder]="'gm.finance.searchWbsDescription' | translate" />
     <select class="tb-sel currency-sel" [(ngModel)]="currency" (change)="createCharts()">
-      <option value="EUR">EUR €</option>
-      <option value="USD">USD $</option>
+      <option value="EUR">{{ 'gm.finance.eur' | translate }}</option>
+      <option value="USD">{{ 'gm.finance.usd' | translate }}</option>
     </select>
-    <div class="erp-status"><span class="erp-dot"></span><span>Local data</span></div>
+    <div class="erp-status"><span class="erp-dot"></span><span>{{ 'gm.finance.localData' | translate }}</span></div>
   </section>
 
   <section class="kpi-strip" *ngIf="summary">
-    <div class="kpi-card sales"><span>Total Sales</span><strong>{{ formatMoney(summary.totalSales) }}</strong><small>Contract value</small></div>
-    <div class="kpi-card budget"><span>Total Budget</span><strong>{{ formatMoney(summary.totalBudget) }}</strong><small>Approved cost</small></div>
-    <div class="kpi-card commit"><span>Commitment</span><strong>{{ formatMoney(summary.totalCommitment) }}</strong><small>Ordered PO</small></div>
-    <div class="kpi-card actual"><span>Actual Cost</span><strong>{{ formatMoney(summary.totalActualCost) }}</strong><small>Already spent</small></div>
-    <div class="kpi-card forecast"><span>Forecast</span><strong>{{ formatMoney(summary.totalForecast) }}</strong><small>Cost to complete</small></div>
-    <div class="kpi-card eac"><span>EAC</span><strong>{{ formatMoney(summary.totalEac) }}</strong><small>Estimate at completion</small></div>
+    <div class="kpi-card sales"><span>{{ 'gm.finance.totalSales' | translate }}</span><strong>{{ formatMoney(summary.totalSales) }}</strong><small>{{ 'gm.finance.contractValue' | translate }}</small></div>
+    <div class="kpi-card budget"><span>{{ 'gm.finance.totalBudget' | translate }}</span><strong>{{ formatMoney(summary.totalBudget) }}</strong><small>{{ 'gm.finance.approvedCost' | translate }}</small></div>
+    <div class="kpi-card commit"><span>{{ 'gm.finance.commitment' | translate }}</span><strong>{{ formatMoney(summary.totalCommitment) }}</strong><small>{{ 'gm.finance.orderedPo' | translate }}</small></div>
+    <div class="kpi-card actual"><span>{{ 'gm.finance.actualCost' | translate }}</span><strong>{{ formatMoney(summary.totalActualCost) }}</strong><small>{{ 'gm.finance.alreadySpent' | translate }}</small></div>
+    <div class="kpi-card forecast"><span>{{ 'gm.finance.forecast' | translate }}</span><strong>{{ formatMoney(summary.totalForecast) }}</strong><small>{{ 'gm.finance.costComplete' | translate }}</small></div>
+    <div class="kpi-card eac"><span>{{ 'gm.finance.eac' | translate }}</span><strong>{{ formatMoney(summary.totalEac) }}</strong><small>{{ 'gm.finance.estimateCompletion' | translate }}</small></div>
     <div class="kpi-card variance" [class.positive]="summary.totalVariance >= 0" [class.negative]="summary.totalVariance < 0">
-      <span>Variance</span><strong>{{ formatMoney(summary.totalVariance) }}</strong><small>{{ summary.totalVariance >= 0 ? 'Under budget' : 'Over budget' }}</small>
+      <span>{{ 'gm.finance.variance' | translate }}</span><strong>{{ formatMoney(summary.totalVariance) }}</strong><small>{{ summary.totalVariance >= 0 ? ('gm.finance.underBudget' | translate) : ('gm.finance.overBudget' | translate) }}</small>
     </div>
   </section>
 
   <section class="main-area">
     <main class="finance-main">
       <div class="section-head">
-        <div><h2>WBS Cost Breakdown</h2><p>{{ filteredRows.length }} rows displayed</p></div>
-        <button class="small-action" type="button" (click)="recalculate()"><span class="material-symbols-outlined">calculate</span> Recalculate</button>
+        <div><h2>{{ 'gm.finance.wbsCostBreakdown' | translate }}</h2><p>{{ 'gm.finance.filteredrowsRowsDisplayed' | translate: { filteredRows: filteredRows.length } }}</p></div>
+        <button class="small-action" type="button" (click)="recalculate()"><span class="material-symbols-outlined">calculate</span> {{ 'gm.finance.recalculate' | translate }}</button>
       </div>
 
-      <div *ngIf="loading" class="state-box">Loading finance data...</div>
+      <div *ngIf="loading" class="state-box">{{ 'gm.finance.loadingFinanceData' | translate }}</div>
       <div *ngIf="error" class="state-box error">{{ error }}</div>
       <div *ngIf="actionError" class="state-box error">{{ actionError }}</div>
       <div *ngIf="actionMessage" class="state-box">{{ actionMessage }}</div>
@@ -60,24 +60,24 @@
         <table class="finance-table">
           <thead>
             <tr>
-              <th (click)="sortBy('wbsCode')">WBS</th>
-              <th (click)="sortBy('description')">Description</th>
-              <th (click)="sortBy('level')">Lvl</th>
-              <th (click)="sortBy('sales')">Sales</th>
-              <th (click)="sortBy('budget')">Budget</th>
-              <th (click)="sortBy('commitment')">Commitment</th>
-              <th (click)="sortBy('actualCost')">AC</th>
-              <th (click)="sortBy('forecast')">Forecast</th>
-              <th (click)="sortBy('eac')">EAC</th>
-              <th (click)="sortBy('variance')">Variance</th>
-              <th (click)="sortBy('cpi')">CPI</th>
-              <th (click)="sortBy('percentAc')">% AC</th>
-              <th (click)="sortBy('owner')">Owner</th>
+              <th (click)="sortBy('wbsCode')">{{ 'gm.finance.wbs' | translate }}</th>
+              <th (click)="sortBy('description')">{{ 'common.description' | translate }}</th>
+              <th (click)="sortBy('level')">{{ 'gm.finance.lvl' | translate }}</th>
+              <th (click)="sortBy('sales')">{{ 'gm.finance.sales' | translate }}</th>
+              <th (click)="sortBy('budget')">{{ 'gm.finance.budget' | translate }}</th>
+              <th (click)="sortBy('commitment')">{{ 'gm.finance.commitment' | translate }}</th>
+              <th (click)="sortBy('actualCost')">{{ 'gm.finance.ac' | translate }}</th>
+              <th (click)="sortBy('forecast')">{{ 'gm.finance.forecast' | translate }}</th>
+              <th (click)="sortBy('eac')">{{ 'gm.finance.eac' | translate }}</th>
+              <th (click)="sortBy('variance')">{{ 'gm.finance.variance' | translate }}</th>
+              <th (click)="sortBy('cpi')">{{ 'gm.finance.cpi' | translate }}</th>
+              <th (click)="sortBy('percentAc')">{{ 'gm.finance.ac2' | translate }}</th>
+              <th (click)="sortBy('owner')">{{ 'gm.finance.owner' | translate }}</th>
               <th *ngIf="canWriteFinance"></th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngIf="filteredRows.length === 0"><td [attr.colspan]="canWriteFinance ? 14 : 13" class="empty-row">No finance rows found.</td></tr>
+            <tr *ngIf="filteredRows.length === 0"><td [attr.colspan]="canWriteFinance ? 14 : 13" class="empty-row">{{ 'gm.finance.noFinanceRowsFound' | translate }}</td></tr>
             <tr *ngFor="let row of filteredRows" [ngClass]="'row-l' + row.level">
               <td class="wbs-code">{{ row.wbsCode }}</td>
               <td class="desc-cell" [style.paddingLeft.px]="row.level > 1 ? (row.level - 1) * 18 + 14 : 14">{{ row.description }}</td>
@@ -87,7 +87,7 @@
               <td>{{ row.commitment ? formatMoney(row.commitment) : '0' }}</td>
               <td>{{ row.actualCost ? formatMoney(row.actualCost) : '0' }}</td>
               <td>
-                <input type="number" class="forecast-input" [ngModel]="row.forecast" (change)="updateForecast(row, $any($event.target).value)" min="0" [disabled]="!isForecastEditable(row)" [title]="row.rowType === 'HOUR' ? 'HOUR rows are forecast in hours on the Forecast page' : (row.leaf === false ? 'Parent rows are the sum of their children' : 'Edit forecast value')" />
+                <input type="number" class="forecast-input" [ngModel]="row.forecast" (change)="updateForecast(row, $any($event.target).value)" min="0" [disabled]="!isForecastEditable(row)" [title]="row.rowType === 'HOUR' ? ('gm.finance.hourRowsForecastHours' | translate) : (row.leaf === false ? ('gm.finance.parentRowsSumTheir' | translate) : ('gm.finance.editForecastValue' | translate))" />
               </td>
               <td>{{ row.eac ? formatMoney(row.eac) : '—' }}</td>
               <td [ngClass]="getVarianceClass(row.variance)">{{ row.variance ? formatMoney(row.variance) : '—' }}</td>
@@ -100,7 +100,7 @@
               </td>
               <td class="owner-cell">{{ row.owner || '—' }}</td>
               <td *ngIf="canWriteFinance">
-                <button class="delete-btn" type="button" (click)="deleteWbsNode(row)" title="Delete WBS node">
+                <button class="delete-btn" type="button" (click)="deleteWbsNode(row)" [title]="'gm.finance.deleteWbsNode' | translate">
                   <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
                 </button>
               </td>
@@ -112,21 +112,21 @@
 
     <aside class="finance-sidebar">
       <div class="side-card">
-        <div class="side-title">Cost Breakdown</div>
+        <div class="side-title">{{ 'gm.finance.costBreakdown' | translate }}</div>
         <div class="donut-box"><canvas #donutChart></canvas></div>
         <div class="legend" *ngIf="summary">
-          <div><span class="dot ac-dot"></span>Actual Cost: {{ formatMoney(summary.totalActualCost) }}</div>
-          <div><span class="dot fc-dot"></span>Forecast: {{ formatMoney(summary.totalForecast) }}</div>
-          <div><span class="dot rem-dot"></span>Budget: {{ formatMoney(summary.totalBudget) }}</div>
+          <div><span class="dot ac-dot"></span>{{ 'gm.finance.actualCostTotalactualcost' | translate: { totalActualCost: formatMoney(summary.totalActualCost) } }}</div>
+          <div><span class="dot fc-dot"></span>{{ 'gm.finance.forecastTotalforecast' | translate: { totalForecast: formatMoney(summary.totalForecast) } }}</div>
+          <div><span class="dot rem-dot"></span>{{ 'gm.finance.budgetTotalbudget' | translate: { totalBudget: formatMoney(summary.totalBudget) } }}</div>
         </div>
       </div>
       <div class="side-card">
-        <div class="side-title">Budget vs EAC</div>
+        <div class="side-title">{{ 'gm.finance.budgetVsEac' | translate }}</div>
         <div class="bar-box"><canvas #barChart></canvas></div>
       </div>
       <div class="side-card insight" *ngIf="summary">
-        <div class="side-title">Finance Insight</div>
-        <p>Project is <strong [class.good]="summary.totalVariance >= 0" [class.bad]="summary.totalVariance < 0">{{ summary.totalVariance >= 0 ? 'under budget' : 'over budget' }}</strong> by {{ formatMoney(summary.totalVariance) }}.</p>
+        <div class="side-title">{{ 'gm.finance.financeInsight' | translate }}</div>
+        <p>{{ 'gm.finance.project' | translate }} <strong [class.good]="summary.totalVariance >= 0" [class.bad]="summary.totalVariance < 0">{{ summary.totalVariance >= 0 ? ('gm.finance.underBudget2' | translate) : ('gm.finance.overBudget2' | translate) }}</strong> {{ 'gm.finance.totalvariance' | translate: { totalVariance: formatMoney(summary.totalVariance) } }}</p>
       </div>
     </aside>
   </section>
@@ -137,28 +137,28 @@
   <div class="settings-overlay" #settingsOverlayRef *ngIf="settingsOpen">
     <div class="settings-modal">
       <div class="settings-header">
-        <div class="settings-title">⚙️ Finance Settings</div>
+        <div class="settings-title">{{ 'gm.finance.financeSettings2' | translate }}</div>
         <div class="settings-header-actions">
-          <button class="btn primary" (click)="saveSettings()" [disabled]="settingsSaving">{{ settingsSaving ? 'Saving...' : '💾 Save' }}</button>
-          <button class="btn ghost" (click)="closeSettings()">✕ Close</button>
+          <button class="btn primary" (click)="saveSettings()" [disabled]="settingsSaving">{{ settingsSaving ? ('gm.finance.saving' | translate) : ('gm.finance.save' | translate) }}</button>
+          <button class="btn ghost" (click)="closeSettings()">{{ 'gm.finance.close' | translate }}</button>
         </div>
       </div>
 
       <div class="settings-body">
         <!-- ✅ SIDEBAR MENU -->
         <aside class="settings-sidebar-menu">
-          <button class="settings-tab" [class.active]="activeSettingsTab === 'wbs'" (click)="setSettingsTab('wbs')">📋 WBS Structure</button>
-          <button class="settings-tab" [class.active]="activeSettingsTab === 'import'" (click)="setSettingsTab('import')">📥 Import WBS</button>
-          <button class="settings-tab" [class.active]="activeSettingsTab === 'payments'" (click)="setSettingsTab('payments')">💳 Payments</button>
-          <button class="settings-tab" [class.active]="activeSettingsTab === 'forecast'" (click)="setSettingsTab('forecast')">📊 Forecast Baseline</button>
+          <button class="settings-tab" [class.active]="activeSettingsTab === 'wbs'" (click)="setSettingsTab('wbs')">{{ 'gm.finance.wbsStructure' | translate }}</button>
+          <button class="settings-tab" [class.active]="activeSettingsTab === 'import'" (click)="setSettingsTab('import')">{{ 'gm.finance.importWbs' | translate }}</button>
+          <button class="settings-tab" [class.active]="activeSettingsTab === 'payments'" (click)="setSettingsTab('payments')">{{ 'gm.finance.payments' | translate }}</button>
+          <button class="settings-tab" [class.active]="activeSettingsTab === 'forecast'" (click)="setSettingsTab('forecast')">{{ 'gm.finance.forecastBaseline' | translate }}</button>
         </aside>
 
         <!-- ✅ CONTENT AREA -->
         <section class="settings-content">
-          <div *ngIf="settingsLoading" class="settings-empty">Loading settings...</div>
+          <div *ngIf="settingsLoading" class="settings-empty">{{ 'gm.finance.loadingSettings' | translate }}</div>
           <div *ngIf="settingsError && !settingsLoading" class="settings-error">{{ settingsError }}</div>
           
-          <div *ngIf="applyResultMessage" class="callout" style="margin: 16px; background:#effcf3; border-color:#bfead0; color:#166534; padding: 12px; border-radius: 8px;">
+          <div *ngIf="applyResultMessage" class="callout" style="margin: 16px; background:var(--pm-surface-muted); border-color:var(--pm-success-border); color:var(--pm-success-text); padding: 12px; border-radius: 8px;">
             {{ applyResultMessage }}
           </div>
 
@@ -170,40 +170,40 @@
             <div *ngIf="activeSettingsTab === 'wbs'" class="settings-section">
               <div class="section-top">
                 <div>
-                  <h2>📋 WBS Structure Template</h2>
-                  <p>Define the WBS structure specific to this project.</p>
+                  <h2>{{ 'gm.finance.wbsStructureTemplate' | translate }}</h2>
+                  <p>{{ 'gm.finance.defineWbsStructureSpecific' | translate }}</p>
                 </div>
                 <div class="section-actions">
                   <button class="btn primary" (click)="applyTemplateToCurrentProject()" [disabled]="applyLoading || financeSettings.templateRows.length === 0">
-                    {{ applyLoading ? 'Applying...' : '⚡ Apply to Current Project' }}
+                    {{ applyLoading ? ('gm.finance.applying' | translate) : ('gm.finance.applyCurrentProject' | translate) }}
                   </button>
-                  <button class="btn ghost" (click)="addTemplateRow()">＋ Add Row</button>
-                  <button class="btn primary" (click)="saveSettings()">💾 Save</button>
+                  <button class="btn ghost" (click)="addTemplateRow()">{{ 'gm.finance.addRow' | translate }}</button>
+                  <button class="btn primary" (click)="saveSettings()">{{ 'gm.finance.save' | translate }}</button>
                 </div>
               </div>
 
               <div class="callout">
-                <strong>Type:</strong> <em>HOUR</em> = labour. <em>EXPENSES</em> = travel. <em>COST</em> = materials. <em>SUMMARY</em> = computed from children.<br>
-                <strong>Resource Type:</strong> Select to automatically use its default rate for forecast calculations.
+                <strong>{{ 'gm.finance.type' | translate }}</strong> <em>{{ 'gm.finance.hour' | translate }}</em> {{ 'gm.finance.labour' | translate }} <em>{{ 'gm.finance.expenses' | translate }}</em> {{ 'gm.finance.travel' | translate }} <em>{{ 'gm.finance.cost' | translate }}</em> {{ 'gm.finance.materials' | translate }} <em>{{ 'gm.finance.summary' | translate }}</em> {{ 'gm.finance.computedFromChildren' | translate }}<br>
+                <strong>{{ 'gm.finance.resourceType' | translate }}</strong> {{ 'gm.finance.selectAutomaticallyUseIts' | translate }}
               </div>
 
               <div class="settings-table-wrap">
                 <table class="settings-table">
                   <thead>
                     <tr>
-                      <th style="width:60px;">LVL</th>
-                      <th style="width:160px;">WBS CODE</th>
-                      <th style="width:200px;">DESCRIPTION</th>
-                      <th style="width:120px;">TYPE</th>
-                      <th style="width:150px;">DEPARTMENT</th>
-                      <th style="width:150px;">OWNER</th>
-                      <th style="width:160px;">RESOURCE TYPE</th>
+                      <th style="width:60px;">{{ 'gm.finance.lvl2' | translate }}</th>
+                      <th style="width:160px;">{{ 'gm.finance.wbsCode' | translate }}</th>
+                      <th style="width:200px;">{{ 'gm.finance.description' | translate }}</th>
+                      <th style="width:120px;">{{ 'gm.finance.type2' | translate }}</th>
+                      <th style="width:150px;">{{ 'gm.finance.department' | translate }}</th>
+                      <th style="width:150px;">{{ 'gm.finance.owner2' | translate }}</th>
+                      <th style="width:160px;">{{ 'gm.finance.resourceType2' | translate }}</th>
                       <th style="width:50px;"></th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr *ngFor="let row of financeSettings.templateRows; let i = index; trackBy: trackByIndex">
-                       <td><input type="number" min="1" max="10" [(ngModel)]="row.level" class="tbl-input" aria-label="WBS level" /></td>
+                       <td><input type="number" min="1" max="10" [(ngModel)]="row.level" class="tbl-input" [attr.aria-label]="'gm.finance.wbsLevel' | translate" /></td>
                       <td><input [(ngModel)]="row.codeTemplate" class="tbl-input mono" /></td>
                       <td><input [(ngModel)]="row.description" class="tbl-input" /></td>
                       <td>
@@ -213,28 +213,28 @@
                       </td>
                       <td>
                         <select [(ngModel)]="row.departmentId" (ngModelChange)="onDepartmentChange(row, $event)" class="tbl-select">
-                          <option [ngValue]="null">— Select Dept —</option>
+                          <option [ngValue]="null">{{ 'gm.finance.selectDept' | translate }}</option>
                           <option *ngFor="let dept of departments" [ngValue]="dept.id">{{ dept.label }}</option>
                         </select>
                       </td>
                       <td>
                         <select [(ngModel)]="row.ownerId" class="tbl-select" [disabled]="!row.departmentId">
-                          <option [ngValue]="null">— Select Owner —</option>
+                          <option [ngValue]="null">{{ 'gm.finance.selectOwner' | translate }}</option>
                           <option *ngFor="let user of usersByDepartment[row.departmentId!] || []" [ngValue]="user.id">{{ user.fullName }}</option>
                         </select>
                       </td>
                       <td>
                         <select [(ngModel)]="row.resourceType" class="tbl-select">
-                          <option [ngValue]="null">— None —</option>
+                          <option [ngValue]="null">{{ 'gm.finance.none' | translate }}</option>
                           <option *ngFor="let rt of resourceTypes" [ngValue]="rt.code">
                             {{ rt.label }} ({{ rt.code }})
                           </option>
                         </select>
                       </td>
-                       <td><button class="delete-btn" (click)="moveTemplateRow(i, -1)" [disabled]="i === 0" title="Move up">↑</button><button class="delete-btn" (click)="moveTemplateRow(i, 1)" [disabled]="i === financeSettings.templateRows.length - 1" title="Move down">↓</button><button *ngIf="canWriteFinance" class="delete-btn" (click)="removeTemplateRow(i)" title="Delete WBS node"><span class="material-symbols-outlined" style="font-size: 16px;">delete</span></button></td>
+                       <td><button class="delete-btn" (click)="moveTemplateRow(i, -1)" [disabled]="i === 0" [title]="'gm.finance.moveUp' | translate">↑</button><button class="delete-btn" (click)="moveTemplateRow(i, 1)" [disabled]="i === financeSettings.templateRows.length - 1" [title]="'gm.finance.moveDown' | translate">↓</button><button *ngIf="canWriteFinance" class="delete-btn" (click)="removeTemplateRow(i)" [title]="'gm.finance.deleteWbsNode' | translate"><span class="material-symbols-outlined" style="font-size: 16px;">delete</span></button></td>
                     </tr>
                     <tr *ngIf="financeSettings.templateRows.length === 0">
-                      <td colspan="8" class="empty-row">No WBS template rows defined. Click "Add Row" to create one.</td>
+                      <td colspan="8" class="empty-row">{{ 'gm.finance.noWbsTemplateRows' | translate }}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -246,28 +246,28 @@
             <!-- ========================================== -->
             <div *ngIf="activeSettingsTab === 'import'" class="settings-section">
               <div class="section-top">
-                <div><h2>📥 Import WBS</h2><p>Load a WBS structure from JSON, CSV, or use the built-in template.</p></div>
+                <div><h2>{{ 'gm.finance.importWbs' | translate }}</h2><p>{{ 'gm.finance.loadWbsStructureFrom' | translate }}</p></div>
                 <div class="section-actions">
-                  <label class="form-row" style="margin: 0;" title="Replacement is blocked if removed WBS rows have financial or forecast data"><input type="checkbox" [(ngModel)]="importReplaceExisting" /> Replace existing</label>
-                  <button class="btn primary" type="button" (click)="confirmImportWbsTemplate()" [disabled]="importLoading || importPreviewRows.length === 0">{{ importLoading ? 'Importing...' : 'Import Template' }}</button>
+                  <label class="form-row" style="margin: 0;" [title]="'gm.finance.replacementBlockedIfRemoved' | translate"><input type="checkbox" [(ngModel)]="importReplaceExisting" /> {{ 'gm.finance.replaceExisting' | translate }}</label>
+                  <button class="btn primary" type="button" (click)="confirmImportWbsTemplate()" [disabled]="importLoading || importPreviewRows.length === 0">{{ importLoading ? ('gm.finance.importing' | translate) : ('gm.finance.importTemplate' | translate) }}</button>
                 </div>
               </div>
               <div class="settings-card">
-                <h3>🟢 Load Standard WBS Template</h3>
-                <button class="btn primary" type="button" (click)="loadOdsTemplate()" [disabled]="odsTemplateLoading"> {{ odsTemplateLoading ? 'Loading...' : 'Load ODS Template' }}</button>
+                <h3>{{ 'gm.finance.loadStandardWbsTemplate' | translate }}</h3>
+                <button class="btn primary" type="button" (click)="loadOdsTemplate()" [disabled]="odsTemplateLoading"> {{ odsTemplateLoading ? ('gm.finance.loading' | translate) : ('gm.finance.loadOdsTemplate' | translate) }}</button>
               </div>
               <div class="settings-card">
-                <h3>🟠 Import from JSON or CSV</h3>
+                <h3>{{ 'gm.finance.importFromJsonCsv' | translate }}</h3>
                 <div class="import-dropzone" [class.drag-over]="importDragOver" (dragover)="onImportDragOver($event)" (dragleave)="onImportDragLeave()" (drop)="onImportDrop($event)">
                   <div class="import-icon">📁</div>
-                  <div class="import-title">Drop JSON or CSV file here</div>
-                  <label class="btn ghost dropzone-browse-btn">Select File<input type="file" hidden accept=".json,.csv,.xlsx,.xls,.ods" (change)="onWbsTemplateFileUpload($event)" /></label>
+                  <div class="import-title">{{ 'gm.finance.dropJsonCsvFile' | translate }}</div>
+                  <label class="btn ghost dropzone-browse-btn">{{ 'gm.finance.selectFile' | translate }}<input type="file" hidden accept=".json,.csv,.xlsx,.xls,.ods" (change)="onWbsTemplateFileUpload($event)" /></label>
                 </div>
                 <div *ngIf="importMessage" class="callout" style="margin-top: 14px;">{{ importMessage }}</div>
               </div>
               <div class="settings-table-wrap" *ngIf="importPreviewRows.length > 0">
                 <table class="settings-table">
-                  <thead><tr><th>LVL</th><th>WBS CODE</th><th>DESCRIPTION</th><th>TYPE</th><th>OWNER KEY</th><th>RESOURCE TYPE</th></tr></thead>
+                  <thead><tr><th>{{ 'gm.finance.lvl2' | translate }}</th><th>{{ 'gm.finance.wbsCode' | translate }}</th><th>{{ 'gm.finance.description' | translate }}</th><th>{{ 'gm.finance.type2' | translate }}</th><th>{{ 'gm.finance.ownerKey' | translate }}</th><th>{{ 'gm.finance.resourceType2' | translate }}</th></tr></thead>
                   <tbody>
                     <tr *ngFor="let row of importPreviewRows; trackBy: trackByIndex">
                       <td>{{ row.level }}</td>
@@ -288,15 +288,15 @@
             <div *ngIf="activeSettingsTab === 'payments'" class="settings-section">
               <div class="section-top">
                 <div>
-                  <h2>💳 Payment Schedule</h2>
-                  <p>Set the sales value and define the payment milestones as a % breakdown for <strong>{{ projectName }}</strong>.</p>
+                  <h2>{{ 'gm.finance.paymentSchedule' | translate }}</h2>
+                  <p>{{ 'gm.finance.setSalesValueDefine' | translate }} <strong>{{ projectName }}</strong>.</p>
                 </div>
                 <div class="section-actions">
-                  <button class="btn ghost" (click)="addPaymentMilestone()" [disabled]="paymentSaving">＋ Add Payment</button>
+                  <button class="btn ghost" (click)="addPaymentMilestone()" [disabled]="paymentSaving">{{ 'gm.finance.addPayment' | translate }}</button>
                   <button class="btn primary" (click)="savePaymentSchedule()" [disabled]="paymentSaving">
-                    {{ paymentSaving ? 'Saving...' : '💾 Save' }}
+                    {{ paymentSaving ? ('gm.finance.saving' | translate) : ('gm.finance.save' | translate) }}
                   </button>
-                  <button class="btn ghost" (click)="exportPaymentsCSV()" [disabled]="paymentSchedule.milestones.length === 0">↓ CSV</button>
+                  <button class="btn ghost" (click)="exportPaymentsCSV()" [disabled]="paymentSchedule.milestones.length === 0">{{ 'gm.finance.csv' | translate }}</button>
                 </div>
               </div>
 
@@ -304,15 +304,15 @@
               <div class="settings-card" style="margin-bottom: 24px;">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
                   <div>
-                    <label style="display:block; margin-bottom:8px; font-weight:600; color:#374151;">SALES VALUE (€)</label>
+                    <label style="display:block; margin-bottom:8px; font-weight:600; color:var(--pm-text);">{{ 'gm.finance.salesValue' | translate }}</label>
                     <input type="number" class="tbl-input mono" [(ngModel)]="paymentSchedule.salesValue" placeholder="e.g. 480000" />
                   </div>
                   <div>
-                    <label style="display:block; margin-bottom:8px; font-weight:600; color:#374151;">CURRENCY</label>
+                    <label style="display:block; margin-bottom:8px; font-weight:600; color:var(--pm-text);">{{ 'gm.finance.currency' | translate }}</label>
                     <select class="tbl-select" [(ngModel)]="paymentSchedule.currency">
-                      <option value="EUR">EUR €</option>
-                      <option value="USD">USD $</option>
-                      <option value="GBP">GBP £</option>
+                      <option value="EUR">{{ 'gm.finance.eur' | translate }}</option>
+                      <option value="USD">{{ 'gm.finance.usd' | translate }}</option>
+                      <option value="GBP">{{ 'gm.finance.gbp' | translate }}</option>
                     </select>
                   </div>
                 </div>
@@ -320,18 +320,18 @@
 
               <!-- Total Allocation Bar -->
               <div *ngIf="paymentSchedule.milestones.length > 0" style="margin-bottom: 24px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 600; color: #374151;">
-                  <span>Total allocation</span>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 600; color: var(--pm-text);">
+                  <span>{{ 'gm.finance.totalAllocation' | translate }}</span>
                   <span [style.color]="paymentSchedule.totalPercentage === 100 ? '#2563eb' : '#ef4444'">{{ paymentSchedule.totalPercentage }}%</span>
                 </div>
-                <div style="width: 100%; background: #e5e7eb; border-radius: 4px; height: 8px; overflow: hidden;">
+                <div style="width: 100%; background: var(--pm-surface-sunken); border-radius: 4px; height: 8px; overflow: hidden;">
                   <div [style.width.%]="getProgressBarWidth()" 
                        [style.background]="paymentSchedule.totalPercentage === 100 ? '#2563eb' : '#f97316'" 
                        style="height: 100%; transition: width 0.3s;"></div>
                 </div>
-                <p *ngIf="paymentSchedule.totalPercentage !== 100" style="color: #ef4444; font-size: 0.75rem; margin-top: 8px; display: flex; align-items: center; gap: 4px;">
+                <p *ngIf="paymentSchedule.totalPercentage !== 100" style="color: var(--pm-danger-text); font-size: 0.75rem; margin-top: 8px; display: flex; align-items: center; gap: 4px;">
                   <span class="material-symbols-outlined" style="font-size: 16px;">warning</span>
-                  Percentages do not sum to 100%
+                  {{ 'gm.finance.percentagesDoNotSum' | translate }}
                 </p>
               </div>
 
@@ -340,11 +340,11 @@
                 <table class="settings-table">
                   <thead>
                     <tr>
-                      <th style="width: 150px; background: #f9fafb; text-align: left;">FIELD</th>
-                      <th *ngFor="let p of paymentSchedule.milestones; let i = index" style="background: #f9fafb; position: relative; min-width: 180px;">
+                      <th style="width: 150px; background: var(--pm-surface-muted); text-align: left;">{{ 'gm.finance.field' | translate }}</th>
+                      <th *ngFor="let p of paymentSchedule.milestones; let i = index" style="background: var(--pm-surface-muted); position: relative; min-width: 180px;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                          <span style="font-weight: 600;">Payment {{ i + 1 }}</span>
-                          <button (click)="removePaymentMilestone(i)" style="background: none; border: none; cursor: pointer; color: #ef4444; padding: 4px;">
+                          <span style="font-weight: 600;">{{ 'gm.finance.paymentI' | translate: { i: i + 1 } }}</span>
+                          <button (click)="removePaymentMilestone(i)" style="background: none; border: none; cursor: pointer; color: var(--pm-danger-text); padding: 4px;">
                             <span class="material-symbols-outlined" style="font-size: 18px;">close</span>
                           </button>
                         </div>
@@ -361,37 +361,37 @@
                                  [ngModel]="p.percentage" 
                                  (ngModelChange)="onPercentageChange(i, $event)"
                                  min="0" max="100"
-                                 style="width: 100px; text-align: right; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-family: monospace; font-size: 0.875rem;" />
-                          <span style="color: #6b7280; font-weight: 500;">%</span>
+                                 style="width: 100px; text-align: right; padding: 8px; border: 1px solid var(--pm-border-strong); border-radius: 6px; font-family: monospace; font-size: 0.875rem;" />
+                          <span style="color: var(--pm-text-muted); font-weight: 500;">%</span>
                         </div>
                       </td>
                     </tr>
 
                     <!-- Value Row -->
                     <tr>
-                      <td style="font-weight: 600;">VALUE</td>
+                      <td style="font-weight: 600;">{{ 'gm.finance.value' | translate }}</td>
                       <td *ngFor="let p of paymentSchedule.milestones" style="text-align: center;">
-                        <div style="font-family: monospace; font-size: 1.1rem; color: #111827;">
+                        <div style="font-family: monospace; font-size: 1.1rem; color: var(--pm-text);">
                           {{ calculatePaymentValue(p.percentage) }}
                         </div>
-                        <div *ngIf="!paymentSchedule.salesValue" style="font-size: 0.75rem; color: #9ca3af; margin-top: 2px;">set sales value</div>
+                        <div *ngIf="!paymentSchedule.salesValue" style="font-size: 0.75rem; color: var(--pm-text-soft); margin-top: 2px;">{{ 'gm.finance.setSalesValue' | translate }}</div>
                       </td>
                     </tr>
 
                     <!-- Date Row -->
                     <tr>
-                      <td style="font-weight: 600;">DATE</td>
+                      <td style="font-weight: 600;">{{ 'gm.finance.date' | translate }}</td>
                       <td *ngFor="let p of paymentSchedule.milestones" style="text-align: center;">
                         <input type="date" 
                                [ngModel]="p.dueDate"
                                (ngModelChange)="p.dueDate = $event"
-                               style="width: 140px; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem;" />
+                               style="width: 140px; padding: 8px; border: 1px solid var(--pm-border-strong); border-radius: 6px; font-size: 0.875rem;" />
                       </td>
                     </tr>
 
                     <!-- Status Row -->
                     <tr>
-                      <td style="font-weight: 600;">STATUS</td>
+                      <td style="font-weight: 600;">{{ 'gm.finance.status' | translate }}</td>
                       <td *ngFor="let p of paymentSchedule.milestones" style="text-align: center;">
                         <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
                           <label style="position: relative; display: inline-flex; align-items: center; cursor: pointer;">
@@ -400,13 +400,13 @@
                                    (change)="togglePaymentStatus(p)"
                                    style="display: none;" />
                             <span [style.background]="p.status === 'PAID' ? '#16a34a' : '#9ca3af'"
-                                  style="display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; color: white; min-width: 48px; justify-content: center;">
+                                  style="display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; color: var(--pm-on-accent); min-width: 48px; justify-content: center;">
                               {{ p.status === 'PAID' ? 'PAID' : 'EXP' }}
                             </span>
                           </label>
                           <span [style.color]="p.status === 'PAID' ? '#16a34a' : '#6b7280'"
                                 style="font-size: 0.75rem;">
-                            {{ p.status === 'PAID' ? 'Paid' : 'Expected' }}
+                            {{ p.status === 'PAID' ? ('gm.finance.paid' | translate) : ('gm.finance.expected' | translate) }}
                           </span>
                         </div>
                       </td>
@@ -420,27 +420,27 @@
               <!-- ========================================== -->
               <div *ngIf="paymentSchedule.milestones.length > 0" class="settings-card" style="margin-top: 24px;">
                 <div style="margin-bottom: 16px;">
-                  <h3 style="margin: 0 0 4px; font-size: 16px; font-weight: 800; color: #173b65;">
-                    📈 Cash Flow Chart
+                  <h3 style="margin: 0 0 4px; font-size: 16px; font-weight: 800; color: var(--pm-primary-text);">
+                    {{ 'gm.finance.cashFlowChart' | translate }}
                   </h3>
-                  <p style="margin: 0; font-size: 12px; color: #6b7280;">
-                    Payment tranches over time — bars = individual, line = cumulative
+                  <p style="margin: 0; font-size: 12px; color: var(--pm-text-muted);">
+                    {{ 'gm.finance.paymentTranchesOverTime' | translate }}
                   </p>
                 </div>
                 
                 <!-- Legend -->
                 <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px; font-size: 12px;">
                   <div style="display: flex; align-items: center; gap: 6px;">
-                    <span style="display: inline-block; width: 12px; height: 12px; background: #3b82f6; border-radius: 2px;"></span>
-                    <span style="color: #374151;">Expected</span>
+                    <span style="display: inline-block; width: 12px; height: 12px; background: var(--pm-primary); border-radius: 2px;"></span>
+                    <span style="color: var(--pm-text);">{{ 'gm.finance.expected' | translate }}</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px;">
-                    <span style="display: inline-block; width: 12px; height: 12px; background: #16a34a; border-radius: 2px;"></span>
-                    <span style="color: #374151;">Paid</span>
+                    <span style="display: inline-block; width: 12px; height: 12px; background: var(--pm-success); border-radius: 2px;"></span>
+                    <span style="color: var(--pm-text);">{{ 'gm.finance.paid' | translate }}</span>
                   </div>
                   <div style="display: flex; align-items: center; gap: 6px;">
-                    <span style="display: inline-block; width: 20px; height: 3px; background: #f59e0b;"></span>
-                    <span style="color: #374151;">Cumulative</span>
+                    <span style="display: inline-block; width: 20px; height: 3px; background: var(--pm-warning);"></span>
+                    <span style="color: var(--pm-text);">{{ 'gm.finance.cumulative' | translate }}</span>
                   </div>
                 </div>
 
@@ -451,7 +451,7 @@
               </div>
               
               <div *ngIf="paymentSchedule.milestones.length === 0" class="settings-empty" style="padding: 40px; text-align: center;">
-                <p style="margin: 0; color: #6b7280;">Click <strong>+ Add Payment</strong> to build the schedule for this project.</p>
+                <p style="margin: 0; color: var(--pm-text-muted);">{{ 'gm.finance.click' | translate }} <strong>{{ 'gm.finance.addPayment2' | translate }}</strong> {{ 'gm.finance.buildScheduleProject' | translate }}</p>
               </div>
             </div>
 
@@ -461,50 +461,50 @@
             <div *ngIf="activeSettingsTab === 'forecast'" class="settings-section">
               <div class="section-top">
                 <div>
-                  <h2>Forecast Baseline</h2>
-                  <p>Compare current forecast against the baseline for <strong>{{ projectName }}</strong>.</p>
+                  <h2>{{ 'gm.finance.forecastBaseline2' | translate }}</h2>
+                  <p>{{ 'gm.finance.compareCurrentForecastAgainst' | translate }} <strong>{{ projectName }}</strong>.</p>
                 </div>
                 <div class="section-actions">
                   <button class="btn primary" (click)="onSetBaseline()" [disabled]="forecastBaselineLoading">
-                    {{ forecastBaselineLoading ? 'Setting...' : '📸 Set Baseline' }}
+                    {{ forecastBaselineLoading ? ('gm.finance.setting' | translate) : ('gm.finance.setBaseline' | translate) }}
                   </button>
                   <button class="btn ghost" (click)="onResetBaseline()" [disabled]="!forecastBaseline.hasBaseline || forecastBaselineLoading">
-                    🗑️ Reset
+                    {{ 'gm.finance.reset' | translate }}
                   </button>
                   <button class="btn ghost" (click)="exportForecastBaselineCSV()" [disabled]="forecastBaseline.rows.length === 0">
-                    ↓ CSV
+                    {{ 'gm.finance.csv' | translate }}
                   </button>
                 </div>
               </div>
 
-              <div class="settings-card" *ngIf="forecastBaseline.hasBaseline" style="margin-bottom: 20px; background: #eff6ff; border-color: #bfdbfe;">
+              <div class="settings-card" *ngIf="forecastBaseline.hasBaseline" style="margin-bottom: 20px; background: var(--pm-primary-soft); border-color: var(--pm-primary-border);">
                 <div style="display: flex; align-items: center; gap: 12px;">
                   <span style="font-size: 24px;">📅</span>
                   <div>
-                    <div style="font-size: 13px; font-weight: 700; color: #1e40af;">Baseline captured on</div>
-                    <div style="font-size: 14px; color: #1e3a5f; font-weight: 600;">{{ forecastBaseline.baselineDate | date:'dd/MM/yyyy HH:mm' }}</div>
+                    <div style="font-size: 13px; font-weight: 700; color: var(--pm-primary-text);">{{ 'gm.finance.baselineCaptured' | translate }}</div>
+                    <div style="font-size: 14px; color: var(--pm-primary-text); font-weight: 600;">{{ forecastBaseline.baselineDate | date:'dd/MM/yyyy HH:mm' }}</div>
                   </div>
                 </div>
               </div>
 
               <div *ngIf="!forecastBaseline.hasBaseline" class="settings-empty" style="padding: 40px; text-align: center; margin-bottom: 20px;">
-                <p style="margin: 0 0 12px; color: #6b7280;">No baseline defined yet.</p>
+                <p style="margin: 0 0 12px; color: var(--pm-text-muted);">{{ 'gm.finance.noBaselineDefinedYet' | translate }}</p>
                 <button class="btn primary" (click)="onSetBaseline()" [disabled]="forecastBaselineLoading">
-                  📸 Set your first baseline
+                  {{ 'gm.finance.setFirstBaseline' | translate }}
                 </button>
               </div>
 
               <div *ngIf="forecastBaseline.hasBaseline" class="settings-card" style="margin-bottom: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
                 <div>
-                  <div style="font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Total Baseline</div>
-                  <div style="font-size: 18px; font-weight: 800; color: #1e3a5f; font-family: monospace;">{{ forecastBaseline.totalBaselineForecast | number:'1.2-2' }}</div>
+                  <div style="font-size: 11px; font-weight: 700; color: var(--pm-text-muted); text-transform: uppercase;">{{ 'gm.finance.totalBaseline' | translate }}</div>
+                  <div style="font-size: 18px; font-weight: 800; color: var(--pm-primary-text); font-family: monospace;">{{ forecastBaseline.totalBaselineForecast | number:'1.2-2' }}</div>
                 </div>
                 <div>
-                  <div style="font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Total Current</div>
-                  <div style="font-size: 18px; font-weight: 800; color: #1e3a5f; font-family: monospace;">{{ forecastBaseline.totalCurrentForecast | number:'1.2-2' }}</div>
+                  <div style="font-size: 11px; font-weight: 700; color: var(--pm-text-muted); text-transform: uppercase;">{{ 'gm.finance.totalCurrent' | translate }}</div>
+                  <div style="font-size: 18px; font-weight: 800; color: var(--pm-primary-text); font-family: monospace;">{{ forecastBaseline.totalCurrentForecast | number:'1.2-2' }}</div>
                 </div>
                 <div>
-                  <div style="font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase;">Total Variance</div>
+                  <div style="font-size: 11px; font-weight: 700; color: var(--pm-text-muted); text-transform: uppercase;">{{ 'gm.finance.totalVariance' | translate }}</div>
                   <div [style.color]="forecastBaseline.totalVariance > 0 ? '#dc2626' : '#16a34a'" 
                        style="font-size: 18px; font-weight: 800; font-family: monospace;">
                     {{ forecastBaseline.totalVariance > 0 ? '+' : '' }}{{ forecastBaseline.totalVariance | number:'1.2-2' }}
@@ -516,22 +516,22 @@
                 <table class="settings-table">
                   <thead>
                     <tr>
-                      <th style="width: 140px;">WBS Code</th>
-                      <th style="width: 220px;">Description</th>
-                      <th style="width: 60px;">Lvl</th>
-                      <th style="text-align: right;">Baseline Forecast</th>
-                      <th style="text-align: right;">Current Forecast</th>
-                      <th style="text-align: right;">Variance</th>
-                      <th style="text-align: right;">Variance %</th>
+                      <th style="width: 140px;">{{ 'gm.finance.wbsCode2' | translate }}</th>
+                      <th style="width: 220px;">{{ 'common.description' | translate }}</th>
+                      <th style="width: 60px;">{{ 'gm.finance.lvl' | translate }}</th>
+                      <th style="text-align: right;">{{ 'gm.finance.baselineForecast' | translate }}</th>
+                      <th style="text-align: right;">{{ 'gm.finance.currentForecast' | translate }}</th>
+                      <th style="text-align: right;">{{ 'gm.finance.variance' | translate }}</th>
+                      <th style="text-align: right;">{{ 'gm.finance.variance2' | translate }}</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr *ngFor="let row of forecastBaseline.rows" [ngClass]="'row-l' + row.level">
-                      <td style="font-family: monospace; font-size: 12px; color: #244b74;">{{ row.wbsCode }}</td>
+                      <td style="font-family: monospace; font-size: 12px; color: var(--pm-primary-text);">{{ row.wbsCode }}</td>
                       <td [style.paddingLeft.px]="row.level > 1 ? (row.level - 1) * 18 + 14 : 14" style="font-weight: 600;">
                         {{ row.description }}
                       </td>
-                      <td style="text-align: center; color: #7990a6; font-weight: 700;">L{{ row.level }}</td>
+                      <td style="text-align: center; color: var(--pm-text-soft); font-weight: 700;">L{{ row.level }}</td>
                       <td style="text-align: right; font-family: monospace;">{{ row.baselineForecast | number:'1.2-2' }}</td>
                       <td style="text-align: right; font-family: monospace; font-weight: 600;">{{ row.currentForecast | number:'1.2-2' }}</td>
                       <td [ngClass]="getForecastVarianceClass(row.variance)" style="text-align: right; font-family: monospace; font-weight: 700;">

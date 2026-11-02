@@ -125,6 +125,12 @@ export class AuthService {
     }
   }
 
+  /** The JWT subject is the login e-mail; empty when the subject is not an e-mail. */
+  getCurrentEmail(): string {
+    const subject = this.getPayload()?.sub || '';
+    return subject.includes('@') ? subject : '';
+  }
+
   getCurrentRole(): AppRole | '' {
     return this.getRoles()[0] || '';
   }

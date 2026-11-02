@@ -1,4 +1,4 @@
-<section class="projectum-workspace-header" aria-label="Projectum page context">
+<section class="projectum-workspace-header" [attr.aria-label]="'gm.workspaceHeader.projectumPageContext' | translate">
   <div class="context-row">
     <div class="context-copy">
       <app-nav-buttons [homes]="['/gm/projectum']"></app-nav-buttons>
@@ -8,10 +8,11 @@
     <div class="context-actions">
       <ng-content select="[projectumHeaderActions]"></ng-content>
       <app-projectum-notifications></app-projectum-notifications>
+      <app-profile-menu></app-profile-menu>
     </div>
   </div>
 
-  <nav *ngIf="showProjectModules && hasProjectContext" class="module-navigation" aria-label="Project modules">
+  <nav *ngIf="showProjectModules && hasProjectContext" class="module-navigation" [attr.aria-label]="'gm.workspaceHeader.projectModules' | translate">
     <a
       *ngFor="let module of modules"
       class="module-link"

@@ -2,3 +2,19 @@
   display: block;
   min-height: 100vh;
 }
+
+.pm-pref-toast {
+  position: fixed; z-index: 2000; inset-inline-end: var(--pm-space-4); bottom: var(--pm-space-4);
+  display: flex; align-items: center; gap: var(--pm-space-2); max-width: min(420px, calc(100vw - 32px));
+  padding: var(--pm-space-2) var(--pm-space-2) var(--pm-space-2) var(--pm-space-3);
+  border: 1px solid var(--pm-warning-border); border-radius: var(--pm-radius-lg);
+  background: var(--pm-warning-soft); color: var(--pm-warning-text); box-shadow: var(--pm-shadow);
+  font-size: var(--pm-text-sm); animation: pm-toast-in var(--pm-duration) var(--pm-ease);
+}
+.pm-pref-toast button {
+  display: inline-grid; place-items: center; width: 32px; height: 32px; flex-shrink: 0;
+  border: 0; border-radius: var(--pm-radius); background: transparent; color: inherit; cursor: pointer;
+}
+.pm-pref-toast button:hover { background: color-mix(in srgb, var(--pm-warning) 12%, transparent); }
+.pm-pref-toast button:focus-visible { outline: none; box-shadow: var(--pm-focus); }
+@keyframes pm-toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }

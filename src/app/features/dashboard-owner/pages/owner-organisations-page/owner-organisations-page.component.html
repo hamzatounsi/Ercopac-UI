@@ -1,76 +1,76 @@
 <section class="org-page">
   <header class="org-topbar">
     <div class="topbar-left">
-      <h2>🏢 Organisations</h2>
+      <h2>{{ 'owner.organisations.organisations' | translate }}</h2>
 
       <div class="global-search">
         <span>🔍</span>
         <input
           type="text"
-          placeholder="Search organisations..."
+          [placeholder]="'owner.organisations.searchOrganisations' | translate"
           [(ngModel)]="searchTerm"
         />
       </div>
     </div>
 
     <div class="topbar-right">
-      <span>Total MRR:</span>
-      <strong>€{{ totalMrr }}/mo</strong>
+      <span>{{ 'owner.organisations.totalMrr' | translate }}</span>
+      <strong>{{ 'owner.organisations.totalmrrMo' | translate: { totalMrr: totalMrr } }}</strong>
       <span class="live-dot"></span>
-      <span class="live-text">Live</span>
+      <span class="live-text">{{ 'owner.organisations.live' | translate }}</span>
     </div>
   </header>
 
   <div class="kpi-row">
     <div class="kpi-card blue">
-      <span>Organisations</span>
+      <span>{{ 'owner.organisations.organisations2' | translate }}</span>
       <strong>{{ organisations.length }}</strong>
-      <small>{{ activeCount }} active</small>
+      <small>{{ 'owner.organisations.activecountActive' | translate: { activeCount: activeCount } }}</small>
     </div>
 
     <div class="kpi-card cyan">
-      <span>Total Users</span>
+      <span>{{ 'owner.organisations.totalUsers' | translate }}</span>
       <strong>{{ totalUsersLimit }}</strong>
-      <small>across all orgs</small>
+      <small>{{ 'owner.organisations.acrossAllOrgs' | translate }}</small>
     </div>
 
 
     <div class="kpi-card amber">
-      <span>Monthly Revenue</span>
+      <span>{{ 'owner.organisations.monthlyRevenue' | translate }}</span>
       <strong>€{{ totalMrr }}</strong>
-      <small>MRR</small>
+      <small>{{ 'owner.organisations.mrr' | translate }}</small>
     </div>
 
     <div class="kpi-card green">
-      <span>Avg. Health</span>
+      <span>{{ 'owner.organisations.avgHealth' | translate }}</span>
       <strong>{{ averageHealth }}%</strong>
-      <small>active orgs</small>
+      <small>{{ 'owner.organisations.activeOrgs' | translate }}</small>
     </div>
   </div>
 
   <div class="table-card" *ngIf="!loading && !errorMessage">
     <div class="table-head">
       <div>
-        <h3>Organisations</h3>
-        <span>— click a row to open & edit</span>
+        <h3>{{ 'owner.organisations.organisations2' | translate }}</h3>
+        <span>{{ 'owner.organisations.clickRowOpenEdit' | translate }}</span>
       </div>
 
       <button type="button" class="primary-btn" (click)="onCreateOrganisation()">
-        + New Organisation
+        {{ 'owner.organisations.newOrganisation' | translate }}
       </button>
     </div>
 
     <table>
       <thead>
         <tr>
-          <th>Organisation</th>
-          <th>Country</th>
-          <th>Plan</th>
-          <th>Users</th>
-          <th>MRR</th>
-          <th>Licences</th>
-          <th>Health</th>
-          <th>Status</th>
+          <th>{{ 'common.organisation' | translate }}</th>
+          <th>{{ 'owner.organisations.country' | translate }}</th>
+          <th>{{ 'owner.organisations.plan' | translate }}</th>
+          <th>{{ 'owner.organisations.users' | translate }}</th>
+          <th>{{ 'owner.organisations.mrr' | translate }}</th>
+          <th>{{ 'owner.organisations.licences' | translate }}</th>
+          <th>{{ 'owner.organisations.health' | translate }}</th>
+          <th>{{ 'common.status' | translate }}</th>
         </tr>
       </thead>
 
@@ -81,7 +81,7 @@
         >
           <td>
             <strong class="org-name">{{ org.name }}</strong>
-            <span class="org-meta">{{ org.code }} · {{ org.domain || 'No domain' }}</span>
+            <span class="org-meta">{{ org.code }} · {{ org.domain || ('owner.organisations.noDomain' | translate) }}</span>
           </td>
 
           <td>{{ org.country || '-' }}</td>
@@ -96,8 +96,8 @@
           <td>€{{ org.monthlyRevenue }}</td>
 
           <td>
-            <strong class="licence-total">{{ org.userLimit }} total</strong>
-            <span class="licence-meta">{{ org.userLimit }} users</span>
+            <strong class="licence-total">{{ 'owner.organisations.userlimitTotal' | translate: { userLimit: org.userLimit } }}</strong>
+            <span class="licence-meta">{{ 'owner.organisations.userlimitUsers' | translate: { userLimit: org.userLimit } }}</span>
           </td>
 
           <td>
@@ -116,7 +116,7 @@
 
           <td>
             <span class="status-pill" [ngClass]="org.status.toLowerCase()">
-              {{ org.status | titlecase }}
+              {{ 'common.orgStatus.' + org.status | translate }}
             </span>
           </td>
         </tr>
@@ -124,7 +124,7 @@
     </table>
 
     <div class="table-footer">
-      {{ filteredOrganisations.length }} organisations · click any row to view & edit
+      {{ 'owner.organisations.filteredorganisationsOrganisationsClickAny' | translate: { filteredOrganisations: filteredOrganisations.length } }}
     </div>
   </div>
 </section>

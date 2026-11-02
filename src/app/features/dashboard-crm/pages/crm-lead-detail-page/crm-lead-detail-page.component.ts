@@ -76,7 +76,7 @@ export class CrmLeadDetailPageComponent implements OnInit {
         this.loading = false;
       },
       error: e => {
-        this.error = e?.error?.message || this.i18n.t('leadDetail.error.notFound');
+        this.error = this.i18n.error(e, 'leadDetail.error.notFound');
         this.loading = false;
       }
     });
@@ -95,7 +95,7 @@ export class CrmLeadDetailPageComponent implements OnInit {
         this.saving = false;
       },
       error: e => {
-        this.error = e?.error?.message || this.i18n.t('leadDetail.error.save');
+        this.error = this.i18n.error(e, 'leadDetail.error.save');
         this.saving = false;
       }
     });
@@ -130,7 +130,7 @@ export class CrmLeadDetailPageComponent implements OnInit {
     const stageId = this.stages[0]?.id || null;
     this.crm.convertLead(this.orgId, this.id, stageId).subscribe({
       next: o => this.router.navigate(['/crm/opportunities', o.id]),
-      error: e => this.error = e?.error?.message || this.i18n.t('leadDetail.error.convert')
+      error: e => this.error = this.i18n.error(e, 'leadDetail.error.convert')
     });
   }
 
@@ -138,7 +138,7 @@ export class CrmLeadDetailPageComponent implements OnInit {
     if (!confirm(this.i18n.t('leadDetail.confirmDelete'))) return;
     this.crm.deleteLead(this.orgId, this.id).subscribe({
       next: () => this.router.navigate(['/crm/leads']),
-      error: e => this.error = e?.error?.message || this.i18n.t('leadDetail.error.delete')
+      error: e => this.error = this.i18n.error(e, 'leadDetail.error.delete')
     });
   }
 
@@ -165,7 +165,7 @@ export class CrmLeadDetailPageComponent implements OnInit {
         this.newActivity = '';
         this.loggingActivity = false;
       },
-      error: e => this.error = e?.error?.message || this.i18n.t('leadDetail.error.logActivity')
+      error: e => this.error = this.i18n.error(e, 'leadDetail.error.logActivity')
     });
   }
 

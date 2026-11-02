@@ -1,34 +1,34 @@
 <main class="page-pad">
   <header class="view-head">
     <div>
-      <h1>{{ isStaff ? (mineOnly ? 'My tickets' : 'All tickets') : 'My tickets' }}</h1>
-      <p>{{ isStaff ? 'Track, prioritise and resolve customer requests.' : 'Follow the requests you sent to our support team.' }}</p>
+      <h1>{{ isStaff ? (mineOnly ? ('ticketing.list.myTickets' | translate) : ('ticketing.list.allTickets' | translate)) : ('ticketing.list.myTickets' | translate) }}</h1>
+      <p>{{ isStaff ? ('ticketing.list.trackPrioritiseResolveCustomer' | translate) : ('ticketing.list.followRequestsYouSent' | translate) }}</p>
     </div>
-    <button class="primary" type="button" (click)="newTicket()">+ New ticket</button>
+    <button class="primary" type="button" (click)="newTicket()">{{ 'ticketing.list.newTicket' | translate }}</button>
   </header>
 
   <!-- Client portal -->
   <ng-container *ngIf="!isStaff">
     <section class="metrics">
-      <div class="metric"><span>Total</span><b>{{ myTotal }}</b></div>
-      <div class="metric"><span>In progress</span><b class="amber">{{ (stats?.open || 0) + (stats?.inProgress || 0) + (stats?.escalated || 0) }}</b></div>
-      <div class="metric"><span>Resolved</span><b class="green">{{ (stats?.resolved || 0) + (stats?.closed || 0) }}</b></div>
+      <div class="metric"><span>{{ 'ticketing.list.total' | translate }}</span><b>{{ myTotal }}</b></div>
+      <div class="metric"><span>{{ 'ticketing.list.progress' | translate }}</span><b class="amber">{{ (stats?.open || 0) + (stats?.inProgress || 0) + (stats?.escalated || 0) }}</b></div>
+      <div class="metric"><span>{{ 'ticketing.list.resolved' | translate }}</span><b class="green">{{ (stats?.resolved || 0) + (stats?.closed || 0) }}</b></div>
     </section>
 
     <div class="filters client">
-      <input class="input" [(ngModel)]="filters.search" (ngModelChange)="onSearch()" placeholder="Search my tickets…" aria-label="Search tickets">
-      <select class="select" [(ngModel)]="filters.status" (change)="reload()" aria-label="Status">
-        <option value="">All statuses</option>
+      <input class="input" [(ngModel)]="filters.search" (ngModelChange)="onSearch()" [placeholder]="'ticketing.list.searchMyTickets' | translate" [attr.aria-label]="'ticketing.list.searchTickets' | translate">
+      <select class="select" [(ngModel)]="filters.status" (change)="reload()" [attr.aria-label]="'common.status' | translate">
+        <option value="">{{ 'ticketing.list.allStatuses' | translate }}</option>
         <option *ngFor="let s of statuses" [value]="s">{{ labels.statusLabel(s) }}</option>
       </select>
     </div>
 
-    <p class="error" *ngIf="error">{{ error }} <button class="ghost" (click)="load()">Retry</button></p>
-    <div class="state" *ngIf="loading">Loading your tickets…</div>
+    <p class="error" *ngIf="error">{{ error }} <button class="ghost" (click)="load()">{{ 'common.retry' | translate }}</button></p>
+    <div class="state" *ngIf="loading">{{ 'ticketing.list.loadingTickets' | translate }}</div>
     <div class="state empty" *ngIf="!loading && !error && !tickets.length">
       <span class="material-symbols-outlined">inbox</span>
-      <p>{{ hasFilters ? 'No ticket matches your search.' : 'You have no tickets yet.' }}</p>
-      <button class="primary" *ngIf="!hasFilters" (click)="newTicket()">Open your first ticket</button>
+      <p>{{ hasFilters ? ('ticketing.list.noTicketMatchesSearch' | translate) : ('ticketing.list.youHaveNoTickets' | translate) }}</p>
+      <button class="primary" *ngIf="!hasFilters" (click)="newTicket()">{{ 'ticketing.list.openFirstTicket' | translate }}</button>
     </div>
 
     <button type="button" class="tk-card" *ngFor="let t of tickets" (click)="open(t)">
@@ -37,71 +37,71 @@
         <span class="badges">
           <span class="badge" [ngClass]="'c-' + labels.statusColor(t.status)">{{ labels.statusLabel(t.status) }}</span>
           <span class="priority" [ngClass]="'p-' + t.priority.toLowerCase()">{{ labels.priorityLabel(t.priority) }}</span>
-          <i *ngIf="t.unreadCount" title="Unread messages">{{ t.unreadCount }}</i>
+          <i *ngIf="t.unreadCount" [title]="'ticketing.list.unreadMessages' | translate">{{ t.unreadCount }}</i>
         </span>
       </div>
       <strong>{{ t.subject }}</strong>
-      <span class="meta">Opened {{ t.createdAt | date:'mediumDate' }} · Updated {{ t.updatedAt | date:'short' }}</span>
+      <span class="meta">{{ 'ticketing.list.openedCreatedatUpdatedUpdatedat' | translate: { createdAt: (t.createdAt | date:'mediumDate'), updatedAt: (t.updatedAt | date:'short') } }}</span>
     </button>
   </ng-container>
 
   <!-- Support queue -->
   <ng-container *ngIf="isStaff">
     <div class="filter-bar">
-      <div class="segmented" role="group" aria-label="Created in">
-        <button type="button" *ngFor="let p of periods" [class.active]="period === p.key" (click)="setPeriod(p.key)">{{ p.label }}</button>
+      <div class="segmented" role="group" [attr.aria-label]="'ticketing.list.created' | translate">
+        <button type="button" *ngFor="let p of periods" [class.active]="period === p.key" (click)="setPeriod(p.key)">{{ p.label | translate }}</button>
       </div>
-      <div class="segmented" role="group" aria-label="Scope">
-        <button type="button" [class.active]="!mineOnly" (click)="setMineOnly(false)">All</button>
-        <button type="button" [class.active]="mineOnly" (click)="setMineOnly(true)">Assigned to me</button>
+      <div class="segmented" role="group" [attr.aria-label]="'ticketing.list.scope' | translate">
+        <button type="button" [class.active]="!mineOnly" (click)="setMineOnly(false)">{{ 'common.all' | translate }}</button>
+        <button type="button" [class.active]="mineOnly" (click)="setMineOnly(true)">{{ 'ticketing.list.assignedMe' | translate }}</button>
       </div>
-      <select class="select narrow" [(ngModel)]="filters.customerId" (ngModelChange)="reload()" aria-label="Customer">
-        <option [ngValue]="null">All customers</option>
+      <select class="select narrow" [(ngModel)]="filters.customerId" (ngModelChange)="reload()" [attr.aria-label]="'ticketing.list.customer' | translate">
+        <option [ngValue]="null">{{ 'ticketing.list.allCustomers' | translate }}</option>
         <option *ngFor="let c of customers" [ngValue]="c.id">{{ c.name }}</option>
       </select>
       <div class="search">
         <span class="material-symbols-outlined">search</span>
-        <input class="input" [(ngModel)]="filters.search" (ngModelChange)="onSearch()" placeholder="Search number or subject…" aria-label="Search tickets">
+        <input class="input" [(ngModel)]="filters.search" (ngModelChange)="onSearch()" [placeholder]="'ticketing.list.searchNumberSubject' | translate" [attr.aria-label]="'ticketing.list.searchTickets' | translate">
       </div>
     </div>
 
     <div class="pipeline" *ngIf="stats">
       <button type="button" *ngFor="let s of pipelineStatuses" class="pipe-seg" [ngClass]="'c-' + labels.statusColor(s)"
-              [class.on]="filters.status === s" (click)="toggleStatus(s)" [title]="'Show ' + labels.statusLabel(s) + ' tickets'">
+              [class.on]="filters.status === s" (click)="toggleStatus(s)" [title]="'ticketing.list.showStatusTickets' | translate: { status: labels.statusLabel(s) }">
         <b>{{ statCount(s) }}</b><span>{{ labels.statusLabel(s) }}</span>
       </button>
-      <div class="pipe-seg overdue" [class.zero]="!stats.overdue" title="Unfinished tickets past their resolution SLA">
-        <b>{{ stats.overdue }}</b><span>Overdue</span>
+      <div class="pipe-seg overdue" [class.zero]="!stats.overdue" [title]="'ticketing.list.unfinishedTicketsPastTheir' | translate">
+        <b>{{ stats.overdue }}</b><span>{{ 'ticketing.list.overdue' | translate }}</span>
       </div>
     </div>
 
     <section class="panel">
       <div class="filters">
-        <select class="select narrow" [(ngModel)]="filters.status" (change)="reload()" aria-label="Status">
-          <option value="">All statuses</option>
+        <select class="select narrow" [(ngModel)]="filters.status" (change)="reload()" [attr.aria-label]="'common.status' | translate">
+          <option value="">{{ 'ticketing.list.allStatuses' | translate }}</option>
           <option *ngFor="let s of statuses" [value]="s">{{ labels.statusLabel(s) }}</option>
         </select>
-        <select class="select narrow" [(ngModel)]="filters.priority" (change)="reload()" aria-label="Priority">
-          <option value="">All priorities</option>
+        <select class="select narrow" [(ngModel)]="filters.priority" (change)="reload()" [attr.aria-label]="'ticketing.list.priority' | translate">
+          <option value="">{{ 'ticketing.list.allPriorities' | translate }}</option>
           <option *ngFor="let p of priorities" [value]="p">{{ labels.priorityLabel(p) }}</option>
         </select>
-        <select class="select narrow" [(ngModel)]="filters.category" (change)="reload()" aria-label="Category">
-          <option value="">All categories</option>
+        <select class="select narrow" [(ngModel)]="filters.category" (change)="reload()" [attr.aria-label]="'ticketing.list.category' | translate">
+          <option value="">{{ 'ticketing.list.allCategories' | translate }}</option>
           <option *ngFor="let c of categories" [value]="c">{{ label(c) }}</option>
         </select>
-        <button class="ghost" type="button" (click)="clear()" [disabled]="!hasFilters">Clear filters</button>
+        <button class="ghost" type="button" (click)="clear()" [disabled]="!hasFilters">{{ 'ticketing.list.clearFilters' | translate }}</button>
       </div>
 
-      <p class="error" *ngIf="error">{{ error }} <button class="ghost" (click)="load()">Retry</button></p>
-      <div class="state" *ngIf="loading">Loading ticket queue…</div>
+      <p class="error" *ngIf="error">{{ error }} <button class="ghost" (click)="load()">{{ 'common.retry' | translate }}</button></p>
+      <div class="state" *ngIf="loading">{{ 'ticketing.list.loadingTicketQueue' | translate }}</div>
       <div class="state" *ngIf="!loading && !error && !tickets.length">
-        {{ hasFilters || mineOnly ? 'No tickets match the current filters.' : 'No tickets yet.' }}
+        {{ hasFilters || mineOnly ? ('ticketing.list.noTicketsMatchCurrent' | translate) : ('ticketing.list.noTicketsYet' | translate) }}
       </div>
 
       <div class="table-wrap" *ngIf="!loading && tickets.length">
         <table>
           <thead>
-            <tr><th>ID</th><th>Title</th><th>Customer</th><th>Site</th><th>Status</th><th>Priority</th><th>H24 agent</th><th>Created</th><th>Updated</th></tr>
+            <tr><th>{{ 'ticketing.list.id' | translate }}</th><th>{{ 'ticketing.list.title' | translate }}</th><th>{{ 'ticketing.list.customer' | translate }}</th><th>{{ 'ticketing.list.site' | translate }}</th><th>{{ 'common.status' | translate }}</th><th>{{ 'ticketing.list.priority' | translate }}</th><th>{{ 'ticketing.list.h24Agent' | translate }}</th><th>{{ 'ticketing.list.created2' | translate }}</th><th>{{ 'ticketing.list.updated' | translate }}</th></tr>
           </thead>
           <tbody>
             <tr *ngFor="let t of tickets" (click)="open(t)" tabindex="0" (keydown.enter)="open(t)">
@@ -109,16 +109,16 @@
               <td class="title-cell">
                 <strong>{{ t.subject }}</strong>
                 <small>
-                  <span class="overdue-flag" *ngIf="t.overdue" title="Past the resolution SLA">Overdue</span>
+                  <span class="overdue-flag" *ngIf="t.overdue" [title]="'ticketing.list.pastResolutionSla' | translate">{{ 'ticketing.list.overdue' | translate }}</span>
                   <span *ngIf="t.l2Technician" class="l2-flag">L2 · {{ shortName(t.l2Technician.fullName) }}</span>
-                  <i *ngIf="t.unreadCount" title="Unread messages">{{ t.unreadCount }}</i>
+                  <i *ngIf="t.unreadCount" [title]="'ticketing.list.unreadMessages' | translate">{{ t.unreadCount }}</i>
                 </small>
               </td>
               <td class="muted-sm">{{ t.customer?.name || '—' }}</td>
               <td class="muted-sm">{{ t.site || '—' }}</td>
               <td><span class="badge" [ngClass]="'c-' + labels.statusColor(t.status)">{{ labels.statusLabel(t.status) }}</span></td>
               <td><span class="priority" [ngClass]="'p-' + t.priority.toLowerCase()">{{ labels.priorityLabel(t.priority) }}</span></td>
-              <td class="muted-sm"><ng-container *ngIf="t.assignee; else none">{{ shortName(t.assignee.fullName) }}</ng-container><ng-template #none><span class="danger-text">None</span></ng-template></td>
+              <td class="muted-sm"><ng-container *ngIf="t.assignee; else none">{{ shortName(t.assignee.fullName) }}</ng-container><ng-template #none><span class="danger-text">{{ 'common.none' | translate }}</span></ng-template></td>
               <td class="muted-sm">{{ t.createdAt | date:'mediumDate' }}</td>
               <td class="muted-sm">{{ t.updatedAt | date:'short' }}</td>
             </tr>
@@ -127,11 +127,11 @@
       </div>
 
       <footer *ngIf="total">
-        <span>{{ total }} ticket{{ total === 1 ? '' : 's' }} in this view</span>
+        <span>{{ (total === 1 ? 'ticketing.list.ticketsInViewOne' : 'ticketing.list.ticketsInViewOther') | translate: { count: total } }}</span>
         <span class="pager" *ngIf="totalPages > 1">
-          <button class="ghost" type="button" (click)="go(filters.page - 1)" [disabled]="filters.page === 0">Previous</button>
-          Page {{ filters.page + 1 }} of {{ totalPages }}
-          <button class="ghost" type="button" (click)="go(filters.page + 1)" [disabled]="filters.page + 1 >= totalPages">Next</button>
+          <button class="ghost" type="button" (click)="go(filters.page - 1)" [disabled]="filters.page === 0">{{ 'ticketing.list.previous' | translate }}</button>
+          {{ 'ticketing.list.pagePageTotalpages' | translate: { page: filters.page + 1, totalPages: totalPages } }}
+          <button class="ghost" type="button" (click)="go(filters.page + 1)" [disabled]="filters.page + 1 >= totalPages">{{ 'ticketing.list.next' | translate }}</button>
         </span>
       </footer>
     </section>

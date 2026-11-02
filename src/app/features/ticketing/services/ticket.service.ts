@@ -15,9 +15,14 @@ export interface TicketFilters {
 export interface NewTicket {
   subject: string; description: string; category: TicketCategory; priority: TicketPriority; origin: TicketOrigin;
   site: string | null; clientUserId: number | null; customerId: number | null; projectId: number | null; equipmentId: number | null; assigneeId: number | null;
+  customerName?: string | null; projectName?: string | null; projectNumber?: string | null; projectYear?: number | null;
 }
 
-export interface TicketContext { customerId: number | null; site: string | null; projectId: number | null; equipmentId: number | null; }
+/** customerId / projectId link Projectum records; with a null id, customerName and projectName/Number/Year are a manual entry. */
+export interface TicketContext {
+  customerId: number | null; site: string | null; projectId: number | null; equipmentId: number | null;
+  customerName?: string | null; projectName?: string | null; projectNumber?: string | null; projectYear?: number | null;
+}
 
 @Injectable({ providedIn: 'root' })
 export class TicketService {

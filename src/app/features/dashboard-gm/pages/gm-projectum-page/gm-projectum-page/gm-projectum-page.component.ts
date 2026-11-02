@@ -15,6 +15,7 @@ import { GmProjectTemplateService } from '../../../services/gm-project-template.
 import { GmAiAssistantService } from '../../../services/gm-ai-assistant.service';
 import { AiPdfExportService } from '../../../services/ai-pdf-export.service';
 import { AuthService } from 'src/app/core/auth/auth.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 type SortColumn =
   | 'code'
@@ -152,7 +153,7 @@ export class GmProjectumPageComponent implements OnInit {
   aiOpen = false;
   aiNotification = '';
 
-  constructor(
+  constructor(private readonly i18n: I18nService, 
     private gmDashboardService: GmDashboardService,
     private gmResourceService: GmResourceService,
     private router: Router,
@@ -214,13 +215,13 @@ export class GmProjectumPageComponent implements OnInit {
             this.loading = false;
           },
           error: () => {
-            this.error = 'Failed to load portfolio KPIs.';
+            this.error = this.i18n.t('gm.projectum.failedLoadPortfolioKpis');
             this.loading = false;
           }
         });
       },
       error: () => {
-        this.error = 'Failed to load projects.';
+        this.error = this.i18n.t('gm.projectum.failedLoadProjects');
         this.loading = false;
       }
     });
@@ -229,7 +230,7 @@ export class GmProjectumPageComponent implements OnInit {
   private loadFormOptions(): void {
     this.gmDashboardService.getProjectFormOptions().subscribe({
       next: options => this.formOptions = options,
-      error: () => this.error = 'Could not load project form options.'
+      error: () => this.error = this.i18n.t('gm.projectum.couldNotLoadFormOptions')
     });
   }
 
@@ -307,7 +308,7 @@ export class GmProjectumPageComponent implements OnInit {
     const project = this.selectedProject;
 
     if (!project?.id) {
-      this.aiError = 'Please select a project first.';
+      this.aiError = this.i18n.t('gm.projectum.pleaseSelectProjectFirst');
       return;
     }
 
@@ -327,14 +328,14 @@ export class GmProjectumPageComponent implements OnInit {
       next: (answer) => { this.aiAnswer = answer; },
       complete: () => {
         this.aiLoading = false;
-        if (!this.aiAnswer.trim()) this.aiError = 'The assistant returned an empty answer. Please retry.';
+        if (!this.aiAnswer.trim()) this.aiError = this.i18n.t('gm.projectum.assistantReturnedEmptyAnswer');
         if (this.aiAnswer.trim() && this.aiGeneratePdf) this.downloadAiPdf();
-        this.notifyAiFinished('AI analysis finished.');
+        this.notifyAiFinished(this.i18n.t('gm.projectum.aiAnalysisFinished'));
       },
       error: (err) => {
-        this.aiError = err?.message || 'AI assistant is currently unavailable.';
+        this.aiError = err?.message || this.i18n.t('gm.projectum.aiUnavailable');
         this.aiLoading = false;
-        this.notifyAiFinished('AI analysis failed.');
+        this.notifyAiFinished(this.i18n.t('gm.projectum.aiAnalysisFailed'));
       }
     });
   }
@@ -342,7 +343,7 @@ export class GmProjectumPageComponent implements OnInit {
   downloadAiPdf(): void {
     if (this.aiResultProjectName && this.aiAnswer.trim()) {
       void this.aiPdf.download(this.aiResultProjectName, this.aiLastQuestion, this.aiAnswer)
-        .catch(() => { this.aiError = 'The answer is ready, but the PDF could not be downloaded.'; });
+        .catch(() => { this.aiError = this.i18n.t('gm.projectum.answerReadyButPdf'); });
     }
   }
 
@@ -407,7 +408,7 @@ private notifyAiFinished(message: string): void {
         this.loading = false;
       },
       error: () => {
-        this.error = 'Failed to load selected project KPIs.';
+        this.error = this.i18n.t('gm.projectum.failedLoadSelectedProject');
         this.loading = false;
       }
     });
@@ -421,7 +422,7 @@ private notifyAiFinished(message: string): void {
 
   openProject(projectId?: number | null): void {
     if (projectId == null) {
-      this.error = 'This project has no valid id.';
+      this.error = this.i18n.t('gm.projectum.projectHasNoValid');
       return;
     }
 
@@ -457,7 +458,7 @@ private notifyAiFinished(message: string): void {
     event?.stopPropagation();
 
     if (project.id == null) {
-      this.error = 'This project cannot be edited because its id is missing.';
+      this.error = this.i18n.t('gm.projectum.projectCannotEditedBecause');
       return;
     }
 
@@ -499,7 +500,7 @@ private notifyAiFinished(message: string): void {
 
   saveProject(): void {
     if (!this.projectForm.name?.trim() || !this.projectForm.code?.trim() || !this.projectForm.categoryId) {
-      this.error = 'Project name, project code, and category are required.';
+      this.error = this.i18n.t('gm.projectum.projectNameProjectCode');
       return;
     }
 
@@ -518,8 +519,8 @@ private notifyAiFinished(message: string): void {
       },
       error: () => {
         this.error = this.editingProjectId
-          ? 'Failed to update project.'
-          : 'Failed to create project.';
+          ? this.i18n.t('gm.projectum.failedUpdateProject')
+          : this.i18n.t('gm.projectum.failedCreateProject');
         this.saving = false;
       }
     });
@@ -535,7 +536,7 @@ private notifyAiFinished(message: string): void {
     this.gmDashboardService.archiveProject(project.id).subscribe({
       next: () => this.loadInitialData(),
       error: () => {
-        this.error = 'Failed to archive project.';
+        this.error = this.i18n.t('gm.projectum.failedArchiveProject');
       }
     });
   }
@@ -718,15 +719,15 @@ private average(values: number[]): number {
   getRiskLabel(project: ProjectDashboardRow): string {
     const risk = (project.riskLevel || '').toUpperCase();
 
-    if (risk === 'HIGH') return 'High';
-    if (risk === 'MEDIUM') return 'Medium';
-    return 'Low';
+    if (risk === 'HIGH') return this.i18n.t('gm.projectum.riskLabel.high');
+    if (risk === 'MEDIUM') return this.i18n.t('gm.projectum.riskLabel.medium');
+    return this.i18n.t('gm.projectum.riskLabel.low');
   }
 
   getRiskClass(project: ProjectDashboardRow): string {
-    const risk = this.getRiskLabel(project);
-    if (risk === 'High') return 'risk-high';
-    if (risk === 'Medium') return 'risk-med';
+    const risk = (project.riskLevel || '').toUpperCase();
+    if (risk === 'HIGH') return 'risk-high';
+    if (risk === 'MEDIUM') return 'risk-med';
     return 'risk-low';
   }
 
@@ -769,13 +770,13 @@ private average(values: number[]): number {
   }
 
   get activeKpiTitle(): string {
-    return 'Portfolio KPIs';
+    return this.i18n.t('gm.projectum.portfolioKpis');
   }
 
   get activeKpiSubtitle(): string {
     return this.selectedProject
-      ? `Filtered: ${this.selectedProject.name}`
-      : `All Projects · ${this.filteredProjects.length} projects`;
+      ? this.i18n.t('gm.projectum.filteredProject', { name: this.selectedProject.name })
+      : this.i18n.t('gm.projectum.allProjectsCount', { count: this.filteredProjects.length });
   }
 
   get scheduleAverageProgress(): number {
@@ -895,9 +896,7 @@ private average(values: number[]): number {
   applyStandardTemplate(projectId: number, event?: MouseEvent): void {
     event?.stopPropagation();
 
-    const confirmed = window.confirm(
-      'Apply the standard template to this project? Existing schedule tasks will be replaced.'
-    );
+    const confirmed = window.confirm(this.i18n.t('gm.projectum.applyStandardTemplateProject'));
 
     if (!confirmed) {
       return;
@@ -905,11 +904,11 @@ private average(values: number[]): number {
 
     this.gmProjectTemplateService.applyStandardTemplate(projectId).subscribe({
       next: (res) => {
-        alert(`Standard template applied successfully.\nTasks created: ${res.tasksCreated}\nDependencies created: ${res.dependenciesCreated}`);
+        alert(this.i18n.t('gm.projectum.standardTemplateAppliedSuccessfully', { tasksCreated: res.tasksCreated, dependenciesCreated: res.dependenciesCreated }));
       },
       error: (err) => {
         console.error('Failed to apply standard template', err);
-        alert('Failed to apply standard template.');
+        alert(this.i18n.t('gm.projectum.failedApplyStandardTemplate'));
       }
     });
   }

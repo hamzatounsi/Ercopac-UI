@@ -1,9 +1,13 @@
 import { GmProjectForecastPageComponent } from './gm-project-forecast-page.component';
+import en from 'src/assets/i18n/en.json';
+
+// English lookup standing in for I18nService
+const i18n = { t: (key: string) => key.split('.').reduce((node: any, part) => node?.[part], en) ?? key } as any;
 
 describe('Forecast views and scrolling', () => {
   let component: GmProjectForecastPageComponent;
   beforeEach(() => {
-    component = new GmProjectForecastPageComponent({} as any, {} as any, {} as any, {} as any, {} as any, {} as any);
+    component = new GmProjectForecastPageComponent(i18n, {} as any, {} as any, {} as any, {} as any, {} as any, {} as any);
   });
 
   it('opens in Week and retains the Month switch', () => {
@@ -58,7 +62,7 @@ describe('Forecast views and scrolling', () => {
 
   it('deletes the forecast entry after confirmation and reloads the totals', () => {
     const deleteForecastEntry = jasmine.createSpy('deleteForecastEntry').and.returnValue({ subscribe: (o: any) => o.next() });
-    component = new GmProjectForecastPageComponent({} as any, {} as any, { deleteForecastEntry } as any, {} as any, {} as any, {} as any);
+    component = new GmProjectForecastPageComponent(i18n, {} as any, {} as any, { deleteForecastEntry } as any, {} as any, {} as any, {} as any);
     component.projectId = 7;
     component.canWriteForecast = true;
     const leaf = row(2, 1, { leaf: true, totalForecast: 500 });

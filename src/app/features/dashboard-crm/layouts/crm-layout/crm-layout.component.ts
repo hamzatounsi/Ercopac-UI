@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { AuthService } from 'src/app/core/auth/auth.service';
 import { CrmPermissionsService } from '../../services/crm-permissions.service';
-import { CrmI18nService, CrmLang } from '../../services/crm-i18n.service';
+import { CrmI18nService } from '../../services/crm-i18n.service';
 import { CrmAccount } from '../../models/crm-account.model';
 import { CrmLead } from '../../models/crm-lead.model';
 import { CrmOpportunity } from '../../models/crm-opportunity.model';
@@ -32,11 +32,6 @@ readonly mainItems = [
   { label: 'Settings', icon: 'settings', route: '/crm/settings', key: 'nav.settings' },
   { label: 'Archived Opportunities', icon: 'archive', route: '/crm/opportunities/archived', key: 'nav.archivedOpportunities' }
 ];
-  readonly languages: { code: CrmLang; label: string }[] = [
-    { code: 'en', label: 'EN' },
-    { code: 'fr', label: 'FR' },
-    { code: 'it', label: 'IT' }
-  ];
   query = '';
   searching = false;
   showResults = false;
@@ -52,12 +47,7 @@ readonly mainItems = [
     
   }
 
-  get initials(): string { return (this.auth.getCurrentUsername() || 'User').split(/\s+/).slice(0, 2).map(v => v[0]).join('').toUpperCase(); }
-  get organisation(): string { return this.auth.getOrganisationName() || 'Organisation'; }
-
-  setLanguage(lang: CrmLang): void {
-    this.i18n.setLang(lang);
-  }
+  get organisation(): string { return this.auth.getOrganisationName() || this.i18n.t('layout.organisation'); }
 
   search(value: string): void {
     const query = value.trim();

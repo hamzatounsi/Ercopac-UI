@@ -64,7 +64,7 @@ export class CrmDashboardPageComponent implements OnInit {
         this.loading = false;
       },
       error: err => {
-        this.error = err?.error?.message || 'Unable to load the CRM dashboard.';
+        this.error = this.i18n.error(err, 'dashboard.unableLoadCrmDashboard');
         this.loading = false;
       }
     });
@@ -91,19 +91,19 @@ export class CrmDashboardPageComponent implements OnInit {
   }
   saveNewOpp(): void {
     if (!this.oppForm.name.trim()) {
-      this.oppError = 'Opportunity name is required.';
+      this.oppError = this.i18n.t('dashboard.opportunityNameRequired');
       return;
     }
     if (!this.oppForm.accountId) {
-      this.oppError = 'Select an account.';
+      this.oppError = this.i18n.t('dashboard.selectAccount');
       return;
     }
     if ((this.oppForm.materialValue || 0) < 0 || (this.oppForm.servicesValue || 0) < 0) {
-      this.oppError = 'Material and services cannot be negative.';
+      this.oppError = this.i18n.t('dashboard.materialServicesCannotNegative');
       return;
     }
     if (this.oppForm.discount < 0 || this.oppForm.discount > 100) {
-      this.oppError = 'Discount must be between 0 and 100.';
+      this.oppError = this.i18n.t('dashboard.discountMustBetween0');
       return;
     }
 
@@ -128,7 +128,7 @@ export class CrmDashboardPageComponent implements OnInit {
         this.router.navigate(['/crm/opportunities', opportunity.id]);
       },
       error: err => {
-        this.oppError = err?.error?.message || 'Unable to create the opportunity.';
+        this.oppError = this.i18n.error(err, 'dashboard.unableCreateOpportunity');
         this.savingOpp = false;
       }
     });
@@ -170,14 +170,7 @@ export class CrmDashboardPageComponent implements OnInit {
   }
 
   sourceLabel(source: string): string {
-    return ({
-      REFERRAL: 'Referral',
-      TRADE_FAIR: 'Trade fair',
-      AGENT: 'Agent',
-      CUSTOMER: 'Customer',
-      PARTNER: 'Partner',
-      OTHER: 'Other'
-    } as Record<string, string>)[source] || source;
+    return this.i18n.translateDynamic(source);
   }
 
   getActivityColor(type: CrmActivityType): string {
@@ -188,9 +181,9 @@ export class CrmDashboardPageComponent implements OnInit {
     const difference = Date.now() - new Date(dateStr).getTime();
     const hours = Math.floor(difference / 3_600_000);
     const days = Math.floor(difference / 86_400_000);
-    if (hours < 1) return 'Just now';
-    if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-    return days === 1 ? 'Yesterday' : `${days} days ago`;
+    if (hours < 1) return this.i18n.t('dashboard.justNow');
+    if (hours < 24) return this.i18n.t(hours === 1 ? 'dashboard.hourAgo' : 'dashboard.hoursAgo', { count: hours });
+    return days === 1 ? this.i18n.t('dashboard.yesterday') : this.i18n.t('dashboard.daysAgo', { count: days });
   }
 
   get totalLeads(): number {

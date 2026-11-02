@@ -63,7 +63,7 @@ export class CrmLeadsPageComponent implements OnInit {
         this.loading = false;
       },
       error: e => {
-        this.error = e?.error?.message || this.i18n.t('leads.error.load');
+        this.error = this.i18n.error(e, 'leads.error.load');
         this.loading = false;
       }
     });
@@ -102,7 +102,7 @@ export class CrmLeadsPageComponent implements OnInit {
         this.router.navigate(['/crm/leads', v.id]);
       },
       error: e => {
-        this.error = e?.error?.message || this.i18n.t('leads.error.save');
+        this.error = this.i18n.error(e, 'leads.error.save');
         this.saving = false;
       }
     });
@@ -116,7 +116,7 @@ export class CrmLeadsPageComponent implements OnInit {
         this.applyOwnerFilter(); // ✅ Mettre à jour l'affichage filtré
       },
       error: e => {
-        this.error = e?.error?.message || this.i18n.t('leads.error.update');
+        this.error = this.i18n.error(e, 'leads.error.update');
         this.load();
       }
     });
@@ -124,7 +124,7 @@ export class CrmLeadsPageComponent implements OnInit {
 
   delete(event: Event, lead: CrmLead): void {
     event.stopPropagation();
-    const msg = this.i18n.t('leads.confirm.delete').replace('{name}', lead.fullName);
+    const msg = this.i18n.t('leads.confirm.delete', { name: lead.fullName });
     if (!window.confirm(msg)) return;
     
     this.crm.deleteLead(this.orgId, lead.id!).subscribe({
@@ -132,7 +132,7 @@ export class CrmLeadsPageComponent implements OnInit {
         this.leads = this.leads.filter(item => item.id !== lead.id);
         this.applyOwnerFilter(); // ✅ Mettre à jour l'affichage filtré
       },
-      error: e => this.error = e?.error?.message || this.i18n.t('leads.error.delete')
+      error: e => this.error = this.i18n.error(e, 'leads.error.delete')
     });
   }
 

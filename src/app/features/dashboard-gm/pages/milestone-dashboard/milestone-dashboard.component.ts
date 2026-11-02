@@ -6,6 +6,7 @@ import { GmDashboardService } from '../../services/gm-dashboard.service';
 import { MilestoneService } from '../../services/milestone.service';
 import { GmProjectTimelineService } from '../../services/gm-project-timeline.service';
 import { GmProjectScheduleTask } from '../../models/gm-project-schedule-task.model';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 interface TimelineDay {
   label: string;
@@ -70,7 +71,7 @@ export class MilestoneDashboardComponent implements OnInit {
     }
   }
 
-  constructor(
+  constructor(private readonly i18n: I18nService, 
     private readonly route: ActivatedRoute,
     private readonly milestoneService: MilestoneService,
     private readonly dashboardService: GmDashboardService,
@@ -92,11 +93,11 @@ export class MilestoneDashboardComponent implements OnInit {
 
   applyFilter(): void {
     if (!this.startDate || !this.endDate) {
-      this.errorMessage = 'Please select both a start and an end date.';
+      this.errorMessage = this.i18n.t('gm.milestoneDashboard.pleaseSelectBothStart');
       return;
     }
     if (this.asDate(this.startDate) > this.asDate(this.endDate)) {
-      this.errorMessage = 'The start date must be before the end date.';
+      this.errorMessage = this.i18n.t('gm.milestoneDashboard.startDateMustBefore');
       return;
     }
     this.errorMessage = '';
@@ -174,7 +175,7 @@ export class MilestoneDashboardComponent implements OnInit {
       error: () => {
         this.projects = [];
         this.loading = false;
-        this.errorMessage = 'Projects could not be loaded. Please try again.';
+        this.errorMessage = this.i18n.t('gm.milestoneDashboard.projectsLoadedPleaseTry');
       }
     });
   }
@@ -238,7 +239,7 @@ export class MilestoneDashboardComponent implements OnInit {
         this.milestones = [];
         this.milestonesByProject.clear();
         this.loading = false;
-        this.errorMessage = 'Milestones could not be loaded. Please try again.';
+        this.errorMessage = this.i18n.t('gm.milestoneDashboard.milestonesLoadedPleaseTry');
       }
     });
   }
@@ -287,9 +288,9 @@ export class MilestoneDashboardComponent implements OnInit {
   }
 
   milestoneTitle(m: DashboardMilestone): string {
-    const main = `${m.milestoneTypeLabel} — ${this.formatDate(m.milestoneDate)} (${m.dateSource === 'actual' ? 'Actual' : 'Baseline'})`;
+    const main = `${m.milestoneTypeLabel} — ${this.formatDate(m.milestoneDate)} (${this.i18n.t(m.dateSource === 'actual' ? 'gm.milestoneDashboard.actual' : 'gm.milestoneDashboard.baseline')})`;
     return m.dateSource === 'actual' && m.baselineDate && m.baselineDate !== m.milestoneDate
-      ? `${main}\nBaseline: ${this.formatDate(m.baselineDate)}`
+      ? `${main}\n${this.i18n.t('gm.milestoneDashboard.baselineDate', { date: this.formatDate(m.baselineDate) })}`
       : main;
   }
 
@@ -314,7 +315,7 @@ export class MilestoneDashboardComponent implements OnInit {
   }
 
   formatDate(value: string): string {
-    if (!value) return 'No date';
+    if (!value) return this.i18n.t('gm.milestoneDashboard.noDate');
     const parsed = new Date(`${value}T00:00:00`);
     return Number.isNaN(parsed.getTime())
       ? value

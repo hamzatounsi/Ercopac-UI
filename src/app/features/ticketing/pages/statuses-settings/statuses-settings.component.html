@@ -1,13 +1,13 @@
 <div class="set-head">
   <div>
-    <h2>Ticket statuses</h2>
-    <p>Lifecycle stages a ticket passes through. The stages and their order are fixed; you can change how each one is named and coloured.</p>
+    <h2>{{ 'ticketing.statuses.ticketStatuses' | translate }}</h2>
+    <p>{{ 'ticketing.statuses.lifecycleStagesTicketPasses' | translate }}</p>
   </div>
 </div>
-<p class="readonly-note" *ngIf="!isLead">Only support leads can change statuses.</p>
+<p class="readonly-note" *ngIf="!isLead">{{ 'ticketing.statuses.onlySupportLeadsCan' | translate }}</p>
 
-<div class="state" *ngIf="loading">Loading statuses…</div>
-<div class="load-error" *ngIf="!loading && error && !rows.length">{{ error }} <button class="ghost small" (click)="load()">Retry</button></div>
+<div class="state" *ngIf="loading">{{ 'ticketing.statuses.loadingStatuses' | translate }}</div>
+<div class="load-error" *ngIf="!loading && error && !rows.length">{{ error }} <button class="ghost small" (click)="load()">{{ 'common.retry' | translate }}</button></div>
 
 <form *ngIf="!loading && rows.length" (ngSubmit)="save()">
   <div class="status-list">
@@ -15,28 +15,28 @@
       <span class="idx">{{ i + 1 }}</span>
       <span class="badge preview" [ngClass]="'c-' + s.color" [title]="s.status">{{ s.label || '—' }}</span>
       <label class="grow">
-        <span class="sr">Description</span>
-        <input class="input" [name]="'desc' + i" [(ngModel)]="s.description" maxlength="300" placeholder="Description…" [disabled]="!isLead">
+        <span class="sr">{{ 'common.description' | translate }}</span>
+        <input class="input" [name]="'desc' + i" [(ngModel)]="s.description" maxlength="300" [placeholder]="'ticketing.statuses.description' | translate" [disabled]="!isLead">
       </label>
       <label>
-        <span class="sr">Colour</span>
+        <span class="sr">{{ 'ticketing.statuses.colour' | translate }}</span>
         <select class="select colour" [name]="'color' + i" [(ngModel)]="s.color" [disabled]="!isLead">
           <option *ngFor="let c of colors" [value]="c">{{ c }}</option>
         </select>
       </label>
       <label>
-        <span class="sr">Label</span>
-        <input class="input label" [name]="'label' + i" [(ngModel)]="s.label" maxlength="60" placeholder="Label…" [disabled]="!isLead"
+        <span class="sr">{{ 'ticketing.statuses.label' | translate }}</span>
+        <input class="input label" [name]="'label' + i" [(ngModel)]="s.label" maxlength="60" [placeholder]="'ticketing.statuses.label2' | translate" [disabled]="!isLead"
                [class.invalid]="submitted && !s.label.trim()">
       </label>
-      <span class="lock" title="Built-in stage: cannot be removed"><span class="material-symbols-outlined">lock</span></span>
+      <span class="lock" [title]="'ticketing.statuses.builtStageCannotRemoved' | translate"><span class="material-symbols-outlined">lock</span></span>
     </div>
   </div>
-  <p class="field-error" *ngIf="submitted && invalid">Every status needs a label.</p>
+  <p class="field-error" *ngIf="submitted && invalid">{{ 'ticketing.statuses.everyStatusNeedsLabel' | translate }}</p>
   <p class="field-error" *ngIf="error">{{ error }}</p>
   <div class="set-actions" *ngIf="isLead">
-    <button type="button" class="ghost" (click)="reset()" [disabled]="!dirty || saving">Discard changes</button>
-    <button type="submit" class="primary" [disabled]="!dirty || saving">{{ saving ? 'Saving…' : 'Save statuses' }}</button>
+    <button type="button" class="ghost" (click)="reset()" [disabled]="!dirty || saving">{{ 'ticketing.statuses.discardChanges' | translate }}</button>
+    <button type="submit" class="primary" [disabled]="!dirty || saving">{{ saving ? ('ticketing.statuses.saving' | translate) : ('ticketing.statuses.saveStatuses' | translate) }}</button>
   </div>
 </form>
 <div class="toast" *ngIf="notice">{{ notice }}</div>

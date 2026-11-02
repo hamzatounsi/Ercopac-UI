@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { GmTask } from '../../../models/gm-task.model';
 import { GmTaskService } from '../../../services/gm-task.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 
 @Component({
@@ -22,7 +23,7 @@ export class GmProjectTasksComponent implements OnInit {
 
   scheduleModes = ['AUTO', 'MANUAL'];
 
-  constructor(
+  constructor(private readonly i18n: I18nService, 
     private route: ActivatedRoute,
     private fb: FormBuilder,
     private gmTaskService: GmTaskService
@@ -59,7 +60,7 @@ export class GmProjectTasksComponent implements OnInit {
         this.loading = false;
       },
       error: (err) => {
-        this.error = err?.error?.message || 'Failed to load tasks.';
+        this.error = this.i18n.error(err, 'gm.projectTasks.failedLoadTasks');
         this.loading = false;
       }
     });
@@ -80,7 +81,7 @@ export class GmProjectTasksComponent implements OnInit {
     const value = this.taskForm.value;
 
     if (value.plannedStart && value.plannedEnd && value.plannedEnd < value.plannedStart) {
-      this.error = 'Task planned end date cannot be before planned start date.';
+      this.error = this.i18n.t('gm.projectTasks.taskPlannedEndDate');
       return;
     }
 
@@ -101,7 +102,7 @@ export class GmProjectTasksComponent implements OnInit {
         this.loadTasks();
       },
       error: (err) => {
-        this.error = err?.error?.message || 'Failed to create task.';
+        this.error = this.i18n.error(err, 'gm.projectTasks.failedCreateTask');
         this.isSubmitting = false;
       }
     });

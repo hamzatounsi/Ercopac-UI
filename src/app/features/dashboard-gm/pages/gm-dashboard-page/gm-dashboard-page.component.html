@@ -1,17 +1,17 @@
 <div class="dashboard-page">
   <section class="hero">
     <div class="hero-copy">
-      <div class="eyebrow">General Manager workspace</div>
-      <h1>Project Portfolio</h1>
-      <p>Executive view of the active portfolio, delivery health and upcoming work.</p>
+      <div class="eyebrow">{{ 'gm.dashboard.generalManagerWorkspace' | translate }}</div>
+      <h1>{{ 'gm.dashboard.projectPortfolio' | translate }}</h1>
+      <p>{{ 'gm.dashboard.executiveViewActivePortfolio' | translate }}</p>
     </div>
 
     <div class="hero-actions">
       <button routerLink="/gm/projects/schedule-init" class="secondary-btn">
-        Project Schedule Initialization
+        {{ 'gm.dashboard.projectScheduleInitialization' | translate }}
       </button>
       <button class="primary-btn" (click)="load()">
-        Refresh
+        {{ 'gm.dashboard.refresh' | translate }}
       </button>
     </div>
   </section>
@@ -19,39 +19,39 @@
   <section class="search-strip">
     <div class="search-field">
       <span class="material-symbols-outlined">search</span>
-      <input [(ngModel)]="search" placeholder="Search by code or name" />
+      <input [(ngModel)]="search" [placeholder]="'gm.dashboard.searchCodeName' | translate" />
     </div>
-    <div class="search-hint">{{ filtered().length }} / {{ totalProjects }} projects</div>
+    <div class="search-hint">{{ 'gm.dashboard.filteredTotalprojectsProjects' | translate: { filtered: filtered().length, totalProjects: totalProjects } }}</div>
   </section>
 
-  <div *ngIf="loading" class="state-card">Loading projects...</div>
+  <div *ngIf="loading" class="state-card">{{ 'gm.dashboard.loadingProjects' | translate }}</div>
   <div *ngIf="!loading && error" class="state-card error">{{ error }}</div>
 
   <section class="kpi-grid" *ngIf="!loading && !error">
     <article class="kpi-card">
-      <span class="kpi-label">Total Projects</span>
+      <span class="kpi-label">{{ 'gm.dashboard.totalProjects' | translate }}</span>
       <strong class="kpi-value">{{ totalProjects }}</strong>
-      <small>Projects currently tracked</small>
+      <small>{{ 'gm.dashboard.projectsCurrentlyTracked' | translate }}</small>
     </article>
 
     <article class="kpi-card warning">
-      <span class="kpi-label">Delayed</span>
+      <span class="kpi-label">{{ 'gm.dashboard.delayed' | translate }}</span>
       <strong class="kpi-value">{{ delayedCount }}</strong>
-      <small>Past planned end date</small>
+      <small>{{ 'gm.dashboard.pastPlannedEndDate' | translate }}</small>
     </article>
 
     <article class="kpi-card attention">
-      <span class="kpi-label">Need Attention</span>
+      <span class="kpi-label">{{ 'gm.dashboard.needAttention' | translate }}</span>
       <strong class="kpi-value">{{ attentionCount }}</strong>
-      <small>Ending soon</small>
+      <small>{{ 'gm.dashboard.endingSoon' | translate }}</small>
     </article>
   </section>
 
   <section class="panel" *ngIf="!loading && !error">
     <div class="panel-head">
       <div>
-        <h2>Projects</h2>
-        <p>Time health is computed from planned dates.</p>
+        <h2>{{ 'gm.dashboard.projects' | translate }}</h2>
+        <p>{{ 'gm.dashboard.timeHealthComputedFrom' | translate }}</p>
       </div>
     </div>
 
@@ -59,11 +59,11 @@
       <table class="tbl" *ngIf="filtered().length > 0; else empty">
         <thead>
           <tr>
-            <th style="width: 120px;">Code</th>
-            <th>Name</th>
-            <th style="width: 170px;">Start</th>
-            <th style="width: 170px;">End</th>
-            <th style="width: 180px;">Time Health</th>
+            <th style="width: 120px;">{{ 'gm.dashboard.code' | translate }}</th>
+            <th>{{ 'common.name' | translate }}</th>
+            <th style="width: 170px;">{{ 'gm.dashboard.start' | translate }}</th>
+            <th style="width: 170px;">{{ 'gm.dashboard.end' | translate }}</th>
+            <th style="width: 180px;">{{ 'gm.dashboard.timeHealth' | translate }}</th>
           </tr>
         </thead>
 
@@ -81,7 +81,7 @@
       </table>
 
       <ng-template #empty>
-        <div class="state-card">No projects found.</div>
+        <div class="state-card">{{ 'gm.dashboard.noProjectsFound' | translate }}</div>
       </ng-template>
     </div>
   </section>

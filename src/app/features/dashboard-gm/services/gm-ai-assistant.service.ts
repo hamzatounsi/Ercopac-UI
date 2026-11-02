@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { AiProjectResponse } from '../models/ai-project-response.model';
 import { API_BASE_URL } from '../../../core/config/api.config';
 import { AuthService } from '../../../core/auth/auth.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +14,7 @@ export class GmAiAssistantService {
   // server when its proxy is not enabled, which results in a misleading 404.
   private readonly baseUrl = `${API_BASE_URL}/ai`;
 
-  constructor(private http: HttpClient, private auth: AuthService) {}
+  constructor(private http: HttpClient, private auth: AuthService, private i18n: I18nService) {}
 
   askProjectAssistant(projectId: number, question: string): Observable<AiProjectResponse> {
     return this.http.post<AiProjectResponse>(`${this.baseUrl}/project-assistant/ask`, {
@@ -27,15 +28,15 @@ export class GmAiAssistantService {
       const controller = new AbortController();
       (async () => {
         const token = this.auth.getToken();
-        if (!token) throw new Error('Please sign in again.');
+        if (!token) throw new Error(this.i18n.t('gm.aiAssistant.signInAgain'));
         const response = await fetch(`${this.baseUrl}/project-assistant/stream`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({ projectId, question }),
           signal: controller.signal
         });
-        if (!response.ok) throw new Error(response.status === 403 ? 'You cannot access this project.' : `AI request failed (${response.status}).`);
-        if (!response.body) throw new Error('Streaming is unavailable in this browser.');
+        if (!response.ok) throw new Error(this.i18n.t(response.status === 403 ? 'gm.aiAssistant.noProjectAccess' : 'gm.aiAssistant.requestFailed', { status: response.status }));
+        if (!response.body) throw new Error(this.i18n.t('gm.aiAssistant.streamingUnavailable'));
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let pending = '';

@@ -23,6 +23,7 @@ import { DepartmentWeeklyStat } from '../../models/department-weekly-stat.model'
 import { CreateDepartmentHolidayRequest } from '../../models/create-department-holiday-request.model';
 import { MyDepartmentResponse } from '../../models/my-department-response.model';
 import { MyDepartmentService } from '../../service/my-department.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 type MainView = 'resource' | 'projects';
 type TimelineView = 'day' | 'week';
@@ -123,13 +124,13 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
   timeFilterMenuOpen = false;
 
   timeFilterOptions: TimeFilterOption[] = [
-    { value: 'ALL_TIME', label: 'All Time' },
-    { value: 'THIS_WEEK', label: 'This Week' },
-    { value: 'THIS_MONTH', label: 'This Month' },
-    { value: 'NEXT_MONTH', label: 'Next Month' },
-    { value: 'THIS_QUARTER', label: 'This Quarter' },
-    { value: 'NEXT_6_MONTHS', label: 'Next 6 Months' },
-    { value: 'THIS_YEAR', label: 'This Year' }
+    { value: 'ALL_TIME', label: 'department.my.period.allTime' },
+    { value: 'THIS_WEEK', label: 'department.my.period.thisWeek' },
+    { value: 'THIS_MONTH', label: 'department.my.period.thisMonth' },
+    { value: 'NEXT_MONTH', label: 'department.my.period.nextMonth' },
+    { value: 'THIS_QUARTER', label: 'department.my.period.thisQuarter' },
+    { value: 'NEXT_6_MONTHS', label: 'department.my.period.next6Months' },
+    { value: 'THIS_YEAR', label: 'department.my.period.thisYear' }
   ];
 
   selectedTimeFilter: TimeFilterValue = 'ALL_TIME';
@@ -151,15 +152,15 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
   
 
   paToggleableCols: PaToggleColumn[] = [
-    { id: 'wbs', label: 'WBS', vis: true },
-    { id: 'activity', label: 'ACTIVITY', vis: true },
-    { id: 'type', label: 'TYPE', vis: true },
-    { id: 'dept', label: 'DEPT', vis: true },
-    { id: 'bstart', label: 'B.START', vis: true },
-    { id: 'bfinish', label: 'B.FINISH', vis: true },
-    { id: 'astart', label: 'A.START', vis: true },
-    { id: 'afinish', label: 'A.FINISH', vis: true },
-    { id: 'days', label: 'DAYS', vis: true },
+    { id: 'wbs', label: 'department.my.col.wbs', vis: true },
+    { id: 'activity', label: 'department.my.col.activity', vis: true },
+    { id: 'type', label: 'department.my.col.type', vis: true },
+    { id: 'dept', label: 'department.my.col.dept', vis: true },
+    { id: 'bstart', label: 'department.my.col.bstart', vis: true },
+    { id: 'bfinish', label: 'department.my.col.bfinish', vis: true },
+    { id: 'astart', label: 'department.my.col.astart', vis: true },
+    { id: 'afinish', label: 'department.my.col.afinish', vis: true },
+    { id: 'days', label: 'department.my.col.days', vis: true },
     { id: 'progress', label: '%', vis: true }
   ];
     actTableHtml = '';
@@ -189,7 +190,8 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
   constructor(
   private myDepartmentService: MyDepartmentService,
   private sanitizer: DomSanitizer,
-  private router: Router
+  private router: Router,
+  private i18n: I18nService
   ) {}
 
   // Under /gm the layout header already shows the navigation buttons
@@ -395,7 +397,7 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
   }
 
   get selectedTimeFilterLabel(): string {
-  return this.timeFilterOptions.find(x => x.value === this.selectedTimeFilter)?.label ?? 'All Time';
+  return this.i18n.t(this.timeFilterOptions.find(x => x.value === this.selectedTimeFilter)?.label ?? 'department.my.period.allTime');
   }
 
   get filteredProjectBlocks(): any[] {
@@ -488,7 +490,7 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
           this.managers = managers ?? [];
         },
         error: () => {
-          this.error = 'Failed to load managers.';
+          this.error = this.i18n.t('department.my.failedLoadManagers');
         }
       });
   }
@@ -515,7 +517,7 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
           });
         },
         error: () => {
-          this.error = 'Failed to load your department overview.';
+          this.error = this.i18n.t('department.my.failedLoadMyOverview');
         }
       });
   }
@@ -566,7 +568,7 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
           });
         },
         error: () => {
-          this.error = 'Failed to load department overview.';
+          this.error = this.i18n.t('department.my.failedLoadOverview');
         }
       });
   }
@@ -680,7 +682,7 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
         this.loadOverview();
       },
       error: () => {
-        this.error = 'Failed to add holiday.';
+        this.error = this.i18n.t('department.my.failedAddHoliday');
       }
     });
   }
@@ -689,7 +691,7 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
     this.myDepartmentService.deleteHoliday(holidayId).subscribe({
       next: () => this.loadOverview(),
       error: () => {
-        this.error = 'Failed to delete holiday.';
+        this.error = this.i18n.t('department.my.failedDeleteHoliday');
       }
     });
   }
@@ -819,7 +821,7 @@ zoomPaGantt(delta: number): void {
 
   taskBarLabel(item: DepartmentTimelineItem, mode: TaskBarLabelMode = this.taskBarLabelMode(item)): string {
     const projectLabel = this.projectDisplayName(item);
-    const activityLabel = item.taskName?.trim() || 'Activity';
+    const activityLabel = item.taskName?.trim() || this.i18n.t('department.my.activityFallback');
 
     if (mode === 'full' && projectLabel) {
       return `${projectLabel} · ${activityLabel}`;
@@ -830,12 +832,12 @@ zoomPaGantt(delta: number): void {
 
   taskBarTooltip(item: DepartmentTimelineItem): string {
     const projectLabel = this.projectDisplayName(item);
-    const activityLabel = item.taskName?.trim() || 'Activity';
+    const activityLabel = item.taskName?.trim() || this.i18n.t('department.my.activityFallback');
     return `${projectLabel} · ${activityLabel}`;
   }
 
   projectDisplayName(project: Pick<DepartmentTimelineItem, 'projectName' | 'projectCode'> | Pick<DepartmentProjectBlock, 'projectName' | 'projectCode'>): string {
-    return project.projectName?.trim() || project.projectCode?.trim() || 'Project';
+    return project.projectName?.trim() || project.projectCode?.trim() || this.i18n.t('department.my.projectFallback');
   }
 
   getExternalBarLabelLayout(
@@ -1122,7 +1124,7 @@ private syncActivityPanelWidth(): void {
               color:#64748b;
               text-transform:uppercase;
               letter-spacing:.04em;
-            ">${this.escapeHtml(col.label)}</div>
+            ">${this.escapeHtml(this.i18n.t(col.label))}</div>
           `).join('')}
         </div>
       </div>
@@ -1130,7 +1132,7 @@ private syncActivityPanelWidth(): void {
 
     const body = rows.length
       ? rows.map((row, index) => this.buildActivityTableRowHtml(row, visibleCols, templateCols, index)).join('')
-      : `<div style="padding:40px;text-align:center;color:#94a3b8;font-size:13px;background:#fff;">No activity data to display.</div>`;
+      : `<div style="padding:40px;text-align:center;color:#94a3b8;font-size:13px;background:#fff;">${this.escapeHtml(this.i18n.t('department.my.noActivityData'))}</div>`;
 
     return `
       <div style="height:100%;display:flex;flex-direction:column;background:#fff;">
@@ -1298,7 +1300,7 @@ private syncActivityPanelWidth(): void {
 
     const body = rows.length
       ? rows.map((row, index) => this.buildActivityGanttRowHtml(row, index, totalWidth)).join('')
-      : `<div style="padding:40px;text-align:center;color:#94a3b8;font-size:13px;background:#fff;">No gantt data available.</div>`;
+      : `<div style="padding:40px;text-align:center;color:#94a3b8;font-size:13px;background:#fff;">${this.escapeHtml(this.i18n.t('department.my.noGanttData'))}</div>`;
 
     return `
       <div style="min-width:${totalWidth}px;background:#fff;position:relative;">
@@ -2016,7 +2018,7 @@ loadOverviewByDepartment(): void {
         });
       },
       error: () => {
-        this.error = 'Failed to load department overview.';
+        this.error = this.i18n.t('department.my.failedLoadOverview');
       }
     });
 }
@@ -2054,7 +2056,7 @@ loadDepartments(): void {
       }
     },
     error: () => {
-      this.error = 'Failed to load departments.';
+      this.error = this.i18n.t('department.my.failedLoadDepartments');
     }
   });
 }

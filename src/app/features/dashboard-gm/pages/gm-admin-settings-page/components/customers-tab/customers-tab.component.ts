@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { GmAdminService } from 'src/app/features/dashboard-gm/services/gm-admin.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 @Component({
   selector: 'app-customers-tab',
@@ -41,7 +42,7 @@ export class CustomersTabComponent implements OnInit {
     'United Arab Emirates', 'Qatar', 'Turkey'
   ];
 
-  constructor(private adminService: GmAdminService) {}
+  constructor(private readonly i18n: I18nService, private adminService: GmAdminService) {}
 
   ngOnInit(): void {
     this.load();
@@ -124,7 +125,7 @@ export class CustomersTabComponent implements OnInit {
 
   save(): void {
     if (!this.form.customerCode.trim() || !this.form.name.trim()) {
-      alert('Customer ID and name are required');
+      alert(this.i18n.t('gm.customersTab.customerIdNameRequired'));
       return;
     }
 
@@ -147,7 +148,7 @@ export class CustomersTabComponent implements OnInit {
   }
 
   delete(customer: any): void {
-    if (!confirm(`Delete customer "${customer.name}"?`)) {
+    if (!confirm(this.i18n.t('gm.customersTab.deleteCustomer', { name: customer.name }))) {
       return;
     }
 
@@ -197,7 +198,7 @@ export class CustomersTabComponent implements OnInit {
       const lines = text.split(/\r?\n/).filter(line => line.trim());
 
       if (lines.length < 2) {
-        alert('CSV file is empty or missing data rows');
+        alert(this.i18n.t('gm.customersTab.csvFileEmptyMissing'));
         return;
       }
 

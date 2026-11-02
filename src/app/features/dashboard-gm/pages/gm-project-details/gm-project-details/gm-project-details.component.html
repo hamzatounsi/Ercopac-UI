@@ -3,33 +3,33 @@
     <app-projectum-workspace-header
       [projectId]="project.id"
       [projectName]="project.name"
-      title="Overview"
-      subtitle="Detailed project overview for General Manager.">
+      [title]="'gm.projectDetails.overview' | translate"
+      [subtitle]="'gm.projectDetails.detailedProjectOverviewGeneral' | translate">
       <button projectumHeaderActions type="button" class="header-action-btn" (click)="ngOnInit()">
         <span class="material-symbols-outlined">refresh</span>
-        <span>Refresh</span>
+        <span>{{ 'gm.projectDetails.refresh' | translate }}</span>
       </button>
     </app-projectum-workspace-header>
 
     <!-- TOOLBAR -->
     <section class="top-toolbar">
       <div class="toolbar-title">
-        <div class="toolbar-title-main">Project Details</div>
-        <div class="toolbar-title-sub">Detailed project overview for General Manager</div>
+        <div class="toolbar-title-main">{{ 'gm.projectDetails.projectDetails' | translate }}</div>
+        <div class="toolbar-title-sub">{{ 'gm.projectDetails.detailedProjectOverviewGeneral2' | translate }}</div>
       </div>
 
       <div class="toolbar-meta">
         <div class="toolbar-stat">
           <strong>{{ project.code || '-' }}</strong>
-          <small>Code</small>
+          <small>{{ 'gm.projectDetails.code' | translate }}</small>
         </div>
         <div class="toolbar-stat">
           <strong>{{ project.projectPhase || '-' }}</strong>
-          <small>Phase</small>
+          <small>{{ 'gm.projectDetails.phase' | translate }}</small>
         </div>
         <div class="toolbar-stat">
           <strong>{{ project.priority || '-' }}</strong>
-          <small>Priority</small>
+          <small>{{ 'gm.projectDetails.priority' | translate }}</small>
         </div>
       </div>
     </section>
@@ -38,22 +38,22 @@
     <section class="context-strip">
       <div class="context-chip">
         <span class="context-dot blue"></span>
-        <span>{{ project.projectType || 'Project' }}</span>
+        <span>{{ project.projectType || ('gm.projectDetails.project' | translate) }}</span>
       </div>
 
       <div class="context-chip">
         <span class="context-dot green"></span>
-        <span>{{ project.projectPhase || 'No phase defined' }}</span>
+        <span>{{ project.projectPhase || ('gm.projectDetails.noPhaseDefined' | translate) }}</span>
       </div>
 
       <div class="context-chip">
         <span class="context-dot purple"></span>
-        <span>{{ project.country || 'No country' }}</span>
+        <span>{{ project.country || ('gm.projectDetails.noCountry' | translate) }}</span>
       </div>
 
       <div class="context-chip">
         <span class="context-dot orange"></span>
-        <span>{{ project.portfolio || 'No portfolio' }}</span>
+        <span>{{ project.portfolio || ('gm.projectDetails.noPortfolio' | translate) }}</span>
       </div>
     </section>
 
@@ -66,14 +66,14 @@
             <div class="project-code mono">{{ project.code }}</div>
             <h1>{{ project.name }}</h1>
             <p class="banner-sub">
-              {{ project.projectType || 'Project' }}
+              {{ project.projectType || ('gm.projectDetails.project' | translate) }}
               <span class="dot">•</span>
-              {{ project.projectPhase || 'No phase defined' }}
+              {{ project.projectPhase || ('gm.projectDetails.noPhaseDefined' | translate) }}
             </p>
           </div>
 
           <div class="banner-right">
-            <span class="priority-badge">{{ project.priority || 'No Priority' }}</span>
+            <span class="priority-badge">{{ project.priority || ('gm.projectDetails.noPriority' | translate) }}</span>
           </div>
         </section>
 
@@ -81,38 +81,38 @@
         <div class="grid-sections">
           <section class="details-card">
             <div class="card-header">
-              <h3>Project Identity</h3>
-              <p>Main business identity</p>
+              <h3>{{ 'gm.projectDetails.projectIdentity' | translate }}</h3>
+              <p>{{ 'gm.projectDetails.mainBusinessIdentity' | translate }}</p>
             </div>
 
             <div class="info-grid">
               <div class="info-item">
-                <span class="label">Code</span>
+                <span class="label">{{ 'gm.projectDetails.code' | translate }}</span>
                 <span class="value mono">{{ project.code || '-' }}</span>
               </div>
 
               <div class="info-item">
-                <span class="label">Name</span>
+                <span class="label">{{ 'common.name' | translate }}</span>
                 <span class="value">{{ project.name || '-' }}</span>
               </div>
 
               <div class="info-item">
-                <span class="label">Short Name</span>
+                <span class="label">{{ 'gm.projectDetails.shortName' | translate }}</span>
                 <span class="value">{{ project.shortName || '-' }}</span>
               </div>
 
               <div class="info-item">
-                <span class="label">Portfolio</span>
+                <span class="label">{{ 'gm.projectDetails.portfolio' | translate }}</span>
                 <span class="value">{{ project.portfolio || '-' }}</span>
               </div>
 
               <div class="info-item">
-                <span class="label">ORG Assignment</span>
+                <span class="label">{{ 'gm.projectDetails.orgAssignment' | translate }}</span>
                 <span class="value">{{ project.orgAssignment || '-' }}</span>
               </div>
 
               <div class="info-item">
-                <span class="label">Project Manager ID</span>
+                <span class="label">{{ 'gm.projectDetails.projectManagerId' | translate }}</span>
                 <span class="value mono">{{ project.projectManagerId ?? '-' }}</span>
               </div>
             </div>
@@ -120,28 +120,28 @@
 
           <section class="details-card">
             <div class="card-header">
-              <h3>Planning</h3>
-              <p>Schedule initialization data</p>
+              <h3>{{ 'gm.projectDetails.planning' | translate }}</h3>
+              <p>{{ 'gm.projectDetails.scheduleInitializationData' | translate }}</p>
             </div>
 
             <div class="info-grid">
               <div class="info-item">
-                <span class="label">Planned Start</span>
+                <span class="label">{{ 'gm.projectDetails.plannedStart' | translate }}</span>
                 <span class="value">{{ project.plannedStart ? (project.plannedStart | date:'mediumDate') : '-' }}</span>
               </div>
 
               <div class="info-item">
-                <span class="label">Planned End</span>
+                <span class="label">{{ 'gm.projectDetails.plannedEnd' | translate }}</span>
                 <span class="value">{{ project.plannedEnd ? (project.plannedEnd | date:'mediumDate') : '-' }}</span>
               </div>
 
               <div class="info-item">
-                <span class="label">Project Calendar</span>
+                <span class="label">{{ 'gm.projectDetails.projectCalendar' | translate }}</span>
                 <span class="value">{{ project.projectCalendar || '-' }}</span>
               </div>
 
               <div class="info-item">
-                <span class="label">Probability</span>
+                <span class="label">{{ 'gm.projectDetails.probability' | translate }}</span>
                 <span class="value">
                   {{ project.probability ?? '-' }}
                   <ng-container *ngIf="project.probability !== null && project.probability !== undefined">%</ng-container>
@@ -152,28 +152,28 @@
 
           <section class="details-card">
             <div class="card-header">
-              <h3>Classification</h3>
-              <p>Strategic classification data</p>
+              <h3>{{ 'gm.projectDetails.classification' | translate }}</h3>
+              <p>{{ 'gm.projectDetails.strategicClassificationData' | translate }}</p>
             </div>
 
             <div class="info-grid">
               <div class="info-item">
-                <span class="label">Country</span>
+                <span class="label">{{ 'gm.projectDetails.country' | translate }}</span>
                 <span class="value">{{ project.country || '-' }}</span>
               </div>
 
               <div class="info-item">
-                <span class="label">Project Type</span>
+                <span class="label">{{ 'gm.projectDetails.projectType' | translate }}</span>
                 <span class="value">{{ project.projectType || '-' }}</span>
               </div>
 
               <div class="info-item">
-                <span class="label">Project Phase</span>
+                <span class="label">{{ 'gm.projectDetails.projectPhase' | translate }}</span>
                 <span class="value">{{ project.projectPhase || '-' }}</span>
               </div>
 
               <div class="info-item">
-                <span class="label">Priority</span>
+                <span class="label">{{ 'gm.projectDetails.priority' | translate }}</span>
                 <span class="value">{{ project.priority || '-' }}</span>
               </div>
             </div>
@@ -181,18 +181,18 @@
 
           <section class="details-card">
             <div class="card-header">
-              <h3>Financial</h3>
-              <p>Budget overview</p>
+              <h3>{{ 'gm.projectDetails.financial' | translate }}</h3>
+              <p>{{ 'gm.projectDetails.budgetOverview' | translate }}</p>
             </div>
 
             <div class="info-grid">
               <div class="info-item">
-                <span class="label">Project Budget</span>
+                <span class="label">{{ 'gm.projectDetails.projectBudget' | translate }}</span>
                 <span class="value">{{ formatCurrency(project.projectBudget) }}</span>
               </div>
 
               <div class="info-item">
-                <span class="label">Total Project Budget</span>
+                <span class="label">{{ 'gm.projectDetails.totalProjectBudget' | translate }}</span>
                 <span class="value">{{ formatCurrency(project.totalProjectBudget) }}</span>
               </div>
             </div>
@@ -200,64 +200,64 @@
 
           <section class="details-card full-width">
             <div class="card-header">
-              <h3>Operational Notes</h3>
-              <p>Keywords, subcontractors and comments</p>
+              <h3>{{ 'gm.projectDetails.operationalNotes' | translate }}</h3>
+              <p>{{ 'gm.projectDetails.keywordsSubcontractorsComments' | translate }}</p>
             </div>
 
             <div class="notes-grid">
               <div class="note-block">
-                <div class="label">Keywords</div>
+                <div class="label">{{ 'gm.projectDetails.keywords' | translate }}</div>
                 <div class="note-value">{{ project.keywords || '-' }}</div>
               </div>
 
               <div class="note-block">
-                <div class="label">Subcontractors</div>
+                <div class="label">{{ 'gm.projectDetails.subcontractors' | translate }}</div>
                 <div class="note-value">{{ project.subcontractors || '-' }}</div>
               </div>
 
               <div class="note-block full-width">
-                <div class="label">Comment</div>
+                <div class="label">{{ 'gm.projectDetails.comment' | translate }}</div>
                 <div class="note-value">{{ project.comment || '-' }}</div>
               </div>
             </div>
           </section>
 
-          <button type="button" class="ai-launcher" (click)="aiOpen = true" aria-label="Open Projectum AI assistant"><span class="material-symbols-outlined">auto_awesome</span> Ask AI</button>
+          <button type="button" class="ai-launcher" (click)="aiOpen = true" [attr.aria-label]="'gm.projectDetails.openProjectumAiAssistant' | translate"><span class="material-symbols-outlined">auto_awesome</span> {{ 'gm.projectDetails.askAi' | translate }}</button>
           <div class="ai-backdrop" *ngIf="aiOpen" (click)="aiOpen = false"></div>
-          <section class="ai-insights-card" *ngIf="aiOpen" role="dialog" aria-modal="true" aria-label="Projectum AI assistant">
+          <section class="ai-insights-card" *ngIf="aiOpen" role="dialog" aria-modal="true" [attr.aria-label]="'gm.projectDetails.projectumAiAssistant' | translate">
             <div class="ai-header">
-              <div><h2>AI Project Assistant</h2><p>Project context: <strong>{{ project.code }}</strong> · Status, schedule, finance and actions.</p></div>
-              <button type="button" class="ai-close" (click)="aiOpen = false" aria-label="Close AI assistant">&times;</button>
+              <div><h2>{{ 'gm.projectDetails.aiProjectAssistant' | translate }}</h2><p>{{ 'gm.projectDetails.projectContext' | translate }} <strong>{{ project.code }}</strong> {{ 'gm.projectDetails.statusScheduleFinanceActions' | translate }}</p></div>
+              <button type="button" class="ai-close" (click)="aiOpen = false" [attr.aria-label]="'gm.projectDetails.closeAiAssistant' | translate">{{ 'gm.projectDetails.times' | translate }}</button>
             </div>
 
             <div class="ai-quick-actions">
-              <button type="button" [disabled]="aiLoading" (click)="askAi('Summarize the current project status')">Project status</button>
-              <button type="button" [disabled]="aiLoading" (click)="askAi('What are the main schedule risks?')">Schedule risks</button>
-              <button type="button" [disabled]="aiLoading" (click)="askAi('Compare forecast and actual cost')">Cost comparison</button>
-              <button type="button" [disabled]="aiLoading" (click)="askAi('What should management focus on this week?')">Management focus</button>
+              <button type="button" [disabled]="aiLoading" (click)="askAi('Summarize the current project status')">{{ 'gm.projectDetails.projectStatus' | translate }}</button>
+              <button type="button" [disabled]="aiLoading" (click)="askAi('What are the main schedule risks?')">{{ 'gm.projectDetails.scheduleRisks' | translate }}</button>
+              <button type="button" [disabled]="aiLoading" (click)="askAi('Compare forecast and actual cost')">{{ 'gm.projectDetails.costComparison' | translate }}</button>
+              <button type="button" [disabled]="aiLoading" (click)="askAi('What should management focus on this week?')">{{ 'gm.projectDetails.managementFocus' | translate }}</button>
             </div>
 
             <textarea
               [(ngModel)]="aiQuestion"
-              placeholder="Ask something about this project..."
-              rows="4" maxlength="500" aria-label="Question for the project AI assistant" (keydown)="onAiKeydown($event)">
+              [placeholder]="'gm.projectDetails.askSomethingAboutProject' | translate"
+              rows="4" maxlength="500" [attr.aria-label]="'gm.projectDetails.questionProjectAiAssistant' | translate" (keydown)="onAiKeydown($event)">
             </textarea>
 
-            <div class="ai-input-meta"><span>{{ aiQuestion.length }}/500</span><span>Enter to ask · Shift+Enter for a new line</span></div>
+            <div class="ai-input-meta"><span>{{ aiQuestion.length }}/500</span><span>{{ 'gm.projectDetails.enterAskShiftEnter' | translate }}</span></div>
 
-            <label class="ai-pdf-option"><input type="checkbox" [(ngModel)]="aiGeneratePdf"> Download PDF when the answer is ready</label>
+            <label class="ai-pdf-option"><input type="checkbox" [(ngModel)]="aiGeneratePdf"> {{ 'gm.projectDetails.downloadPdfWhenAnswer' | translate }}</label>
 
             <button class="ai-submit-btn" type="button" (click)="askAi()" [disabled]="aiLoading">
-              {{ aiLoading ? 'Analyzing…' : 'Ask AI' }}
+              {{ aiLoading ? ('gm.projectDetails.analyzing' | translate) : ('gm.projectDetails.askAi' | translate) }}
             </button>
 
-            <div class="ai-streaming" *ngIf="aiLoading"><span class="ai-pulse"></span> {{ aiAnswer ? 'Writing answer...' : 'Reading project data...' }}</div>
+            <div class="ai-streaming" *ngIf="aiLoading"><span class="ai-pulse"></span> {{ aiAnswer ? ('gm.projectDetails.writingAnswer' | translate) : ('gm.projectDetails.readingProjectData' | translate) }}</div>
             <div class="ai-error" *ngIf="aiError">
-              <span>{{ aiError }}</span><button type="button" (click)="retryAi()" *ngIf="aiLastQuestion && !aiLoading">Retry</button>
+              <span>{{ aiError }}</span><button type="button" (click)="retryAi()" *ngIf="aiLastQuestion && !aiLoading">{{ 'common.retry' | translate }}</button>
             </div>
 
             <div class="ai-answer" *ngIf="aiAnswer">
-              <div class="ai-answer-head"><h3>AI Answer</h3><div><small *ngIf="aiUpdatedAt">Updated {{ aiUpdatedAt | date:'shortTime' }}</small><button type="button" (click)="downloadAiPdf()" [disabled]="aiLoading">PDF</button><button type="button" (click)="copyAiAnswer()" aria-label="Copy AI answer">Copy</button><button type="button" (click)="clearAi()">Clear</button></div></div>
+              <div class="ai-answer-head"><h3>{{ 'gm.projectDetails.aiAnswer' | translate }}</h3><div><small *ngIf="aiUpdatedAt">{{ 'gm.projectDetails.updatedAiupdatedat' | translate: { aiUpdatedAt: (aiUpdatedAt | date:'shortTime') } }}</small><button type="button" (click)="downloadAiPdf()" [disabled]="aiLoading">{{ 'gm.projectDetails.pdf' | translate }}</button><button type="button" (click)="copyAiAnswer()" [attr.aria-label]="'gm.projectDetails.copyAiAnswer' | translate">{{ 'gm.projectDetails.copy' | translate }}</button><button type="button" (click)="clearAi()">{{ 'gm.projectDetails.clear' | translate }}</button></div></div>
               <app-ai-answer [text]="aiAnswer" [streaming]="aiLoading"></app-ai-answer>
             </div>
           </section>
@@ -268,19 +268,19 @@
 
   <ng-template #stateBlock>
     <app-projectum-workspace-header
-      title="Overview"
-      subtitle="Detailed project overview for General Manager."
+      [title]="'gm.projectDetails.overview' | translate"
+      [subtitle]="'gm.projectDetails.detailedProjectOverviewGeneral' | translate"
       [showProjectModules]="false">
     </app-projectum-workspace-header>
 
     <section class="top-toolbar">
       <div class="toolbar-title">
-        <div class="toolbar-title-main">Project Details</div>
-        <div class="toolbar-title-sub">Detailed project overview for General Manager</div>
+        <div class="toolbar-title-main">{{ 'gm.projectDetails.projectDetails' | translate }}</div>
+        <div class="toolbar-title-sub">{{ 'gm.projectDetails.detailedProjectOverviewGeneral2' | translate }}</div>
       </div>
     </section>
 
-    <div *ngIf="loading" class="state">Loading project...</div>
+    <div *ngIf="loading" class="state">{{ 'gm.projectDetails.loadingProject' | translate }}</div>
     <div *ngIf="!loading && error" class="state error">{{ error }}</div>
   </ng-template>
 </div>

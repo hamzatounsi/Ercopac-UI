@@ -1,13 +1,13 @@
 .create-org-shell {
   min-height: 100vh;
-  background: #f3f4f6;
+  background: var(--pm-surface-muted);
   padding: 32px;
 }
 
 .create-card {
   max-width: 720px;
   margin: 0 auto;
-  background: #fff;
+  background: var(--pm-surface);
   border-radius: 16px;
   padding: 28px;
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
@@ -18,18 +18,18 @@
   background: transparent;
   cursor: pointer;
   margin-bottom: 18px;
-  color: #2563eb;
+  color: var(--pm-primary-text);
   font-weight: 600;
 }
 
 .page-head h1 {
   margin: 0;
   font-size: 28px;
-  color: #111827;
+  color: var(--pm-text);
 }
 
 .page-head p {
-  color: #6b7280;
+  color: var(--pm-text-muted);
   margin-bottom: 28px;
 }
 
@@ -41,7 +41,7 @@ form {
 h2 {
   margin: 12px 0 0;
   font-size: 16px;
-  color: #111827;
+  color: var(--pm-text);
 }
 
 label {
@@ -49,27 +49,27 @@ label {
   gap: 8px;
   font-size: 13px;
   font-weight: 600;
-  color: #374151;
+  color: var(--pm-text);
 }
 
 input {
   height: 42px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--pm-border-strong);
   border-radius: 10px;
   padding: 0 12px;
   outline: none;
 }
 
 input:focus {
-  border-color: #2563eb;
+  border-color: var(--pm-primary);
 }
 
 .primary-btn {
   height: 44px;
   border: none;
   border-radius: 10px;
-  background: #2563eb;
-  color: white;
+  background: var(--pm-primary);
+  color: var(--pm-on-accent);
   font-weight: 700;
   cursor: pointer;
 }
@@ -86,13 +86,13 @@ input:focus {
 }
 
 .error {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--pm-danger-soft);
+  color: var(--pm-danger-text);
 }
 
 .success {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--pm-success-soft);
+  color: var(--pm-success-text);
 }
 
 .form-grid {
@@ -103,10 +103,10 @@ input:focus {
 
 select {
   height: 42px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--pm-border-strong);
   border-radius: 10px;
   padding: 0 12px;
-  background: white;
+  background: var(--pm-surface);
   outline: none;
 }
 
@@ -117,8 +117,8 @@ select {
 }
 
 .plan-card {
-  border: 1px solid #d1d5db;
-  background: white;
+  border: 1px solid var(--pm-border-strong);
+  background: var(--pm-surface);
   border-radius: 12px;
   padding: 18px;
   text-align: left;
@@ -126,8 +126,8 @@ select {
 }
 
 .plan-card.selected {
-  border-color: #2563eb;
-  background: #eff6ff;
+  border-color: var(--pm-primary);
+  background: var(--pm-primary-soft);
 }
 
 .plan-card strong,
@@ -137,9 +137,9 @@ select {
 }
 
 .licence-summary {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  background: var(--pm-primary-soft);
+  border: 1px solid var(--pm-primary-border);
   padding: 12px;
   border-radius: 10px;
-  color: #1e40af;
+  color: var(--pm-primary-text);
 }

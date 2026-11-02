@@ -1,6 +1,6 @@
 .shell {
   height: 100dvh;
-  background: #f6f8fb;
+  background: var(--pm-surface-muted);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -35,10 +35,10 @@
 .main-menu-btn {
   height: 36px;
   padding: 0 13px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--pm-border-strong);
   border-radius: 8px;
-  background: #ffffff;
-  color: #334155;
+  background: var(--pm-surface);
+  color: var(--pm-text);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -57,9 +57,9 @@
 }
 
 .main-menu-btn:hover {
-  background: #eff6ff;
-  border-color: #93c5fd;
-  color: #1565c0;
+  background: var(--pm-primary-soft);
+  border-color: var(--pm-primary-border);
+  color: var(--pm-primary-text);
 }
 
 @media (max-width: 768px) {

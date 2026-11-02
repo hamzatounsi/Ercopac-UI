@@ -1,11 +1,16 @@
 @import '../../ticketing.shared';
 
 .form-panel { padding:22px; max-width:900px; }
-.form-panel > .error { margin:0 0 14px; padding:10px; background:#fff1f1; border-radius:8px; text-align:left; }
+.form-panel > .error { margin:0 0 14px; padding:10px; background:var(--pm-surface-muted); border-radius:8px; text-align:left; }
 .form-grid { gap:14px 16px; }
 .form-grid .full { grid-column:1 / -1; }
-.form-grid label { color:#3b4660; display:flex; flex-direction:column; gap:6px; }
+.form-grid label { color:var(--pm-text-muted); display:flex; flex-direction:column; gap:6px; }
 .form-grid textarea { min-height:140px; }
-.form-grid .select:disabled { background:#f6f8fc; color:#9499ad; }
+.form-grid .select:disabled { background:var(--pm-surface-muted); color:var(--pm-text-soft); }
 .form-actions { margin-top:4px; }
+.project-block { display:flex; flex-direction:column; gap:10px; }
+.project-fields { display:grid; grid-template-columns:2fr 1fr 1fr; gap:10px; padding:12px; background:var(--pm-surface-muted); border-radius:8px; }
+.project-fields .full { grid-column:1 / -1; }
+.project-fields .input[readonly] { background:var(--pm-surface-sunken); color:var(--pm-text-muted); }
+@media (max-width:640px) { .project-fields { grid-template-columns:1fr; } }
 @media (max-width:640px) { .page-pad { padding:16px; } .form-panel { padding:16px; } }

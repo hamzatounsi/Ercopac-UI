@@ -1,0 +1,59 @@
+<div class="pm-profile" [class.inverse]="tone === 'inverse'" [class.place-top]="placement === 'top'">
+  <button #trigger type="button" class="pm-trigger" (click)="toggle()" (keydown)="onTriggerKeydown($event)"
+          aria-haspopup="menu" [attr.aria-expanded]="open" [attr.aria-controls]="open ? menuId : null"
+          [attr.aria-label]="('profileMenu.open' | translate) + ': ' + (name || ('common.user' | translate))">
+    <span class="pm-avatar" aria-hidden="true">{{ initials }}</span>
+    <span class="pm-trigger-text" aria-hidden="true">
+      <strong>{{ name || ('common.user' | translate) }}</strong>
+      <small *ngIf="primaryRole">{{ 'roles.' + primaryRole | translate }}</small>
+    </span>
+    <span class="material-symbols-outlined pm-chevron" aria-hidden="true">expand_more</span>
+  </button>
+
+  <div *ngIf="open" class="pm-panel" role="menu" [id]="menuId" [attr.aria-label]="'profileMenu.open' | translate"
+       (keydown)="onMenuKeydown($event)">
+    <div class="pm-identity" role="none">
+      <span class="pm-avatar lg" aria-hidden="true">{{ initials }}</span>
+      <div>
+        <strong>{{ name || ('common.user' | translate) }}</strong>
+        <span *ngIf="email" class="pm-email">{{ email }}</span>
+        <span class="pm-roles">
+          <span class="pm-role" *ngFor="let role of roles">{{ 'roles.' + role | translate }}</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="pm-section" role="group" [attr.aria-labelledby]="menuId + '-lang'">
+      <p class="pm-section-title" [id]="menuId + '-lang'">{{ 'profileMenu.language' | translate }}</p>
+      <div class="pm-languages">
+        <button #item *ngFor="let lang of language.languages" type="button" role="menuitemradio" tabindex="-1"
+                class="pm-option" [class.checked]="language.current === lang.code"
+                [attr.aria-checked]="language.current === lang.code" [attr.data-lang]="lang.code"
+                (click)="setLanguage(lang.code)">
+          <span class="pm-code" aria-hidden="true">{{ lang.code | uppercase }}</span>
+          <span class="pm-option-label"><bdi [attr.lang]="lang.code">{{ lang.nativeName }}</bdi></span>
+          <span class="material-symbols-outlined pm-check" aria-hidden="true">check</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="pm-section" role="group" [attr.aria-labelledby]="menuId + '-theme'">
+      <p class="pm-section-title" [id]="menuId + '-theme'">{{ 'profileMenu.theme' | translate }}</p>
+      <div class="pm-themes">
+        <button #item *ngFor="let t of themes" type="button" role="menuitemradio" tabindex="-1"
+                class="pm-theme" [class.checked]="theme.theme === t" [attr.aria-checked]="theme.theme === t"
+                (click)="setTheme(t)">
+          <span class="pm-swatch" [attr.data-swatch]="t" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span>{{ 'theme.' + t | translate }}</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="pm-section pm-footer" role="none">
+      <button #item type="button" role="menuitem" tabindex="-1" class="pm-signout" (click)="logout()">
+        <span class="material-symbols-outlined pm-flip" aria-hidden="true">logout</span>
+        {{ 'profileMenu.signOut' | translate }}
+      </button>
+    </div>
+  </div>
+</div>

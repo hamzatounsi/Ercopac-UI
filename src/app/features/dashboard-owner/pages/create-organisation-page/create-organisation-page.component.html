@@ -1,152 +1,152 @@
 <div class="create-org-shell">
   <div class="create-card">
-    <button type="button" class="back-btn" (click)="back()">← Back</button>
+    <button type="button" class="back-btn" (click)="back()">{{ 'owner.createOrganisation.back' | translate }}</button>
 
     <div class="page-head">
-      <h1>Create Organisation</h1>
-      <p>Create a tenant and assign its first Organisation Admin.</p>
+      <h1>{{ 'owner.createOrganisation.createOrganisation' | translate }}</h1>
+      <p>{{ 'owner.createOrganisation.createTenantAssignIts' | translate }}</p>
     </div>
 
     <div class="state error" *ngIf="errorMessage">{{ errorMessage }}</div>
     <div class="state success" *ngIf="successMessage">{{ successMessage }}</div>
 
     <form (ngSubmit)="submit()">
-      <h2>Organisation Info</h2>
+      <h2>{{ 'owner.createOrganisation.organisationInfo' | translate }}</h2>
 
       <div class="form-grid">
         <label>
-          Organisation Name *
+          {{ 'owner.createOrganisation.organisationName' | translate }}
           <input type="text" [(ngModel)]="form.organisationName" name="organisationName" required />
         </label>
 
         <label>
-          Organisation Code *
+          {{ 'owner.createOrganisation.organisationCode' | translate }}
           <input type="text" [(ngModel)]="form.organisationCode" name="organisationCode" required />
         </label>
 
         <label>
-          Country / Region
+          {{ 'owner.createOrganisation.countryRegion' | translate }}
           <input type="text" [(ngModel)]="form.country" name="country" />
         </label>
 
         <label>
-          Domain
-          <input type="text" [(ngModel)]="form.domain" name="domain" placeholder="company.com" />
+          {{ 'owner.createOrganisation.domain' | translate }}
+          <input type="text" [(ngModel)]="form.domain" name="domain" [placeholder]="'owner.createOrganisation.companyCom' | translate" />
         </label>
       </div>
 
-      <h2>First Organisation Admin</h2>
+      <h2>{{ 'owner.createOrganisation.firstOrganisationAdmin' | translate }}</h2>
 
       <div class="form-grid">
         <label>
-          Admin Full Name *
+          {{ 'owner.createOrganisation.adminFullName' | translate }}
           <input type="text" [(ngModel)]="form.adminFullName" name="adminFullName" required />
         </label>
 
         <label>
-          Admin Email *
+          {{ 'owner.createOrganisation.adminEmail' | translate }}
           <input type="email" [(ngModel)]="form.adminEmail" name="adminEmail" required />
         </label>
 
         <label>
-          Admin Password *
+          {{ 'owner.createOrganisation.adminPassword' | translate }}
           <input type="password" [(ngModel)]="form.adminPassword" name="adminPassword" required />
         </label>
       </div>
 
-      <h2>Plan & Billing</h2>
+      <h2>{{ 'owner.createOrganisation.planBilling' | translate }}</h2>
 
       <div class="plan-grid">
         <button type="button" class="plan-card" [class.selected]="form.plan === 'STARTER'" (click)="selectPlan('STARTER')">
-          <strong>Starter</strong>
-          <span>€490/mo</span>
-          <small>14 users</small>
+          <strong>{{ 'owner.createOrganisation.starter' | translate }}</strong>
+          <span>{{ 'owner.createOrganisation.nMo' | translate }}</span>
+          <small>{{ 'owner.createOrganisation.nUsers' | translate }}</small>
         </button>
 
         <button type="button" class="plan-card" [class.selected]="form.plan === 'PROFESSIONAL'" (click)="selectPlan('PROFESSIONAL')">
-          <strong>Professional</strong>
-          <span>€1,200/mo</span>
-          <small>62 users</small>
+          <strong>{{ 'owner.createOrganisation.professional' | translate }}</strong>
+          <span>{{ 'owner.createOrganisation.nMo2' | translate }}</span>
+          <small>{{ 'owner.createOrganisation.nUsers2' | translate }}</small>
         </button>
 
         <button type="button" class="plan-card" [class.selected]="form.plan === 'ENTERPRISE'" (click)="selectPlan('ENTERPRISE')">
-          <strong>Enterprise</strong>
-          <span>€4,200/mo</span>
-          <small>237 users</small>
+          <strong>{{ 'owner.createOrganisation.enterprise' | translate }}</strong>
+          <span>{{ 'owner.createOrganisation.nMo3' | translate }}</span>
+          <small>{{ 'owner.createOrganisation.nUsers3' | translate }}</small>
         </button>
       </div>
 
       <div class="form-grid">
         <label>
-          Monthly Revenue
+          {{ 'owner.createOrganisation.monthlyRevenue' | translate }}
           <input type="number" [(ngModel)]="form.monthlyRevenue" name="monthlyRevenue" />
         </label>
 
         <label>
-          Billing Email
+          {{ 'owner.createOrganisation.billingEmail' | translate }}
           <input type="email" [(ngModel)]="form.billingEmail" name="billingEmail" />
         </label>
 
         <label>
-          VAT Number
+          {{ 'owner.createOrganisation.vatNumber' | translate }}
           <input type="text" [(ngModel)]="form.vatNumber" name="vatNumber" />
         </label>
 
         <label>
-          Payment Method
+          {{ 'owner.createOrganisation.paymentMethod' | translate }}
           <select [(ngModel)]="form.paymentMethod" name="paymentMethod">
-            <option value="SEPA_DIRECT_DEBIT">SEPA Direct Debit</option>
-            <option value="CREDIT_CARD">Credit Card</option>
-            <option value="BANK_TRANSFER">Bank Transfer</option>
+            <option value="SEPA_DIRECT_DEBIT">{{ 'owner.createOrganisation.sepaDirectDebit' | translate }}</option>
+            <option value="CREDIT_CARD">{{ 'owner.createOrganisation.creditCard' | translate }}</option>
+            <option value="BANK_TRANSFER">{{ 'owner.createOrganisation.bankTransfer' | translate }}</option>
           </select>
         </label>
       </div>
 
-      <h2>Licence allocation</h2>
+      <h2>{{ 'owner.createOrganisation.licenceAllocation' | translate }}</h2>
 
       <div class="licence-summary">
-        Allocated seats: <strong>{{ totalLicences }}</strong>
+        {{ 'owner.createOrganisation.allocatedSeats' | translate }} <strong>{{ totalLicences }}</strong>
       </div>
 
       <div class="form-grid">
         <label>
-          Organisation Admin Licences
+          {{ 'owner.createOrganisation.organisationAdminLicences' | translate }}
           <input type="number" [(ngModel)]="form.orgAdminLicenceLimit" name="orgAdminLicenceLimit" />
         </label>
 
         <label>
-          Project Manager Licences
+          {{ 'owner.createOrganisation.projectManagerLicences' | translate }}
           <input type="number" [(ngModel)]="form.projectManagerLicenceLimit" name="projectManagerLicenceLimit" />
         </label>
 
         <label>
-          Department Manager Licences
+          {{ 'owner.createOrganisation.departmentManagerLicences' | translate }}
           <input type="number" [(ngModel)]="form.departmentManagerLicenceLimit" name="departmentManagerLicenceLimit" />
         </label>
 
         <label>
-          Employee Licences
+          {{ 'owner.createOrganisation.employeeLicences' | translate }}
           <input type="number" [(ngModel)]="form.employeeLicenceLimit" name="employeeLicenceLimit" />
         </label>
 
         <label>
-          Sales Manager Licences
+          {{ 'owner.createOrganisation.salesManagerLicences' | translate }}
           <input type="number" [(ngModel)]="form.salesManagerLicenceLimit" name="salesManagerLicenceLimit" />
         </label>
 
         <label>
-          Client Licences
+          {{ 'owner.createOrganisation.clientLicences' | translate }}
           <input type="number" [(ngModel)]="form.clientLicenceLimit" name="clientLicenceLimit" />
         </label>
 
         <label>
-          Total Users
+          {{ 'owner.createOrganisation.totalUsers' | translate }}
           <input type="number" [(ngModel)]="form.userLimit" name="userLimit" />
         </label>
       </div>
 
       <button type="submit" class="primary-btn" [disabled]="loading">
-        {{ loading ? 'Creating...' : 'Create Organisation' }}
+        {{ loading ? ('owner.createOrganisation.creating' | translate) : ('owner.createOrganisation.createOrganisation' | translate) }}
       </button>
     </form>
   </div>

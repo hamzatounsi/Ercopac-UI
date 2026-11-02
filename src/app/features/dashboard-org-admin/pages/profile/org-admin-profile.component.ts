@@ -2,8 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { OrganisationProfile } from '../../models/org-admin.models';
-import { adminErrorMessage, OrgAdminService } from '../../services/org-admin.service';
+import { OrgAdminService } from '../../services/org-admin.service';
 import { AdminToastService } from '../../shared/admin-toast.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 @Component({ selector: 'app-org-admin-profile', templateUrl: './org-admin-profile.component.html', styleUrls: ['./org-admin-profile.component.scss'] })
 export class OrgAdminProfileComponent implements OnInit {
@@ -17,14 +18,14 @@ export class OrgAdminProfileComponent implements OnInit {
     domain: ['', [Validators.maxLength(120), Validators.pattern(/^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/)]]
   });
 
-  constructor(private readonly fb: FormBuilder, private readonly service: OrgAdminService, private readonly toast: AdminToastService) {}
+  constructor(private readonly fb: FormBuilder, private readonly service: OrgAdminService, private readonly toast: AdminToastService, private readonly i18n: I18nService) {}
   ngOnInit(): void { this.load(); }
 
   load(): void {
     this.loading = true; this.errorMessage = '';
     this.service.getProfile().pipe(finalize(() => this.loading = false)).subscribe({
       next: profile => { this.profile = profile; this.resetForm(profile); },
-      error: error => this.errorMessage = adminErrorMessage(error, 'Could not load the organisation profile.')
+      error: error => this.errorMessage = this.i18n.error(error, 'orgAdmin.profile.loadOrganisationProfile')
     });
   }
 
@@ -34,8 +35,8 @@ export class OrgAdminProfileComponent implements OnInit {
     const value = this.form.getRawValue();
     this.service.updateProfile({ name: value.name.trim(), country: value.country.trim() || null, domain: value.domain.trim() || null })
       .pipe(finalize(() => this.saving = false)).subscribe({
-        next: profile => { this.profile = profile; this.resetForm(profile); this.toast.show('Organisation profile saved.'); },
-        error: error => this.errorMessage = adminErrorMessage(error, 'Could not save the organisation profile.')
+        next: profile => { this.profile = profile; this.resetForm(profile); this.toast.show(this.i18n.t('orgAdmin.profile.organisationProfileSaved')); },
+        error: error => this.errorMessage = this.i18n.error(error, 'orgAdmin.profile.saveOrganisationProfile')
       });
   }
 

@@ -16,6 +16,7 @@ import {
   ResourceTypeConfigDto,
   SaveResourceTypeRequest
 } from '../../services/resource-config.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 type PageTab = 'resources' | 'suppliers' | 'resourceTypes' | 'departments';
 type SortDirection = 'asc' | 'desc';
@@ -97,9 +98,9 @@ export class GmResourceManagementPageComponent implements OnInit {
     'SALES_MANAGER_LEAD', 'SALES_MANAGER', 'SYSTEM_ENGINEER'];
 
   readonly internalOptions = [
-    { value: '', label: 'All' },
-    { value: 'true', label: 'Internal' },
-    { value: 'false', label: 'External' }
+    { value: '', label: 'gm.resourceManagement.filter.all' },
+    { value: 'true', label: 'gm.resourceManagement.filter.internal' },
+    { value: 'false', label: 'gm.resourceManagement.filter.external' }
   ];
 
   readonly currencyOptions = ['EUR', 'USD', 'GBP', 'CHF'];
@@ -109,7 +110,7 @@ export class GmResourceManagementPageComponent implements OnInit {
   resourceUpdateForm: UpdateResourceRequest = this.createEmptyUpdateResourceForm();
   supplierForm: Partial<Supplier> = this.createEmptySupplierForm();
 
-  constructor(
+  constructor(private readonly i18n: I18nService, 
     private gmResourceService: GmResourceService,
     private gmSupplierService: GmSupplierService,
     private resourceConfigService: ResourceConfigService
@@ -178,7 +179,7 @@ export class GmResourceManagementPageComponent implements OnInit {
         this.loading = false;
       },
       error: () => {
-        this.error = 'Failed to load resources.';
+        this.error = this.i18n.t('gm.resourceManagement.failedLoadResources');
         this.loading = false;
       }
     });
@@ -275,7 +276,7 @@ export class GmResourceManagementPageComponent implements OnInit {
         this.resourceDrawerOpen = true;
       },
       error: () => {
-        this.error = 'Failed to load resource details.';
+        this.error = this.i18n.t('gm.resourceManagement.failedLoadResourceDetails');
       }
     });
   }
@@ -304,7 +305,7 @@ export class GmResourceManagementPageComponent implements OnInit {
       },
       error: (err) => {
         this.saving = false;
-        this.error = err?.error?.message || 'Failed to save resource.';
+        this.error = this.i18n.error(err, 'gm.resourceManagement.failedSaveResource');
       }
     });
   }
@@ -318,7 +319,7 @@ export class GmResourceManagementPageComponent implements OnInit {
         this.loadResources();
       },
       error: () => {
-        this.error = 'Failed to deactivate resource.';
+        this.error = this.i18n.t('gm.resourceManagement.failedDeactivateResource');
       }
     });
   }
@@ -351,7 +352,7 @@ export class GmResourceManagementPageComponent implements OnInit {
 
     if (!file) return;
     try { assertSpreadsheetFile(file, ['.xlsx', '.xls']); }
-    catch (error) { this.error = error instanceof Error ? error.message : 'Invalid or unsupported spreadsheet file.'; input.value = ''; return; }
+    catch (error) { this.error = error instanceof Error ? error.message : this.i18n.t('gm.resourceManagement.invalidUnsupportedSpreadsheetFile'); input.value = ''; return; }
 
     const reader = new FileReader();
 
@@ -362,11 +363,11 @@ export class GmResourceManagementPageComponent implements OnInit {
         const sheet = workbook.Sheets[assertValidWorkbook(workbook)];
         const rows = XLSX.utils.sheet_to_json<any>(sheet, { defval: null });
         assertSpreadsheetRowLimit(rows);
-        if (!rows.length) throw new Error('Excel file is empty.');
+        if (!rows.length) throw new Error(this.i18n.t('gm.resourceManagement.excelEmpty'));
         const headers = Object.keys(rows[0]).map(header => header.replace(/[^a-z0-9]/gi, '').toLowerCase());
-        if (!headers.some(header => ['fullname', 'name'].includes(header))) throw new Error('Resource spreadsheet must include a Full Name or Name header.');
-        this.createResourcesFromImportRows(rows, 'Failed to import resources.');
-      } catch (error) { this.error = error instanceof Error ? error.message : 'Invalid or unsupported spreadsheet file.'; }
+        if (!headers.some(header => ['fullname', 'name'].includes(header))) throw new Error(this.i18n.t('gm.resourceManagement.missingNameHeader'));
+        this.createResourcesFromImportRows(rows, this.i18n.t('gm.resourceManagement.failedImport'));
+      } catch (error) { this.error = error instanceof Error ? error.message : this.i18n.t('gm.resourceManagement.invalidUnsupportedSpreadsheetFile'); }
     };
 
     reader.readAsArrayBuffer(file);
@@ -397,9 +398,9 @@ export class GmResourceManagementPageComponent implements OnInit {
     reader.onload = () => {
       try {
         const rows = JSON.parse(reader.result as string) as any[];
-        this.createResourcesFromImportRows(rows, 'Failed to import JSON resources.');
+        this.createResourcesFromImportRows(rows, this.i18n.t('gm.resourceManagement.failedImportJson'));
       } catch {
-        this.error = 'Invalid JSON file.';
+        this.error = this.i18n.t('gm.resourceManagement.invalidJsonFile');
       }
     };
 
@@ -408,7 +409,7 @@ export class GmResourceManagementPageComponent implements OnInit {
   }
 
   private createResourcesFromImportRows(rows: any[], errorMessage: string): void {
-    if (!Array.isArray(rows) || rows.length > 10000) { this.error = 'Invalid or unsupported spreadsheet file.'; return; }
+    if (!Array.isArray(rows) || rows.length > 10000) { this.error = this.i18n.t('gm.resourceManagement.invalidUnsupportedSpreadsheetFile'); return; }
     let requests;
     try {
       requests = rows
@@ -416,11 +417,11 @@ export class GmResourceManagementPageComponent implements OnInit {
       .map((row, index) => {
         const text = (...values: unknown[]): string => String(values.find(value => value !== undefined && value !== null) ?? '').trim();
         const fullName = String(row.fullName ?? row.FullName ?? row.name ?? row.Name ?? '').trim();
-        if (!fullName) throw new Error(`Resource row ${index + 1} requires a name.`);
+        if (!fullName) throw new Error(this.i18n.t('gm.resourceManagement.rowRequiresName', { row: index + 1 }));
         const hoursPerDay = Number(row.hoursPerDay ?? row.HoursPerDay ?? 8);
         const daysPerWeek = Number(row.daysPerWeek ?? row.DaysPerWeek ?? 5);
         const defaultRate = Number(row.defaultRate ?? row.DefaultRate ?? row.rate ?? row.Rate ?? 0);
-        if (![hoursPerDay, daysPerWeek, defaultRate].every(Number.isFinite) || hoursPerDay < 0 || daysPerWeek < 0 || defaultRate < 0) throw new Error(`Resource row ${index + 1} contains invalid numeric values.`);
+        if (![hoursPerDay, daysPerWeek, defaultRate].every(Number.isFinite) || hoursPerDay < 0 || daysPerWeek < 0 || defaultRate < 0) throw new Error(this.i18n.t('gm.resourceManagement.rowInvalidNumbers', { row: index + 1 }));
         return this.gmResourceService.createResource({
         fullName,
         email: text(row.email, row.Email),
@@ -444,12 +445,12 @@ export class GmResourceManagementPageComponent implements OnInit {
       });
       });
     } catch (error) {
-      this.error = error instanceof Error ? error.message : 'Invalid or unsupported spreadsheet file.';
+      this.error = error instanceof Error ? error.message : this.i18n.t('gm.resourceManagement.invalidUnsupportedSpreadsheetFile');
       return;
     }
 
     if (!requests.length) {
-      this.error = 'No rows found to import.';
+      this.error = this.i18n.t('gm.resourceManagement.noRowsFoundImport');
       return;
     }
 
@@ -520,7 +521,7 @@ export class GmResourceManagementPageComponent implements OnInit {
       },
       error: () => {
         this.saving = false;
-        this.error = 'Supplier backend is not implemented yet.';
+        this.error = this.i18n.t('gm.resourceManagement.supplierBackendImplementedYet');
       }
     });
   }
@@ -529,7 +530,7 @@ export class GmResourceManagementPageComponent implements OnInit {
     this.gmSupplierService.deleteSupplier(id).subscribe({
       next: () => this.loadSuppliers(),
       error: () => {
-        this.error = 'Supplier backend is not implemented yet.';
+        this.error = this.i18n.t('gm.resourceManagement.supplierBackendImplementedYet');
       }
     });
   }
@@ -583,7 +584,7 @@ export class GmResourceManagementPageComponent implements OnInit {
 
   private createEmptyCreateResourceForm(): CreateResourceRequest {
     return {
-      fullName: 'New Resource',
+      fullName: this.i18n.t('gm.resourceManagement.newResourceName'),
       email: '',
       password: '',
       roles: ['EMPLOYEE'],
@@ -661,7 +662,7 @@ export class GmResourceManagementPageComponent implements OnInit {
 
   saveDepartment(): void {
     if (!this.departmentForm.code.trim()) {
-      this.error = 'Department code is required.';
+      this.error = this.i18n.t('gm.resourceManagement.departmentCodeRequired');
       return;
     }
 
@@ -671,7 +672,7 @@ export class GmResourceManagementPageComponent implements OnInit {
         this.loadResourceConfig();
       },
       error: err => {
-        this.error = err?.error?.message || 'Failed to save department.';
+        this.error = this.i18n.error(err, 'gm.resourceManagement.failedSaveDepartment');
       }
     });
   }
@@ -704,7 +705,7 @@ export class GmResourceManagementPageComponent implements OnInit {
 
   saveResourceType(): void {
     if (!this.resourceTypeForm.code.trim()) {
-      this.error = 'Resource type code is required.';
+      this.error = this.i18n.t('gm.resourceManagement.resourceTypeCodeRequired');
       return;
     }
 
@@ -719,7 +720,7 @@ export class GmResourceManagementPageComponent implements OnInit {
         this.loadMeta();
       },
       error: err => {
-        this.error = err?.error?.message || 'Failed to save resource type.';
+        this.error = this.i18n.error(err, 'gm.resourceManagement.failedSaveResourceType');
       }
     });
   }
@@ -731,7 +732,7 @@ export class GmResourceManagementPageComponent implements OnInit {
         this.loadMeta();
       },
       error: () => {
-        this.error = 'Failed to deactivate resource type.';
+        this.error = this.i18n.t('gm.resourceManagement.failedDeactivateResourceType');
       }
     });
   }

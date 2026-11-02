@@ -7,8 +7,8 @@
 }
 
 .section-card {
-  background: #fff;
-  border: 1px solid #dbe3ee;
+  background: var(--pm-surface);
+  border: 1px solid var(--pm-primary-border);
   border-radius: 10px;
   overflow: hidden;
 }
@@ -19,8 +19,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: #f8fafc;
-  border-bottom: 1px solid #dbe3ee;
+  background: var(--pm-surface-muted);
+  border-bottom: 1px solid var(--pm-primary-border);
 }
 
 .card-hdr-left {
@@ -37,12 +37,12 @@
 .card-hdr-title {
   font-size: 13px;
   font-weight: 800;
-  color: #1e3a5f;
+  color: var(--pm-primary-text);
 }
 
 .card-hdr-sub {
   font-size: 11px;
-  color: #8a9ab5;
+  color: var(--pm-chrome-muted);
   margin-top: 2px;
 }
 
@@ -57,14 +57,14 @@
 }
 
 .btn-p {
-  background: #1565c0;
-  color: #fff;
+  background: var(--pm-primary);
+  color: var(--pm-on-accent);
 }
 
 .btn-g {
-  background: #fff;
-  color: #64748b;
-  border: 1.5px solid #cbd5e1;
+  background: var(--pm-surface);
+  color: var(--pm-text-muted);
+  border: 1.5px solid var(--pm-border-strong);
 }
 
 .btn-sm {
@@ -85,22 +85,22 @@
 
 .data-table th {
   height: 36px;
-  background: #f1f5f9;
-  color: #566b86;
+  background: var(--pm-surface-muted);
+  color: var(--pm-text-muted);
   font-size: 10px;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: .05em;
   padding: 8px 14px;
   text-align: left;
-  border-bottom: 2px solid #cbd5e1;
+  border-bottom: 2px solid var(--pm-border-strong);
 }
 
 .data-table td {
   height: 48px;
   padding: 8px 14px;
-  color: #1e293b;
-  border-bottom: 1px solid #e2e8f0;
+  color: var(--pm-text);
+  border-bottom: 1px solid var(--pm-border);
   vertical-align: middle;
 }
 
@@ -117,23 +117,23 @@
 
 .mono {
   font-family: monospace;
-  color: #64748b;
+  color: var(--pm-text-muted);
   font-size: 11px;
 }
 
 .muted {
-  color: #64748b;
+  color: var(--pm-text-muted);
   font-size: 11.5px;
 }
 
 .yes {
-  color: #15803d;
+  color: var(--pm-success-text);
   font-size: 11px;
   font-weight: 800;
 }
 
 .no {
-  color: #94a3b8;
+  color: var(--pm-text-soft);
 }
 
 .row-actions {
@@ -157,19 +157,19 @@
 }
 
 .act-btn.edit {
-  color: #1565c0;
+  color: var(--pm-primary-text);
 }
 
 .act-btn.edit:hover {
-  background: #eff6ff;
+  background: var(--pm-primary-soft);
 }
 
 .act-btn.del {
-  color: #dc2626;
+  color: var(--pm-danger-text);
 }
 
 .act-btn.del:hover {
-  background: #fef2f2;
+  background: var(--pm-surface-muted);
 }
 
 /* CENTER MODAL */
@@ -177,7 +177,7 @@
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, .35);
+  background: color-mix(in srgb, var(--pm-primary) 35%, transparent);
   z-index: 9999;
   align-items: center;
   justify-content: center;
@@ -192,7 +192,7 @@
   max-width: 95vw;
   max-height: 90vh;
   overflow-y: auto;
-  background: #fff;
+  background: var(--pm-surface);
   border-radius: 12px;
   padding: 24px;
   box-shadow: 0 24px 70px rgba(15, 23, 42, .25);
@@ -201,7 +201,7 @@
 .modal-title {
   font-size: 15px;
   font-weight: 900;
-  color: #1e3a5f;
+  color: var(--pm-primary-text);
   margin-bottom: 18px;
 }
 
@@ -215,7 +215,7 @@
 .m-field label {
   font-size: 10px;
   font-weight: 800;
-  color: #64748b;
+  color: var(--pm-text-muted);
   text-transform: uppercase;
   letter-spacing: .06em;
 }
@@ -236,10 +236,10 @@
 .inp,
 .sel {
   height: 32px;
-  border: 1.5px solid #cbd5e1;
+  border: 1.5px solid var(--pm-border-strong);
   border-radius: 6px;
-  background: #f8fafc;
-  color: #1e293b;
+  background: var(--pm-surface-muted);
+  color: var(--pm-text);
   font-size: 12px;
   padding: 0 10px;
   outline: none;
@@ -247,8 +247,8 @@
 
 .inp:focus,
 .sel:focus {
-  border-color: #2196f3;
-  background: #fff;
+  border-color: var(--pm-primary);
+  background: var(--pm-surface);
 }
 
 .uppercase {
@@ -270,7 +270,7 @@
 }
 
 .color-opt.selected {
-  border-color: #1e293b;
+  border-color: var(--pm-text);
   transform: scale(1.15);
 }
 
@@ -279,7 +279,7 @@
   align-items: center;
   gap: 8px;
   margin: 4px 0 14px;
-  color: #64748b;
+  color: var(--pm-text-muted);
   font-size: 11px;
 }
 
@@ -295,5 +295,5 @@
   gap: 8px;
   margin-top: 20px;
   padding-top: 16px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--pm-border);
 }

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { GmAdminService } from 'src/app/features/dashboard-gm/services/gm-admin.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 @Component({
   selector: 'app-categories-tab',
@@ -29,7 +30,7 @@ export class CategoriesTabComponent implements OnInit {
 
   icons = ['📊', '🏗️', '🔧', '💻', '🔬', '💡', '🛠️', '🌍', '⚙️', '💼'];
 
-  constructor(private adminService: GmAdminService) {}
+  constructor(private readonly i18n: I18nService, private adminService: GmAdminService) {}
 
   ngOnInit(): void {
     this.load();
@@ -73,7 +74,7 @@ export class CategoriesTabComponent implements OnInit {
 
   save(): void {
     if (!this.form.name.trim() || !this.form.code.trim()) {
-      alert('Name and code are required');
+      alert(this.i18n.t('gm.categoriesTab.nameCodeRequired'));
       return;
     }
 
@@ -96,7 +97,7 @@ export class CategoriesTabComponent implements OnInit {
   }
 
   delete(category: any): void {
-    if (!confirm(`Delete category "${category.name}"?`)) {
+    if (!confirm(this.i18n.t('gm.categoriesTab.deleteCategory', { name: category.name }))) {
       return;
     }
 

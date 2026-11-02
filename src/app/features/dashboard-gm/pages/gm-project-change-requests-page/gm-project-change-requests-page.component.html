@@ -1,52 +1,52 @@
 <app-projectum-workspace-header
   [projectId]="projectId"
   [projectName]="projectName"
-  title="Change Requests"
-  subtitle="Evaluate approved changes to scope, schedule and cost.">
-  <button projectumHeaderActions class="tb-btn add" type="button" (click)="addCr()">Add CR</button>
+  [title]="'gm.changeRequests.changeRequests' | translate"
+  [subtitle]="'gm.changeRequests.evaluateApprovedChangesScope' | translate">
+  <button projectumHeaderActions class="tb-btn add" type="button" (click)="addCr()">{{ 'gm.changeRequests.addCr' | translate }}</button>
 </app-projectum-workspace-header>
 <div class="cr-shell">
   <div id="toolbar">
-    <span class="tb-lbl">Status:</span>
+    <span class="tb-lbl">{{ 'gm.changeRequests.status' | translate }}</span>
     <select class="tb-sel" [(ngModel)]="statusFilter" (change)="applyFilters()">
-      <option value="">All</option>
+      <option value="">{{ 'common.all' | translate }}</option>
       <option *ngFor="let status of statuses" [value]="status">{{ getStatusLabel(status) }}</option>
     </select>
 
-    <button class="tb-btn" (click)="clearFilters()">✕ Clear</button>
+    <button class="tb-btn" (click)="clearFilters()">{{ 'gm.changeRequests.clear' | translate }}</button>
 
-    <input class="tb-search" [(ngModel)]="searchTerm" (input)="applyFilters()" placeholder="🔍 Search…">
+    <input class="tb-search" [(ngModel)]="searchTerm" (input)="applyFilters()" [placeholder]="'gm.changeRequests.search' | translate">
 
     <div class="tb-sep"></div>
 
-    <button class="tb-btn" (click)="loadData()">↺ Refresh</button>
+    <button class="tb-btn" (click)="loadData()">{{ 'gm.changeRequests.refresh' | translate }}</button>
   </div>
 
   <div *ngIf="error" class="error-box">{{ error }}</div>
 
   <div id="kpi-strip" *ngIf="summary">
     <div class="kpi-cell">
-      <div class="kpi-lbl">Total CRs</div>
+      <div class="kpi-lbl">{{ 'gm.changeRequests.totalCrs' | translate }}</div>
       <div class="kpi-val">{{ summary.totalCount }}</div>
     </div>
     <div class="kpi-cell blue">
-      <div class="kpi-lbl">Open</div>
+      <div class="kpi-lbl">{{ 'gm.changeRequests.open' | translate }}</div>
       <div class="kpi-val">{{ summary.openCount }}</div>
     </div>
     <div class="kpi-cell amber">
-      <div class="kpi-lbl">Submitted</div>
+      <div class="kpi-lbl">{{ 'gm.changeRequests.submitted' | translate }}</div>
       <div class="kpi-val">{{ summary.submittedCount }}</div>
     </div>
     <div class="kpi-cell green">
-      <div class="kpi-lbl">Accepted</div>
+      <div class="kpi-lbl">{{ 'gm.changeRequests.accepted' | translate }}</div>
       <div class="kpi-val">{{ summary.acceptedCount }}</div>
     </div>
     <div class="kpi-cell red">
-      <div class="kpi-lbl">Refused</div>
+      <div class="kpi-lbl">{{ 'gm.changeRequests.refused' | translate }}</div>
       <div class="kpi-val">{{ summary.refusedCount }}</div>
     </div>
     <div class="kpi-cell gray">
-      <div class="kpi-lbl">Cancelled</div>
+      <div class="kpi-lbl">{{ 'gm.changeRequests.cancelled' | translate }}</div>
       <div class="kpi-val">{{ summary.cancelledCount }}</div>
     </div>
   </div>
@@ -56,17 +56,17 @@
       <table id="cr-table">
         <thead>
           <tr>
-            <th style="width:90px;">CR-ID</th>
-            <th>Title</th>
-            <th style="width:160px;">Status</th>
-            <th style="width:110px;">Date</th>
-            <th style="width:120px;">Value</th>
-            <th style="width:120px;">Cost</th>
-            <th style="width:120px;">Margin</th>
-            <th style="width:95px;">Margin %</th>
-            <th style="width:130px;">Owner</th>
-            <th style="min-width:180px;">Note</th>
-            <th style="width:90px;">Files</th>
+            <th style="width:90px;">{{ 'gm.changeRequests.crId' | translate }}</th>
+            <th>{{ 'gm.changeRequests.title' | translate }}</th>
+            <th style="width:160px;">{{ 'common.status' | translate }}</th>
+            <th style="width:110px;">{{ 'gm.changeRequests.date' | translate }}</th>
+            <th style="width:120px;">{{ 'gm.changeRequests.value' | translate }}</th>
+            <th style="width:120px;">{{ 'gm.changeRequests.cost' | translate }}</th>
+            <th style="width:120px;">{{ 'gm.changeRequests.margin' | translate }}</th>
+            <th style="width:95px;">{{ 'gm.changeRequests.margin2' | translate }}</th>
+            <th style="width:130px;">{{ 'gm.changeRequests.owner' | translate }}</th>
+            <th style="min-width:180px;">{{ 'gm.changeRequests.note' | translate }}</th>
+            <th style="width:90px;">{{ 'gm.changeRequests.files' | translate }}</th>
             <th style="width:42px;"></th>
           </tr>
         </thead>
@@ -121,7 +121,7 @@
           </tr>
 
           <tr *ngIf="filteredRows.length > 1" class="footer-row">
-            <td colspan="4">TOTAL ({{ filteredRows.length }} CRs)</td>
+            <td colspan="4">{{ 'gm.changeRequests.totalFilteredrowsCrs' | translate: { filteredRows: filteredRows.length } }}</td>
             <td class="num">{{ formatMoney(summary?.totalValue) }}</td>
             <td class="num">{{ formatMoney(summary?.totalCost) }}</td>
             <td class="num"><span [ngClass]="getMarginClass(summary?.totalMargin)">{{ formatMoney(summary?.totalMargin) }}</span></td>
@@ -130,7 +130,7 @@
           </tr>
 
           <tr *ngIf="filteredRows.length === 0">
-            <td colspan="12" class="empty-row">No change requests found.</td>
+            <td colspan="12" class="empty-row">{{ 'gm.changeRequests.noChangeRequestsFound' | translate }}</td>
           </tr>
         </tbody>
       </table>
@@ -139,103 +139,101 @@
     <section id="detail-drawer" [class.open]="!!selectedCr" *ngIf="selectedCr">
       <div id="dd-hdr">
         <div id="dd-cr-id">{{ selectedCr.code }}</div>
-        <div id="dd-title">{{ selectedCr.title || 'Change Request' }}</div>
+        <div id="dd-title">{{ selectedCr.title || ('gm.changeRequests.changeRequest' | translate) }}</div>
         <div id="dd-meta">
-          {{ getStatusLabel(selectedCr.status) }} ·
-          {{ formatMoney(selectedCr.valueAmount) }} value ·
-          {{ formatPercent(selectedCr.marginPercent) }} margin
+          {{ 'gm.changeRequests.statusValueamountValueMarginpercent' | translate: { status: getStatusLabel(selectedCr.status), valueAmount: formatMoney(selectedCr.valueAmount), marginPercent: formatPercent(selectedCr.marginPercent) } }}
         </div>
         <button id="dd-close" (click)="closeDrawer()">✕</button>
       </div>
 
       <div id="dd-tabs">
-        <div class="dd-tab on">📋 General</div>
-        <div class="dd-tab">💶 Financials</div>
-        <div class="dd-tab">📎 Files</div>
-        <div class="dd-tab">🕐 History</div>
+        <div class="dd-tab on">{{ 'gm.changeRequests.general' | translate }}</div>
+        <div class="dd-tab">{{ 'gm.changeRequests.financials' | translate }}</div>
+        <div class="dd-tab">{{ 'gm.changeRequests.files2' | translate }}</div>
+        <div class="dd-tab">{{ 'gm.changeRequests.history' | translate }}</div>
       </div>
 
       <div id="dd-body">
-        <div class="dd-sec">Identification</div>
+        <div class="dd-sec">{{ 'gm.changeRequests.identification' | translate }}</div>
 
         <div class="dd-field">
-          <div class="dd-lbl">Title</div>
+          <div class="dd-lbl">{{ 'gm.changeRequests.title' | translate }}</div>
           <input class="dd-inp" [(ngModel)]="selectedCr.title" (change)="saveRow(selectedCr)">
         </div>
 
         <div class="dd-field">
-          <div class="dd-lbl">Status</div>
+          <div class="dd-lbl">{{ 'common.status' | translate }}</div>
           <select class="dd-sel" [(ngModel)]="selectedCr.status" (change)="saveRow(selectedCr)">
             <option *ngFor="let status of statuses" [value]="status">{{ getStatusLabel(status) }}</option>
           </select>
         </div>
 
         <div class="dd-field">
-          <div class="dd-lbl">Date</div>
+          <div class="dd-lbl">{{ 'gm.changeRequests.date' | translate }}</div>
           <input class="dd-inp" type="date" [(ngModel)]="selectedCr.requestDate" (change)="saveRow(selectedCr)">
         </div>
 
-        <div class="dd-sec">Financials</div>
+        <div class="dd-sec">{{ 'gm.changeRequests.financials2' | translate }}</div>
 
         <div class="dd-field">
-          <div class="dd-lbl">Value</div>
+          <div class="dd-lbl">{{ 'gm.changeRequests.value' | translate }}</div>
           <input class="dd-inp" type="number" [(ngModel)]="selectedCr.valueAmount" (change)="saveRow(selectedCr)">
         </div>
 
         <div class="dd-field">
-          <div class="dd-lbl">Cost</div>
+          <div class="dd-lbl">{{ 'gm.changeRequests.cost' | translate }}</div>
           <input class="dd-inp" type="number" [(ngModel)]="selectedCr.costAmount" (change)="saveRow(selectedCr)">
         </div>
 
         <div class="dd-field">
-          <div class="dd-lbl">Margin</div>
+          <div class="dd-lbl">{{ 'gm.changeRequests.margin' | translate }}</div>
           <div class="dd-ro" [ngClass]="getMarginClass(selectedCr.marginAmount)">
             {{ formatMoney(selectedCr.marginAmount) }} · {{ formatPercent(selectedCr.marginPercent) }}
           </div>
         </div>
 
-        <div class="dd-sec">Ownership</div>
+        <div class="dd-sec">{{ 'gm.changeRequests.ownership' | translate }}</div>
 
         <div class="dd-field">
-          <div class="dd-lbl">Owner</div>
+          <div class="dd-lbl">{{ 'gm.changeRequests.owner' | translate }}</div>
           <input class="dd-inp" [(ngModel)]="selectedCr.owner" (change)="saveRow(selectedCr)">
         </div>
 
         <div class="dd-field">
-          <div class="dd-lbl">Note</div>
+          <div class="dd-lbl">{{ 'gm.changeRequests.note' | translate }}</div>
           <textarea class="dd-ta" [(ngModel)]="selectedCr.note" (change)="saveRow(selectedCr)"></textarea>
         </div>
-<div class="dd-sec">Files</div>
+<div class="dd-sec">{{ 'gm.changeRequests.files' | translate }}</div>
 
 <div class="attachment-uploader">
   <input type="file" multiple #crFileInput
     (change)="uploadCrAttachment($event)"
     accept=".pdf,.csv,.xlsx,.xls,.doc,.docx,.png,.jpg,.jpeg,.txt,.json">
   <button class="tb-btn add" type="button" (click)="crFileInput.click()">
-    ＋ Attach files
+    {{ 'gm.changeRequests.attachFiles' | translate }}
   </button>
 </div>
 
-<div class="att-empty" *ngIf="!selectedCr.attachments?.length">No files attached yet.</div>
+<div class="att-empty" *ngIf="!selectedCr.attachments?.length">{{ 'gm.changeRequests.noFilesAttachedYet' | translate }}</div>
 
 <div class="att-item" *ngFor="let att of selectedCr.attachments">
   <div class="att-name">{{ att.fileName }}</div>
   <div class="att-size">{{ formatFileSize(att.fileSize) }}</div>
   <div class="att-actions">
-    <button class="row-btn edit" (click)="downloadCrAttachment(att)">⬇ Download</button>
+    <button class="row-btn edit" (click)="downloadCrAttachment(att)">{{ 'gm.changeRequests.download' | translate }}</button>
     <button class="row-btn" (click)="deleteCrAttachment(att)">✕</button>
   </div>
 </div>
 
-        <div class="dd-sec">History</div>
-        <div class="hist-empty" *ngIf="!selectedCr.history?.length">No history yet.</div>
+        <div class="dd-sec">{{ 'gm.changeRequests.history2' | translate }}</div>
+        <div class="hist-empty" *ngIf="!selectedCr.history?.length">{{ 'gm.changeRequests.noHistoryYet' | translate }}</div>
         <div class="hist-row" *ngFor="let h of selectedCr.history">
           <div class="hist-act">{{ h.action }}</div>
-          <div class="hist-meta">{{ h.performedBy || 'User' }} · {{ h.createdAt }}</div>
+          <div class="hist-meta">{{ h.performedBy || ('common.user' | translate) }} · {{ h.createdAt }}</div>
         </div>
       </div>
     </section>
   </div>
 
-  <div class="loading-box" *ngIf="loading">Loading change requests...</div>
+  <div class="loading-box" *ngIf="loading">{{ 'gm.changeRequests.loadingChangeRequests' | translate }}</div>
 </div>

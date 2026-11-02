@@ -3,6 +3,7 @@ import {
   GmSecurityService,
   PasswordResetRequestDto
 } from 'src/app/features/dashboard-gm/services/gm-security.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 @Component({
   selector: 'app-security-tab',
@@ -14,7 +15,7 @@ export class SecurityTabComponent implements OnInit {
   loading = false;
   msg = '';
 
-  constructor(private securityService: GmSecurityService) {}
+  constructor(private readonly i18n: I18nService, private securityService: GmSecurityService) {}
 
   ngOnInit(): void {
     this.loadRequests();
@@ -31,7 +32,7 @@ export class SecurityTabComponent implements OnInit {
       },
       error: err => {
         console.error(err);
-        this.msg = 'Failed to load password reset requests';
+        this.msg = this.i18n.t('gm.securityTab.failedLoadRequests');
         this.loading = false;
       }
     });
@@ -40,27 +41,27 @@ export class SecurityTabComponent implements OnInit {
   approve(id: number): void {
     this.securityService.approve(id).subscribe({
       next: () => {
-        this.msg = 'Password reset request approved ✅';
+        this.msg = this.i18n.t('gm.securityTab.requestApproved');
         this.loadRequests();
       },
       error: err => {
         console.error(err);
-        this.msg = 'Approval failed ❌';
+        this.msg = this.i18n.t('gm.securityTab.approvalFailed');
       }
     });
   }
 
   reject(id: number): void {
-    const note = prompt('Reason for rejection (optional):') || '';
+    const note = prompt(this.i18n.t('gm.securityTab.rejectionReason')) || '';
 
     this.securityService.reject(id, note).subscribe({
       next: () => {
-        this.msg = 'Password reset request rejected';
+        this.msg = this.i18n.t('gm.securityTab.requestRejected');
         this.loadRequests();
       },
       error: err => {
         console.error(err);
-        this.msg = 'Reject failed ❌';
+        this.msg = this.i18n.t('gm.securityTab.rejectFailed');
       }
     });
   }

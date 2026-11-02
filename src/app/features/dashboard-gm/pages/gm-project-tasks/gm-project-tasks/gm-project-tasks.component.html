@@ -1,14 +1,14 @@
 <div class="tasks-page">
   <app-projectum-workspace-header
     [projectId]="projectId"
-    title="Tasks"
-    subtitle="Manage the task foundation for this project with a compact enterprise layout.">
+    [title]="'gm.projectTasks.tasks' | translate"
+    [subtitle]="'gm.projectTasks.manageTaskFoundationProject' | translate">
     <div projectumHeaderActions class="header-actions">
       <button class="secondary-btn" type="button" [routerLink]="['/gm', 'projects', projectId, 'details']">
-        Back to Project
+        {{ 'gm.projectTasks.backProject' | translate }}
       </button>
       <button class="primary-btn" (click)="toggleCreateForm()">
-        {{ showCreateForm ? 'Close Form' : 'Add Task' }}
+        {{ showCreateForm ? ('gm.projectTasks.closeForm' | translate) : ('gm.projectTasks.addTask' | translate) }}
       </button>
     </div>
   </app-projectum-workspace-header>
@@ -19,40 +19,40 @@
 
   <section class="form-card" *ngIf="showCreateForm">
     <div class="card-header">
-      <h2>Task Information</h2>
-      <p>Phase 1 general task setup</p>
+      <h2>{{ 'gm.projectTasks.taskInformation' | translate }}</h2>
+      <p>{{ 'gm.projectTasks.phase1GeneralTask' | translate }}</p>
     </div>
 
     <form [formGroup]="taskForm" class="task-form">
       <div class="form-grid">
         <div class="form-group full-width">
-          <label>Task Name *</label>
-          <input type="text" formControlName="name" placeholder="Enter task name" />
-          <small *ngIf="hasError('name')" class="error-text">Task name is required.</small>
+          <label>{{ 'gm.projectTasks.taskName' | translate }}</label>
+          <input type="text" formControlName="name" [placeholder]="'gm.projectTasks.enterTaskName' | translate" />
+          <small *ngIf="hasError('name')" class="error-text">{{ 'gm.projectTasks.taskNameRequired' | translate }}</small>
         </div>
 
         <div class="form-group full-width">
-          <label>Description</label>
-          <textarea rows="3" formControlName="description" placeholder="Task description"></textarea>
+          <label>{{ 'common.description' | translate }}</label>
+          <textarea rows="3" formControlName="description" [placeholder]="'gm.projectTasks.taskDescription' | translate"></textarea>
         </div>
 
         <div class="form-group">
-          <label>Duration (days)</label>
+          <label>{{ 'gm.projectTasks.durationDays' | translate }}</label>
           <input type="number" min="1" formControlName="durationDays" />
         </div>
 
         <div class="form-group">
-          <label>Percent Complete</label>
+          <label>{{ 'gm.projectTasks.percentComplete' | translate }}</label>
           <input type="number" min="0" max="100" formControlName="percentComplete" />
         </div>
 
         <div class="form-group">
-          <label>Priority</label>
+          <label>{{ 'gm.projectTasks.priority' | translate }}</label>
           <input type="number" min="0" max="1000" formControlName="priority" />
         </div>
 
         <div class="form-group">
-          <label>Schedule Mode</label>
+          <label>{{ 'gm.projectTasks.scheduleMode' | translate }}</label>
           <select formControlName="scheduleMode">
             <option *ngFor="let mode of scheduleModes" [value]="mode">
               {{ mode }}
@@ -61,32 +61,32 @@
         </div>
 
         <div class="form-group">
-          <label>Planned Start</label>
+          <label>{{ 'gm.projectTasks.plannedStart' | translate }}</label>
           <input type="date" formControlName="plannedStart" />
         </div>
 
         <div class="form-group">
-          <label>Planned End</label>
+          <label>{{ 'gm.projectTasks.plannedEnd' | translate }}</label>
           <input type="date" formControlName="plannedEnd" />
         </div>
 
         <div class="form-group">
-          <label>Display Order</label>
+          <label>{{ 'gm.projectTasks.displayOrder' | translate }}</label>
           <input type="number" min="1" formControlName="displayOrder" />
         </div>
 
         <div class="form-group checkbox-group">
           <label>
             <input type="checkbox" formControlName="active" />
-            Active Task
+            {{ 'gm.projectTasks.activeTask' | translate }}
           </label>
         </div>
       </div>
 
       <div class="form-actions">
-        <button type="button" class="secondary-btn" (click)="toggleCreateForm()">Cancel</button>
+        <button type="button" class="secondary-btn" (click)="toggleCreateForm()">{{ 'common.cancel' | translate }}</button>
         <button type="button" class="primary-btn" (click)="createTask()" [disabled]="isSubmitting">
-          {{ isSubmitting ? 'Saving...' : 'Save Task' }}
+          {{ isSubmitting ? ('gm.projectTasks.saving' | translate) : ('gm.projectTasks.saveTask' | translate) }}
         </button>
       </div>
     </form>
@@ -94,25 +94,25 @@
 
   <section class="table-card">
     <div class="card-header">
-      <h2>Task List</h2>
-      <p>General task planning records for this project</p>
+      <h2>{{ 'gm.projectTasks.taskList' | translate }}</h2>
+      <p>{{ 'gm.projectTasks.generalTaskPlanningRecords' | translate }}</p>
     </div>
 
-    <div *ngIf="loading" class="state">Loading tasks...</div>
+    <div *ngIf="loading" class="state">{{ 'gm.projectTasks.loadingTasks' | translate }}</div>
 
     <div class="table-wrap" *ngIf="!loading">
       <table class="tasks-table" *ngIf="tasks.length > 0; else emptyTasks">
         <thead>
           <tr>
             <th>#</th>
-            <th>Name</th>
-            <th>Duration</th>
-            <th>Start</th>
-            <th>End</th>
-            <th>% Complete</th>
-            <th>Priority</th>
-            <th>Mode</th>
-            <th>Status</th>
+            <th>{{ 'common.name' | translate }}</th>
+            <th>{{ 'gm.projectTasks.duration' | translate }}</th>
+            <th>{{ 'gm.projectTasks.start' | translate }}</th>
+            <th>{{ 'gm.projectTasks.end' | translate }}</th>
+            <th>{{ 'gm.projectTasks.complete' | translate }}</th>
+            <th>{{ 'gm.projectTasks.priority' | translate }}</th>
+            <th>{{ 'gm.projectTasks.mode' | translate }}</th>
+            <th>{{ 'common.status' | translate }}</th>
           </tr>
         </thead>
 
@@ -120,7 +120,7 @@
           <tr *ngFor="let task of tasks; trackBy: trackByTaskId">
             <td>{{ task.displayOrder || '-' }}</td>
             <td>{{ task.name }}</td>
-            <td>{{ task.durationDays || '-' }} day(s)</td>
+            <td>{{ 'gm.projectTasks.durationdaysDayS' | translate: { durationDays: (task.durationDays || '-') } }}</td>
             <td>{{ task.plannedStart || '-' }}</td>
             <td>{{ task.plannedEnd || '-' }}</td>
             <td>{{ task.percentComplete ?? 0 }}%</td>
@@ -128,7 +128,7 @@
             <td>{{ task.scheduleMode || '-' }}</td>
             <td>
               <span class="status-badge" [class.inactive]="task.active === false">
-                {{ task.active === false ? 'Inactive' : 'Active' }}
+                {{ task.active === false ? ('gm.projectTasks.inactive' | translate) : ('common.orgStatus.ACTIVE' | translate) }}
               </span>
             </td>
           </tr>
@@ -136,7 +136,7 @@
       </table>
 
       <ng-template #emptyTasks>
-        <div class="state">No tasks created yet for this project.</div>
+        <div class="state">{{ 'gm.projectTasks.noTasksCreatedYet' | translate }}</div>
       </ng-template>
     </div>
   </section>

@@ -5,7 +5,7 @@
   <!-- PAGE HEADER -->
   <div class="page-header">
     <div>
-      <h1 class="page-title">Dashboard</h1>
+      <h1 class="page-title">{{ 'crm.dashboard.dashboard' | translate }}</h1>
       <p class="page-sub">{{ i18n.t('dashboard.welcomeBack') }}, {{ currentUserName }}</p>
     </div>
     <div class="header-actions">
@@ -89,7 +89,7 @@
           <div class="pipeline-col-header">
             <span class="stage-dot" [style.background]="stage.color"></span>
             <span class="stage-col-name">{{ stage.name }}</span>
-            <span class="stage-col-count">{{ stage.opportunityCount }} →</span>
+            <span class="stage-col-count">{{ stage.opportunityCount }} <span class="rtl-mirror">→</span></span>
           </div>
 
           <!-- Deal cards -->
@@ -193,11 +193,11 @@
             transform="rotate(-90 50 50)"/>
           <!-- Center text -->
           <text x="50" y="46" text-anchor="middle"
-            style="font-size:18px;font-weight:800;fill:#1e293b">
+            style="font-size:18px;font-weight:800;fill:var(--pm-text)">
             {{ totalLeads }}
           </text>
           <text x="50" y="60" text-anchor="middle"
-            style="font-size:10px;fill:#94a3b8">
+            style="font-size:10px;fill:var(--pm-text-soft)">
             {{ i18n.t('dashboard.leadsUnit') }}
           </text>
         </svg>

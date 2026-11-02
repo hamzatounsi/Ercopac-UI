@@ -1,13 +1,14 @@
 <div class="resource-settings-page">
   <div class="topbar">
     <div>
-      <h2>Resource Settings</h2>
-      <p>Manage organisation resources, assignments, and profile settings.</p>
+      <h2>{{ 'department.resources.resourceSettings' | translate }}</h2>
+      <p>{{ 'department.resources.manageOrganisationResourcesAssignments' | translate }}</p>
     </div>
 
     <div class="topbar-actions">
       <app-nav-buttons [homes]="['/department']"></app-nav-buttons>
-      <button type="button" class="topbar-btn" (click)="openCreate()">+ New Resource</button>
+      <button type="button" class="topbar-btn" (click)="openCreate()">{{ 'department.resources.newResource' | translate }}</button>
+      <app-profile-menu></app-profile-menu>
     </div>
   </div>
 
@@ -16,38 +17,38 @@
       class="filter-input"
       type="text"
       [(ngModel)]="search"
-      placeholder="Search by name, email, code..."
+      [placeholder]="'department.resources.searchNameEmailCode' | translate"
     />
 
     <select class="filter-select" [(ngModel)]="selectedDepartmentCode">
-      <option value="">All Departments</option>
+      <option value="">{{ 'department.resources.allDepartments' | translate }}</option>
       <option *ngFor="let dept of departments" [value]="dept">{{ dept }}</option>
     </select>
 
     <select class="filter-select" [(ngModel)]="selectedRole">
-      <option value="">All Roles</option>
-      <option value="PROJECT_MANAGER">Project Manager</option>
-      <option value="DEPARTMENT_MANAGER">Department Manager</option>
-      <option value="EMPLOYEE">Employee</option>
-      <option value="SALES_MANAGER_LEAD">Sales Manager Lead</option>
-      <option value="SALES_MANAGER">Sales Manager</option>
-      <option value="SYSTEM_ENGINEER">System Engineer</option>
+      <option value="">{{ 'department.resources.allRoles' | translate }}</option>
+      <option value="PROJECT_MANAGER">{{ 'department.resources.projectManager' | translate }}</option>
+      <option value="DEPARTMENT_MANAGER">{{ 'department.resources.departmentManager' | translate }}</option>
+      <option value="EMPLOYEE">{{ 'department.resources.employee' | translate }}</option>
+      <option value="SALES_MANAGER_LEAD">{{ 'department.resources.salesManagerLead' | translate }}</option>
+      <option value="SALES_MANAGER">{{ 'department.resources.salesManager' | translate }}</option>
+      <option value="SYSTEM_ENGINEER">{{ 'department.resources.systemEngineer' | translate }}</option>
     </select>
 
     <select class="filter-select" [(ngModel)]="selectedActive">
-      <option [ngValue]="null">All Status</option>
-      <option [ngValue]="true">Active</option>
-      <option [ngValue]="false">Inactive</option>
+      <option [ngValue]="null">{{ 'department.resources.allStatus' | translate }}</option>
+      <option [ngValue]="true">{{ 'department.resources.active' | translate }}</option>
+      <option [ngValue]="false">{{ 'department.resources.inactive' | translate }}</option>
     </select>
 
     <select class="filter-select" [(ngModel)]="selectedInternalUser">
-      <option [ngValue]="null">Internal + External</option>
-      <option [ngValue]="true">Internal</option>
-      <option [ngValue]="false">External</option>
+      <option [ngValue]="null">{{ 'department.resources.internalExternal' | translate }}</option>
+      <option [ngValue]="true">{{ 'department.resources.internal' | translate }}</option>
+      <option [ngValue]="false">{{ 'department.resources.external' | translate }}</option>
     </select>
 
-    <button type="button" class="filter-btn primary" (click)="applyFilters()">Apply</button>
-    <button type="button" class="filter-btn" (click)="resetFilters()">Reset</button>
+    <button type="button" class="filter-btn primary" (click)="applyFilters()">{{ 'department.resources.apply' | translate }}</button>
+    <button type="button" class="filter-btn" (click)="resetFilters()">{{ 'department.resources.reset' | translate }}</button>
   </div>
 
   <div *ngIf="errorMessage" class="error-message">
@@ -57,21 +58,21 @@
   <div class="content">
     <div class="list-panel">
       <div class="list-panel-head">
-        <h3>Resources</h3>
-        <span>{{ totalElements }} total</span>
+        <h3>{{ 'department.resources.resources' | translate }}</h3>
+        <span>{{ 'department.resources.totalelementsTotal' | translate: { totalElements: totalElements } }}</span>
       </div>
 
-      <div *ngIf="loading" class="list-loading">Loading...</div>
+      <div *ngIf="loading" class="list-loading">{{ 'department.resources.loading' | translate }}</div>
 
       <table *ngIf="!loading" class="resource-table">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Code</th>
-            <th>Department</th>
-            <th>Type</th>
-            <th>Job Title</th>
-            <th>Status</th>
+            <th>{{ 'common.name' | translate }}</th>
+            <th>{{ 'department.resources.code' | translate }}</th>
+            <th>{{ 'department.resources.department' | translate }}</th>
+            <th>{{ 'department.resources.type' | translate }}</th>
+            <th>{{ 'department.resources.jobTitle' | translate }}</th>
+            <th>{{ 'common.status' | translate }}</th>
             <th></th>
           </tr>
         </thead>
@@ -88,7 +89,7 @@
             <td>{{ resource.jobTitle || '-' }}</td>
             <td>
               <span class="status-badge" [class.inactive]="!resource.active">
-                {{ resource.active ? 'Active' : 'Inactive' }}
+                {{ resource.active ? ('department.resources.active' | translate) : ('department.resources.inactive' | translate) }}
               </span>
             </td>
             <td>
@@ -97,7 +98,7 @@
                 class="mini-btn"
                 (click)="toggleStatus(resource.id, resource.active); $event.stopPropagation()"
               >
-                {{ resource.active ? 'Deactivate' : 'Activate' }}
+                {{ resource.active ? ('department.resources.deactivate' | translate) : ('department.resources.activate' | translate) }}
               </button>
             </td>
           </tr>
@@ -106,92 +107,92 @@
 
       <div class="pagination">
         <button type="button" (click)="goToPage(page - 1)" [disabled]="page === 0">
-          Prev
+          {{ 'department.resources.prev' | translate }}
         </button>
 
-        <span>Page {{ page + 1 }} / {{ totalPages || 1 }}</span>
+        <span>{{ 'department.resources.pagePageTotalpages' | translate: { page: page + 1, totalPages: (totalPages || 1) } }}</span>
 
         <button
           type="button"
           (click)="goToPage(page + 1)"
           [disabled]="page + 1 >= totalPages"
         >
-          Next
+          {{ 'department.resources.next' | translate }}
         </button>
       </div>
     </div>
 
     <div class="details-panel">
       <div class="dp-head">
-        <h3>{{ createMode ? 'Create Resource' : 'Resource Detail' }}</h3>
+        <h3>{{ createMode ? ('department.resources.createResource' | translate) : ('department.resources.resourceDetail' | translate) }}</h3>
         <button type="button" class="dp-close" (click)="createMode = false; selectedResource = null">✕</button>
       </div>
 
       <form class="dp-body" [formGroup]="form" (ngSubmit)="save()">
-        <div class="dp-section">Identity</div>
+        <div class="dp-section">{{ 'department.resources.identity' | translate }}</div>
 
         <div class="dp-field">
-          <label>Full Name</label>
+          <label>{{ 'department.resources.fullName' | translate }}</label>
           <input class="dp-inp" type="text" formControlName="fullName" />
           <div class="field-error" *ngIf="form.get('fullName')?.touched && form.get('fullName')?.invalid">
-            Full name is required.
+            {{ 'department.resources.fullNameRequired' | translate }}
           </div>
         </div>
 
         <div class="dp-row">
           <div class="dp-field">
-            <label>Email</label>
+            <label>{{ 'department.resources.email' | translate }}</label>
             <input class="dp-inp" type="email" formControlName="email" [readonly]="!createMode" />
             <div class="field-error" *ngIf="form.get('email')?.touched && form.get('email')?.hasError('required')">
-              Email is required.
+              {{ 'department.resources.emailRequired' | translate }}
             </div>
             <div class="field-error" *ngIf="form.get('email')?.touched && form.get('email')?.hasError('email')">
-              Invalid email format.
+              {{ 'department.resources.invalidEmailFormat' | translate }}
             </div>
           </div>
 
           <div class="dp-field" *ngIf="createMode">
-            <label>Password</label>
+            <label>{{ 'department.resources.password' | translate }}</label>
             <input class="dp-inp" type="password" formControlName="password" />
             <div class="field-error" *ngIf="form.get('password')?.touched && form.get('password')?.hasError('required')">
-              Password is required.
+              {{ 'department.resources.passwordRequired' | translate }}
             </div>
             <div class="field-error" *ngIf="form.get('password')?.touched && form.get('password')?.hasError('minlength')">
-              Min 6 characters.
+              {{ 'department.resources.min6Characters' | translate }}
             </div>
           </div>
         </div>
 
         <div class="dp-row">
           <div class="dp-field">
-            <label>Employee Code</label>
+            <label>{{ 'department.resources.employeeCode' | translate }}</label>
             <input class="dp-inp" type="text" formControlName="employeeCode" />
           </div>
 
           <div class="dp-field">
-            <label>Seniority</label>
+            <label>{{ 'department.resources.seniority' | translate }}</label>
             <select class="dp-sel" formControlName="seniority">
-              <option value="">-- Select Seniority --</option>
+              <option value="">{{ 'department.resources.selectSeniority' | translate }}</option>
               <option *ngFor="let seniority of seniorities" [value]="seniority">{{ seniority }}</option>
             </select>
           </div>
         </div>
 
-        <div class="dp-section">Organisation</div>
+        <div class="dp-section">{{ 'common.organisation' | translate }}</div>
 
         <div class="dp-row">
           <div class="dp-field">
-            <label>Resource Type</label>
+            <label>{{ 'department.resources.resourceType' | translate }}</label>
             <select class="dp-sel" formControlName="resourceType">
-              <option value="">-- Select Resource Type --</option>
+              <option value="">{{ 'department.resources.selectResourceType' | translate }}</option>
               <option *ngFor="let type of resourceTypes" [value]="type">{{ type }}</option>
             </select>
           </div>
 
           <div class="dp-field">
-            <label>Department</label>
+            <label>{{ 'department.resources.department' | translate }}</label>
             <select class="dp-sel" formControlName="departmentCode">
-              <option value="">-- Select Department --</option>
+              <option value="">{{ 'department.resources.selectDepartment' | translate }}</option>
               <option *ngFor="let dept of departments" [value]="dept">{{ dept }}</option>
             </select>
           </div>
@@ -199,92 +200,92 @@
 
         <div class="dp-row">
           <div class="dp-field">
-            <label>Role</label>
+            <label>{{ 'department.resources.role' | translate }}</label>
             <select class="dp-sel" formControlName="role" [disabled]="!createMode">
-              <option value="PROJECT_MANAGER">Project Manager</option>
-              <option value="DEPARTMENT_MANAGER">Department Manager</option>
-              <option value="EMPLOYEE">Employee</option>
-              <option value="SALES_MANAGER_LEAD">Sales Manager Lead</option>
-              <option value="SALES_MANAGER">Sales Manager</option>
-              <option value="SYSTEM_ENGINEER">System Engineer</option>
+              <option value="PROJECT_MANAGER">{{ 'department.resources.projectManager' | translate }}</option>
+              <option value="DEPARTMENT_MANAGER">{{ 'department.resources.departmentManager' | translate }}</option>
+              <option value="EMPLOYEE">{{ 'department.resources.employee' | translate }}</option>
+              <option value="SALES_MANAGER_LEAD">{{ 'department.resources.salesManagerLead' | translate }}</option>
+              <option value="SALES_MANAGER">{{ 'department.resources.salesManager' | translate }}</option>
+              <option value="SYSTEM_ENGINEER">{{ 'department.resources.systemEngineer' | translate }}</option>
             </select>
           </div>
 
           <div class="dp-field">
-            <label>Job Title</label>
+            <label>{{ 'department.resources.jobTitle' | translate }}</label>
             <input class="dp-inp" type="text" formControlName="jobTitle" />
           </div>
         </div>
 
         <div class="dp-field">
-          <label>Internal User</label>
+          <label>{{ 'department.resources.internalUser' | translate }}</label>
           <select class="dp-sel" formControlName="internalUser">
-            <option [ngValue]="true">Internal</option>
-            <option [ngValue]="false">External</option>
+            <option [ngValue]="true">{{ 'department.resources.internal' | translate }}</option>
+            <option [ngValue]="false">{{ 'department.resources.external' | translate }}</option>
           </select>
         </div>
 
-        <div class="dp-section">Capacity</div>
+        <div class="dp-section">{{ 'department.resources.capacity' | translate }}</div>
 
         <div class="dp-row">
           <div class="dp-field">
-            <label>Hours / Day</label>
+            <label>{{ 'department.resources.hoursDay' | translate }}</label>
             <input class="dp-inp" type="number" formControlName="hoursPerDay" />
           </div>
 
           <div class="dp-field">
-            <label>Days / Week</label>
+            <label>{{ 'department.resources.daysWeek' | translate }}</label>
             <input class="dp-inp" type="number" formControlName="daysPerWeek" />
           </div>
         </div>
 
         <div class="dp-field">
-          <label>Workdays</label>
-          <input class="dp-inp" type="text" formControlName="workdays" placeholder="e.g. MON-FRI" />
+          <label>{{ 'department.resources.workdays' | translate }}</label>
+          <input class="dp-inp" type="text" formControlName="workdays" [placeholder]="'department.resources.eGMonFri' | translate" />
         </div>
 
-        <div class="dp-section">Cost</div>
+        <div class="dp-section">{{ 'department.resources.cost' | translate }}</div>
 
         <div class="dp-row three">
           <div class="dp-field">
-            <label>Rate Type</label>
+            <label>{{ 'department.resources.rateType' | translate }}</label>
             <input class="dp-inp" type="text" formControlName="rateType" />
           </div>
 
           <div class="dp-field">
-            <label>Default Rate</label>
+            <label>{{ 'department.resources.defaultRate' | translate }}</label>
             <input class="dp-inp" type="number" formControlName="defaultRate" />
           </div>
 
           <div class="dp-field">
-            <label>Currency</label>
+            <label>{{ 'department.resources.currency' | translate }}</label>
             <input class="dp-inp" type="text" formControlName="currency" />
           </div>
         </div>
 
-        <div class="dp-section">Display & Notes</div>
+        <div class="dp-section">{{ 'department.resources.displayNotes' | translate }}</div>
 
         <div class="dp-field">
-          <label>Color</label>
+          <label>{{ 'department.resources.color' | translate }}</label>
           <input class="dp-inp" type="text" formControlName="color" placeholder="#1565c0" />
         </div>
 
         <div class="dp-field">
-          <label>Notes</label>
+          <label>{{ 'department.resources.notes' | translate }}</label>
           <textarea class="dp-inp dp-textarea" formControlName="notes" rows="4"></textarea>
         </div>
 
         <div class="dp-field">
-          <label>Active</label>
+          <label>{{ 'department.resources.active' | translate }}</label>
           <select class="dp-sel" formControlName="active">
-            <option [ngValue]="true">Active</option>
-            <option [ngValue]="false">Inactive</option>
+            <option [ngValue]="true">{{ 'department.resources.active' | translate }}</option>
+            <option [ngValue]="false">{{ 'department.resources.inactive' | translate }}</option>
           </select>
         </div>
 
         <div class="dp-footer">
           <button type="submit" class="btn btn-primary" [disabled]="saving">
-            {{ saving ? 'Saving...' : 'Save' }}
+            {{ saving ? ('department.resources.saving' | translate) : ('common.save' | translate) }}
           </button>
 
           <button
@@ -293,7 +294,7 @@
             class="btn btn-danger"
             (click)="toggleStatus(selectedResource.id, selectedResource.active)"
           >
-            {{ selectedResource.active ? 'Deactivate' : 'Activate' }}
+            {{ selectedResource.active ? ('department.resources.deactivate' | translate) : ('department.resources.activate' | translate) }}
           </button>
         </div>
       </form>

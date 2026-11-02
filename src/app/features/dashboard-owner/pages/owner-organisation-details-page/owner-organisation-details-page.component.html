@@ -1,31 +1,31 @@
-<div class="details-loading" *ngIf="loading">Loading organisation...</div>
+<div class="details-loading" *ngIf="loading">{{ 'owner.organisationDetails.loadingOrganisation' | translate }}</div>
 
 <div class="details-shell" *ngIf="!loading && organisation">
   <aside class="edit-sidebar">
-    <div class="sidebar-title">EDIT SECTIONS</div>
+    <div class="sidebar-title">{{ 'owner.organisationDetails.editSections' | translate }}</div>
 
     <button class="edit-link" [class.active]="selectedSection === 'general'" (click)="setSection('general')">
-    <span>🏢</span> General Info
+    <span>🏢</span> {{ 'owner.organisationDetails.generalInfo' | translate }}
     </button>
 
     <button class="edit-link" [class.active]="selectedSection === 'billing'" (click)="setSection('billing')">
-    <span>💳</span> Plan & Billing
+    <span>💳</span> {{ 'owner.organisationDetails.planBilling' | translate }}
     </button>
 
     <button class="edit-link" [class.active]="selectedSection === 'licences'" (click)="setSection('licences')">
-    <span>🔑</span> Licence Allocation
+    <span>🔑</span> {{ 'owner.organisationDetails.licenceAllocation' | translate }}
     </button>
 
     <button class="edit-link" [class.active]="selectedSection === 'security'" (click)="setSection('security')">
-    <span>🔒</span> Security
+    <span>🔒</span> {{ 'owner.organisationDetails.security' | translate }}
     </button>
 
     <button class="edit-link" [class.active]="selectedSection === 'notes'" (click)="setSection('notes')">
-    <span>📝</span> Notes & Flags
+    <span>📝</span> {{ 'owner.organisationDetails.notesFlags' | translate }}
     </button>
 
     <div class="status-card">
-      <div class="status-title">STATUS</div>
+      <div class="status-title">{{ 'owner.organisationDetails.status' | translate }}</div>
 
       <button
         class="status-option active"
@@ -33,7 +33,7 @@
         (click)="setStatus('ACTIVE')"
       >
         <span class="dot green"></span>
-        Active
+        {{ 'owner.organisationDetails.active' | translate }}
       </button>
 
       <button
@@ -42,7 +42,7 @@
         (click)="setStatus('TRIAL')"
       >
         <span class="dot amber"></span>
-        Trial
+        {{ 'owner.organisationDetails.trial' | translate }}
       </button>
 
       <button
@@ -51,14 +51,14 @@
         (click)="setStatus('SUSPENDED')"
       >
         <span class="dot red"></span>
-        Suspended
+        {{ 'owner.organisationDetails.suspended' | translate }}
       </button>
     </div>
   </aside>
 
   <main class="details-main">
     <header class="details-topbar">
-      <button class="back-btn" type="button" (click)="goBack()">← Organisations</button>
+      <button class="back-btn" type="button" (click)="goBack()">{{ 'owner.organisationDetails.organisations' | translate }}</button>
 
       <div class="header-copy">
         <strong>{{ organisation.name }}</strong>
@@ -66,7 +66,7 @@
       </div>
 
       <button class="save-btn" type="button" (click)="saveChanges()" [disabled]="saving">
-        💾 {{ saving ? 'Saving...' : 'Save Changes' }}
+        💾 {{ saving ? ('owner.organisationDetails.saving' | translate) : ('owner.organisationDetails.saveChanges' | translate) }}
       </button>
     </header>
 
@@ -74,38 +74,38 @@
       <div class="error-box" *ngIf="errorMessage">{{ errorMessage }}</div>
 
         <ng-container *ngIf="selectedSection === 'general'">
-    <h2 class="page-section-title">General Information</h2>
+    <h2 class="page-section-title">{{ 'owner.organisationDetails.generalInformation' | translate }}</h2>
 
     <section class="section-card">
         <div class="form-grid">
         <!-- LEFT -->
         <label>
-            <span>Organisation Name</span>
+            <span>{{ 'owner.organisationDetails.organisationName' | translate }}</span>
             <input [(ngModel)]="organisation.name" />
         </label>
 
         <label>
-            <span>Organisation ID</span>
+            <span>{{ 'owner.organisationDetails.organisationId' | translate }}</span>
             <input [(ngModel)]="organisation.code" />
         </label>
 
         <label>
-            <span>Country / Region</span>
+            <span>{{ 'owner.organisationDetails.countryRegion' | translate }}</span>
             <input [(ngModel)]="organisation.country" />
         </label>
 
         <label>
-            <span>Admin Name</span>
+            <span>{{ 'owner.organisationDetails.adminName' | translate }}</span>
             <input [(ngModel)]="organisation.adminFullName" />
         </label>
 
         <label>
-            <span>Total Users</span>
+            <span>{{ 'owner.organisationDetails.totalUsers' | translate }}</span>
             <input type="number" [(ngModel)]="organisation.userLimit" />
         </label>
 
         <label>
-            <span>Platform Health %</span>
+            <span>{{ 'owner.organisationDetails.platformHealth' | translate }}</span>
             <input type="number" [(ngModel)]="organisation.healthScore" />
             <div class="health-line">
             <span [style.width.%]="organisation.healthScore"></span>
@@ -113,18 +113,18 @@
         </label>
 
         <label>
-            <span>Member Since</span>
+            <span>{{ 'owner.organisationDetails.memberSince' | translate }}</span>
             <input [value]="formatDate(organisation.createdAt)" readonly />
         </label>
         </div>
     </section>
     </ng-container>
       <ng-container *ngIf="selectedSection === 'billing'">
-        <h2 class="page-section-title">Plan & Billing</h2>
+        <h2 class="page-section-title">{{ 'owner.organisationDetails.planBilling' | translate }}</h2>
 
         <section class="section-card">
-            <h2>Subscription Plan</h2>
-        <p>Changing the plan updates the default licence limits. You can still customise them below.</p>
+            <h2>{{ 'owner.organisationDetails.subscriptionPlan' | translate }}</h2>
+        <p>{{ 'owner.organisationDetails.changingPlanUpdatesDefault' | translate }}</p>
 
         <div class="plan-grid">
           <button
@@ -133,9 +133,9 @@
             (click)="selectPlan('STARTER')"
           >
             <div class="plan-icon">🌱</div>
-            <strong>Starter</strong>
-            <span>€490/mo</span>
-            <small>14 users</small>
+            <strong>{{ 'owner.organisationDetails.starter' | translate }}</strong>
+            <span>{{ 'owner.organisationDetails.nMo' | translate }}</span>
+            <small>{{ 'owner.organisationDetails.nUsers' | translate }}</small>
           </button>
 
           <button
@@ -144,9 +144,9 @@
             (click)="selectPlan('PROFESSIONAL')"
           >
             <div class="plan-icon">🚀</div>
-            <strong>Professional</strong>
-            <span>€1,200/mo</span>
-            <small>62 users</small>
+            <strong>{{ 'owner.organisationDetails.professional' | translate }}</strong>
+            <span>{{ 'owner.organisationDetails.nMo2' | translate }}</span>
+            <small>{{ 'owner.organisationDetails.nUsers2' | translate }}</small>
           </button>
 
           <button
@@ -155,33 +155,33 @@
             (click)="selectPlan('ENTERPRISE')"
           >
             <div class="plan-icon">🏆</div>
-            <strong>Enterprise</strong>
-            <span>Custom</span>
-            <small>237 users</small>
+            <strong>{{ 'owner.organisationDetails.enterprise' | translate }}</strong>
+            <span>{{ 'owner.organisationDetails.custom' | translate }}</span>
+            <small>{{ 'owner.organisationDetails.nUsers3' | translate }}</small>
           </button>
         </div>
         <div class="form-grid billing-grid">
             <label>
-                <span>Monthly Revenue (MRR)</span>
+                <span>{{ 'owner.organisationDetails.monthlyRevenueMrr' | translate }}</span>
                 <input type="number" [(ngModel)]="organisation.monthlyRevenue" />
             </label>
 
             <label>
-                <span>Billing Email</span>
+                <span>{{ 'owner.organisationDetails.billingEmail' | translate }}</span>
                 <input [(ngModel)]="organisation.billingEmail" />
             </label>
 
             <label>
-                <span>VAT Number</span>
-                <input [(ngModel)]="organisation.vatNumber" placeholder="e.g. NL123456789B01" />
+                <span>{{ 'owner.organisationDetails.vatNumber' | translate }}</span>
+                <input [(ngModel)]="organisation.vatNumber" [placeholder]="'owner.organisationDetails.eGNl123456789b01' | translate" />
             </label>
 
             <label>
-                <span>Payment Method</span>
+                <span>{{ 'owner.organisationDetails.paymentMethod' | translate }}</span>
                     <select [(ngModel)]="organisation.paymentMethod">
-                        <option value="SEPA_DIRECT_DEBIT">SEPA Direct Debit</option>
-                        <option value="CREDIT_CARD">Credit Card</option>
-                        <option value="BANK_TRANSFER">Bank Transfer</option>
+                        <option value="SEPA_DIRECT_DEBIT">{{ 'owner.organisationDetails.sepaDirectDebit' | translate }}</option>
+                        <option value="CREDIT_CARD">{{ 'owner.organisationDetails.creditCard' | translate }}</option>
+                        <option value="BANK_TRANSFER">{{ 'owner.organisationDetails.bankTransfer' | translate }}</option>
                     </select>
             </label>
             </div>
@@ -189,27 +189,27 @@
         </ng-container>
 
       <ng-container *ngIf="selectedSection === 'licences'">
-        <h2 class="page-section-title">Licence Allocation</h2>
+        <h2 class="page-section-title">{{ 'owner.organisationDetails.licenceAllocation' | translate }}</h2>
 
         <section class="section-card">
             <div class="section-head">
             <div>
-                <h2>Licence Allocation</h2>
-                <p>Maximum active seats by role for this organisation.</p>
+                <h2>{{ 'owner.organisationDetails.licenceAllocation' | translate }}</h2>
+                <p>{{ 'owner.organisationDetails.maximumActiveSeatsRole' | translate }}</p>
             </div>
 
-            <strong class="licence-total">Allocated seats: {{ totalLicences }}</strong>
+            <strong class="licence-total">{{ 'owner.organisationDetails.allocatedSeatsTotallicences' | translate: { totalLicences: totalLicences } }}</strong>
             </div>
 
             <div class="hint-box">
-                Enterprise defaults: 2 organisation admins · 10 project managers · 25 department managers · 200 employees
+                {{ 'owner.organisationDetails.enterpriseDefaults2Organisation' | translate }}
             </div>
 
             <div class="licence-row">
                 <div class="licence-icon red">👑</div>
                 <div class="licence-copy">
-                    <strong>Organisation Admin</strong>
-                    <span>Organisation settings, users, and administration</span>
+                    <strong>{{ 'owner.organisationDetails.organisationAdmin' | translate }}</strong>
+                    <span>{{ 'owner.organisationDetails.organisationSettingsUsersAdministration' | translate }}</span>
                 </div>
                 <button type="button" (click)="changeLicence('orgAdmin', -1)">-</button>
                 <input [value]="organisation.orgAdminLicenceLimit" readonly />
@@ -219,8 +219,8 @@
                 <div class="licence-row">
                 <div class="licence-icon blue">🧭</div>
                 <div class="licence-copy">
-                    <strong>Project Manager</strong>
-                    <span>Portfolio, projects, planning, and organisation dashboard</span>
+                    <strong>{{ 'owner.organisationDetails.projectManager' | translate }}</strong>
+                    <span>{{ 'owner.organisationDetails.portfolioProjectsPlanningOrganisation' | translate }}</span>
                 </div>
                 <button type="button" (click)="changeLicence('projectManager', -1)">-</button>
                 <input [value]="organisation.projectManagerLicenceLimit" readonly />
@@ -230,8 +230,8 @@
                 <div class="licence-row">
                 <div class="licence-icon gray">📋</div>
                 <div class="licence-copy">
-                    <strong>Department Manager</strong>
-                    <span>Department resources, workload, holidays, and assignments</span>
+                    <strong>{{ 'owner.organisationDetails.departmentManager' | translate }}</strong>
+                    <span>{{ 'owner.organisationDetails.departmentResourcesWorkloadHolidays' | translate }}</span>
                 </div>
                 <button type="button" (click)="changeLicence('departmentManager', -1)">-</button>
                 <input [value]="organisation.departmentManagerLicenceLimit" readonly />
@@ -241,8 +241,8 @@
                 <div class="licence-row">
                 <div class="licence-icon amber">👷</div>
                 <div class="licence-copy">
-                    <strong>Employee</strong>
-                    <span>Assigned tasks, personal work, and execution updates</span>
+                    <strong>{{ 'owner.organisationDetails.employee' | translate }}</strong>
+                    <span>{{ 'owner.organisationDetails.assignedTasksPersonalWork' | translate }}</span>
                 </div>
                 <button type="button" (click)="changeLicence('employee', -1)">-</button>
                 <input [value]="organisation.employeeLicenceLimit" readonly />
@@ -252,8 +252,8 @@
                 <div class="licence-row">
                 <div class="licence-icon orange">🤝</div>
                 <div class="licence-copy">
-                    <strong>Sales Manager</strong>
-                    <span>Sales and organisation ticketing access</span>
+                    <strong>{{ 'owner.organisationDetails.salesManager' | translate }}</strong>
+                    <span>{{ 'owner.organisationDetails.salesOrganisationTicketingAccess' | translate }}</span>
                 </div>
                 <button type="button" (click)="changeLicence('salesManager', -1)">-</button>
                 <input [value]="organisation.salesManagerLicenceLimit" readonly />
@@ -263,8 +263,8 @@
                 <div class="licence-row">
                 <div class="licence-icon purple">🎫</div>
                 <div class="licence-copy">
-                    <strong>Client</strong>
-                    <span>Organisation-scoped external ticketing access</span>
+                    <strong>{{ 'owner.organisationDetails.client' | translate }}</strong>
+                    <span>{{ 'owner.organisationDetails.organisationScopedExternalTicketing' | translate }}</span>
                 </div>
                 <button type="button" (click)="changeLicence('client', -1)">-</button>
                 <input [value]="organisation.clientLicenceLimit" readonly />
@@ -273,122 +273,122 @@
         </section>
         </ng-container>
       <ng-container *ngIf="selectedSection === 'security'">
-        <h2 class="page-section-title">Security & Access</h2>
+        <h2 class="page-section-title">{{ 'owner.organisationDetails.securityAccess' | translate }}</h2>
 
         <section class="section-card">
-            <h2>Two-Factor Authentication</h2>
+            <h2>{{ 'owner.organisationDetails.twoFactorAuthentication' | translate }}</h2>
 
             <div class="form-grid">
             <label>
-                <span>Force 2FA for Admins</span>
+                <span>{{ 'owner.organisationDetails.force2faAdmins' | translate }}</span>
                 <input value="Enabled" readonly />
             </label>
 
             <label>
-                <span>Force 2FA for Specialists</span>
+                <span>{{ 'owner.organisationDetails.force2faSpecialists' | translate }}</span>
                 <input value="Enabled" readonly />
             </label>
 
             <label>
-                <span>Force 2FA for Operators</span>
+                <span>{{ 'owner.organisationDetails.force2faOperators' | translate }}</span>
                 <input value="Optional" readonly />
             </label>
 
             <label>
-                <span>Default 2FA Method</span>
+                <span>{{ 'owner.organisationDetails.default2faMethod' | translate }}</span>
                 <input value="Authenticator App" readonly />
             </label>
             </div>
         </section>
 
         <section class="section-card">
-            <h2>Session & Password</h2>
+            <h2>{{ 'owner.organisationDetails.sessionPassword' | translate }}</h2>
 
             <div class="form-grid">
             <label>
-                <span>Session Timeout</span>
+                <span>{{ 'owner.organisationDetails.sessionTimeout' | translate }}</span>
                 <input value="4 hours" readonly />
             </label>
 
             <label>
-                <span>Max Failed Logins</span>
+                <span>{{ 'owner.organisationDetails.maxFailedLogins' | translate }}</span>
                 <input value="5" readonly />
             </label>
 
             <label>
-                <span>Password Min Length</span>
+                <span>{{ 'owner.organisationDetails.passwordMinLength' | translate }}</span>
                 <input value="8 chars" readonly />
             </label>
 
             <label>
-                <span>Password Expiry</span>
+                <span>{{ 'owner.organisationDetails.passwordExpiry' | translate }}</span>
                 <input value="Never" readonly />
             </label>
             </div>
         </section>
         </ng-container>
         <ng-container *ngIf="selectedSection === 'notes'">
-            <h2 class="page-section-title">Notes & Flags</h2>
+            <h2 class="page-section-title">{{ 'owner.organisationDetails.notesFlags' | translate }}</h2>
 
             <section class="section-card">
                 <label>
-                <span>Internal Notes</span>
+                <span>{{ 'owner.organisationDetails.internalNotes' | translate }}</span>
                 <textarea
                     [(ngModel)]="organisation.internalNotes"
-                    placeholder="Add internal notes..."
+                    [placeholder]="'owner.organisationDetails.addInternalNotes' | translate"
                 ></textarea>
                 </label>
             </section>
 
             <section class="section-card">
-                <h2>Flags</h2>
+                <h2>{{ 'owner.organisationDetails.flags' | translate }}</h2>
 
                 <div class="flags-grid">
                 <label class="flag-row">
                     <span class="dot red"></span>
-                    At-risk account
+                    {{ 'owner.organisationDetails.riskAccount' | translate }}
                     <input type="checkbox" [(ngModel)]="organisation.flagAtRisk" />
                 </label>
 
                 <label class="flag-row">
                     <span class="dot amber"></span>
-                    Payment overdue
+                    {{ 'owner.organisationDetails.paymentOverdue' | translate }}
                     <input type="checkbox" [(ngModel)]="organisation.flagPaymentOverdue" />
                 </label>
 
                 <label class="flag-row">
                     <span class="dot green"></span>
-                    Upsell opportunity
+                    {{ 'owner.organisationDetails.upsellOpportunity' | translate }}
                     <input type="checkbox" [(ngModel)]="organisation.flagUpsellOpportunity" />
                 </label>
 
                 <label class="flag-row">
                     <span class="dot blue"></span>
-                    VIP / Priority
+                    {{ 'owner.organisationDetails.vipPriority' | translate }}
                     <input type="checkbox" [(ngModel)]="organisation.flagVipPriority" />
                 </label>
 
                 <label class="flag-row">
                     <span class="dot cyan"></span>
-                    Pilot features
+                    {{ 'owner.organisationDetails.pilotFeatures' | translate }}
                     <input type="checkbox" [(ngModel)]="organisation.flagPilotFeatures" />
                 </label>
 
                 <label class="flag-row">
                     <span class="dot gray"></span>
-                    Under review
+                    {{ 'owner.organisationDetails.underReview' | translate }}
                     <input type="checkbox" [(ngModel)]="organisation.flagUnderReview" />
                 </label>
                 </div>
             </section>
 
             <section class="danger-zone">
-                <h3>⚠ Danger Zone</h3>
+                <h3>{{ 'owner.organisationDetails.dangerZone' | translate }}</h3>
 
                 <div class="danger-actions">
-                <button type="button" (click)="setStatus('SUSPENDED')">Suspend Organisation</button>
-                <button type="button">Reset Admin Password</button>
-                <button type="button">Delete Organisation</button>
+                <button type="button" (click)="setStatus('SUSPENDED')">{{ 'owner.organisationDetails.suspendOrganisation' | translate }}</button>
+                <button type="button">{{ 'owner.organisationDetails.resetAdminPassword' | translate }}</button>
+                <button type="button">{{ 'owner.organisationDetails.deleteOrganisation' | translate }}</button>
                 </div>
             </section>
             </ng-container>

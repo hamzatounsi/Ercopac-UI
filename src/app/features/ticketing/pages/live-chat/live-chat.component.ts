@@ -3,6 +3,7 @@ import { interval, Subscription } from 'rxjs';
 import { AuthService } from 'src/app/core/auth/auth.service';
 import { ChatContact, ChatConversation, ChatMessage } from '../../models/ticket.models';
 import { DirectChatService } from '../../services/direct-chat.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 // Live chat: one-to-one conversations between the current user and another user.
 // New messages arrive through the /ws/tickets websocket, with polling as a fallback.
@@ -31,7 +32,8 @@ export class LiveChatComponent implements OnInit, OnDestroy {
   private poll?: Subscription;
   private incomingSub?: Subscription;
 
-  constructor(private chat: DirectChatService, private auth: AuthService) {}
+  constructor(private i18n: I18nService,
+    private chat: DirectChatService, private auth: AuthService) {}
 
   ngOnInit(): void {
     this.loadConversations();
@@ -64,7 +66,7 @@ export class LiveChatComponent implements OnInit, OnDestroy {
         this.conversations = list.map(c => c.contact.id === this.partner?.id ? { ...c, unread: 0 } : c);
         this.loading = false;
       },
-      error: e => { this.error = e.error?.message || 'Conversations could not be loaded.'; this.loading = false; }
+      error: e => { this.error = this.i18n.error(e, 'ticketing.chat.conversationsCouldNotLoaded'); this.loading = false; }
     });
   }
 
@@ -83,7 +85,7 @@ export class LiveChatComponent implements OnInit, OnDestroy {
     if (conv) conv.unread = 0;
     this.chat.messages(contact.id).subscribe({
       next: list => { if (this.partner?.id === contact.id) { this.messages = list; this.scrollToBottom(); } },
-      error: e => this.error = e.error?.message || 'Conversation could not be loaded.'
+      error: e => this.error = this.i18n.error(e, 'ticketing.chat.conversationCouldNotLoaded')
     });
   }
 
@@ -93,7 +95,7 @@ export class LiveChatComponent implements OnInit, OnDestroy {
     this.sending = true;
     this.chat.send(this.partner.id, text).subscribe({
       next: m => { this.message = ''; this.sending = false; this.onIncoming(m); },
-      error: e => { this.error = e.error?.message || 'Message could not be sent.'; this.sending = false; }
+      error: e => { this.error = this.i18n.error(e, 'ticketing.chat.messageCouldNotSent'); this.sending = false; }
     });
   }
 

@@ -6,11 +6,13 @@ import { GmDashboardService } from '../../services/gm-dashboard.service';
 import { GmFinanceService } from '../../services/gm-finance.service';
 import { FinanceEntry, FinanceImportResult, FinanceSummary, FinanceSettings, FinanceWbsTemplateRow, FinanceWbsRowType, Department, AppUser } from '../../models/finance-settings.model';
 import { PermissionService } from 'src/app/core/services/PermissionService';
+import { ChartThemeService } from 'src/app/core/services/chart-theme.service';
 import { HttpClient } from '@angular/common/http';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { skip, takeUntil } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { assertSpreadsheetFile, assertSpreadsheetRowLimit, assertValidWorkbook } from 'src/app/core/utils/spreadsheet-import.utils';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 type SettingsTab = 'wbs' | 'import' | 'payments' | 'forecast';
 
@@ -110,13 +112,14 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
   };
   forecastBaselineLoading = false;
 
-  constructor(
+  constructor(private readonly i18n: I18nService, 
     private route: ActivatedRoute,
     private financeService: GmFinanceService,
     private dashboardService: GmDashboardService,
     private renderer: Renderer2,
     private http: HttpClient,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private chartTheme: ChartThemeService
   ) {}
 
   ngOnInit(): void {
@@ -127,6 +130,10 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
       this.canWriteFinance = this.permissionService.canWrite('FINANCE');
     });
     this.permissionService.loadPermissions();
+    this.chartTheme.changes$.pipe(skip(1), takeUntil(this.destroy$)).subscribe(() => {
+      this.scheduleChartRender();
+      if (this.cashFlowChart) this.createCashFlowChart();
+    });
   }
 
   ngOnDestroy(): void {
@@ -173,10 +180,10 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
             this.loading = false;
             this.scheduleChartRender();
           },
-          error: () => { this.error = 'Failed to load finance summary.'; this.loading = false; }
+          error: () => { this.error = this.i18n.t('gm.finance.failedLoadFinanceSummary'); this.loading = false; }
         });
       },
-      error: () => { this.error = 'Failed to load finance data.'; this.loading = false; }
+      error: () => { this.error = this.i18n.t('gm.finance.failedLoadFinanceData'); this.loading = false; }
     });
   }
 
@@ -226,18 +233,19 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
   createCharts(): void {
     if (this.destroyed || !this.summary || !this.donutChartRef?.nativeElement || !this.barChartRef?.nativeElement) return;
     const s = this.summary;
+    const palette = this.chartTheme.applyDefaults(Chart);
     this.donutChart?.destroy();
     this.barChart?.destroy();
 
     this.donutChart = new Chart(this.donutChartRef.nativeElement, {
       type: 'doughnut',
-      data: { labels: ['Actual Cost', 'Forecast'], datasets: [{ data: [s.totalActualCost, s.totalForecast] }] },
+      data: { labels: [this.i18n.t('gm.finance.chart.actualCost'), this.i18n.t('gm.finance.chart.forecast')], datasets: [{ data: [s.totalActualCost, s.totalForecast], backgroundColor: palette.series.slice(0, 2), borderColor: palette.surface }] },
       options: { responsive: true, maintainAspectRatio: false }
     });
 
     this.barChart = new Chart(this.barChartRef.nativeElement, {
       type: 'bar',
-      data: { labels: ['Budget', 'EAC', 'Variance'], datasets: [{ label: 'Project Cost', data: [s.totalBudget, s.totalEac, s.totalVariance] }] },
+      data: { labels: [this.i18n.t('gm.finance.chart.budget'), 'EAC', this.i18n.t('gm.finance.chart.variance')], datasets: [{ label: this.i18n.t('gm.finance.chart.projectCost'), data: [s.totalBudget, s.totalEac, s.totalVariance], backgroundColor: palette.series[0] }] },
       options: { responsive: true, maintainAspectRatio: false }
     });
   }
@@ -258,12 +266,12 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     const file = input.files?.[0];
     if (!file) return;
     try { assertSpreadsheetFile(file, ['.xlsx', '.xls']); }
-    catch (error) { this.error = error instanceof Error ? error.message : 'Invalid or unsupported spreadsheet file.'; input.value = ''; return; }
+    catch (error) { this.error = error instanceof Error ? error.message : this.i18n.t('gm.finance.invalidSpreadsheet'); input.value = ''; return; }
     const reader = new FileReader();
     reader.onload = (e: ProgressEvent<FileReader>) => {
       try {
         const binary = e.target?.result;
-        if (!binary) throw new Error('Invalid or unsupported spreadsheet file.');
+        if (!binary) throw new Error(this.i18n.t('gm.finance.invalidUnsupportedSpreadsheetFile'));
         const workbook = XLSX.read(binary, { type: 'binary' });
         const sheet = workbook.Sheets[assertValidWorkbook(workbook)];
         const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" }) as any[][];
@@ -273,28 +281,28 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
           const rowStr = rawData[i].map(cell => String(cell).trim().toLowerCase()).join(" ");
           if (rowStr.includes("wbs") && rowStr.includes("description")) { headerRowIndex = i; break; }
         }
-        if (headerRowIndex < 0) throw new Error('Finance spreadsheet must include WBS and Description headers.');
+        if (headerRowIndex < 0) throw new Error(this.i18n.t('gm.finance.financeSpreadsheetMustInclude'));
         const data = XLSX.utils.sheet_to_json(sheet, { range: headerRowIndex, defval: "" }) as any[];
         assertSpreadsheetRowLimit(data);
         this.importFinance(data);
       } catch (error) {
-        this.error = error instanceof Error ? error.message : 'Invalid or unsupported spreadsheet file.';
+        this.error = error instanceof Error ? error.message : this.i18n.t('gm.finance.invalidUnsupportedSpreadsheetFile');
       }
     };
     reader.readAsBinaryString(file);
   }
 
   importFinance(rows: any[]): void {
-    if (!rows || rows.length === 0) { this.error = 'Excel file is empty.'; return; }
-    try { assertSpreadsheetRowLimit(rows); } catch (error) { this.error = error instanceof Error ? error.message : 'Invalid or unsupported spreadsheet file.'; return; }
+    if (!rows || rows.length === 0) { this.error = this.i18n.t('gm.finance.excelFileEmpty'); return; }
+    try { assertSpreadsheetRowLimit(rows); } catch (error) { this.error = error instanceof Error ? error.message : this.i18n.t('gm.finance.invalidUnsupportedSpreadsheetFile'); return; }
     const safeNumber = (val: any): number => {
       if (val === null || val === undefined || val === '') return 0;
       if (typeof val === 'number') {
-        if (!Number.isFinite(val)) throw new Error('Finance spreadsheet contains an invalid number.');
+        if (!Number.isFinite(val)) throw new Error(this.i18n.t('gm.finance.financeSpreadsheetContainsInvalid'));
         return val;
       }
       const parsed = Number(String(val).replace(/,/g, '').trim());
-      if (!Number.isFinite(parsed)) throw new Error('Finance spreadsheet contains an invalid number.');
+      if (!Number.isFinite(parsed)) throw new Error(this.i18n.t('gm.finance.financeSpreadsheetContainsInvalid'));
       return parsed;
     };
     const getValue = (row: any, keys: string[]) => {
@@ -312,11 +320,11 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
       return '';
     };
     const mapped = rows.map((r, index) => {
-      if (!r || typeof r !== 'object') throw new Error(`Finance row ${index + 1} is malformed.`);
+      if (!r || typeof r !== 'object') throw new Error(this.i18n.t('gm.finance.financeRowMalformed', { value: index + 1 }));
       const wbsCode = getStr(r, ['WBS', 'wbs', 'wbsCode']);
       const description = getStr(r, ['Description', 'description', 'DESCRIPTION']);
       const level = Number(r['LEVEL'] ?? r['Level'] ?? r['level'] ?? r['LVL'] ?? 1);
-      if (!wbsCode || !description || !Number.isInteger(level) || level < 1) throw new Error(`Finance row ${index + 1} is invalid.`);
+      if (!wbsCode || !description || !Number.isInteger(level) || level < 1) throw new Error(this.i18n.t('gm.finance.financeRowInvalid', { value: index + 1 }));
       return { wbsCode, description, level, sales: safeNumber(getValue(r, ['Sales', 'sales'])), budget: safeNumber(getValue(r, ['Budget', 'budget', 'Budjet', 'budjet'])), costReserve: safeNumber(getValue(r, ['CR', 'cr', 'Cost Reserve'])), updatedBudget: safeNumber(getValue(r, ['Updated budget', 'Updated budjet', 'updatedBudget', 'updated_budget'])), commitment: safeNumber(getValue(r, ['Commitment', 'commitment', 'COMMITMENT'])), actualCost: safeNumber(getValue(r, ['Actual', 'actual', 'ACTUAL', 'Actual Cost'])), forecast: safeNumber(getValue(r, ['Forecast', 'Forcast', 'forecast', 'FORECAST'])), ownerName: getStr(r, ['Owner', 'ownerName', 'OWNER']) };
     });
     this.sendFinanceImport(mapped, false);
@@ -329,15 +337,13 @@ export class GmProjectFinancePageComponent implements OnInit, OnDestroy {
     this.financeService.importFinance(this.projectId, rows, overwrite).subscribe({
       next: (result: FinanceImportResult) => {
         this.error = null;
-        this.actionMessage = [`Import completed: ${result?.updatedRows ?? 0} row(s) updated, ${result?.unchangedRows ?? 0} unchanged.`,
+        this.actionMessage = [this.i18n.t('gm.finance.importCompleted', { updated: result?.updatedRows ?? 0, unchanged: result?.unchangedRows ?? 0 }),
           ...(result?.messages ?? [])].join(' ');
         this.loadData();
       },
       error: (err) => {
-        const message = err?.error?.message || 'Failed to import finance file.';
-        if (err?.status === 409 && !overwrite && confirm(`${message}
-
-Overwrite these existing values?`)) {
+        const message = this.i18n.error(err, 'gm.finance.failedImportFinanceFile');
+        if (err?.status === 409 && !overwrite && confirm(this.i18n.t('gm.finance.overwriteTheseExistingValues', { message }))) {
           this.sendFinanceImport(rows, true);
           return;
         }
@@ -350,7 +356,7 @@ Overwrite these existing values?`)) {
     this.loading = true;
     this.financeService.recalculateLabour(this.projectId).subscribe({
       next: () => this.loadData(),
-      error: () => { this.error = 'Failed to recalculate finance.'; this.loading = false; }
+      error: () => { this.error = this.i18n.t('gm.finance.failedRecalculateFinance'); this.loading = false; }
     });
   }
 
@@ -379,7 +385,7 @@ Overwrite these existing values?`)) {
       },
       error: (err) => {
         this.settingsLoading = false;
-        this.settingsError = err?.status === 404 ? 'Finance settings endpoint not found.' : 'Failed to load finance settings.';
+        this.settingsError = this.i18n.t(err?.status === 404 ? 'gm.finance.settingsEndpointNotFound' : 'gm.finance.failedLoadSettings');
       }
     });
   }
@@ -416,7 +422,7 @@ Overwrite these existing values?`)) {
     this.settingsError = null;
     const codes = this.financeSettings.templateRows.map(r => r.codeTemplate ? r.codeTemplate.trim().toLowerCase() : '');
     if (codes.length !== new Set(codes).size) {
-      this.settingsError = 'Validation Error: All WBS Codes must be unique.';
+      this.settingsError = this.i18n.t('gm.finance.validationErrorAllWbs');
       return;
     }
     this.settingsSaving = true;
@@ -431,13 +437,13 @@ Overwrite these existing values?`)) {
         this.settingsSaving = false;
         this.loadData();
       },
-      error: (err) => { this.settingsSaving = false; this.settingsError = err.error?.message || 'Failed to save finance settings.'; }
+      error: (err) => { this.settingsSaving = false; this.settingsError = this.i18n.error(err, 'gm.finance.failedSaveFinanceSettings'); }
     });
   }
 
   applyTemplateToCurrentProject(): void {
     if (this.financeSettings.templateRows.length === 0) {
-      this.settingsError = 'Please add at least one WBS row before applying.';
+      this.settingsError = this.i18n.t('gm.finance.pleaseAddLeastOne');
       return;
     }
     this.applyLoading = true;
@@ -447,12 +453,12 @@ Overwrite these existing values?`)) {
     this.financeService.applyFinanceTemplateToCurrentProject(this.projectId).subscribe({
       next: (result) => {
         this.applyLoading = false;
-        this.applyResultMessage = `✅ WBS applied successfully to "${this.projectName}" - ${result?.rowsGenerated ?? 0} rows generated.`;
+        this.applyResultMessage = this.i18n.t('gm.finance.wbsAppliedSuccessfullyRows', { projectName: this.projectName, rowsGenerated: result?.rowsGenerated ?? 0 });
         this.loadData();
       },
       error: (err) => {
         this.applyLoading = false;
-        this.settingsError = err.error?.message || 'Failed to apply finance template to current project.';
+        this.settingsError = this.i18n.error(err, 'gm.finance.failedApplyFinanceTemplate');
       }
     });
   }
@@ -464,7 +470,7 @@ Overwrite these existing values?`)) {
   addTemplateRow(): void {
     const nextSort = this.financeSettings.templateRows.length + 1;
     this.financeSettings.templateRows.push({
-      sortOrder: nextSort, level: 1, codeTemplate: 'xxx25-NEW', description: 'New Row', type: 'COST',
+      sortOrder: nextSort, level: 1, codeTemplate: 'xxx25-NEW', description: this.i18n.t('gm.finance.newRow'), type: 'COST',
       departmentId: null, departmentName: null, ownerId: null, ownerName: null, ownerKey: null, hourRate: null, resourceType: null
     });
   }
@@ -477,8 +483,7 @@ Overwrite these existing values?`)) {
 ${row?.codeTemplate ?? ''} – ${row?.description ?? ''}
 
 ` +
-      'The node is removed from Finance and Forecast when you click Save. ' +
-      'Saving is refused if the node has child nodes or holds budget, actual, committed or forecast data.'
+      this.i18n.t('gm.finance.removeTemplateRowWarning')
     );
     if (!confirmed) return;
     this.financeSettings.templateRows.splice(index, 1);
@@ -501,7 +506,7 @@ ${row?.codeTemplate ?? ''} – ${row?.description ?? ''}
     this.loadingDepartments = true;
     this.http.get<Department[]>(`${environment.apiUrl}/departments`).subscribe({
       next: (depts) => { this.departments = depts; this.loadingDepartments = false; },
-      error: () => { this.loadingDepartments = false; this.settingsError = 'Failed to load departments.'; }
+      error: () => { this.loadingDepartments = false; this.settingsError = this.i18n.t('gm.finance.failedLoadDepartments'); }
     });
   }
 
@@ -545,7 +550,7 @@ ${row?.codeTemplate ?? ''} – ${row?.description ?? ''}
     const file = event.dataTransfer?.files?.[0];
     if (!file) return;
     const isAllowed = ['.json', '.csv', '.xlsx', '.xls', '.ods'].some(ext => file.name.toLowerCase().endsWith(ext));
-    if (!isAllowed) { this.settingsError = 'Only JSON, CSV, or Excel files are accepted.'; return; }
+    if (!isAllowed) { this.settingsError = this.i18n.t('gm.finance.onlyJsonCsvExcel'); return; }
     this.processWbsTemplateFile(file);
   }
 
@@ -554,11 +559,11 @@ ${row?.codeTemplate ?? ''} – ${row?.description ?? ''}
     this.settingsError = null;
     const fileName = file.name.toLowerCase();
     try { assertSpreadsheetFile(file, ['.json', '.csv', '.xlsx', '.xls', '.ods']); }
-    catch (error) { this.settingsError = error instanceof Error ? error.message : 'Invalid or unsupported spreadsheet file.'; return; }
+    catch (error) { this.settingsError = error instanceof Error ? error.message : this.i18n.t('gm.finance.invalidUnsupportedSpreadsheetFile'); return; }
     if (fileName.endsWith('.json')) this.readWbsJson(file);
     else if (fileName.endsWith('.csv')) this.readWbsCsv(file);
     else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.ods')) this.readWbsExcel(file);
-    else this.settingsError = 'Unsupported file type.';
+    else this.settingsError = this.i18n.t('gm.finance.unsupportedFileType');
   }
 
   loadOdsTemplate(): void {
@@ -568,10 +573,10 @@ ${row?.codeTemplate ?? ''} – ${row?.description ?? ''}
     this.financeService.loadOdsTemplate().subscribe({
       next: (rows) => {
         this.importPreviewRows = this.normalizeImportedWbsRows(rows ?? []);
-        this.importMessage = `${this.importPreviewRows.length} WBS rows loaded.`;
+        this.importMessage = this.i18n.t('gm.finance.wbsRowsLoaded', { count: this.importPreviewRows.length });
         this.odsTemplateLoading = false;
       },
-      error: () => { this.odsTemplateLoading = false; this.settingsError = 'Failed to load the standard ODS template.'; }
+      error: () => { this.odsTemplateLoading = false; this.settingsError = this.i18n.t('gm.finance.failedLoadStandardOds'); }
     });
   }
 
@@ -582,9 +587,9 @@ ${row?.codeTemplate ?? ''} – ${row?.description ?? ''}
         const parsed = JSON.parse(String(reader.result));
         this.importPreviewRows = this.normalizeImportedWbsRows(Array.isArray(parsed) ? parsed : parsed.rows);
         assertSpreadsheetRowLimit(this.importPreviewRows);
-        if (!this.importPreviewRows.length) throw new Error('WBS file is empty or malformed.');
-        this.importMessage = `${this.importPreviewRows.length} WBS rows ready to import.`;
-      } catch (err: any) { this.settingsError = `Import Error: ${err.message}`; this.importPreviewRows = []; }
+        if (!this.importPreviewRows.length) throw new Error(this.i18n.t('gm.finance.wbsFileEmptyMalformed'));
+        this.importMessage = this.i18n.t('gm.finance.wbsRowsReadyImport', { count: this.importPreviewRows.length });
+      } catch (err: any) { this.settingsError = this.i18n.t('gm.finance.importError', { message: err.message }); this.importPreviewRows = []; }
     };
     reader.readAsText(file);
   }
@@ -598,9 +603,9 @@ ${row?.codeTemplate ?? ''} – ${row?.description ?? ''}
         const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' }) as any[];
         assertSpreadsheetRowLimit(rows);
         this.importPreviewRows = this.normalizeImportedWbsRows(rows);
-        if (!this.importPreviewRows.length) throw new Error('WBS file is empty or malformed.');
-        this.importMessage = `${this.importPreviewRows.length} WBS rows ready to import.`;
-      } catch (err: any) { this.settingsError = `Import Error: ${err.message}`; this.importPreviewRows = []; }
+        if (!this.importPreviewRows.length) throw new Error(this.i18n.t('gm.finance.wbsFileEmptyMalformed'));
+        this.importMessage = this.i18n.t('gm.finance.wbsRowsReadyImport', { count: this.importPreviewRows.length });
+      } catch (err: any) { this.settingsError = this.i18n.t('gm.finance.importError', { message: err.message }); this.importPreviewRows = []; }
     };
     reader.readAsText(file);
   }
@@ -614,21 +619,21 @@ ${row?.codeTemplate ?? ''} – ${row?.description ?? ''}
         const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' }) as any[];
         assertSpreadsheetRowLimit(rows);
         this.importPreviewRows = this.normalizeImportedWbsRows(rows);
-        if (!this.importPreviewRows.length) throw new Error('WBS file is empty or malformed.');
-        this.importMessage = `${this.importPreviewRows.length} WBS rows ready to import.`;
-      } catch (err: any) { this.settingsError = `Import Error: ${err.message}`; this.importPreviewRows = []; }
+        if (!this.importPreviewRows.length) throw new Error(this.i18n.t('gm.finance.wbsFileEmptyMalformed'));
+        this.importMessage = this.i18n.t('gm.finance.wbsRowsReadyImport', { count: this.importPreviewRows.length });
+      } catch (err: any) { this.settingsError = this.i18n.t('gm.finance.importError', { message: err.message }); this.importPreviewRows = []; }
     };
     reader.readAsBinaryString(file);
   }
 
   private normalizeImportedWbsRows(rows: any[]): FinanceWbsTemplateRow[] {
-    if (!Array.isArray(rows)) throw new Error('WBS file contains malformed rows.');
+    if (!Array.isArray(rows)) throw new Error(this.i18n.t('gm.finance.wbsFileContainsMalformed'));
     return rows.map((r, index) => {
-      if (!r || typeof r !== 'object') throw new Error(`WBS row ${index + 1} is malformed.`);
+      if (!r || typeof r !== 'object') throw new Error(this.i18n.t('gm.finance.wbsRowMalformed', { value: index + 1 }));
       const codeTemplate = String(r['WBS CODE'] ?? r['WBS'] ?? r['Code'] ?? r['codeTemplate'] ?? r['wbsCode'] ?? '').trim();
       const description = String(r['DESCRIPTION'] ?? r['Description'] ?? r['description'] ?? '').trim();
       const level = Number(r['LVL'] ?? r['Level'] ?? r['LEVEL'] ?? r['level'] ?? this.detectWbsLevel(codeTemplate));
-      if (!codeTemplate || !description || !Number.isInteger(level) || level < 1) throw new Error(`WBS row ${index + 1} is invalid.`);
+      if (!codeTemplate || !description || !Number.isInteger(level) || level < 1) throw new Error(this.i18n.t('gm.finance.wbsRowInvalid', { value: index + 1 }));
       const explicitTypeRaw = r['TYPE'] ?? r['Type'] ?? r['type'] ?? 'COST';
       const upper = String(explicitTypeRaw).toUpperCase().trim();
       let type: FinanceWbsRowType = 'COST';
@@ -654,7 +659,7 @@ ${row?.codeTemplate ?? ''} – ${row?.description ?? ''}
   }
 
   confirmImportWbsTemplate(): void {
-    if (this.importPreviewRows.length === 0) { this.settingsError = 'Please select a valid WBS file first.'; return; }
+    if (this.importPreviewRows.length === 0) { this.settingsError = this.i18n.t('gm.finance.pleaseSelectValidWbs'); return; }
     this.importLoading = true;
     this.settingsError = null;
     
@@ -665,11 +670,11 @@ ${row?.codeTemplate ?? ''} – ${row?.description ?? ''}
           templateRows: [...(saved.templateRows ?? [])].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
         };
         this.importLoading = false;
-        this.importMessage = `Imported ${this.financeSettings.templateRows.length} WBS template rows successfully.`;
+        this.importMessage = this.i18n.t('gm.finance.importedWbsTemplateRows', { count: this.financeSettings.templateRows.length });
         this.activeSettingsTab = 'wbs';
         this.loadData();
       },
-      error: (err) => { this.importLoading = false; this.settingsError = err?.error?.message || 'Failed to import WBS template.'; }
+      error: (err) => { this.importLoading = false; this.settingsError = this.i18n.error(err, 'gm.finance.failedImportWbsTemplate'); }
     });
   }
 
@@ -683,7 +688,7 @@ ${row?.codeTemplate ?? ''} – ${row?.description ?? ''}
       next: () => {
         this.loadData();
       },
-      error: (err) => { row.forecast = previous; this.actionError = err?.error?.message || 'Failed to update forecast.'; }
+      error: (err) => { row.forecast = previous; this.actionError = this.i18n.error(err, 'gm.finance.failedUpdateForecast'); }
     });
   }
 
@@ -699,27 +704,21 @@ ${row?.codeTemplate ?? ''} – ${row?.description ?? ''}
   deleteWbsNode(row: FinanceEntry): void {
     if (!this.canWriteFinance) return;
     const confirmed = confirm(
-      `Delete WBS node
-
-${row.wbsCode} – ${row.description}
-
-` +
-      'The node is removed from Finance Settings, Finance and Forecast. ' +
-      'Only an empty leaf can be deleted: nodes with child nodes or with budget, actual, committed or forecast data are kept.'
+      this.i18n.t('gm.finance.deleteWbsNodeConfirm', { code: row.wbsCode, description: row.description })
     );
     if (!confirmed) return;
     this.actionError = null;
     this.actionMessage = null;
     this.financeService.deleteWbsNode(this.projectId, row.id).subscribe({
       next: () => this.loadData(),
-      error: (err) => { this.actionError = err?.error?.message || 'Failed to delete WBS node.'; }
+      error: (err) => { this.actionError = this.i18n.error(err, 'gm.finance.failedDeleteWbsNode'); }
     });
   }
 
   connectErp(): void {
     this.erpConnecting = true;
     this.error = null;
-    setTimeout(() => { this.erpConnecting = false; this.error = 'ERP connection is not configured yet.'; }, 600);
+    setTimeout(() => { this.erpConnecting = false; this.error = this.i18n.t('gm.finance.erpConnectionConfiguredYet'); }, 600);
   }
 
   // ==========================================
@@ -790,7 +789,7 @@ ${row.wbsCode} – ${row.description}
 
   savePaymentSchedule(): void {
     if (this.paymentSchedule.totalPercentage !== 100) {
-      this.settingsError = 'Payment percentages must sum to exactly 100%.';
+      this.settingsError = this.i18n.t('gm.finance.paymentPercentagesMustSum');
       return;
     }
     this.paymentSaving = true;
@@ -814,7 +813,7 @@ ${row.wbsCode} – ${row.description}
       },
       error: (err: any) => {
         this.paymentSaving = false;
-        this.settingsError = err.error?.message || 'Failed to save payment schedule.';
+        this.settingsError = this.i18n.error(err, 'gm.finance.failedSavePaymentSchedule');
       }
     });
   }
@@ -853,13 +852,13 @@ ${row.wbsCode} – ${row.description}
       },
       error: (err: any) => {
         this.forecastBaselineLoading = false;
-        this.settingsError = 'Failed to load forecast baseline.';
+        this.settingsError = this.i18n.t('gm.finance.failedLoadForecastBaseline');
       }
     });
   }
 
   onSetBaseline(): void {
-    if (!confirm('This will capture the current forecast values as the new baseline. Continue?')) return;
+    if (!confirm(this.i18n.t('gm.finance.willCaptureCurrentForecast'))) return;
     this.forecastBaselineLoading = true;
     this.financeService.setForecastBaseline(this.projectId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (data: any) => {
@@ -868,13 +867,13 @@ ${row.wbsCode} – ${row.description}
       },
       error: (err: any) => {
         this.forecastBaselineLoading = false;
-        this.settingsError = 'Failed to set baseline.';
+        this.settingsError = this.i18n.t('gm.finance.failedSetBaseline');
       }
     });
   }
 
   onResetBaseline(): void {
-    if (!confirm('This will delete the current baseline. Continue?')) return;
+    if (!confirm(this.i18n.t('gm.finance.willDeleteCurrentBaseline'))) return;
     this.forecastBaselineLoading = true;
     this.financeService.resetForecastBaseline(this.projectId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (data: any) => {
@@ -883,7 +882,7 @@ ${row.wbsCode} – ${row.description}
       },
       error: (err: any) => {
         this.forecastBaselineLoading = false;
-        this.settingsError = 'Failed to reset baseline.';
+        this.settingsError = this.i18n.t('gm.finance.failedResetBaseline');
       }
     });
   }
@@ -917,6 +916,7 @@ ${row.wbsCode} – ${row.description}
 
     const milestones = this.paymentSchedule.milestones;
     if (!milestones || milestones.length === 0) return;
+    const palette = this.chartTheme.applyDefaults(Chart);
 
     const monthlyData = new Map<string, { expected: number; paid: number; date: Date }>();
     
@@ -942,8 +942,7 @@ ${row.wbsCode} – ${row.description}
     );
 
     const labels = sortedMonths.map(([key, data]) => {
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
-      return `${months[data.date.getMonth()]} ${data.date.getFullYear()}`;
+      return new Intl.DateTimeFormat(document.documentElement.lang || 'en', { month: 'short', year: 'numeric' }).format(data.date);
     });
 
     const expectedValues = sortedMonths.map(([, data]) => data.expected);
@@ -963,28 +962,28 @@ ${row.wbsCode} – ${row.description}
         datasets: [
           {
             type: 'bar',
-            label: 'Expected',
+            label: this.i18n.t('gm.finance.chart.expected'),
             data: expectedValues,
-            backgroundColor: '#3b82f6',
+            backgroundColor: palette.series[0],
             borderRadius: 4,
             order: 2
           },
           {
             type: 'bar',
-            label: 'Paid',
+            label: this.i18n.t('gm.finance.chart.paid'),
             data: paidValues,
-            backgroundColor: '#16a34a',
+            backgroundColor: palette.series[1],
             borderRadius: 4,
             order: 2
           },
           {
             type: 'line',
-            label: 'Cumulative',
+            label: this.i18n.t('gm.finance.chart.cumulative'),
             data: cumulativeValues,
-            borderColor: '#f59e0b',
-            backgroundColor: '#f59e0b',
+            borderColor: palette.series[2],
+            backgroundColor: palette.series[2],
             borderWidth: 3,
-            pointBackgroundColor: '#f59e0b',
+            pointBackgroundColor: palette.series[2],
             pointRadius: 6,
             pointHoverRadius: 8,
             tension: 0.1,
@@ -1002,7 +1001,6 @@ ${row.wbsCode} – ${row.description}
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
             callbacks: {
               // ✅ CORRECTION 1 : Conversion explicite en number pour éviter l'erreur 'null'
               label: (context) => `${context.dataset.label}: ${this.formatCurrency(Number(context.parsed.y))}`
@@ -1012,15 +1010,15 @@ ${row.wbsCode} – ${row.description}
         scales: {
           x: { 
             grid: { display: false }, 
-            ticks: { font: { size: 11 }, color: '#6b7280' } 
+            ticks: { font: { size: 11 }, color: palette.muted } 
           },
           y: {
             beginAtZero: true,
             // ✅ CORRECTION 2 : Suppression de 'drawBorder' qui n'existe plus dans Chart.js v4
-            grid: { color: '#e5e7eb' }, 
+            grid: { color: palette.grid }, 
             ticks: { 
               font: { size: 11 }, 
-              color: '#6b7280', 
+              color: palette.muted, 
               callback: (value) => this.formatCurrency(Number(value)) 
             }
           }

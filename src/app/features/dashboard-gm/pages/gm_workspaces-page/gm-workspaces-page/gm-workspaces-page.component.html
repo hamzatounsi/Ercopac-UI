@@ -1,18 +1,15 @@
 <div class="launcher-page">
-  <section class="landing-hero" aria-label="Projectum workspace">
+  <section class="landing-hero" [attr.aria-label]="'gm.workspaces.projectumWorkspace' | translate">
     <header class="landing-nav">
-      <a class="landing-logo" routerLink="/workspace" aria-label="Projectum workspace home">
+      <a class="landing-logo" routerLink="/workspace" [attr.aria-label]="'gm.workspaces.projectumWorkspaceHome' | translate">
         <img src="assets/branding/projectum-logo.png" alt="" />
         <span>projectum</span>
       </a>
-      <nav class="landing-links" aria-label="Workspace navigation">
-        <a class="active" href="#applications">Applications</a>
+      <nav class="landing-links" [attr.aria-label]="'gm.workspaces.workspaceNavigation' | translate">
+        <a class="active" href="#applications">{{ 'gm.workspaces.applications' | translate }}</a>
       </nav>
       <div class="landing-account">
-        <button class="landing-logout" type="button" (click)="logout()">Logout</button>
-        <div class="landing-user" [attr.title]="currentUserName">
-          <span class="landing-user-name">{{ currentUserName }}</span>
-        </div>
+        <app-profile-menu logoutRoute="/"></app-profile-menu>
       </div>
     </header>
 
@@ -24,9 +21,9 @@
     <div id="applications" class="landing-content workspace-applications" aria-labelledby="applicationsTitle">
       <div class="workspace-panel">
         <div class="workspace-heading">
-          <span class="workspace-kicker">Projectum workspace</span>
-          <h1 id="applicationsTitle">Your applications</h1>
-          <p>Welcome back, {{ currentUserName }}. Everything you can access is ready below.</p>
+          <span class="workspace-kicker">{{ 'gm.workspaces.projectumWorkspace' | translate }}</span>
+          <h1 id="applicationsTitle">{{ 'gm.workspaces.applications2' | translate }}</h1>
+          <p>{{ 'gm.workspaces.welcomeBackCurrentusernameEverything' | translate: { currentUserName: currentUserName || ('gm.workspaces.loggedIn' | translate) } }}</p>
         </div>
         <div class="launcher-app-grid">
           <button
@@ -37,8 +34,8 @@
             [attr.aria-label]="'Open ' + app.name">
             <span class="launcher-icon-tile" aria-hidden="true"><span class="material-symbols-outlined">{{ app.icon }}</span></span>
             <span class="launcher-app-name">{{ app.name }}</span>
-            <span class="app-open-label">Open workspace <span aria-hidden="true">&rarr;</span></span>
-            <span class="sr-only">Available.</span>
+            <span class="app-open-label">{{ 'gm.workspaces.openWorkspace' | translate }} <span aria-hidden="true">{{ 'gm.workspaces.rarr' | translate }}</span></span>
+            <span class="sr-only">{{ 'gm.workspaces.available' | translate }}</span>
           </button>
         </div>
       </div>

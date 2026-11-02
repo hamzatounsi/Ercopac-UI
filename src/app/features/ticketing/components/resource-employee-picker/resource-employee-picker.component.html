@@ -1,0 +1,16 @@
+<div class="rep" [class.compact]="compact">
+  <select class="select" [ngModel]="typeId" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onType($event)"
+          [disabled]="disabled || loadingTypes" [attr.aria-label]="'ticketing.picker.resourceType' | translate">
+    <option [ngValue]="null">{{ loadingTypes ? ('ticketing.picker.loadingResourceTypes' | translate) : typesError ? ('ticketing.picker.resourceTypesUnavailable' | translate) : types.length ? ('ticketing.picker.resourceType2' | translate) : ('ticketing.picker.noResourceTypes' | translate) }}</option>
+    <option *ngFor="let t of types" [ngValue]="t.id">{{ t.label }}</option>
+  </select>
+  <select class="select" [ngModel]="selectedId" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onEmployee($event)"
+          [disabled]="disabled || !typeId || loadingEmployees" [attr.aria-label]="'ticketing.picker.employee' | translate">
+    <option [ngValue]="null">{{ employeeHint }}</option>
+    <option *ngIf="missing" [ngValue]="selectedId">{{ employeeName || ('ticketing.picker.currentSelection' | translate) }}</option>
+    <option *ngFor="let e of available" [ngValue]="e.id">{{ e.fullName }}<ng-container *ngIf="e.specialization"> · {{ e.specialization }}</ng-container></option>
+  </select>
+  <small class="field-error" *ngIf="typesError || employeesError">
+    {{ typesError || employeesError }} <button type="button" class="rep-retry" (click)="retry()">{{ 'common.retry' | translate }}</button>
+  </small>
+</div>

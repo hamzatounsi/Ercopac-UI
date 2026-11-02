@@ -1,0 +1,9 @@
+@import '../../ticketing.shared';
+
+:host{display:block}
+.rep{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center}
+.rep .field-error{grid-column:1/-1}
+.rep-retry{border:0;background:none;padding:0;color:var(--pm-primary-text);font:inherit;font-weight:600;text-decoration:underline;cursor:pointer}
+.compact{grid-template-columns:1fr;gap:6px}
+.compact .select{padding:5px 8px;font-size:12px}
+@media(max-width:640px){.rep{grid-template-columns:1fr}}

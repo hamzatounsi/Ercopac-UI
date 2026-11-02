@@ -1,103 +1,127 @@
 <main class="page-pad">
   <header class="view-head">
     <div>
-      <h1>{{ isStaff ? 'Create ticket' : 'Open new ticket' }}</h1>
-      <p>{{ isStaff ? 'Log a request on behalf of a customer.' : 'Describe your problem and our support team will get back to you.' }}</p>
+      <h1>{{ isStaff ? ('ticketing.create.createTicket' | translate) : ('ticketing.create.openNewTicket' | translate) }}</h1>
+      <p>{{ isStaff ? ('ticketing.create.logRequestBehalfCustomer' | translate) : ('ticketing.create.describeProblemOurSupport' | translate) }}</p>
     </div>
-    <button type="button" class="ghost" (click)="cancel()">← Back to tickets</button>
+    <button type="button" class="ghost" (click)="cancel()">{{ 'ticketing.create.backTickets' | translate }}</button>
   </header>
 
   <section class="panel form-panel">
     <p class="error" *ngIf="error">{{ error }}</p>
 
     <form class="form-grid" (ngSubmit)="submit()" novalidate>
-      <!-- 1. Customer -->
-      <label class="full">Customer
-        <select *ngIf="isStaff; else ownCustomer" class="select" name="customer" [ngModel]="form.customerId" (ngModelChange)="loadOptions($event)">
-          <option [ngValue]="null">No customer</option>
-          <option *ngFor="let c of options.customers" [ngValue]="c.id">{{ c.name }}</option>
-        </select>
-        <ng-template #ownCustomer>
-          <input class="input" [value]="options.customers.length ? options.customers[0].name : 'Not linked to a customer yet'" disabled>
-        </ng-template>
-        <small class="muted-sm" *ngIf="isStaff && !options.customers.length && !loadingOptions">No customers yet: add them in Settings › Customers.</small>
-      </label>
+      <!-- 1. Customer: a Projectum customer, or a manual entry for historical / external customers (staff) -->
+      <div class="full" *ngIf="isStaff; else ownCustomer">
+        <app-select-or-manual [label]="'ticketing.create.customer' | translate" [options]="customerOptions" [selectedId]="form.customerId" (selectedIdChange)="loadOptions($event)"
+                              [manual]="customerManual" (manualChange)="setCustomerManual($event)" [loading]="loadingOptions" [error]="optionsError"
+                              (retry)="loadOptions(form.customerId)" [noneLabel]="'ticketing.create.noCustomer' | translate" [emptyText]="'ticketing.create.noCustomersYet' | translate"
+                              [manualLabel]="'ticketing.create.addCustomerManually' | translate" [linkedLabel]="'ticketing.create.chooseExistingCustomer' | translate">
+          <input class="input" name="customerName" [(ngModel)]="form.customerName" maxlength="180" [placeholder]="'ticketing.create.customerNameHistoricalExternal' | translate"
+                 [attr.aria-label]="'ticketing.create.customerName' | translate" [class.invalid]="submitted && customerError">
+          <span class="field-error" *ngIf="submitted && customerError">{{ customerError }}</span>
+        </app-select-or-manual>
+        <small class="muted-sm" *ngIf="!customerManual && !options.customers.length && !loadingOptions && !optionsError">{{ 'ticketing.create.noCustomersYetAdd' | translate }}</small>
+      </div>
+      <ng-template #ownCustomer>
+        <label class="full">{{ 'ticketing.create.customer' | translate }}
+          <input class="input" [value]="options.customers.length ? options.customers[0].name : ('ticketing.create.notLinkedCustomerYet' | translate)" disabled>
+        </label>
+      </ng-template>
 
-      <!-- 2. Project, 3. Site, 4. Equipment of that customer -->
-      <label>Project
-        <select class="select" name="project" [(ngModel)]="form.projectId" [disabled]="!form.customerId || loadingOptions">
-          <option [ngValue]="null">{{ form.customerId ? (options.projects.length ? 'No project' : 'No project for this customer') : 'Choose a customer first' }}</option>
-          <option *ngFor="let p of options.projects" [ngValue]="p.id">{{ p.name }}<ng-container *ngIf="p.code"> ({{ p.code }})</ng-container></option>
-        </select>
-      </label>
+      <!-- 2. Project: Projectum project (of the chosen customer when there is one) or manual entry -->
+      <div class="full project-block">
+        <app-select-or-manual [label]="'ticketing.create.project' | translate" [options]="projectOptions" [selectedId]="form.projectId" (selectedIdChange)="selectProject($event)"
+                              [manual]="projectManual" (manualChange)="setProjectManual($event)" [allowManual]="isStaff" [loading]="loadingOptions"
+                              [disabled]="!isStaff && !form.customerId" [noneLabel]="'ticketing.create.noProject' | translate"
+                              [emptyText]="form.customerId ? ('ticketing.create.noProjectumProjectCustomer' | translate) : ('ticketing.create.noProjectumProject' | translate)"
+                              [manualLabel]="'ticketing.create.enterProjectManually' | translate" [linkedLabel]="'ticketing.create.chooseProjectumProject' | translate"></app-select-or-manual>
+        <div class="project-fields" *ngIf="projectManual || form.projectId">
+          <label>{{ 'ticketing.create.projectName' | translate }}<ng-container *ngIf="projectManual"> *</ng-container>
+            <input class="input" name="projectName" [(ngModel)]="form.projectName" maxlength="250" [readonly]="!projectManual"
+                   [class.invalid]="submitted && projectError">
+          </label>
+          <label>{{ 'ticketing.create.projectNumber' | translate }}
+            <input class="input" name="projectNumber" [(ngModel)]="form.projectNumber" maxlength="60" [readonly]="!projectManual">
+          </label>
+          <label>{{ 'ticketing.create.year' | translate }}
+            <input class="input" name="projectYear" type="number" min="1900" max="2100" step="1" [(ngModel)]="form.projectYear" [readonly]="!projectManual"
+                   [class.invalid]="submitted && yearError">
+          </label>
+          <span class="field-error full" *ngIf="submitted && (projectError || yearError)">{{ projectError || yearError }}</span>
+          <small class="muted-sm full" *ngIf="!projectManual">{{ 'ticketing.create.filledFromProjectumSaved' | translate }}</small>
+        </div>
+      </div>
 
-      <label>Site
+      <!-- 3. Site, 4. Equipment of a registered customer -->
+
+      <label>{{ 'ticketing.create.site' | translate }}
         <select *ngIf="options.sites.length; else freeSite" class="select" name="site" [(ngModel)]="form.site">
-          <option value="">Select site…</option>
+          <option value="">{{ 'ticketing.create.selectSite' | translate }}</option>
           <option *ngFor="let s of options.sites" [value]="s.name">{{ s.name }}</option>
         </select>
         <ng-template #freeSite>
-          <input class="input" name="site" [(ngModel)]="form.site" maxlength="160" placeholder="Plant, line or location (optional)">
+          <input class="input" name="site" [(ngModel)]="form.site" maxlength="160" [placeholder]="'ticketing.create.plantLineLocationOptional' | translate">
         </ng-template>
       </label>
 
-      <label class="full">Equipment
+      <label class="full">{{ 'ticketing.create.equipment' | translate }}
         <select class="select" name="equipment" [(ngModel)]="form.equipmentId" (ngModelChange)="onEquipment($event)" [disabled]="!form.customerId || loadingOptions">
-          <option [ngValue]="null">{{ options.equipment.length ? 'No equipment' : 'No registered equipment' }}</option>
+          <option [ngValue]="null">{{ !form.customerId ? ('ticketing.create.equipmentRegisteredExistingCustomers' | translate) : options.equipment.length ? ('ticketing.create.noEquipment' | translate) : ('ticketing.create.noRegisteredEquipment' | translate) }}</option>
           <option *ngFor="let e of options.equipment" [ngValue]="e.id">{{ e.name }}<ng-container *ngIf="e.typeName"> · {{ e.typeName }}</ng-container><ng-container *ngIf="e.serialNumber"> — S/N {{ e.serialNumber }}</ng-container></option>
         </select>
       </label>
 
       <!-- 5. Subject and details -->
-      <label class="full">Subject *
-        <input class="input" name="subject" [(ngModel)]="form.subject" maxlength="250" placeholder="Brief description of the issue"
+      <label class="full">{{ 'ticketing.create.subject' | translate }}
+        <input class="input" name="subject" [(ngModel)]="form.subject" maxlength="250" [placeholder]="'ticketing.create.briefDescriptionIssue' | translate"
                [class.invalid]="submitted && subjectError">
         <span class="field-error" *ngIf="submitted && subjectError">{{ subjectError }}</span>
       </label>
 
-      <label>Priority
+      <label>{{ 'ticketing.create.priority' | translate }}
         <select class="select" name="priority" [(ngModel)]="form.priority">
           <option *ngFor="let p of priorities" [ngValue]="p">{{ labels.priorityLabel(p) }}</option>
         </select>
       </label>
 
-      <label>Category
+      <label>{{ 'ticketing.create.category' | translate }}
         <select class="select" name="category" [(ngModel)]="form.category">
           <option *ngFor="let c of categories" [ngValue]="c">{{ label(c) }}</option>
         </select>
       </label>
 
-      <label class="full">Description *
+      <label class="full">{{ 'ticketing.create.description' | translate }}
         <textarea class="textarea" name="description" [(ngModel)]="form.description" maxlength="8000" rows="6"
-                  placeholder="What happened, when, on which equipment, and what you already tried" [class.invalid]="submitted && descriptionError"></textarea>
+                  [placeholder]="'ticketing.create.whatHappenedWhenWhich' | translate" [class.invalid]="submitted && descriptionError"></textarea>
         <span class="field-error" *ngIf="submitted && descriptionError">{{ descriptionError }}</span>
       </label>
 
       <ng-container *ngIf="isStaff">
-        <label>Client account
+        <label>{{ 'ticketing.create.clientAccount' | translate }}
           <select class="select" name="client" [(ngModel)]="form.clientUserId">
-            <option [ngValue]="null">No client account (internal ticket)</option>
+            <option [ngValue]="null">{{ 'ticketing.create.noClientAccountInternal' | translate }}</option>
             <option *ngFor="let c of clients" [ngValue]="c.id">{{ c.fullName }} · {{ c.email }}</option>
           </select>
         </label>
 
-        <label>Origin
+        <label>{{ 'ticketing.create.origin' | translate }}
           <select class="select" name="origin" [(ngModel)]="form.origin">
-            <option *ngFor="let o of origins" [ngValue]="o">{{ originLabels[o] }}</option>
+            <option *ngFor="let o of origins" [ngValue]="o">{{ originLabels[o] | translate }}</option>
           </select>
         </label>
 
-        <label class="full">Assign H24 agent
+        <label class="full">{{ 'ticketing.create.assignH24Agent' | translate }}
           <select class="select" name="agent" [(ngModel)]="form.assigneeId">
-            <option [ngValue]="null">Unassigned</option>
+            <option [ngValue]="null">{{ 'ticketing.create.unassigned' | translate }}</option>
             <option *ngFor="let a of agents" [ngValue]="a.id">{{ a.fullName }}</option>
           </select>
         </label>
       </ng-container>
 
       <div class="form-actions full">
-        <button type="button" class="ghost" (click)="cancel()">Cancel</button>
-        <button type="submit" class="primary" [disabled]="saving">{{ saving ? 'Submitting…' : 'Submit ticket' }}</button>
+        <button type="button" class="ghost" (click)="cancel()">{{ 'common.cancel' | translate }}</button>
+        <button type="submit" class="primary" [disabled]="saving">{{ saving ? ('ticketing.create.submitting' | translate) : ('ticketing.create.submitTicket' | translate) }}</button>
       </div>
     </form>
   </section>

@@ -1,29 +1,23 @@
 <div class="tk-shell">
   <header class="tk-header">
     <a class="tk-logo" routerLink="/tickets">
-      <span class="logo-mark material-symbols-outlined">support_agent</span>Projectum Ticketing
+      <span class="logo-mark material-symbols-outlined">support_agent</span>{{ 'ticketing.layout.projectumTicketing' | translate }}
     </a>
 
     <app-nav-buttons class="workspace-link" [homes]="['/tickets']"></app-nav-buttons>
 
     <app-ticket-notifications></app-ticket-notifications>
 
-    <div class="header-user">
-      <div class="avatar">{{ initials }}</div>
-      <div>
-        <strong>{{ userName }}</strong>
-        <small>{{ organisation }}</small>
-      </div>
-    </div>
+    <app-profile-menu></app-profile-menu>
   </header>
 
   <div class="tk-body">
     <aside class="tk-sidebar">
       <section>
-        <label>{{ isStaff ? 'Support' : 'Client portal' }}</label>
+        <label>{{ isStaff ? ('ticketing.layout.support' | translate) : ('ticketing.layout.clientPortal' | translate) }}</label>
         <a *ngFor="let item of navItems" [routerLink]="item.route" routerLinkActive="active"
            [routerLinkActiveOptions]="{ exact: item.exact }" [class.active]="item.icon === 'settings' && inSettings">
-          <span class="material-symbols-outlined">{{ item.icon }}</span>{{ item.label }}
+          <span class="material-symbols-outlined">{{ item.icon }}</span>{{ item.label | translate }}
         </a>
       </section>
 

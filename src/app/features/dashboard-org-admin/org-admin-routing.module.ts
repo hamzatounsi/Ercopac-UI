@@ -17,13 +17,13 @@ const routes: Routes = [{
   data: { roles: ['ORG_ADMIN'] },
   children: [
     { path: '', redirectTo: 'overview', pathMatch: 'full' },
-    { path: 'overview', component: OrgAdminOverviewComponent, data: { title: 'Overview', description: 'Organisation health, capacity, and configuration at a glance.' } },
-    { path: 'profile', component: OrgAdminProfileComponent, data: { title: 'Organisation profile', description: 'Maintain the organisation details your team can use.' } },
-    { path: 'users', component: OrgAdminUsersComponent, data: { title: 'Users', description: 'Create, assign, and manage accounts in your organisation.' } },
-    { path: 'roles', component: OrgAdminRolesComponent, data: { title: 'Roles & permissions', description: 'Review role responsibilities and effective module access.' } },
-    { path: 'departments', component: OrgAdminDepartmentsComponent, data: { title: 'Departments', description: 'Structure the organisation and assign department managers.' } },
-    { path: 'resources', component: OrgAdminResourceConfigurationComponent, data: { title: 'Resource configuration', description: 'Maintain the project classifications and customer directory supported by this organisation.' } },
-    { path: 'settings', component: OrgAdminSettingsComponent, data: { title: 'Security settings', description: 'Apply password, session, and account-recovery controls.' } },
+    { path: 'overview', component: OrgAdminOverviewComponent, data: { title: 'orgAdmin.pages.overview.title', description: 'orgAdmin.pages.overview.description' } },
+    { path: 'profile', component: OrgAdminProfileComponent, data: { title: 'orgAdmin.pages.profile.title', description: 'orgAdmin.pages.profile.description' } },
+    { path: 'users', component: OrgAdminUsersComponent, data: { title: 'orgAdmin.pages.users.title', description: 'orgAdmin.pages.users.description' } },
+    { path: 'roles', component: OrgAdminRolesComponent, data: { title: 'orgAdmin.pages.roles.title', description: 'orgAdmin.pages.roles.description' } },
+    { path: 'departments', component: OrgAdminDepartmentsComponent, data: { title: 'orgAdmin.pages.departments.title', description: 'orgAdmin.pages.departments.description' } },
+    { path: 'resources', component: OrgAdminResourceConfigurationComponent, data: { title: 'orgAdmin.pages.resources.title', description: 'orgAdmin.pages.resources.description' } },
+    { path: 'settings', component: OrgAdminSettingsComponent, data: { title: 'orgAdmin.pages.settings.title', description: 'orgAdmin.pages.settings.description' } },
     { path: '**', redirectTo: 'overview' }
   ]
 }];

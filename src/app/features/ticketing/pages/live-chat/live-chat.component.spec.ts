@@ -5,6 +5,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { FormsModule } from '@angular/forms';
 
 import { LiveChatComponent } from './live-chat.component';
+import { translateTestingModule } from 'src/app/core/i18n/translate-testing';
 
 describe('LiveChatComponent', () => {
   let component: LiveChatComponent;
@@ -12,7 +13,7 @@ describe('LiveChatComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, RouterTestingModule, FormsModule],
+      imports: [HttpClientTestingModule, RouterTestingModule, FormsModule, translateTestingModule()],
       declarations: [LiveChatComponent],
       schemas: [NO_ERRORS_SCHEMA]
     });

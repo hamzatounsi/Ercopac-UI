@@ -1,1 +1,9 @@
 <router-outlet></router-outlet>
+
+<div class="pm-pref-toast" role="status" aria-live="polite" *ngIf="preferences.saveFailed$ | async">
+  <span class="material-symbols-outlined" aria-hidden="true">cloud_off</span>
+  <span>{{ 'errors.preferencesSave' | translate }}</span>
+  <button type="button" (click)="preferences.dismissSaveError()" [attr.aria-label]="'common.dismiss' | translate">
+    <span class="material-symbols-outlined" aria-hidden="true">close</span>
+  </button>
+</div>

@@ -1,26 +1,26 @@
 <div class="crm-page">
   <header class="page-header">
     <div>
-      <h1 class="page-title">Archived Opportunities</h1>
-      <p class="page-sub">View, restore, or permanently delete archived opportunities.</p>
+      <h1 class="page-title">{{ 'crm.archived.archivedOpportunities' | translate }}</h1>
+      <p class="page-sub">{{ 'crm.archived.viewRestorePermanentlyDelete' | translate }}</p>
     </div>
     <div class="page-actions">
-      <button class="btn secondary" routerLink="/crm/opportunities">Back to Active Opportunities</button>
+      <button class="btn secondary" routerLink="/crm/opportunities">{{ 'crm.archived.backActiveOpportunities' | translate }}</button>
     </div>
   </header>
 
-  <div *ngIf="loading" class="state">Loading archived opportunities...</div>
+  <div *ngIf="loading" class="state">{{ 'crm.archived.loadingArchivedOpportunities' | translate }}</div>
   <div *ngIf="error" class="state error" role="alert">{{ error }}</div>
 
   <div class="table-wrap" *ngIf="!loading && !error">
     <table class="crm-table">
       <thead>
         <tr>
-          <th>Name</th>
-          <th>Account</th>
-          <th>Value</th>
-          <th>Archived Date</th>
-          <th class="actions-heading">Actions</th>
+          <th>{{ 'common.name' | translate }}</th>
+          <th>{{ 'crm.archived.account' | translate }}</th>
+          <th>{{ 'crm.archived.value' | translate }}</th>
+          <th>{{ 'crm.archived.archivedDate' | translate }}</th>
+          <th class="actions-heading">{{ 'common.actions' | translate }}</th>
         </tr>
       </thead>
       <tbody>
@@ -30,10 +30,10 @@
           <td class="currency">{{ opp.value | currency:'EUR':'symbol':'1.0-0' }}</td>
           <td>{{ opp.archivedAt | date:'short' }}</td>
           <td class="actions">
-            <button class="icon-btn btn-restore" (click)="restore(opp.id)" title="Restore">
+            <button class="icon-btn btn-restore" (click)="restore(opp.id)" [title]="'crm.archived.restore' | translate">
               <span class="material-symbols-outlined">unarchive</span>
             </button>
-            <button class="icon-btn btn-delete" (click)="deletePermanently(opp.id)" title="Delete Permanently">
+            <button class="icon-btn btn-delete" (click)="deletePermanently(opp.id)" [title]="'crm.archived.deletePermanently' | translate">
               <span class="material-symbols-outlined">delete_forever</span>
             </button>
           </td>
@@ -41,7 +41,7 @@
         <tr *ngIf="archivedOpportunities.length === 0">
           <td colspan="5" class="empty">
             <span class="material-symbols-outlined">archive</span>
-            <strong>No archived opportunities found.</strong>
+            <strong>{{ 'crm.archived.noArchivedOpportunitiesFound' | translate }}</strong>
           </td>
         </tr>
       </tbody>

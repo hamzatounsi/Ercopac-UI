@@ -8,6 +8,7 @@ import { CrmIndustry, CrmUser } from '../../models/crm-detail.model';
 import { CrmPermissionsService } from '../../services/crm-permissions.service';
 import { CrmService } from '../../services/crm.service';
 import { CrmCountryService } from '../../services/crm-country.service';
+import { CrmI18nService } from 'src/app/features/dashboard-crm/services/crm-i18n.service';
 
 @Component({
   selector: 'app-crm-account-detail-page',
@@ -29,6 +30,7 @@ export class CrmAccountDetailPageComponent implements OnInit {
   error = '';
 
   constructor(
+    public i18n: CrmI18nService,
     private crm: CrmService,
     private route: ActivatedRoute,
     private router: Router,
@@ -60,7 +62,7 @@ export class CrmAccountDetailPageComponent implements OnInit {
       this.loading = false;
     },
     error: e => {
-      this.error = e?.error?.message || 'Account not found.';
+      this.error = this.i18n.error(e, 'accountDetail.accountNotFound');
       this.loading = false;
     }
   });
@@ -77,7 +79,7 @@ export class CrmAccountDetailPageComponent implements OnInit {
         this.saving = false;
       },
       error: e => {
-        this.error = e?.error?.message || 'Unable to save.';
+        this.error = this.i18n.error(e, 'accountDetail.unableSave');
         this.saving = false;
       }
     });
@@ -89,10 +91,10 @@ export class CrmAccountDetailPageComponent implements OnInit {
   }
 
   remove(): void {
-    if (!confirm('Delete this account?')) return;
+    if (!confirm(this.i18n.t('accountDetail.deleteAccount'))) return;
     this.crm.deleteAccount(this.orgId, this.id).subscribe({
       next: () => this.router.navigate(['/crm/accounts']),
-      error: e => this.error = e?.error?.message || 'Unable to delete account.'
+      error: e => this.error = this.i18n.error(e, 'accountDetail.unableDeleteAccount')
     });
   }
 

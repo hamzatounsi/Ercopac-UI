@@ -58,7 +58,7 @@ export class CrmReportsPageComponent implements OnInit, AfterViewChecked, OnDest
   ngOnInit(): void {
     this.crm.getReports(this.orgId).subscribe({
       next: reports => { this.reports = reports; this.loading = false; },
-      error: error => { this.error = error?.error?.message || this.i18n.t('reports.error.load'); this.loading = false; }
+      error: error => { this.error = this.i18n.error(error, 'reports.error.load'); this.loading = false; }
     });
   }
 
@@ -77,7 +77,7 @@ export class CrmReportsPageComponent implements OnInit, AfterViewChecked, OnDest
   loadEquipmentReport(): void {
     this.crm.getEquipmentReport(this.orgId, this.stage, this.type).subscribe({
       next: r => this.equipmentReport = r,
-      error: e => this.error = e?.error?.message || this.i18n.t('reports.error.loadEquipment')
+      error: e => this.error = this.i18n.error(e, 'reports.error.loadEquipment')
     });
   }
 
@@ -183,9 +183,9 @@ export class CrmReportsPageComponent implements OnInit, AfterViewChecked, OnDest
   }
 
   get countrySlices(): Slice[] { return this.group(this.filtered, item => this.countries.displayName(item.accountCountry)); }
-  get valueSlices(): Slice[] { return this.fixedSlices([['Material', this.total('materialValue')], ['Services', this.total('servicesValue')]]); }
-  get tfSlices(): Slice[] { return this.fixedSlices([['Ercopac', this.total('ercopacMaterialValue')], ['TF', this.total('thirdPartyMaterialValue')]]); }
-  get resaleSlices(): Slice[] { return this.fixedSlices([['Ercopac', this.total('ercopacResaleValue')], ['Resale', this.total('resaleValue')]]); }
+  get valueSlices(): Slice[] { return this.fixedSlices([[this.i18n.t('reports.material'), this.total('materialValue')], [this.i18n.t('reports.services'), this.total('servicesValue')]]); }
+  get tfSlices(): Slice[] { return this.fixedSlices([[this.i18n.t('reports.ercopac'), this.total('ercopacMaterialValue')], ['TF', this.total('thirdPartyMaterialValue')]]); }
+  get resaleSlices(): Slice[] { return this.fixedSlices([[this.i18n.t('reports.ercopac'), this.total('ercopacResaleValue')], [this.i18n.t('reports.resale'), this.total('resaleValue')]]); }
   get weightedTotal(): number { return this.filtered.reduce((sum, item) => sum + this.expectedRevenue(item), 0); }
   get activeTotal(): number { return this.activeSlices.reduce((sum, item) => sum + item.value, 0); }
 
@@ -238,9 +238,9 @@ export class CrmReportsPageComponent implements OnInit, AfterViewChecked, OnDest
 
   exportExcel(): void {
     const rows = this.exportRows();
-    const worksheet = XLSX.utils.json_to_sheet(rows.length ? rows : [{ Message: 'No data matches the selected filters.' }]);
+    const worksheet = XLSX.utils.json_to_sheet(rows.length ? rows : [{ Message: this.i18n.t('reports.noDataMatchesSelected') }]);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
+    XLSX.utils.book_append_sheet(workbook, worksheet, this.i18n.t('reports.report'));
     XLSX.writeFile(workbook, `${this.exportName()}.xlsx`);
   }
 
@@ -314,7 +314,7 @@ export class CrmReportsPageComponent implements OnInit, AfterViewChecked, OnDest
       bubbles.push({ ...slice, left: x / width * 100, top: y / height * 100 });
     });
     this.mapBubbles = bubbles;
-    this.mapMessage = bubbles.length || !this.countrySlices.length ? '' : 'No stored countries could be matched to world map data.';
+    this.mapMessage = bubbles.length || !this.countrySlices.length ? '' : this.i18n.t('reports.noStoredCountriesCould');
   }
 
   private drawFeature(context: CanvasRenderingContext2D, feature: any, width: number, height: number): void {

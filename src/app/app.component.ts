@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { PreferencesService } from './core/services/preferences.service';
 
 @Component({
   selector: 'app-root',
@@ -9,7 +10,9 @@ import { filter } from 'rxjs/operators';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  constructor(router: Router, title: Title) {
+  constructor(router: Router, title: Title, readonly preferences: PreferencesService) {
+    // the saved profile (language, theme) wins over the locally cached choice
+    preferences.loadFromServer();
     router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(event => {
       const url = (event as NavigationEnd).urlAfterRedirects;
       title.setTitle(this.titleFor(url));

@@ -4,14 +4,15 @@ import { AuthService } from 'src/app/core/auth/auth.service';
 import { Contact, Customer, CustomerProject, Equipment, LANGUAGES, Ref, Site, UserSummary } from '../../models/ticket.models';
 import { TicketSettingsService } from '../../services/ticket-settings.service';
 import { TICKETING_LEAD_ROLES } from '../../ticketing-roles';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 type Tab = 'info' | 'contacts' | 'sites' | 'equipment' | 'projects';
-type Dialog = 'customer' | 'contact' | 'site' | 'equipment';
+type Dialog = 'customer' | 'contact' | 'site' | 'equipment' | 'project';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Customer companies served by the support team, with their contacts (and portal accounts), sites,
-// installed equipment and Projectum projects. Staff can browse; leads create and edit.
+// installed equipment and projects (Projectum projects plus ones added by hand). Staff can browse; leads create and edit.
 @Component({
   selector: 'app-customers-settings',
   templateUrl: './customers-settings.component.html',
@@ -32,6 +33,8 @@ export class CustomersSettingsComponent implements OnInit {
   projects: CustomerProject[] = [];
   tabLoading = false;
   tabError = '';
+  projectsLoading = false;
+  projectsError = '';
 
   equipmentTypes: Ref[] = [];
   portalUsers: UserSummary[] = [];
@@ -45,11 +48,12 @@ export class CustomersSettingsComponent implements OnInit {
   readonly languages = LANGUAGES;
   readonly isLead = this.auth.hasAnyRole(TICKETING_LEAD_ROLES);
   readonly tabs: { key: Tab; label: string }[] = [
-    { key: 'info', label: 'Information' }, { key: 'contacts', label: 'Contacts' }, { key: 'sites', label: 'Sites' },
-    { key: 'equipment', label: 'Equipment' }, { key: 'projects', label: 'Projects' }
+    { key: 'info', label: 'ticketing.customers.information' }, { key: 'contacts', label: 'ticketing.customers.contacts' }, { key: 'sites', label: 'ticketing.customers.sites' },
+    { key: 'equipment', label: 'ticketing.customers.equipment' }, { key: 'projects', label: 'ticketing.customers.projects' }
   ];
 
-  constructor(private settings: TicketSettingsService, private auth: AuthService) {}
+  constructor(private i18n: I18nService,
+    private settings: TicketSettingsService, private auth: AuthService) {}
 
   ngOnInit(): void { this.load(); }
 
@@ -67,7 +71,7 @@ export class CustomersSettingsComponent implements OnInit {
         this.loading = false;
         if (this.selected) this.selected = c.find(x => x.id === this.selected!.id);
       },
-      error: e => { this.loading = false; this.error = e.error?.message || 'Customers could not be loaded.'; }
+      error: e => { this.loading = false; this.error = this.i18n.error(e, 'ticketing.customers.customersCouldNotLoaded'); }
     });
   }
 
@@ -88,13 +92,14 @@ export class CustomersSettingsComponent implements OnInit {
     if (!c || this.tab === 'info') return;
     this.tabLoading = true;
     this.tabError = '';
-    const done = { error: (e: any) => { this.tabLoading = false; this.tabError = e.error?.message || 'This list could not be loaded.'; } };
+    const done = { error: (e: any) => { this.tabLoading = false; this.tabError = this.i18n.error(e, 'ticketing.customers.listCouldNotLoaded'); } };
     switch (this.tab) {
       case 'contacts': this.settings.contacts(c.id).subscribe({ ...done, next: v => { this.contacts = v; this.tabLoading = false; } }); break;
       case 'sites': this.settings.sites(c.id).subscribe({ ...done, next: v => { this.sites = v; this.tabLoading = false; } }); break;
       case 'equipment':
-        // Sites feed the equipment form's site choice
+        // Sites and projects feed the equipment form's site and project choices
         this.settings.sites(c.id).subscribe({ next: v => this.sites = v });
+        this.loadProjects();
         this.settings.equipment(c.id).subscribe({ ...done, next: v => { this.equipment = v; this.tabLoading = false; } });
         break;
       case 'projects': this.settings.projects(c.id).subscribe({ ...done, next: v => { this.projects = v; this.tabLoading = false; } }); break;
@@ -114,8 +119,28 @@ export class CustomersSettingsComponent implements OnInit {
 
   editEquipment(e?: Equipment): void {
     if (!this.equipmentTypes.length) this.settings.equipmentTypes().subscribe({ next: t => this.equipmentTypes = t });
-    this.openDialog('equipment', e ? { ...e } : { typeId: null, siteId: null });
+    const projectKey = e?.projectId ? `P:${e.projectId}` : e?.customerProjectId ? `M:${e.customerProjectId}` : null;
+    this.openDialog('equipment', e ? { ...e, projectKey } : { typeId: null, siteId: null, projectKey: null });
   }
+
+  editProject(p?: CustomerProject): void {
+    this.openDialog('project', p ? { id: p.id, name: p.name, projectNumber: p.code ?? '', year: p.year ?? null } : { year: null });
+  }
+
+  /** Projects tab of the selected customer (Projectum and manual), used by the equipment project choice. */
+  loadProjects(): void {
+    const c = this.selected;
+    if (!c) return;
+    this.projectsLoading = true;
+    this.projectsError = '';
+    this.settings.projects(c.id).subscribe({
+      next: v => { this.projects = v; this.projectsLoading = false; },
+      error: e => { this.projectsLoading = false; this.projectsError = this.i18n.error(e, 'ticketing.customers.projectsCouldNotLoaded'); }
+    });
+  }
+
+  /** Equipment projects are either a Projectum project (P:id) or a manual one (M:id). */
+  projectKey(p: CustomerProject): string { return `${p.manual ? 'M' : 'P'}:${p.id}`; }
 
   closeDialog(): void { this.dialog = undefined; }
 
@@ -123,15 +148,19 @@ export class CustomersSettingsComponent implements OnInit {
     const f = this.form;
     switch (this.dialog) {
       case 'customer':
-        if (!f.code?.trim() || !f.name?.trim()) return 'Code and name are required.';
-        if (f.email && !EMAIL.test(f.email)) return 'Enter a valid email address.';
+        if (!f.code?.trim() || !f.name?.trim()) return this.i18n.t('ticketing.customers.codeNameRequired');
+        if (f.email && !EMAIL.test(f.email)) return this.i18n.t('ticketing.customers.enterValidEmailAddress');
         return '';
       case 'contact':
-        if (!f.fullName?.trim()) return 'A name is required.';
-        if (f.email && !EMAIL.test(f.email)) return 'Enter a valid email address.';
+        if (!f.fullName?.trim()) return this.i18n.t('ticketing.customers.nameRequired');
+        if (f.email && !EMAIL.test(f.email)) return this.i18n.t('ticketing.customers.enterValidEmailAddress');
         return '';
-      case 'site': return f.name?.trim() ? '' : 'A site name is required.';
-      case 'equipment': return f.name?.trim() ? '' : 'An equipment name is required.';
+      case 'site': return f.name?.trim() ? '' : this.i18n.t('ticketing.customers.siteNameRequired');
+      case 'equipment': return f.name?.trim() ? '' : this.i18n.t('ticketing.customers.equipmentNameRequired');
+      case 'project':
+        if (!f.name?.trim()) return this.i18n.t('ticketing.customers.projectNameRequired');
+        if (f.year != null && f.year !== '' && (!Number.isInteger(+f.year) || +f.year < 1900 || +f.year > 2100)) return this.i18n.t('ticketing.customers.yearMustBetween1900');
+        return '';
       default: return '';
     }
   }
@@ -151,7 +180,15 @@ export class CustomersSettingsComponent implements OnInit {
       case 'customer': request = f.id ? this.settings.updateCustomer(f.id, f) : this.settings.createCustomer(f); break;
       case 'contact': request = this.settings.saveContact(c!.id, f); break;
       case 'site': request = this.settings.saveSite(c!.id, f); break;
-      case 'equipment': request = this.settings.saveEquipment(c!.id, f); break;
+      case 'equipment': {
+        const [kind, id] = (f.projectKey as string | null)?.split(':') ?? [];
+        const { projectKey, projectName, ...item } = f;
+        request = this.settings.saveEquipment(c!.id, { ...item, projectId: kind === 'P' ? +id : null, customerProjectId: kind === 'M' ? +id : null });
+        break;
+      }
+      case 'project':
+        request = this.settings.saveManualProject(c!.id, { id: f.id, name: f.name, projectNumber: f.projectNumber, year: f.year == null || f.year === '' ? null : +f.year });
+        break;
     }
     const kind = this.dialog;
     this.saving = true;
@@ -168,18 +205,19 @@ export class CustomersSettingsComponent implements OnInit {
           this.loadTab();
         }
         this.load();
-        this.flash(f.id ? 'Changes saved' : 'Added');
+        this.flash(f.id ? this.i18n.t('ticketing.customers.changesSaved') : this.i18n.t('ticketing.customers.added'));
       },
-      error: e => { this.saving = false; this.dialogError = e.error?.message || 'This could not be saved.'; }
+      error: e => { this.saving = false; this.dialogError = this.i18n.error(e, 'ticketing.customers.couldNotSaved'); }
     });
   }
 
-  remove(kind: 'contact' | 'site' | 'equipment', id: number, name: string): void {
+  remove(kind: 'contact' | 'site' | 'equipment' | 'project', id: number, name: string): void {
     const c = this.selected;
     if (!c) return;
-    const extra = kind === 'site' ? ' Equipment installed there stays registered without a site.' : '';
+    const extra = kind === 'site' ? ' ' + this.i18n.t('ticketing.customers.equipmentInstalledThereStays') : '';
     if (!confirm(`Remove ${name}?${extra}`)) return;
-    const request = kind === 'contact' ? this.settings.deleteContact(c.id, id) : kind === 'site' ? this.settings.deleteSite(c.id, id) : this.settings.deleteEquipment(c.id, id);
+    const request = kind === 'contact' ? this.settings.deleteContact(c.id, id) : kind === 'site' ? this.settings.deleteSite(c.id, id)
+      : kind === 'project' ? this.settings.deleteManualProject(c.id, id) : this.settings.deleteEquipment(c.id, id);
     request.subscribe({
       next: () => { this.loadTab(); this.load(); this.flash(`${name} removed`); },
       error: e => { this.tabError = e.error?.message || `${name} could not be removed.`; }
@@ -187,7 +225,7 @@ export class CustomersSettingsComponent implements OnInit {
   }
 
   location(c: Customer): string { return [c.town, c.country].filter(Boolean).join(', '); }
-  languageName(code?: string): string { return LANGUAGES.find(l => l.code === code)?.label ?? '—'; }
+  languageName(code?: string): string { const label = LANGUAGES.find(l => l.code === code)?.label; return label ? this.i18n.t(label) : '—'; }
 
   private openDialog(kind: Dialog, value: any): void {
     this.dialog = kind;

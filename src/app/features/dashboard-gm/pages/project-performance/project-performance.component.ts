@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { CompanyDashboard, CompanyDashboardService, RevenueForecast } from '../../services/company-dashboard.service';
 import { MilestoneService, ProjectMilestone } from '../../services/milestone.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 interface TimelineDay {
   date: Date;
@@ -52,7 +53,7 @@ export class ProjectPerformanceComponent implements OnInit, OnDestroy {
   statusMenuOpen = false;
   pmMenuOpen = false;
 
-  constructor(
+  constructor(private readonly i18n: I18nService, 
     private service: CompanyDashboardService,
     private milestoneService: MilestoneService,
     private route: ActivatedRoute,
@@ -82,10 +83,10 @@ export class ProjectPerformanceComponent implements OnInit, OnDestroy {
             this.loading = false;
             if (this.view === 'milestone') this.loadMilestones();
           },
-          error: () => { this.error = 'Revenue forecast could not be loaded.'; this.loading = false; }
+          error: () => { this.error = this.i18n.t('gm.performance.revenueForecastLoaded'); this.loading = false; }
         });
       },
-      error: () => { this.error = 'Project performance data could not be loaded.'; this.loading = false; }
+      error: () => { this.error = this.i18n.t('gm.performance.projectPerformanceDataLoaded'); this.loading = false; }
     });
   }
 
@@ -175,8 +176,8 @@ export class ProjectPerformanceComponent implements OnInit, OnDestroy {
   private getHolidayName(date: Date): string | undefined {
     const month = date.getMonth();
     const day = date.getDate();
-    if (month === 4 && day === 1) return 'Labour Day';
-    if (month === 11 && day === 25) return 'Christmas';
+    if (month === 4 && day === 1) return this.i18n.t('gm.performance.labourDay');
+    if (month === 11 && day === 25) return this.i18n.t('gm.performance.christmas');
     return undefined;
   }
 

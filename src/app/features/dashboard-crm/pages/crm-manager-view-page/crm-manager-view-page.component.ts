@@ -4,6 +4,7 @@ import { CrmManagerTeamMember, CrmManagerView } from '../../models/crm-detail.mo
 import { CrmOpportunity } from '../../models/crm-opportunity.model';
 import { CrmPipelineStage } from '../../models/crm-pipeline-stage.model';
 import { CrmService } from '../../services/crm.service';
+import { CrmI18nService } from 'src/app/features/dashboard-crm/services/crm-i18n.service';
 
 @Component({
   selector: 'app-crm-manager-view-page',
@@ -34,7 +35,8 @@ export class CrmManagerViewPageComponent implements OnInit {
 
   error = '';
 
-  constructor(private crm: CrmService, private router: Router) {}
+  constructor(public i18n: CrmI18nService,
+    private crm: CrmService, private router: Router) {}
 
   ngOnInit(): void {
     this.crm.getStages(this.orgId).subscribe(stages => this.stages = stages);
@@ -49,7 +51,7 @@ export class CrmManagerViewPageComponent implements OnInit {
         this.loading = false;
       },
       error: error => {
-        this.error = error?.error?.message || 'Manager View is not available.';
+        this.error = this.i18n.error(error, 'managerView.managerViewNotAvailable');
         this.loading = false;
       }
     });
@@ -98,7 +100,7 @@ export class CrmManagerViewPageComponent implements OnInit {
   saveTarget(member: CrmManagerTeamMember): void {
     this.crm.saveTarget(this.orgId, member.userId, this.year, member.target, member.currency).subscribe({
       next: () => this.load(),
-      error: error => this.error = error?.error?.message || 'Unable to save target.'
+      error: error => this.error = this.i18n.error(error, 'managerView.unableSaveTarget')
     });
   }
 

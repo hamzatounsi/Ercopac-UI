@@ -1,4 +1,5 @@
 import { AppNavButtonsComponent } from 'src/app/core/navigation/app-nav-buttons.component';
+import { ProfileMenuComponent } from 'src/app/core/navigation/profile-menu.component';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -35,6 +36,7 @@ import { CompanyDashboardComponent } from './pages/company-dashboard/company-das
 import { ProjectPerformanceComponent } from './pages/project-performance/project-performance.component';
 
 import { MilestoneDashboardComponent } from './pages/milestone-dashboard/milestone-dashboard.component';
+import { TranslateModule } from '@ngx-translate/core';
 
 
 
@@ -77,7 +79,8 @@ import { MilestoneDashboardComponent } from './pages/milestone-dashboard/milesto
     ReactiveFormsModule,
     GmDashboardRoutingModule,
     HttpClientModule,
-    AppNavButtonsComponent
+    TranslateModule,
+    AppNavButtonsComponent, ProfileMenuComponent
   ]
 })
 export class GmDashboardModule {}

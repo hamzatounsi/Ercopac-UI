@@ -5,13 +5,14 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from 'src/app/core/auth/auth.service';
 
 import { StatusesSettingsComponent } from './statuses-settings.component';
+import { translateTestingModule } from 'src/app/core/i18n/translate-testing';
 
 describe('StatusesSettingsComponent', () => {
   let http: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, FormsModule],
+      imports: [HttpClientTestingModule, FormsModule, translateTestingModule()],
       declarations: [StatusesSettingsComponent],
       providers: [{ provide: AuthService, useValue: { hasAnyRole: () => true } }],
       schemas: [NO_ERRORS_SCHEMA]

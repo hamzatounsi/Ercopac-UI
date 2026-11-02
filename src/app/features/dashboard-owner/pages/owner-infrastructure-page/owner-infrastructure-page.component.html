@@ -1,31 +1,31 @@
 <section class="enterprise-module-page">
   <header class="enterprise-module-header">
     <div>
-      <div class="enterprise-eyebrow">Platform operations</div>
-      <h1>Infrastructure</h1>
-      <p>Operational overview for system health, integrations, queue status, AI services and database availability.</p>
+      <div class="enterprise-eyebrow">{{ 'owner.infrastructure.platformOperations' | translate }}</div>
+      <h1>{{ 'owner.infrastructure.infrastructure' | translate }}</h1>
+      <p>{{ 'owner.infrastructure.operationalOverviewSystemHealth' | translate }}</p>
     </div>
-    <span class="enterprise-status-pill"><span class="material-symbols-outlined">dns</span> Monitoring planned</span>
+    <span class="enterprise-status-pill"><span class="material-symbols-outlined">dns</span> {{ 'owner.infrastructure.monitoringPlanned' | translate }}</span>
   </header>
 
   <div class="enterprise-panel-grid">
     <article class="enterprise-panel">
-      <h2>Operations readiness</h2>
-      <p>This screen is prepared as a platform operations cockpit. Live health checks should be wired to backend monitoring endpoints before production use.</p>
+      <h2>{{ 'owner.infrastructure.operationsReadiness' | translate }}</h2>
+      <p>{{ 'owner.infrastructure.screenPreparedPlatformOperations' | translate }}</p>
       <div class="enterprise-metric-row">
-        <div class="enterprise-metric-card"><span>API</span><strong>Healthy</strong></div>
-        <div class="enterprise-metric-card"><span>Database</span><strong>PostgreSQL</strong></div>
-        <div class="enterprise-metric-card"><span>AI</span><strong>Ollama</strong></div>
+        <div class="enterprise-metric-card"><span>{{ 'owner.infrastructure.api' | translate }}</span><strong>{{ 'owner.infrastructure.healthy' | translate }}</strong></div>
+        <div class="enterprise-metric-card"><span>{{ 'owner.infrastructure.database' | translate }}</span><strong>{{ 'owner.infrastructure.postgresql' | translate }}</strong></div>
+        <div class="enterprise-metric-card"><span>{{ 'owner.infrastructure.ai' | translate }}</span><strong>{{ 'owner.infrastructure.ollama' | translate }}</strong></div>
       </div>
     </article>
 
     <aside class="enterprise-checklist">
-      <h2>Production signals</h2>
+      <h2>{{ 'owner.infrastructure.productionSignals' | translate }}</h2>
       <ul>
-        <li>Backend uptime and response time.</li>
-        <li>Database connection pool pressure.</li>
-        <li>AI service availability and latency.</li>
-        <li>Failed job and integration queues.</li>
+        <li>{{ 'owner.infrastructure.backendUptimeResponseTime' | translate }}</li>
+        <li>{{ 'owner.infrastructure.databaseConnectionPoolPressure' | translate }}</li>
+        <li>{{ 'owner.infrastructure.aiServiceAvailabilityLatency' | translate }}</li>
+        <li>{{ 'owner.infrastructure.failedJobIntegrationQueues' | translate }}</li>
       </ul>
     </aside>
   </div>

@@ -15,20 +15,20 @@ export class PlatformSettingsComponent {
   readonly isLead = this.auth.hasAnyRole(TICKETING_LEAD_ROLES);
 
   readonly groups: SettingsGroup[] = this.isStaff ? [
-    { label: 'Users', items: [
-      { label: 'H24 Agents', icon: 'support_agent', path: 'h24-agents' },
-      { label: 'L2 Technicians', icon: 'engineering', path: 'l2-technicians' }
+    { label: 'ticketing.platform.users', items: [
+      { label: 'ticketing.platform.h24Agents', icon: 'support_agent', path: 'h24-agents' },
+      { label: 'ticketing.platform.l2Technicians', icon: 'engineering', path: 'l2-technicians' }
     ] },
-    { label: 'Tickets', items: [
-      { label: 'Statuses', icon: 'label', path: 'statuses' },
-      { label: 'Priorities', icon: 'priority_high', path: 'priorities' }
+    { label: 'ticketing.platform.tickets', items: [
+      { label: 'ticketing.platform.statuses', icon: 'label', path: 'statuses' },
+      { label: 'ticketing.platform.priorities', icon: 'priority_high', path: 'priorities' }
     ] },
-    { label: 'System', items: [
-      { label: 'Customers', icon: 'business', path: 'customers' },
-      { label: 'Language', icon: 'translate', path: 'language' }
+    { label: 'ticketing.platform.system', items: [
+      { label: 'ticketing.platform.customers', icon: 'business', path: 'customers' },
+      { label: 'ticketing.platform.language', icon: 'translate', path: 'language' }
     ] }
   ] : [
-    { label: 'Account', items: [{ label: 'Language', icon: 'translate', path: 'language' }] }
+    { label: 'ticketing.platform.account', items: [{ label: 'ticketing.platform.language', icon: 'translate', path: 'language' }] }
   ];
 
   constructor(private auth: AuthService) {}

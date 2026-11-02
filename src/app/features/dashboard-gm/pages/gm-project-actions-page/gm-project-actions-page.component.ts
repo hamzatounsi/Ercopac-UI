@@ -4,6 +4,7 @@ import { GmActionService } from '../../services/gm-action.service';
 import { ActionAttachment, ActionComment, ActionItem } from '../../models/action-item.model';
 import { ActionSummary } from '../../models/action-summary.model';
 import { GmDashboardService } from '../../services/gm-dashboard.service';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 type DetailTab = 'details' | 'comments' | 'attachments';
 type ViewMode = 'list' | 'kanban';
 
@@ -50,7 +51,7 @@ projectName = '';
   draggedAction: ActionItem | null = null;
   dragOverStatus: string | null = null;
 
-constructor(
+constructor(private readonly i18n: I18nService, 
   private route: ActivatedRoute,
   private router: Router,
   private actionService: GmActionService,
@@ -95,21 +96,21 @@ constructor(
               },
               error: (err) => {
                 console.error(err);
-                this.error = 'Failed to load available assignees.';
+                this.error = this.i18n.t('gm.actions.failedLoadAvailableAssignees');
                 this.loading = false;
               }
             });
           },
           error: (err) => {
             console.error(err);
-            this.error = 'Failed to load action summary.';
+            this.error = this.i18n.t('gm.actions.failedLoadActionSummary');
             this.loading = false;
           }
         });
       },
       error: (err) => {
         console.error(err);
-        this.error = 'Failed to load actions.';
+        this.error = this.i18n.t('gm.actions.failedLoadActions');
         this.loading = false;
       }
     });
@@ -281,14 +282,14 @@ constructor(
       },
       error: (err) => {
         console.error(err);
-        this.error = 'Failed to save action.';
+        this.error = this.i18n.t('gm.actions.failedSaveAction');
         this.saving = false;
       }
     });
   }
 
   deleteRow(row: ActionItem): void {
-    if (!confirm('Delete this action?')) return;
+    if (!confirm(this.i18n.t('gm.actions.deleteAction'))) return;
 
     this.saving = true;
     this.actionService.delete(this.projectId, row.id).subscribe({
@@ -301,7 +302,7 @@ constructor(
       },
       error: (err) => {
         console.error(err);
-        this.error = 'Failed to delete action.';
+        this.error = this.i18n.t('gm.actions.failedDeleteAction');
         this.saving = false;
       }
     });
@@ -333,7 +334,7 @@ constructor(
       },
       error: (err) => {
         console.error(err);
-        this.error = 'Failed to add comment.';
+        this.error = this.i18n.t('gm.actions.failedAddComment');
       }
     });
   }
@@ -373,20 +374,20 @@ addAssigneeToSelected(name: string): void {
 
   getStatusLabel(status: string): string {
     switch (status) {
-      case 'todo': return 'To Do';
-      case 'doing': return 'In Progress';
-      case 'review': return 'In Review';
-      case 'blocked': return 'Blocked';
-      case 'done': return 'Done';
+      case 'todo': return this.i18n.t('gm.actions.statusLabel.todo');
+      case 'doing': return this.i18n.t('gm.actions.statusLabel.doing');
+      case 'review': return this.i18n.t('gm.actions.statusLabel.review');
+      case 'blocked': return this.i18n.t('gm.actions.statusLabel.blocked');
+      case 'done': return this.i18n.t('gm.actions.statusLabel.done');
       default: return status;
     }
   }
 
   getPriorityLabel(priority: string): string {
     switch (priority) {
-      case 'high': return 'High';
-      case 'medium': return 'Medium';
-      case 'low': return 'Low';
+      case 'high': return this.i18n.t('gm.actions.priorityLabel.high');
+      case 'medium': return this.i18n.t('gm.actions.priorityLabel.medium');
+      case 'low': return this.i18n.t('gm.actions.priorityLabel.low');
       default: return priority;
     }
   }
@@ -522,7 +523,7 @@ addAssigneeToSelected(name: string): void {
       department: r.departmentCode || '',
       priority: this.getPriorityLabel(r.priority),
       status: this.getStatusLabel(r.status),
-      customerVisible: r.customerVisible ? 'Yes' : 'No',
+      customerVisible: this.i18n.t(r.customerVisible ? 'common.yes' : 'common.no'),
       title: r.title,
       description: r.description || '',
       insertedDate: r.insertedDate || '',
@@ -591,7 +592,7 @@ addAssigneeToSelected(name: string): void {
     };
 
     if (!payload.title) {
-      this.error = 'Action title is required.';
+      this.error = this.i18n.t('gm.actions.actionTitleRequired');
       return;
     }
 
@@ -608,7 +609,7 @@ addAssigneeToSelected(name: string): void {
         },
         error: (err) => {
           console.error(err);
-          this.error = 'Failed to create action.';
+          this.error = this.i18n.t('gm.actions.failedCreateAction');
           this.saving = false;
         }
       });
@@ -621,7 +622,7 @@ addAssigneeToSelected(name: string): void {
         },
         error: (err) => {
           console.error(err);
-          this.error = 'Failed to save action.';
+          this.error = this.i18n.t('gm.actions.failedSaveAction');
           this.saving = false;
         }
       });
@@ -653,7 +654,7 @@ addAssigneeToSelected(name: string): void {
       },
       error: (err) => {
         console.error(err);
-        this.error = 'Failed to upload attachments.';
+        this.error = this.i18n.t('gm.actions.failedUploadAttachments');
         this.saving = false;
         input.value = '';
       }
@@ -681,14 +682,14 @@ addAssigneeToSelected(name: string): void {
         },
         error: (err) => {
           console.error(err);
-          this.error = 'Failed to download attachment.';
+          this.error = this.i18n.t('gm.actions.failedDownloadAttachment');
         }
       });
   }
 
   deleteActionAttachment(attachment: ActionAttachment): void {
     if (!this.selectedAction) return;
-    if (!confirm('Delete this attachment?')) return;
+    if (!confirm(this.i18n.t('gm.actions.deleteAttachment'))) return;
 
     this.saving = true;
 
@@ -708,7 +709,7 @@ addAssigneeToSelected(name: string): void {
         },
         error: (err) => {
           console.error(err);
-          this.error = 'Failed to delete attachment.';
+          this.error = this.i18n.t('gm.actions.failedDeleteAttachment');
           this.saving = false;
         }
       });
@@ -807,7 +808,7 @@ addAssigneeToSelected(name: string): void {
       },
       error: (err) => {
         console.error(err);
-        this.error = 'Failed to update action status.';
+        this.error = this.i18n.t('gm.actions.failedUpdateActionStatus');
 
         const idx = this.rows.findIndex(r => r.id === action.id);
         if (idx !== -1) {

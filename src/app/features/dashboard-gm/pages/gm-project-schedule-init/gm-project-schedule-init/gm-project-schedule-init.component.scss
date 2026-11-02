@@ -1,6 +1,6 @@
 .schedule-init-page {
   padding: 24px 24px 48px;
-  background: #f6f8fb;
+  background: var(--pm-surface-muted);
   box-sizing: border-box;
 }
 
@@ -15,12 +15,12 @@
     margin: 0 0 8px;
     font-size: 28px;
     font-weight: 700;
-    color: #1f2937;
+    color: var(--pm-text);
   }
 
   p {
     margin: 0;
-    color: #6b7280;
+    color: var(--pm-text-muted);
     font-size: 14px;
   }
 }
@@ -44,10 +44,10 @@
 }
 
 .form-card {
-  background: #ffffff;
+  background: var(--pm-surface);
   border-radius: 18px;
   padding: 24px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--pm-border);
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
 }
 
@@ -58,13 +58,13 @@
     margin: 0 0 6px;
     font-size: 18px;
     font-weight: 700;
-    color: #111827;
+    color: var(--pm-text);
   }
 
   p {
     margin: 0;
     font-size: 13px;
-    color: #6b7280;
+    color: var(--pm-text-muted);
   }
 }
 
@@ -77,7 +77,7 @@
   label {
     font-size: 13px;
     font-weight: 600;
-    color: #374151;
+    color: var(--pm-text);
   }
 
   input,
@@ -85,12 +85,12 @@
   textarea {
     width: 100%;
     box-sizing: border-box;
-    border: 1px solid #dbe3ee;
+    border: 1px solid var(--pm-primary-border);
     border-radius: 12px;
     padding: 12px 14px;
     font-size: 14px;
-    background: #fbfcfe;
-    color: #111827;
+    background: var(--pm-surface);
+    color: var(--pm-text);
     outline: none;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
@@ -100,7 +100,7 @@
   textarea:focus {
     border-color: var(--pm-primary);
     box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
-    background: #ffffff;
+    background: var(--pm-surface);
   }
 
   textarea {
@@ -135,30 +135,30 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--pm-primary), #1d4ed8);
-  color: #ffffff;
+  background: linear-gradient(135deg, var(--pm-primary), var(--pm-primary));
+  color: var(--pm-on-accent);
   box-shadow: 0 10px 20px rgba(37, 99, 235, 0.18);
 }
 
 .btn-secondary {
-  background: #ffffff;
-  color: #374151;
-  border: 1px solid #dbe3ee;
+  background: var(--pm-surface);
+  color: var(--pm-text);
+  border: 1px solid var(--pm-primary-border);
 }
 
 .alert-error {
   margin-bottom: 20px;
   padding: 14px 16px;
   border-radius: 12px;
-  border: 1px solid #fecaca;
-  background: #fef2f2;
-  color: #b91c1c;
+  border: 1px solid var(--pm-danger-border);
+  background: var(--pm-surface-muted);
+  color: var(--pm-danger-text);
   font-size: 14px;
   font-weight: 500;
 }
 
 .error-text {
-  color: #dc2626;
+  color: var(--pm-danger-text);
   font-size: 12px;
 }
 

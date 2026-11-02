@@ -1,7 +1,7 @@
 <div class="crm-shell">
   <header class="crm-header">
     <a class="crm-logo" routerLink="/crm/dashboard">
-      <span class="logo-mark">⌁</span>Projectum CRM
+      <span class="logo-mark">⌁</span>{{ 'crm.layout.projectumCrm' | translate }}
     </a>
     
     <div class="global-search">
@@ -12,7 +12,7 @@
         (focus)="showResults = query.trim().length >= 2" 
         (blur)="closeResults()" 
         [placeholder]="i18n.t('header.search.placeholder')" 
-        aria-label="Search CRM records">
+        [attr.aria-label]="'crm.layout.searchCrmRecords' | translate">
       
       <div class="search-results" *ngIf="showResults">
         <div class="search-state" *ngIf="searching">{{ i18n.t('search.searching') }}</div>
@@ -31,27 +31,9 @@
       </div>
     </div>
 
-    <!-- ✅ Sélecteur de langue CRM (EN / FR / IT) -->
-    <div class="lang-switcher" role="group" aria-label="Language">
-      <button
-        *ngFor="let lang of languages"
-        type="button"
-        class="lang-btn"
-        [class.active]="i18n.currentLang === lang.code"
-        (click)="setLanguage(lang.code)">
-        {{ lang.label }}
-      </button>
-    </div>
-
     <app-nav-buttons class="workspace-link" [homes]="['/crm/opportunities', '/crm/dashboard']"></app-nav-buttons>
     
-    <div class="header-user">
-      <div class="avatar">{{ initials }}</div>
-      <div>
-        <strong>{{ auth.getCurrentUsername() }}</strong>
-        <small>{{ organisation }}</small>
-      </div>
-    </div>
+    <app-profile-menu></app-profile-menu>
   </header>
 
   <div class="crm-body">
@@ -97,7 +79,7 @@
         <div class="org-logo">{{ organisation.charAt(0) }}</div>
         <div>
           <strong>{{ organisation }}</strong>
-          <small>{{ auth.getCurrentRole().replace('_', ' ') }}</small>
+          <small>{{ 'roles.' + auth.getCurrentRole() | translate }}</small>
         </div>
       </div>
 

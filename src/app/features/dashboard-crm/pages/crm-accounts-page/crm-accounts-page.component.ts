@@ -104,6 +104,6 @@ export class CrmAccountsPageComponent implements OnInit {
   }
   
   private message(error: any): string {
-    return error?.error?.message || this.i18n.t('accounts.error.unableToComplete');
+    return this.i18n.error(error, 'accounts.error.unableToComplete');
   }
 }

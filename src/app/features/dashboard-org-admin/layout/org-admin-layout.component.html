@@ -1,4 +1,4 @@
-<a class="skip-link" href="#org-admin-content">Skip to administration content</a>
+<a class="skip-link" href="#org-admin-content">{{ 'orgAdmin.layout.skipAdministrationContent' | translate }}</a>
 
 <div class="oa-shell">
   <header class="oa-topbar">
@@ -7,8 +7,8 @@
         <span class="material-symbols-outlined">hub</span>
       </span>
       <div>
-        <strong>Projectum</strong>
-        <span>Organisation administration</span>
+        <strong>{{ 'orgAdmin.layout.projectum' | translate }}</strong>
+        <span>{{ 'orgAdmin.layout.organisationAdministration' | translate }}</span>
       </div>
     </div>
 
@@ -19,22 +19,15 @@
       [attr.aria-expanded]="mobileNavigationOpen"
       aria-controls="organisation-admin-navigation">
       <span class="material-symbols-outlined" aria-hidden="true">menu</span>
-      <span>Menu</span>
+      <span>{{ 'orgAdmin.layout.menu' | translate }}</span>
     </button>
 
     <div class="oa-account">
       <div class="oa-org-chip">
-        <span>Organisation</span>
-        <strong>{{ organisationName }}</strong>
+        <span>{{ 'common.organisation' | translate }}</span>
+        <strong>{{ organisationName || ('orgAdmin.layout.yourOrganisation' | translate) }}</strong>
       </div>
-      <div class="oa-user">
-        <span class="oa-avatar" aria-hidden="true">{{ currentUserName.charAt(0) | uppercase }}</span>
-        <div><strong>{{ currentUserName }}</strong><span>Organisation Admin</span></div>
-      </div>
-      <button class="oa-signout" type="button" (click)="logout()" aria-label="Sign out">
-        <span class="material-symbols-outlined" aria-hidden="true">logout</span>
-        <span>Sign out</span>
-      </button>
+      <app-profile-menu></app-profile-menu>
     </div>
   </header>
 
@@ -45,10 +38,10 @@
       class="oa-sidebar"
       [class.open]="mobileNavigationOpen">
       <div class="oa-sidebar-heading">
-        <span>Administration</span>
-        <small>Tenant-scoped controls</small>
+        <span>{{ 'orgAdmin.layout.administration' | translate }}</span>
+        <small>{{ 'orgAdmin.layout.tenantScopedControls' | translate }}</small>
       </div>
-      <nav aria-label="Organisation administration">
+      <nav [attr.aria-label]="'orgAdmin.layout.organisationAdministration' | translate">
         <a
           *ngFor="let item of navItems"
           [routerLink]="item.path"
@@ -56,24 +49,24 @@
           ariaCurrentWhenActive="page"
           [routerLinkActiveOptions]="{ exact: true }">
           <span class="material-symbols-outlined" aria-hidden="true">{{ item.icon }}</span>
-          <span>{{ item.label }}</span>
+          <span>{{ item.label | translate }}</span>
         </a>
       </nav>
       <div class="oa-scope-note">
         <span class="material-symbols-outlined" aria-hidden="true">verified_user</span>
-        <p><strong>Organisation isolated</strong>Your access is limited to {{ organisationName }}.</p>
+        <p><strong>{{ 'orgAdmin.layout.organisationIsolated' | translate }}</strong>{{ 'orgAdmin.layout.accessLimitedOrganisationname' | translate: { organisationName: organisationName } }}</p>
       </div>
     </aside>
 
     <main id="org-admin-content" class="oa-main" tabindex="-1">
       <header class="oa-page-header">
-        <div class="oa-breadcrumb" aria-label="Breadcrumb">
-          <span>Organisation administration</span>
+        <div class="oa-breadcrumb" [attr.aria-label]="'orgAdmin.layout.breadcrumb' | translate">
+          <span>{{ 'orgAdmin.layout.organisationAdministration' | translate }}</span>
           <span aria-hidden="true">/</span>
-          <strong>{{ pageTitle }}</strong>
+          <strong>{{ pageTitle | translate }}</strong>
         </div>
-        <h1>{{ pageTitle }}</h1>
-        <p>{{ pageDescription }}</p>
+        <h1>{{ pageTitle | translate }}</h1>
+        <p>{{ pageDescription | translate }}</p>
       </header>
       <router-outlet></router-outlet>
     </main>

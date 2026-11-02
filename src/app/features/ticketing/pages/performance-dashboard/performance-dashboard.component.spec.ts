@@ -4,13 +4,14 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { FormsModule } from '@angular/forms';
 
 import { PerformanceDashboardComponent } from './performance-dashboard.component';
+import { translateTestingModule } from 'src/app/core/i18n/translate-testing';
 
 describe('PerformanceDashboardComponent', () => {
   let http: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, FormsModule],
+      imports: [HttpClientTestingModule, FormsModule, translateTestingModule()],
       declarations: [PerformanceDashboardComponent],
       schemas: [NO_ERRORS_SCHEMA]
     });

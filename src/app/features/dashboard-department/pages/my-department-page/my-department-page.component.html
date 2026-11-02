@@ -2,16 +2,16 @@
   <header class="dept-header">
     <div class="brand">
       <div class="app-name">Projectum<span>ALL</span></div>
-      <div class="app-sub">Department workload & allocation</div>
+      <div class="app-sub">{{ 'department.my.departmentWorkloadAllocation' | translate }}</div>
     </div>
 <!-- GM: manager dropdown -->
 <div class="header-select" *ngIf="!isDepartmentManager">
-  <label>Manager</label>
+  <label>{{ 'department.my.manager' | translate }}</label>
   <select
     [value]="selectedManagerId ?? ''"
     (change)="onManagerChange($any($event.target).value)"
   >
-    <option value="">— select —</option>
+    <option value="">{{ 'department.my.select' | translate }}</option>
     <option *ngFor="let m of managers; trackBy: trackByManager" [value]="m.id">
       {{ m.fullName }} · {{ m.departmentCode }}
     </option>
@@ -21,7 +21,7 @@
 
 <!-- DM: just shows his dept name, no dropdown -->
 <div class="header-select" *ngIf="isDepartmentManager">
-  <label>Department</label>
+  <label>{{ 'department.my.department' | translate }}</label>
   <div class="dept-label-static">{{ selectedDepartmentCode }}</div>
 </div>
 <!-- Badge -->
@@ -29,20 +29,21 @@
   {{ selectedDepartmentCode }}
 </div>
 <app-nav-buttons *ngIf="!insideGmLayout" [homes]="['/department']"></app-nav-buttons>
+<app-profile-menu *ngIf="!insideGmLayout"></app-profile-menu>
   </header>
   <nav class="dept-toolbar">
     <div class="view-tabs">
       <button type="button" [class.active]="mainView === 'resource'" (click)="setMainView('resource')">
-        Resources
+        {{ 'department.my.resources' | translate }}
       </button>
       <button type="button" [class.active]="mainView === 'projects'" (click)="setMainView('projects')">
-        Activities by Project
+        {{ 'department.my.activitiesProject' | translate }}
       </button>
     </div>
 
     <div class="toolbar-actions" *ngIf="mainView === 'resource'">
-      <button type="button" [class.active]="timelineView === 'day'" (click)="setTimelineView('day')">Day</button>
-      <button type="button" [class.active]="timelineView === 'week'" (click)="setTimelineView('week')">Week</button>
+      <button type="button" [class.active]="timelineView === 'day'" (click)="setTimelineView('day')">{{ 'department.my.day' | translate }}</button>
+      <button type="button" [class.active]="timelineView === 'week'" (click)="setTimelineView('week')">{{ 'department.my.week' | translate }}</button>
 
       <span class="separator"></span>
 
@@ -57,13 +58,13 @@
       <button type="button" (click)="shift(+4)">›</button>
       <button type="button" (click)="shift(+26)">»</button>
 
-      <button type="button" class="primary-light" (click)="goToday()">Today</button>
-      <button type="button" class="primary" (click)="openHolidayModal()">Add Holiday</button>
+      <button type="button" class="primary-light" (click)="goToday()">{{ 'department.my.today' | translate }}</button>
+      <button type="button" class="primary" (click)="openHolidayModal()">{{ 'department.my.addHoliday' | translate }}</button>
     </div>
 
     <div class="toolbar-actions" *ngIf="mainView === 'projects'">
       <div class="pa-col-wrap" #paColBtnWrap>
-        <button type="button" (click)="togglePaColMenu()">Columns ▾</button>
+        <button type="button" (click)="togglePaColMenu()">{{ 'department.my.columns' | translate }}</button>
 
         <div class="pa-col-menu" [class.open]="paColMenuOpen">
           <label *ngFor="let col of paToggleableCols">
@@ -72,7 +73,7 @@
               [checked]="col.vis"
               (change)="togglePaCol(col.id, $any($event.target).checked)"
             />
-            {{ col.label }}
+            {{ col.label | translate }}
           </label>
         </div>
       </div>
@@ -96,7 +97,7 @@
           [class.active]="item.value === selectedTimeFilter"
           (click)="selectTimeFilter(item.value)"
         >
-          {{ item.label }}
+          {{ item.label | translate }}
         </button>
       </div>
     </div>
@@ -104,14 +105,14 @@
     <!-- PROJECT SELECTOR HERE -->
 
     <div class="project-select-wrap">
-      <label class="project-filter-label">Project</label>
+      <label class="project-filter-label">{{ 'department.my.project' | translate }}</label>
 
       <select
         class="project-select"
         [value]="selectedProjectId ?? ''"
         (change)="onProjectChange($any($event.target).value)"
       >
-        <option value="">All Projects</option>
+        <option value="">{{ 'department.my.allProjects' | translate }}</option>
 
         <option
           *ngFor="let p of projectOptions"
@@ -127,7 +128,7 @@
       type="text"
       [ngModel]="activitySearch"
       (ngModelChange)="onActivitySearchChange($event)"
-      placeholder="Search project, code, activity..."
+      [placeholder]="'department.my.searchProjectCodeActivity' | translate"
     />
 
     <div class="status-filters">
@@ -136,19 +137,19 @@
 
   </section>
 
-  <div *ngIf="loading" class="page-state">Loading department data...</div>
+  <div *ngIf="loading" class="page-state">{{ 'department.my.loadingDepartmentData' | translate }}</div>
   <div *ngIf="error" class="page-state error">{{ error }}</div>
 
   <section class="empty-state" *ngIf="!loading && !selectedDepartmentCode && !isDepartmentManager">
     <div class="empty-icon">🏢</div>
-    <h2>Select a department</h2>
-    <p>Choose PM, ME, EE, SW, MFC, INST, or another department to see resources and allocations.</p>
+    <h2>{{ 'department.my.selectDepartment' | translate }}</h2>
+    <p>{{ 'department.my.choosePmMeEe' | translate }}</p>
   </section>
 
   <section class="resource-shell" [style.display]="mainView === 'resource' && selectedDepartmentCode ? 'flex' : 'none'">
     <aside class="member-panel">
       <div class="member-header">
-        <span>Member</span>
+        <span>{{ 'department.my.member' | translate }}</span>
         <div class="rs-actions">
           <button type="button" [class.off]="!showResources" (click)="showResources = !showResources">R</button>
           <button type="button" [class.off]="!showSuppliers" (click)="showSuppliers = !showSuppliers">S</button>
@@ -156,7 +157,7 @@
       </div>
 
       <div class="member-subtitle">
-        {{ selectedDepartmentCode }} Resources
+        {{ 'department.my.selecteddepartmentcodeResources' | translate: { selectedDepartmentCode: selectedDepartmentCode } }}
       </div>
 
       <div class="member-list">
@@ -167,7 +168,7 @@
 
           <div class="member-info">
             <strong [attr.title]="row.member.fullName">{{ row.member.fullName }}</strong>
-            <span [attr.title]="row.member.resourceType || row.member.role || 'Resource'">{{ row.member.resourceType || row.member.role || 'Resource' }}</span>
+            <span [attr.title]="row.member.resourceType || row.member.role || ('department.my.resource' | translate)">{{ row.member.resourceType || row.member.role || ('department.my.resource' | translate) }}</span>
           </div>
 
           <div class="allocation-count">
@@ -265,7 +266,7 @@
                 [style.left.px]="itemLeftPx(item.startDate)"
                 [style.width.px]="itemWidthPx(item.startDate, item.endDate)"
               >
-                🏖 {{ item.holidayNote || 'Holiday' }}
+                🏖 {{ item.holidayNote || ('department.my.holiday' | translate) }}
               </div>
             </ng-container>
           </div>
@@ -294,30 +295,30 @@
   <div id="hol-bg" [class.open]="holidayModalOpen">
     <div id="hol-modal">
       <div class="hm-head">
-        <h3>Add Holiday</h3>
+        <h3>{{ 'department.my.addHoliday' | translate }}</h3>
         <button type="button" class="hm-close" (click)="closeHolidayModal()">✕</button>
       </div>
 
       <div class="hm-body">
-        <label>Person</label>
+        <label>{{ 'department.my.person' | translate }}</label>
         <select class="fi" [value]="holidayMemberId ?? ''" (change)="onHolidayMemberChange($any($event.target).value)">
           <option *ngFor="let member of members" [value]="member.id">{{ member.fullName }}</option>
         </select>
 
         <div class="date-grid">
           <div>
-            <label>From</label>
+            <label>{{ 'department.my.from' | translate }}</label>
             <input class="fi" type="date" [(ngModel)]="holidayFrom" />
           </div>
 
           <div>
-            <label>To</label>
+            <label>{{ 'department.my.text' | translate }}</label>
             <input class="fi" type="date" [(ngModel)]="holidayTo" />
           </div>
         </div>
 
-        <label>Note</label>
-        <input class="fi" [(ngModel)]="holidayNote" placeholder="e.g. Annual leave" />
+        <label>{{ 'department.my.note' | translate }}</label>
+        <input class="fi" [(ngModel)]="holidayNote" [placeholder]="'department.my.eGAnnualLeave' | translate" />
 
         <div class="holiday-list">
           <div class="holiday-item" *ngFor="let h of holidayListForSelectedMember">
@@ -325,13 +326,13 @@
             <button type="button" (click)="deleteHoliday(h.id)">✕</button>
           </div>
 
-          <p *ngIf="!holidayListForSelectedMember.length">No holidays.</p>
+          <p *ngIf="!holidayListForSelectedMember.length">{{ 'department.my.noHolidays' | translate }}</p>
         </div>
       </div>
 
       <div class="hm-foot">
-        <button type="button" class="btn light" (click)="closeHolidayModal()">Cancel</button>
-        <button type="button" class="btn primary" (click)="addHoliday()">Add</button>
+        <button type="button" class="btn light" (click)="closeHolidayModal()">{{ 'common.cancel' | translate }}</button>
+        <button type="button" class="btn primary" (click)="addHoliday()">{{ 'common.add' | translate }}</button>
       </div>
     </div>
   </div>

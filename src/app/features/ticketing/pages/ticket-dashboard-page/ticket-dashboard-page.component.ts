@@ -6,6 +6,7 @@ import { Ref, Ticket, TicketCategory, TicketPriority, TicketStats, TicketStatus 
 import { TicketFilters, TicketService } from '../../services/ticket.service';
 import { TicketSettingsService } from '../../services/ticket-settings.service';
 import { TICKETING_LEAD_ROLES, TICKETING_STAFF_ROLES } from '../../ticketing-roles';
+import { I18nService } from 'src/app/core/i18n/i18n.service';
 
 type Period = 'all' | 'day' | 'week' | 'month' | 'year';
 const PERIOD_DAYS: Record<Exclude<Period, 'all'>, number> = { day: 1, week: 7, month: 30, year: 365 };
@@ -25,7 +26,7 @@ export class TicketDashboardPageComponent implements OnInit, OnDestroy {
   readonly priorities: TicketPriority[] = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'];
   readonly categories: TicketCategory[] = ['SOFTWARE', 'ACCESS', 'PERFORMANCE', 'BILLING', 'DATA', 'INTEGRATION', 'FEATURE_REQUEST', 'OTHER'];
   readonly periods: { key: Period; label: string }[] = [
-    { key: 'all', label: 'All' }, { key: 'day', label: 'Day' }, { key: 'week', label: 'Week' }, { key: 'month', label: 'Month' }, { key: 'year', label: 'Year' }
+    { key: 'all', label: 'ticketing.list.periodAll' }, { key: 'day', label: 'ticketing.list.periodDay' }, { key: 'week', label: 'ticketing.list.periodWeek' }, { key: 'month', label: 'ticketing.list.periodMonth' }, { key: 'year', label: 'ticketing.list.periodYear' }
   ];
 
   tickets: Ticket[] = [];
@@ -43,7 +44,8 @@ export class TicketDashboardPageComponent implements OnInit, OnDestroy {
   private readonly searchInput = new Subject<string>();
   private searchSub?: Subscription;
 
-  constructor(private auth: AuthService, private api: TicketService, public labels: TicketSettingsService, private router: Router) {}
+  constructor(private i18n: I18nService,
+    private auth: AuthService, private api: TicketService, public labels: TicketSettingsService, private router: Router) {}
 
   ngOnInit(): void {
     this.searchSub = this.searchInput.pipe(debounceTime(300)).subscribe(() => this.reload());
@@ -59,7 +61,7 @@ export class TicketDashboardPageComponent implements OnInit, OnDestroy {
     this.error = '';
     this.api.list(this.query()).subscribe({
       next: r => { this.tickets = r.content; this.total = r.totalElements; this.totalPages = r.totalPages; this.loading = false; },
-      error: e => { this.error = e.error?.message || 'Tickets could not be loaded.'; this.loading = false; }
+      error: e => { this.error = this.i18n.error(e, 'ticketing.list.ticketsCouldNotLoaded'); this.loading = false; }
     });
   }
 
@@ -102,7 +104,7 @@ export class TicketDashboardPageComponent implements OnInit, OnDestroy {
   open(t: Ticket): void { void this.router.navigate(['/tickets', t.id]); }
   newTicket(): void { void this.router.navigate(['/tickets/new']); }
   shortName(name?: string): string { if (!name) return ''; const p = name.split(/\s+/); return p.length > 1 ? `${p[0]} ${p[1][0]}.` : name; }
-  label(v: string): string { return v.replace(/_/g, ' ').toLowerCase().replace(/^\w/, c => c.toUpperCase()); }
+  label(category: string): string { return category ? this.i18n.t('ticketing.categories.' + category) : ''; }
 
   private query(): TicketFilters {
     const from = this.period === 'all' ? null : new Date(Date.now() - PERIOD_DAYS[this.period] * 86_400_000).toISOString();

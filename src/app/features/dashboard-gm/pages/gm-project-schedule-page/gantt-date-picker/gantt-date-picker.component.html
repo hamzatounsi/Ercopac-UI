@@ -1,5 +1,5 @@
 <div class="gantt-date-picker" [class.is-disabled]="disabled">
-  <button #trigger type="button" class="gantt-date-picker-trigger" [disabled]="disabled" [attr.aria-label]="ariaLabel" (click)="toggleCalendar($event)">
+  <button #trigger type="button" class="gantt-date-picker-trigger" [disabled]="disabled" [attr.aria-label]="ariaLabel || ('gm.ganttDatePicker.selectDate' | translate)" (click)="toggleCalendar($event)">
     <span [class.placeholder]="!value">{{ formatDisplayDate(value) }}</span>
     <span class="gantt-date-picker-icon" aria-hidden="true">▾</span>
   </button>
@@ -14,9 +14,9 @@
     (click)="$event.stopPropagation()"
   >
     <div class="gantt-date-picker-month">
-      <button type="button" aria-label="Previous month" (click)="previousMonth($event)">‹</button>
+      <button type="button" [attr.aria-label]="'gm.ganttDatePicker.previousMonth' | translate" (click)="previousMonth($event)">‹</button>
       <strong>{{ monthLabel }}</strong>
-      <button type="button" aria-label="Next month" (click)="nextMonth($event)">›</button>
+      <button type="button" [attr.aria-label]="'gm.ganttDatePicker.nextMonth' | translate" (click)="nextMonth($event)">›</button>
     </div>
     <div class="gantt-date-picker-weekdays">
       <span *ngFor="let weekday of weekdayLabels">{{ weekday }}</span>

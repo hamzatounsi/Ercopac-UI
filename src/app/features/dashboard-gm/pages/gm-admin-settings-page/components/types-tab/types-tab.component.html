@@ -4,26 +4,26 @@
       <div class="card-hdr-left">
         <span class="hdr-icon">📄</span>
         <div>
-          <div class="card-hdr-title">Project Types</div>
-          <div class="card-hdr-sub">Types define the nature of a project (e.g. Internal, External, R&amp;D).</div>
+          <div class="card-hdr-title">{{ 'gm.typesTab.projectTypes' | translate }}</div>
+          <div class="card-hdr-sub">{{ 'gm.typesTab.typesDefineNatureProject' | translate }}</div>
         </div>
       </div>
 
-      <button class="btn btn-p btn-sm" (click)="openCreate()">＋ Add Type</button>
+      <button class="btn btn-p btn-sm" (click)="openCreate()">{{ 'gm.typesTab.addType' | translate }}</button>
     </div>
 
     <div class="table-wrap" *ngIf="types.length">
       <table class="data-table">
         <thead>
           <tr>
-            <th style="width:44px;">Icon</th>
+            <th style="width:44px;">{{ 'gm.typesTab.icon' | translate }}</th>
             <th style="width:18px;"></th>
-            <th>Name</th>
-            <th>Code</th>
-            <th>Description</th>
-            <th>Billable</th>
-            <th>Projects using</th>
-            <th style="width:90px;">Actions</th>
+            <th>{{ 'common.name' | translate }}</th>
+            <th>{{ 'gm.typesTab.code' | translate }}</th>
+            <th>{{ 'common.description' | translate }}</th>
+            <th>{{ 'gm.typesTab.billable' | translate }}</th>
+            <th>{{ 'gm.typesTab.projectsUsing' | translate }}</th>
+            <th style="width:90px;">{{ 'common.actions' | translate }}</th>
           </tr>
         </thead>
 
@@ -35,14 +35,14 @@
             <td class="mono">{{ t.code }}</td>
             <td class="muted">{{ t.description || '—' }}</td>
             <td>
-              <span class="yes" *ngIf="t.billable">✓ Yes</span>
+              <span class="yes" *ngIf="t.billable">{{ 'gm.typesTab.yes' | translate }}</span>
               <span class="no" *ngIf="!t.billable">—</span>
             </td>
-            <td>{{ t.projectsUsing }} project{{ t.projectsUsing === 1 ? '' : 's' }}</td>
+            <td>{{ (t.projectsUsing === 1 ? 'gm.projectCountOne' : 'gm.projectCount') | translate: { count: t.projectsUsing } }}</td>
             <td>
               <div class="row-actions">
-                <button class="act-btn edit" title="Edit" (click)="openEdit(t)">✎</button>
-                <button class="act-btn del" title="Delete" (click)="delete(t)">🗑</button>
+                <button class="act-btn edit" [title]="'common.edit' | translate" (click)="openEdit(t)">✎</button>
+                <button class="act-btn del" [title]="'common.delete' | translate" (click)="delete(t)">🗑</button>
               </div>
             </td>
           </tr>
@@ -56,22 +56,22 @@
 <div class="modal-bg" [class.open]="modalOpen" (click)="closeModal()">
   <div class="modal-card" (click)="$event.stopPropagation()">
     <div class="modal-title">
-      {{ editingId ? '✏️ Edit Project Type' : '📄 Add Project Type' }}
+      {{ editingId ? ('gm.typesTab.editProjectType' | translate) : ('gm.typesTab.addProjectType' | translate) }}
     </div>
 
     <div class="m-field">
-      <label>Name *</label>
-      <input class="inp" [(ngModel)]="form.name" placeholder="e.g. External / Commercial" />
+      <label>{{ 'gm.typesTab.name' | translate }}</label>
+      <input class="inp" [(ngModel)]="form.name" [placeholder]="'gm.typesTab.eGExternalCommercial' | translate" />
     </div>
 
     <div class="form-row">
       <div class="m-field flex">
-        <label>Code *</label>
+        <label>{{ 'gm.typesTab.code2' | translate }}</label>
         <input class="inp uppercase" [(ngModel)]="form.code" placeholder="EXT" />
       </div>
 
       <div class="m-field icon-field">
-        <label>Icon</label>
+        <label>{{ 'gm.typesTab.icon' | translate }}</label>
         <select class="sel" [(ngModel)]="form.icon">
           <option *ngFor="let icon of icons" [value]="icon">{{ icon }}</option>
         </select>
@@ -79,7 +79,7 @@
     </div>
 
     <div class="m-field">
-      <label>Colour</label>
+      <label>{{ 'gm.typesTab.colour' | translate }}</label>
       <div class="color-row">
         <button
           type="button"
@@ -93,26 +93,26 @@
     </div>
 
     <div class="m-field">
-      <label>Description</label>
-      <input class="inp" [(ngModel)]="form.description" placeholder="Short description..." />
+      <label>{{ 'common.description' | translate }}</label>
+      <input class="inp" [(ngModel)]="form.description" [placeholder]="'gm.typesTab.shortDescription' | translate" />
     </div>
 
     <div class="check-row">
       <input type="checkbox" [(ngModel)]="form.billable" />
-      <span>Projects of this type are billable to the customer</span>
+      <span>{{ 'gm.typesTab.projectsTypeBillableCustomer' | translate }}</span>
     </div>
 
     <div class="m-field">
-      <label>Status</label>
+      <label>{{ 'common.status' | translate }}</label>
       <select class="sel" [(ngModel)]="form.active">
-        <option [ngValue]="true">Active</option>
-        <option [ngValue]="false">Inactive</option>
+        <option [ngValue]="true">{{ 'common.orgStatus.ACTIVE' | translate }}</option>
+        <option [ngValue]="false">{{ 'gm.typesTab.inactive' | translate }}</option>
       </select>
     </div>
 
     <div class="modal-footer">
-      <button class="btn btn-g" (click)="closeModal()">Cancel</button>
-      <button class="btn btn-p" (click)="save()">💾 Save Type</button>
+      <button class="btn btn-g" (click)="closeModal()">{{ 'common.cancel' | translate }}</button>
+      <button class="btn btn-p" (click)="save()">{{ 'gm.typesTab.saveType' | translate }}</button>
     </div>
   </div>
 </div>

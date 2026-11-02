@@ -9,8 +9,8 @@ import { WorkspaceModule } from 'src/app/core/auth/role-module.config';
   styleUrls: ['./gm-workspaces-page.component.scss']
 })
 export class GmWorkspacesPageComponent implements OnInit {
-  currentOrganisationName = 'Projectum workspace';
-  organisationLabel = 'Workspace';
+  currentOrganisationName = '';
+  organisationLabel = 'gm.workspaces.workspace';
   currentUserName = '';
 
   constructor(
@@ -23,12 +23,12 @@ export class GmWorkspacesPageComponent implements OnInit {
 
     if (orgName && orgName.trim()) {
       this.currentOrganisationName = orgName;
-      this.organisationLabel = 'Organisation';
+      this.organisationLabel = 'common.organisation';
     }
 
     // ✅ FIX: affiche le nom réel de l'utilisateur connecté au lieu du
     // texte statique "Logged in".
-    this.currentUserName = this.authService.getCurrentUsername() || 'Logged in';
+    this.currentUserName = this.authService.getCurrentUsername() || '';
   }
 
   get visibleLauncherApps(): WorkspaceModule[] {
@@ -43,10 +43,5 @@ export class GmWorkspacesPageComponent implements OnInit {
 
     // Comportement normal pour les autres applications
     void this.router.navigateByUrl(app.route);
-  }
-
-  logout(): void {
-    this.authService.logout();
-    void this.router.navigate(['/']);
   }
 }
