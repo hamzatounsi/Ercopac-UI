@@ -76,6 +76,8 @@
       <label><span class="notification-icon">✉</span><span class="notification-copy"><strong>{{ i18n.t('settings.emailNotifications') }}</strong><small>{{ i18n.t('settings.emailNotificationsDesc') }}</small></span><i class="toggle"><input type="checkbox" [(ngModel)]="preferences.emailNotifications" (change)="savePreferences()"><b></b></i></label>
       <label><span class="notification-icon">↗</span><span class="notification-copy"><strong>{{ i18n.t('settings.stageChangeAlerts') }}</strong><small>{{ i18n.t('settings.stageChangeAlertsDesc') }}</small></span><i class="toggle"><input type="checkbox" [(ngModel)]="preferences.stageChangeAlerts" (change)="savePreferences()"><b></b></i></label>
       <label><span class="notification-icon">◷</span><span class="notification-copy"><strong>{{ i18n.t('settings.closingDateReminders') }}</strong><small>{{ i18n.t('settings.closingDateRemindersDesc') }}</small></span><i class="toggle"><input type="checkbox" [(ngModel)]="preferences.closingDateReminders" (change)="savePreferences()"><b></b></i></label>
+      <!-- New comments on CRM records the user owns or works on (default ON) -->
+      <label><span class="notification-icon">💬</span><span class="notification-copy"><strong>{{ i18n.t('settings.commentNotifications') }}</strong><small>{{ i18n.t('settings.commentNotificationsDesc') }}</small></span><i class="toggle"><input type="checkbox" [(ngModel)]="preferences.commentNotifications" (change)="savePreferences()"><b></b></i></label>
     </div></article>
   </section>
 

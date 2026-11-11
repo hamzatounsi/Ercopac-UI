@@ -1,0 +1,66 @@
+<main class="page-pad">
+  <header class="view-head">
+    <div>
+      <h1>{{ 'ticketing.clientDashboard.title' | translate }}</h1>
+      <p>{{ 'ticketing.clientDashboard.subtitle' | translate }}</p>
+    </div>
+  </header>
+
+  <div class="state" *ngIf="loading">{{ 'ticketing.clientDashboard.loading' | translate }}</div>
+  <p class="error" *ngIf="error">{{ error }} <button class="ghost" (click)="load()">{{ 'common.retry' | translate }}</button></p>
+
+  <ng-container *ngIf="!loading && data">
+    <section class="cd-metrics">
+      <div class="cd-metric"><span>{{ 'ticketing.list.total' | translate }}</span><b>{{ data.total }}</b></div>
+      <div class="cd-metric"><span>{{ 'ticketing.clientDashboard.open' | translate }}</span><b class="amber">{{ data.open }}</b></div>
+      <div class="cd-metric"><span>{{ 'ticketing.clientDashboard.inProgress' | translate }}</span><b class="amber">{{ data.inProgress }}</b></div>
+      <div class="cd-metric"><span>{{ 'ticketing.list.resolved' | translate }}</span><b class="green">{{ data.resolved + data.closed }}</b></div>
+      <div class="cd-metric"><span>{{ 'ticketing.list.overdue' | translate }}</span><b [class.red]="data.overdue">{{ data.overdue }}</b></div>
+      <div class="cd-metric"><span>{{ 'ticketing.clientDashboard.avgResolution' | translate }}</span><b>{{ data.averageResolutionHours | number:'1.0-1' }} h</b></div>
+    </section>
+
+    <div class="state empty" *ngIf="!data.total">{{ 'ticketing.list.youHaveNoTickets' | translate }}</div>
+
+    <div class="cd-grid" *ngIf="data.total">
+      <section class="panel cd-panel">
+        <h3>{{ 'ticketing.clientDashboard.byStatus' | translate }}</h3>
+        <div class="bar-row" *ngFor="let b of data.byStatus">
+          <span class="badge" [ngClass]="'c-' + labels.statusColor(b.key)">{{ labels.statusLabel(b.key) }}</span>
+          <div class="bar"><i [style.width.%]="width(b, data.byStatus)"></i></div><b>{{ b.count }}</b>
+        </div>
+      </section>
+      <section class="panel cd-panel">
+        <h3>{{ 'ticketing.clientDashboard.byPriority' | translate }}</h3>
+        <div class="bar-row" *ngFor="let b of data.byPriority">
+          <span class="priority" [ngClass]="'p-' + b.key.toLowerCase()">{{ labels.priorityLabel(b.key) }}</span>
+          <div class="bar"><i [style.width.%]="width(b, data.byPriority)"></i></div><b>{{ b.count }}</b>
+        </div>
+      </section>
+      <section class="panel cd-panel">
+        <h3>{{ 'ticketing.clientDashboard.byCategory' | translate }}</h3>
+        <div class="bar-row" *ngFor="let b of data.byCategory">
+          <span class="muted-sm">{{ labels.categoryLabel(b.key) }}</span>
+          <div class="bar"><i [style.width.%]="width(b, data.byCategory)"></i></div><b>{{ b.count }}</b>
+        </div>
+      </section>
+      <section class="panel cd-panel">
+        <h3>{{ 'ticketing.clientDashboard.last12Months' | translate }}</h3>
+        <div class="months">
+          <div class="month" *ngFor="let b of data.byMonth" [title]="b.count">
+            <div class="col"><i [style.height.%]="width(b, data.byMonth)"></i></div>
+            <small>{{ monthLabel(b.key) }}</small>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel cd-panel" *ngIf="data.recent.length">
+      <h3>{{ 'ticketing.clientDashboard.recent' | translate }}</h3>
+      <button type="button" class="cd-ticket" *ngFor="let t of data.recent" (click)="open(t)">
+        <span class="mono muted-sm">#{{ t.ticketNumber }}</span>
+        <strong>{{ t.subject }}</strong>
+        <span class="badge" [ngClass]="'c-' + labels.ticketStatusColor(t)">{{ labels.ticketStatusLabel(t) }}</span>
+      </button>
+    </section>
+  </ng-container>
+</main>

@@ -1063,7 +1063,9 @@
       "unableAddLostReason": "No se pudo añadir el motivo de pérdida",
       "unableDeleteLostReason": "No se pudo eliminar el motivo de pérdida",
       "unableSaveLostReason": "No se pudo guardar el motivo de pérdida",
-      "weekly": "Semanal"
+      "weekly": "Semanal",
+      "commentNotifications": "Comment notifications",
+      "commentNotificationsDesc": "Get notified when someone comments on a CRM record you own or work on."
     }
   },
   "department": {
@@ -2792,7 +2794,8 @@
       "willAttemptAddDefault": "Se intentarán añadir los hitos predeterminados. Los existentes se omitirán. ¿Continuar?",
       "workingDays": "Días laborables",
       "workingdaysHoursperdayHDay": "{{workingDays}} · {{hoursPerDay}} h/día · Inicio {{startTime}}",
-      "zoom": "Zoom:"
+      "zoom": "Zoom:",
+      "noResourceType": "No resource type"
     },
     "scheduleInit": {
       "additionalProjectNotes": "Notas adicionales del proyecto",
@@ -4039,7 +4042,9 @@
       "useLeast5Characters": "Use al menos 5 caracteres.",
       "whatHappenedWhenWhich": "Qué ocurrió, cuándo, en qué equipo y qué ha intentado ya",
       "year": "Año",
-      "yearMustBetween1900": "El año debe estar entre 1900 y 2100."
+      "yearMustBetween1900": "El año debe estar entre 1900 y 2100.",
+      "invalidEmail": "Enter a valid email address.",
+      "invalidPhone": "Use digits, spaces and + ( ) . - / only."
     },
     "customers": {
       "active": "Activo",
@@ -4278,7 +4283,18 @@
       "writeMessageSupportTeam": "Escriba un mensaje al equipo de soporte…",
       "writeReplyCustomer": "Escriba una respuesta al cliente…",
       "year": "Año",
-      "yearMustBetween1900": "El año debe estar entre 1900 y 2100."
+      "yearMustBetween1900": "El año debe estar entre 1900 y 2100.",
+      "deleteTicket": "Delete this ticket",
+      "confirmDelete": "Delete ticket {{number}} with its messages and attachments? This cannot be undone.",
+      "deleteFailed": "The ticket could not be deleted.",
+      "customStatuses": "Custom statuses",
+      "contactPerson": "Contact person",
+      "phone": "Phone",
+      "contactSaved": "Contact person saved",
+      "attachmentCouldNotOpen": "The attachment could not be opened.",
+      "download": "Download",
+      "videoTooLarge": "Videos are limited to 20 MB.",
+      "fileTooLarge": "Files are limited to 10 MB (videos 20 MB)."
     },
     "h24": {
       "active": "Activo",
@@ -4416,7 +4432,8 @@
       "unfinishedTicketsPastTheir": "Tickets sin terminar que superaron su SLA de resolución",
       "unreadMessages": "Mensajes no leídos",
       "updated": "Actualizado",
-      "youHaveNoTickets": "Todavía no tiene tickets."
+      "youHaveNoTickets": "Todavía no tiene tickets.",
+      "orderNumber": "N° Commessa"
     },
     "notifications": {
       "markAllRead": "Marcar todo como leído",
@@ -4571,7 +4588,9 @@
       "statuses": "Estados",
       "system": "Sistema",
       "tickets": "Tickets",
-      "users": "Usuarios"
+      "users": "Usuarios",
+      "accounts": "New accounts",
+      "categories": "Categories"
     },
     "priorities": {
       "discardChanges": "Descartar cambios",
@@ -4623,7 +4642,83 @@
       "statusesCouldNotLoaded": "No se pudieron cargar los estados.",
       "statusesCouldNotSaved": "No se pudieron guardar los estados.",
       "statusesSaved": "Estados guardados",
-      "ticketStatuses": "Estados de los tickets"
+      "ticketStatuses": "Estados de los tickets",
+      "customTitle": "Custom statuses",
+      "customSubtitle": "Extra statuses of your organisation. Each one belongs to a lifecycle status, which keeps SLA and transitions working.",
+      "addCustom": "Add status",
+      "noCustom": "No custom status yet.",
+      "lifecycle": "Lifecycle status",
+      "confirmDelete": "Delete the status \"{{label}}\"?",
+      "confirmDeleteInUse": "\"{{label}}\" is used by {{count}} ticket(s); they will show \"{{base}}\" again. Delete it?",
+      "statusDeleted": "Status deleted"
+    },
+    "clientDashboard": {
+      "title": "My dashboard",
+      "subtitle": "Statistics of your own tickets",
+      "loading": "Loading your statistics…",
+      "couldNotLoad": "Your statistics could not be loaded.",
+      "open": "Open",
+      "inProgress": "In progress",
+      "avgResolution": "Avg. resolution",
+      "byStatus": "By status",
+      "byPriority": "By priority",
+      "byCategory": "By category",
+      "last12Months": "Tickets opened (last 12 months)",
+      "recent": "Recently updated"
+    },
+    "categoriesSettings": {
+      "title": "Ticket categories",
+      "subtitle": "System categories can be renamed; custom categories can also be deactivated or deleted.",
+      "loading": "Loading categories…",
+      "couldNotLoad": "Categories could not be loaded.",
+      "couldNotSave": "The category could not be saved.",
+      "newCategory": "New category name",
+      "code": "Code",
+      "tickets": "Tickets",
+      "system": "System",
+      "systemLocked": "System category: it cannot be deleted",
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "confirmDelete": "Delete the category \"{{label}}\"?",
+      "inUse": "\"{{label}}\" is used by {{count}} ticket(s). Choose the category these tickets move to before deleting it.",
+      "chooseTarget": "Move tickets to…",
+      "moveAndDelete": "Move tickets and delete",
+      "saved": "Category saved",
+      "deleted": "Category deleted"
+    },
+    "accounts": {
+      "title": "New accounts",
+      "subtitle": "Create accounts for new H24 agents, support leads and L2 technicians of your organisation.",
+      "type": "Account type",
+      "kindH24": "H24 agent",
+      "kindLead": "H24 lead",
+      "kindTechnician": "L2 technician (employee)",
+      "email": "Email",
+      "temporaryPassword": "Temporary password",
+      "passwordHint": "At least 8 characters; the organisation password policy applies.",
+      "department": "Department",
+      "fillRequired": "Fill in the required fields (valid email, password of at least 8 characters).",
+      "create": "Create account",
+      "creating": "Creating…",
+      "createdNow": "Created in this session",
+      "couldNotCreate": "The account could not be created."
+    },
+    "import": {
+      "button": "Import customers & orders",
+      "help": "CSV or Excel file, one row per customer or per customer + order. Orders must be from 2023 to 2026; existing customers and orders are detected and skipped.",
+      "chooseFile": "Choose file…",
+      "rows": "rows",
+      "preview": "Preview (nothing saved yet)",
+      "done": "Import completed",
+      "customersCreated": "New customers",
+      "customersExisting": "Existing customers",
+      "ordersCreated": "New orders",
+      "duplicates": "Duplicate orders",
+      "skipped": "Skipped rows",
+      "confirm": "Import",
+      "noRows": "The file contains no customer or order rows.",
+      "invalidFile": "The file could not be read.",
+      "failed": "The import failed."
     }
   },
   "validation": {

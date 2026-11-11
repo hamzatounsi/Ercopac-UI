@@ -32,7 +32,7 @@ export class CrmSettingsPageComponent implements OnInit {
   newIndustry: CrmIndustry = { id: null, name: '', active: true };
   newLostReason: LostReason = { id: null, name: '', description: '', active: true, createdAt: null, updatedAt: null };
 
-  preferences: CrmNotificationPreference = { emailNotifications: true, stageChangeAlerts: true, closingDateReminders: false };
+  preferences: CrmNotificationPreference = { emailNotifications: true, stageChangeAlerts: true, closingDateReminders: false, commentNotifications: true };
   
   addingStage = false; 
   addingIndustry = false; 

@@ -135,7 +135,6 @@
         <thead>
           <tr>
             <th>{{ 'orgAdmin.resourceConfiguration.resourceType' | translate }}</th>
-            <th>{{ 'orgAdmin.resourceConfiguration.department' | translate }}</th>
             <th>{{ 'orgAdmin.resourceConfiguration.defaultRateDay' | translate }}</th>
             <th>{{ 'orgAdmin.resourceConfiguration.assignment' | translate }}</th>
             <th>{{ 'common.status' | translate }}</th>
@@ -150,7 +149,6 @@
                 <div><strong>{{ item.label || item.code }}</strong><small>{{ item.code }}</small></div>
               </div>
             </td>
-            <td [attr.data-label]="'orgAdmin.resourceConfiguration.department' | translate">{{ item.departmentCode || ('orgAdmin.resourceConfiguration.anyDepartment' | translate) }}</td>
             <td [attr.data-label]="'orgAdmin.resourceConfiguration.defaultRateDay' | translate"><strong>{{ item.defaultRate ?? 0 | number:'1.2-2' }} €</strong></td>
             <td [attr.data-label]="'orgAdmin.resourceConfiguration.assignment' | translate">{{ item.assignable ? ('orgAdmin.resourceConfiguration.assignable' | translate) : ('orgAdmin.resourceConfiguration.archived' | translate) }}</td>
             <td [attr.data-label]="'common.status' | translate"><span class="status" [class.inactive]="!item.active">{{ item.active ? ('orgAdmin.resourceConfiguration.active' | translate) : ('orgAdmin.resourceConfiguration.inactive' | translate) }}</span></td>
@@ -313,12 +311,7 @@
       <div class="form-grid">
         <label>{{ 'common.name' | translate }} <span>*</span><input type="text" formControlName="label" autofocus autocomplete="off" /></label>
         <label>{{ 'orgAdmin.resourceConfiguration.code' | translate }} <span>*</span><input type="text" formControlName="code" autocomplete="off" /></label>
-        <label>{{ 'orgAdmin.resourceConfiguration.department' | translate }}
-          <select formControlName="departmentId">
-            <option [ngValue]="null">{{ 'orgAdmin.resourceConfiguration.anyDepartment' | translate }}</option>
-            <option *ngFor="let department of departments" [ngValue]="department.id">{{ department.name }}</option>
-          </select>
-        </label>
+        <!-- Department selection removed from resource type configuration; the departmentId control and DB column are kept (nullable) so existing values are preserved -->
         <label>{{ 'orgAdmin.resourceConfiguration.colour' | translate }}<input type="text" formControlName="colour" placeholder="#2563eb" autocomplete="off" /></label>
         
         <!-- ✅ CHAMP DEFAULT RATE AJOUTÉ ICI -->

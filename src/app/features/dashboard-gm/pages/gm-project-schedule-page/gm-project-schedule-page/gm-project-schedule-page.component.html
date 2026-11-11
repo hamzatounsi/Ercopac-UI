@@ -715,7 +715,8 @@
             <div class="sp-table-row resource-row" *ngFor="let res of taskResources; let i = index">
               <div><span class="sp-row-badge">{{ i + 1 }}</span></div>
               <div>
-                <select class="sp-inline-select" [(ngModel)]="res.resourceType" [ngModelOptions]="{ standalone: true }" (ngModelChange)="isSupplierResourceAssignment(res) ? onExistingSupplierResourceTypeChange(res, $event) : saveResource(res)">
+                <!-- A user assignment shows the resource's configured type (read-only); only supplier rows choose a type -->
+                <select class="sp-inline-select" [(ngModel)]="res.resourceType" [ngModelOptions]="{ standalone: true }" [disabled]="!isSupplierResourceAssignment(res) && !!res.assignedUserId" (ngModelChange)="isSupplierResourceAssignment(res) ? onExistingSupplierResourceTypeChange(res, $event) : saveResource(res)">
                   <option value="">--</option>
                   <option *ngFor="let rt of resourceTypes" [value]="rt">{{ rt }}</option>
                 </select>
@@ -728,7 +729,7 @@
                   </select>
                 </ng-container>
                 <ng-template #resourceAssignmentName>
-                  <input class="sp-inline-input" type="text" [(ngModel)]="res.assignmentName" [ngModelOptions]="{ standalone: true }" (blur)="saveResource(res)" />
+                  <input class="sp-inline-input text-upper" type="text" [(ngModel)]="res.assignmentName" [ngModelOptions]="{ standalone: true }" (blur)="saveResource(res)" />
                 </ng-template>
               </div>
               <div><input class="sp-inline-input small" type="number" [(ngModel)]="res.quantity" [ngModelOptions]="{ standalone: true }" (blur)="saveResource(res)" /></div>
@@ -752,7 +753,10 @@
               <div>
                 <select class="sp-inline-select" [(ngModel)]="newResource.assignedUserId" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onNewResourceUserChange($event)">
                   <option [ngValue]="null">{{ 'gm.schedule.selectResource' | translate }}</option>
-                  <option *ngFor="let user of filteredResourceOptions" [ngValue]="user.id">{{ user.fullName }} - {{ user.resourceType }} - {{ user.departmentCode }}</option>
+                  <!-- Grouped by the resource's configured resource type (single source of truth); suppliers are listed in the supplier row only -->
+                  <optgroup *ngFor="let group of groupedResourceOptions" [label]="group.type || ('gm.schedule.noResourceType' | translate)">
+                    <option *ngFor="let user of group.users" [ngValue]="user.id">{{ user.fullName | uppercase }}</option>
+                  </optgroup>
                 </select>
               </div>
               <div><input class="sp-inline-input small" type="number" [(ngModel)]="newResource.quantity" [ngModelOptions]="{ standalone: true }" /></div>

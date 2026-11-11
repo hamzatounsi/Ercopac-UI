@@ -24,7 +24,14 @@ export class TicketDashboardPageComponent implements OnInit, OnDestroy {
   readonly pipelineStatuses: TicketStatus[] = ['OPEN', 'IN_PROGRESS', 'ESCALATED', 'RESOLVED', 'CLOSED'];
   readonly statuses: TicketStatus[] = ['OPEN', 'IN_PROGRESS', 'ESCALATED', 'REOPENED', 'RESOLVED', 'CLOSED', 'CANCELLED'];
   readonly priorities: TicketPriority[] = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'];
-  readonly categories: TicketCategory[] = ['SOFTWARE', 'ACCESS', 'PERFORMANCE', 'BILLING', 'DATA', 'INTEGRATION', 'FEATURE_REQUEST', 'OTHER'];
+  get categories(): TicketCategory[] { return this.labels.categoryCodes; }
+  // Server-side sort; default = ticket id so editing a ticket never moves it in the list
+  sortField = 'id';
+  readonly sortColumns = [
+    { f: 'id', l: 'ticketing.list.id' }, { f: 'subject', l: 'ticketing.list.title' }, { f: 'customer', l: 'ticketing.list.customer' },
+    { f: 'projectNumber', l: 'ticketing.list.orderNumber' }, { f: 'site', l: 'ticketing.list.site' }, { f: 'status', l: 'common.status' }, { f: 'priority', l: 'ticketing.list.priority' }
+  ];
+  sortDir: 'asc' | 'desc' = 'desc';
   readonly periods: { key: Period; label: string }[] = [
     { key: 'all', label: 'ticketing.list.periodAll' }, { key: 'day', label: 'ticketing.list.periodDay' }, { key: 'week', label: 'ticketing.list.periodWeek' }, { key: 'month', label: 'ticketing.list.periodMonth' }, { key: 'year', label: 'ticketing.list.periodYear' }
   ];
@@ -79,6 +86,8 @@ export class TicketDashboardPageComponent implements OnInit, OnDestroy {
   clear(): void {
     this.filters = { page: 0, size: 20, search: '', status: '', priority: '', category: '', customerId: null };
     this.period = 'all';
+    this.sortField = 'id';
+    this.sortDir = 'desc';
     this.load();
   }
 
@@ -101,16 +110,24 @@ export class TicketDashboardPageComponent implements OnInit, OnDestroy {
 
   get myTotal(): number { return this.stats ? this.stats.open + this.stats.inProgress + this.stats.escalated + this.stats.resolved + this.stats.closed : 0; }
 
+  sortBy(field: string): void {
+    if (this.sortField === field) this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
+    else { this.sortField = field; this.sortDir = field === 'id' || field === 'createdAt' || field === 'updatedAt' ? 'desc' : 'asc'; }
+    this.reload();
+  }
+  sortIcon(field: string): string { return this.sortField !== field ? 'unfold_more' : this.sortDir === 'asc' ? 'arrow_upward' : 'arrow_downward'; }
+  ariaSort(field: string): string { return this.sortField !== field ? 'none' : this.sortDir === 'asc' ? 'ascending' : 'descending'; }
+
   open(t: Ticket): void { void this.router.navigate(['/tickets', t.id]); }
   newTicket(): void { void this.router.navigate(['/tickets/new']); }
   shortName(name?: string): string { if (!name) return ''; const p = name.split(/\s+/); return p.length > 1 ? `${p[0]} ${p[1][0]}.` : name; }
-  label(category: string): string { return category ? this.i18n.t('ticketing.categories.' + category) : ''; }
+  label(category: string): string { return this.labels.categoryLabel(category); }
 
   private query(): TicketFilters {
     const from = this.period === 'all' ? null : new Date(Date.now() - PERIOD_DAYS[this.period] * 86_400_000).toISOString();
     return {
       ...this.filters,
-      sort: 'updatedAt,desc',
+      sort: `${this.sortField},${this.sortDir}`,
       from,
       assigneeId: this.isStaff && this.mineOnly ? this.auth.getCurrentUserId() : null
     };

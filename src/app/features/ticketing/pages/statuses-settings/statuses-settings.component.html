@@ -39,4 +39,44 @@
     <button type="submit" class="primary" [disabled]="!dirty || saving">{{ saving ? ('ticketing.statuses.saving' | translate) : ('ticketing.statuses.saveStatuses' | translate) }}</button>
   </div>
 </form>
+
+<!-- Custom statuses: organisation statuses mapped onto a lifecycle (system) status -->
+<section class="custom-statuses" *ngIf="!loading">
+  <div class="set-head">
+    <div>
+      <h3>{{ 'ticketing.statuses.customTitle' | translate }}</h3>
+      <p>{{ 'ticketing.statuses.customSubtitle' | translate }}</p>
+    </div>
+    <button type="button" class="primary small" *ngIf="isLead && !draft" (click)="newCustom()">{{ 'ticketing.statuses.addCustom' | translate }}</button>
+  </div>
+  <div class="empty" *ngIf="!custom.length && !draft">{{ 'ticketing.statuses.noCustom' | translate }}</div>
+  <div class="status-list">
+    <div class="status-row" *ngFor="let c of custom">
+      <span class="badge preview" [ngClass]="'c-' + c.color">{{ c.label }}</span>
+      <span class="grow muted-sm">{{ c.description || '—' }}</span>
+      <span class="muted-sm">→ {{ baseLabel(c.baseStatus) }}</span>
+      <span class="muted-sm">{{ 'ticketing.categoriesSettings.tickets' | translate }}: {{ c.ticketCount }}</span>
+      <ng-container *ngIf="isLead">
+        <button type="button" class="ghost small" (click)="editCustom(c)">{{ 'common.edit' | translate }}</button>
+        <button type="button" class="ghost small danger-text" (click)="deleteCustom(c)" [disabled]="saving">{{ 'common.delete' | translate }}</button>
+      </ng-container>
+    </div>
+  </div>
+  <form class="status-row custom-form" *ngIf="draft" (ngSubmit)="saveCustom()">
+    <span class="badge preview" [ngClass]="'c-' + draft.color">{{ draft.label || '—' }}</span>
+    <input class="input label" name="customLabel" [(ngModel)]="draft.label" maxlength="60" [placeholder]="'ticketing.statuses.label2' | translate">
+    <input class="input grow" name="customDesc" [(ngModel)]="draft.description" maxlength="300" [placeholder]="'ticketing.statuses.description' | translate">
+    <select class="select colour" name="customColor" [(ngModel)]="draft.color">
+      <option *ngFor="let c of colors" [value]="c">{{ c }}</option>
+    </select>
+    <label class="muted-sm">{{ 'ticketing.statuses.lifecycle' | translate }}
+      <select class="select" name="customBase" [(ngModel)]="draft.baseStatus" [disabled]="!!draft.id && !!draft.ticketCount">
+        <option *ngFor="let b of baseStatuses" [ngValue]="b">{{ baseLabel(b) }}</option>
+      </select>
+    </label>
+    <button type="button" class="ghost small" (click)="draft = null">{{ 'common.cancel' | translate }}</button>
+    <button type="submit" class="primary small" [disabled]="saving">{{ 'common.save' | translate }}</button>
+    <span class="field-error" *ngIf="draftError">{{ draftError }}</span>
+  </form>
+</section>
 <div class="toast" *ngIf="notice">{{ notice }}</div>

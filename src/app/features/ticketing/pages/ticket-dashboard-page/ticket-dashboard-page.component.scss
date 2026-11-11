@@ -60,3 +60,8 @@ tbody tr:focus-visible { outline:2px solid var(--pm-primary); outline-offset:-2p
   .filters.client .select { max-width:none; }
   .select.narrow { flex:1 1 140px; }
 }
+
+// Sortable column headers (server-side sort)
+.sort-btn { display:inline-flex; align-items:center; gap:2px; padding:0; border:0; background:none; font:inherit; color:inherit; cursor:pointer; white-space:nowrap;
+  .material-symbols-outlined { font-size:14px; opacity:.6; } }
+th[aria-sort='ascending'] .sort-btn, th[aria-sort='descending'] .sort-btn { color:var(--pm-primary, #2563eb); .material-symbols-outlined { opacity:1; } }

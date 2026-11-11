@@ -1,0 +1,58 @@
+<div class="set-head">
+  <div>
+    <h2>{{ 'ticketing.categoriesSettings.title' | translate }}</h2>
+    <p>{{ 'ticketing.categoriesSettings.subtitle' | translate }}</p>
+  </div>
+</div>
+<p class="readonly-note" *ngIf="!isLead">{{ 'ticketing.statuses.onlySupportLeadsCan' | translate }}</p>
+
+<div class="state" *ngIf="loading && !rows.length">{{ 'ticketing.categoriesSettings.loading' | translate }}</div>
+<p class="field-error" *ngIf="error">{{ error }}</p>
+
+<form class="add-row" *ngIf="isLead" (ngSubmit)="add()">
+  <input class="input" name="newLabel" [(ngModel)]="newLabel" maxlength="80" [placeholder]="'ticketing.categoriesSettings.newCategory' | translate">
+  <button type="submit" class="primary" [disabled]="!newLabel.trim() || saving">{{ 'common.add' | translate }}</button>
+</form>
+
+<div class="table-wrap" *ngIf="rows.length">
+  <table class="set-table">
+    <thead><tr><th>{{ 'ticketing.statuses.label' | translate }}</th><th>{{ 'ticketing.categoriesSettings.code' | translate }}</th><th>{{ 'ticketing.categoriesSettings.tickets' | translate }}</th><th>{{ 'common.status' | translate }}</th><th *ngIf="isLead"></th></tr></thead>
+    <tbody>
+      <tr *ngFor="let c of rows">
+        <td class="strong">
+          <ng-container *ngIf="editing[c.id] === undefined; else edit">{{ c.label }}</ng-container>
+          <ng-template #edit>
+            <input class="input" [name]="'label' + c.id" [(ngModel)]="editing[c.id]" maxlength="80" (keydown.enter)="saveLabel(c)">
+          </ng-template>
+        </td>
+        <td class="mono muted-sm">{{ c.code }} <span class="badge c-gray" *ngIf="c.system">{{ 'ticketing.categoriesSettings.system' | translate }}</span></td>
+        <td>{{ c.ticketCount }}</td>
+        <td><span class="badge" [ngClass]="c.active ? 'c-green' : 'c-gray'">{{ c.active ? ('ticketing.h24.active' | translate) : ('ticketing.h24.inactive' | translate) }}</span></td>
+        <td *ngIf="isLead" class="actions">
+          <ng-container *ngIf="editing[c.id] === undefined; else editActions">
+            <button type="button" class="ghost small" (click)="startEdit(c)">{{ 'common.edit' | translate }}</button>
+            <button type="button" class="ghost small" *ngIf="!c.system" (click)="toggleActive(c)" [disabled]="saving">{{ c.active ? ('ticketing.categoriesSettings.deactivate' | translate) : ('ticketing.categoriesSettings.activate' | translate) }}</button>
+            <button type="button" class="ghost small danger" *ngIf="!c.system" (click)="askDelete(c)" [disabled]="saving">{{ 'common.delete' | translate }}</button>
+            <span class="lock" *ngIf="c.system" [title]="'ticketing.categoriesSettings.systemLocked' | translate"><span class="material-symbols-outlined">lock</span></span>
+          </ng-container>
+          <ng-template #editActions>
+            <button type="button" class="primary small" (click)="saveLabel(c)" [disabled]="saving">{{ 'common.save' | translate }}</button>
+            <button type="button" class="ghost small" (click)="cancelEdit(c)">{{ 'common.cancel' | translate }}</button>
+          </ng-template>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Category in use: choose where its tickets go before deleting it -->
+<div class="reassign panel" *ngIf="deleting">
+  <p>{{ 'ticketing.categoriesSettings.inUse' | translate: { label: deleting.label, count: deleting.ticketCount } }}</p>
+  <select class="select" name="reassignTo" [(ngModel)]="reassignTo">
+    <option value="">{{ 'ticketing.categoriesSettings.chooseTarget' | translate }}</option>
+    <option *ngFor="let o of reassignOptions" [value]="o.code">{{ o.label }}</option>
+  </select>
+  <button type="button" class="ghost" (click)="deleting = null">{{ 'common.cancel' | translate }}</button>
+  <button type="button" class="primary danger" (click)="confirmReassign()" [disabled]="!reassignTo || saving">{{ 'ticketing.categoriesSettings.moveAndDelete' | translate }}</button>
+</div>
+<div class="toast" *ngIf="notice">{{ notice }}</div>

@@ -17,10 +17,14 @@ export class TicketingLayoutComponent implements OnInit {
   readonly isLead = this.auth.hasAnyRole(TICKETING_LEAD_ROLES);
 
   // CLIENT users keep the client portal: their own tickets, chat and their language
+  readonly isClient = !this.isStaff && this.auth.hasAnyRole(['CLIENT']);
+
+  // Live chat first; clients get their own dashboard (own tickets only)
   readonly navItems: NavItem[] = [
-    { label: this.isStaff ? 'ticketing.layout.tickets' : 'ticketing.layout.myTickets', icon: 'confirmation_number', route: '/tickets', exact: true, show: true },
     { label: 'ticketing.layout.liveChat', icon: 'forum', route: '/tickets/chat', exact: false, show: true },
+    { label: this.isStaff ? 'ticketing.layout.tickets' : 'ticketing.layout.myTickets', icon: 'confirmation_number', route: '/tickets', exact: true, show: true },
     { label: 'ticketing.layout.dashboard', icon: 'monitoring', route: '/tickets/dashboard', exact: false, show: this.isLead },
+    { label: 'ticketing.layout.dashboard', icon: 'monitoring', route: '/tickets/my-dashboard', exact: false, show: this.isClient },
     { label: 'ticketing.layout.settings', icon: 'settings', route: this.isStaff ? '/tickets/settings/h24-agents' : '/tickets/settings/language', exact: false, show: true }
   ].filter(item => item.show);
 

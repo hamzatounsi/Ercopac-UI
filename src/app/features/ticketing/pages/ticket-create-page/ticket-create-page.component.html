@@ -91,6 +91,22 @@
         </select>
       </label>
 
+      <!-- Contact person at the customer for this ticket -->
+      <fieldset class="full contact-person">
+        <legend>{{ 'ticketing.details.contactPerson' | translate }}</legend>
+        <label>{{ 'common.name' | translate }}
+          <input class="input" name="contactName" [(ngModel)]="form.contactName" maxlength="150" autocomplete="off">
+        </label>
+        <label>{{ 'ticketing.details.email' | translate }}
+          <input class="input" name="contactEmail" type="email" [(ngModel)]="form.contactEmail" maxlength="180" autocomplete="off" [class.invalid]="submitted && contactEmailError">
+          <span class="field-error" *ngIf="submitted && contactEmailError">{{ contactEmailError }}</span>
+        </label>
+        <label>{{ 'ticketing.details.phone' | translate }}
+          <input class="input" name="contactPhone" type="tel" [(ngModel)]="form.contactPhone" maxlength="60" autocomplete="off" [class.invalid]="submitted && contactPhoneError">
+          <span class="field-error" *ngIf="submitted && contactPhoneError">{{ contactPhoneError }}</span>
+        </label>
+      </fieldset>
+
       <label class="full">{{ 'ticketing.create.description' | translate }}
         <textarea class="textarea" name="description" [(ngModel)]="form.description" maxlength="8000" rows="6"
                   [placeholder]="'ticketing.create.whatHappenedWhenWhich' | translate" [class.invalid]="submitted && descriptionError"></textarea>

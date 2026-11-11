@@ -1,0 +1,59 @@
+<div class="set-head">
+  <div>
+    <h2>{{ 'ticketing.accounts.title' | translate }}</h2>
+    <p>{{ 'ticketing.accounts.subtitle' | translate }}</p>
+  </div>
+</div>
+
+<form class="form-grid" (ngSubmit)="submit()" novalidate>
+  <label>{{ 'ticketing.accounts.type' | translate }}
+    <select class="select" name="kind" [(ngModel)]="form.kind">
+      <option *ngFor="let k of kinds" [ngValue]="k.key">{{ k.label | translate }}</option>
+    </select>
+  </label>
+  <label>{{ 'common.name' | translate }} *
+    <input class="input" name="fullName" [(ngModel)]="form.fullName" maxlength="150" [class.invalid]="submitted && !form.fullName.trim()">
+  </label>
+  <label>{{ 'ticketing.accounts.email' | translate }} *
+    <input class="input" name="email" type="email" [(ngModel)]="form.email" maxlength="180" autocomplete="off" [class.invalid]="submitted && !emailValid">
+  </label>
+  <label>{{ 'ticketing.accounts.temporaryPassword' | translate }} *
+    <input class="input" name="password" type="password" [(ngModel)]="form.password" minlength="8" maxlength="128" autocomplete="new-password" [class.invalid]="submitted && form.password.length < 8">
+    <small class="muted-sm">{{ 'ticketing.accounts.passwordHint' | translate }}</small>
+  </label>
+  <ng-container *ngIf="technician">
+    <label>{{ 'ticketing.accounts.department' | translate }} *
+      <select class="select" name="departmentId" [(ngModel)]="form.departmentId" [class.invalid]="submitted && form.departmentId == null">
+        <option [ngValue]="null">—</option>
+        <option *ngFor="let d of departments" [ngValue]="d.id">{{ d.name }}</option>
+      </select>
+    </label>
+    <label>{{ 'ticketing.h24.resourceType' | translate }} *
+      <select class="select" name="resourceTypeId" [(ngModel)]="form.resourceTypeId" [class.invalid]="submitted && form.resourceTypeId == null">
+        <option [ngValue]="null">—</option>
+        <option *ngFor="let t of resourceTypes" [ngValue]="t.id">{{ t.label }}</option>
+      </select>
+    </label>
+  </ng-container>
+  <label class="full">{{ 'ticketing.h24.specialisation' | translate }}
+    <input class="input" name="specialization" [(ngModel)]="form.specialization" maxlength="120">
+  </label>
+  <p class="field-error full" *ngIf="submitted && !valid">{{ 'ticketing.accounts.fillRequired' | translate }}</p>
+  <p class="field-error full" *ngIf="error">{{ error }}</p>
+  <div class="form-actions full">
+    <button type="submit" class="primary" [disabled]="saving">{{ saving ? ('ticketing.accounts.creating' | translate) : ('ticketing.accounts.create' | translate) }}</button>
+  </div>
+</form>
+
+<div class="table-wrap" *ngIf="created.length">
+  <h3>{{ 'ticketing.accounts.createdNow' | translate }}</h3>
+  <table class="set-table">
+    <tbody>
+      <tr *ngFor="let a of created">
+        <td class="strong text-upper">{{ a.fullName }}<small>{{ a.email }}</small></td>
+        <td>{{ a.roles.join(', ') }}</td>
+        <td><span class="badge c-red" *ngIf="a.l2Technician">L2</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>

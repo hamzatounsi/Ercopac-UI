@@ -16,10 +16,14 @@ import { L2TechniciansSettingsComponent } from './pages/l2-technicians-settings/
 import { LanguageSettingsComponent } from './pages/language-settings/language-settings.component';
 import { LiveChatComponent } from './pages/live-chat/live-chat.component';
 import { TicketCreatePageComponent } from './pages/ticket-create-page/ticket-create-page.component';
+import { ClientDashboardComponent } from './pages/client-dashboard/client-dashboard.component';
+import { CategoriesSettingsComponent } from './pages/categories-settings/categories-settings.component';
+import { AccountsSettingsComponent } from './pages/accounts-settings/accounts-settings.component';
 import { TICKETING_LEAD_ROLES, TICKETING_ROLES, TICKETING_STAFF_ROLES } from './ticketing-roles';
 
 const staffOnly = { canActivate: [RoleGuard], data: { roles: TICKETING_STAFF_ROLES } };
 const leadsOnly = { canActivate: [RoleGuard], data: { roles: TICKETING_LEAD_ROLES } };
+const clientsOnly = { canActivate: [RoleGuard], data: { roles: ['CLIENT'], excludeRoles: TICKETING_STAFF_ROLES } };
 
 const routes: Routes = [
   {
@@ -31,6 +35,7 @@ const routes: Routes = [
       { path: '', component: TicketDashboardPageComponent },
       { path: 'dashboard', component: PerformanceDashboardComponent, ...leadsOnly },
       { path: 'chat', component: LiveChatComponent },
+      { path: 'my-dashboard', component: ClientDashboardComponent, ...clientsOnly },
       { path: 'new', component: TicketCreatePageComponent },
       // Settings: everyone sets their language; the support team sees the rest, leads change it
       {
@@ -41,7 +46,9 @@ const routes: Routes = [
           { path: 'language', component: LanguageSettingsComponent },
           { path: 'h24-agents', component: H24AgentsSettingsComponent, ...staffOnly },
           { path: 'l2-technicians', component: L2TechniciansSettingsComponent, ...staffOnly },
+          { path: 'accounts', component: AccountsSettingsComponent, ...leadsOnly },
           { path: 'statuses', component: StatusesSettingsComponent, ...staffOnly },
+          { path: 'categories', component: CategoriesSettingsComponent, ...staffOnly },
           { path: 'priorities', component: PrioritiesSettingsComponent, ...staffOnly },
           { path: 'customers', component: CustomersSettingsComponent, ...staffOnly }
         ]

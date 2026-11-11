@@ -8,6 +8,8 @@
     <button class="primary small" *ngIf="isLead" (click)="newCustomer()">{{ 'ticketing.customers.addCustomer' | translate }}</button>
   </div>
   <p class="readonly-note" *ngIf="!isLead">{{ 'ticketing.customers.onlySupportLeadsCan' | translate }}</p>
+  <!-- Import of historical customers and orders (CSV / Excel), support leads only -->
+  <div class="import-bar" *ngIf="isLead"><app-customer-import (imported)="load()"></app-customer-import></div>
 
   <input class="input search" [(ngModel)]="search" [placeholder]="'ticketing.customers.searchNameCodeTown' | translate" [attr.aria-label]="'ticketing.customers.searchCustomers' | translate" *ngIf="customers.length">
 
@@ -21,7 +23,7 @@
       <thead><tr><th>{{ 'ticketing.customers.customer' | translate }}</th><th>{{ 'ticketing.customers.location' | translate }}</th><th>{{ 'ticketing.customers.contacts' | translate }}</th><th>{{ 'ticketing.customers.sites' | translate }}</th><th>{{ 'ticketing.customers.equipment' | translate }}</th><th>{{ 'ticketing.customers.projects' | translate }}</th><th>{{ 'ticketing.customers.openTickets' | translate }}</th><th>{{ 'common.status' | translate }}</th></tr></thead>
       <tbody>
         <tr *ngFor="let c of filtered" (click)="select(c)" tabindex="0" (keydown.enter)="select(c)">
-          <td class="strong">{{ c.name }}<small>{{ c.code }}</small></td>
+          <td class="strong"><span class="text-upper">{{ c.name }}</span><small>{{ c.code }}</small></td>
           <td>{{ location(c) || '—' }}</td>
           <td>{{ c.contacts }}</td>
           <td>{{ c.sites }}</td>
@@ -41,7 +43,7 @@
     <button class="ghost small" (click)="back()">{{ 'ticketing.customers.backCustomers' | translate }}</button>
     <div class="set-head detail-head">
       <div>
-        <h2>{{ c.name }} <span class="badge" [ngClass]="c.active ? 'c-green' : 'c-gray'">{{ c.active ? ('ticketing.customers.active' | translate) : ('ticketing.customers.inactive' | translate) }}</span></h2>
+        <h2><span class="text-upper">{{ c.name }}</span> <span class="badge" [ngClass]="c.active ? 'c-green' : 'c-gray'">{{ c.active ? ('ticketing.customers.active' | translate) : ('ticketing.customers.inactive' | translate) }}</span></h2>
         <p>{{ c.code }}<ng-container *ngIf="c.town || c.country"> · {{ location(c) }}</ng-container> {{ (c.openTickets === 1 ? 'ticketing.customers.openTicketsOne' : 'ticketing.customers.openTicketsOther') | translate: { count: c.openTickets } }}</p>
       </div>
       <button class="ghost small" *ngIf="isLead" (click)="editCustomer(c)">{{ 'ticketing.customers.editCustomer' | translate }}</button>

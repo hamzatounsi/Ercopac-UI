@@ -35,7 +35,7 @@
       <div class="account-top">
         <div class="company-logo">{{initials(account.name)}}</div>
         <div>
-          <h3>{{account.name}}</h3>
+          <h3 class="text-upper">{{account.name}}</h3>
           <span>{{account.city || account.country ? (account.city || '') + (account.city && account.country ? ', ' : '') + (account.country || '') : i18n.t('accounts.locationNotSpecified')}}</span>
         </div>
       </div>

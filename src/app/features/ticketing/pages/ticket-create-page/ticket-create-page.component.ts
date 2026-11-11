@@ -19,7 +19,7 @@ import { I18nService } from 'src/app/core/i18n/i18n.service';
   styleUrls: ['./ticket-create-page.component.scss']
 })
 export class TicketCreatePageComponent implements OnInit {
-  readonly categories: TicketCategory[] = ['SOFTWARE', 'ACCESS', 'PERFORMANCE', 'BILLING', 'DATA', 'INTEGRATION', 'FEATURE_REQUEST', 'OTHER'];
+  get categories(): TicketCategory[] { return this.labels.categoryCodes; }
   readonly priorities: TicketPriority[] = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'];
   readonly origins: TicketOrigin[] = ['PHONE', 'EMAIL', 'WEB', 'INTERNAL', 'OTHER'];
   readonly originLabels = ORIGIN_LABELS;
@@ -47,7 +47,10 @@ export class TicketCreatePageComponent implements OnInit {
     customerName: '',
     projectName: '',
     projectNumber: '',
-    projectYear: null as number | null
+    projectYear: null as number | null,
+    contactName: '',
+    contactEmail: '',
+    contactPhone: ''
   };
   submitted = false;
   saving = false;
@@ -58,6 +61,7 @@ export class TicketCreatePageComponent implements OnInit {
               public labels: TicketSettingsService, private router: Router) {}
 
   ngOnInit(): void {
+    this.labels.load();
     this.loadOptions(null);
     if (this.isStaff) {
       this.chat.contacts().subscribe({ next: c => this.clients = c.filter(x => !x.staff), error: () => this.clients = [] });
@@ -65,7 +69,8 @@ export class TicketCreatePageComponent implements OnInit {
     }
   }
 
-  get customerOptions(): PickOption[] { return this.options.customers.map(c => ({ id: c.id, label: c.name })); }
+  // Customer names are shown in upper case (display only: the search still matches any case)
+  get customerOptions(): PickOption[] { return this.options.customers.map(c => ({ id: c.id, label: c.name.toUpperCase() })); }
   get projectOptions(): PickOption[] {
     return this.options.projects.map(p => ({ id: p.id, label: p.name, hint: [p.code, p.year].filter(v => v != null && v !== '').join(' · ') || undefined }));
   }
@@ -133,7 +138,15 @@ export class TicketCreatePageComponent implements OnInit {
     const y = this.form.projectYear;
     return this.projectManual && y != null && (!Number.isInteger(+y) || +y < 1900 || +y > 2100) ? this.i18n.t('ticketing.create.yearMustBetween1900') : '';
   }
-  get valid(): boolean { return !this.subjectError && !this.descriptionError && !this.customerError && !this.projectError && !this.yearError; }
+  get contactEmailError(): string {
+    const v = this.form.contactEmail.trim();
+    return v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? this.i18n.t('ticketing.create.invalidEmail') : '';
+  }
+  get contactPhoneError(): string {
+    const v = this.form.contactPhone.trim();
+    return v && !/^[0-9+()./ -]{3,60}$/.test(v) ? this.i18n.t('ticketing.create.invalidPhone') : '';
+  }
+  get valid(): boolean { return !this.subjectError && !this.descriptionError && !this.customerError && !this.projectError && !this.yearError && !this.contactEmailError && !this.contactPhoneError; }
 
   submit(): void {
     this.submitted = true;
@@ -155,6 +168,9 @@ export class TicketCreatePageComponent implements OnInit {
       projectYear: this.projectManual && this.form.projectYear != null ? +this.form.projectYear : null,
       equipmentId: this.form.equipmentId,
       clientUserId: this.isStaff ? this.form.clientUserId : null,
+      contactName: this.form.contactName.trim() || null,
+      contactEmail: this.form.contactEmail.trim() || null,
+      contactPhone: this.form.contactPhone.trim() || null,
       assigneeId: this.isStaff ? this.form.assigneeId : null
     }).subscribe({
       next: created => void this.router.navigate(['/tickets', created.ticket.id]),
@@ -163,5 +179,5 @@ export class TicketCreatePageComponent implements OnInit {
   }
 
   cancel(): void { void this.router.navigate(['/tickets']); }
-  label(category: string): string { return category ? this.i18n.t('ticketing.categories.' + category) : ''; }
+  label(category: string): string { return this.labels.categoryLabel(category); }
 }

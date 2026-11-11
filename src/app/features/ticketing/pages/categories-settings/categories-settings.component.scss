@@ -1,0 +1,6 @@
+@import '../../ticketing.shared';
+.add-row { display:flex; gap:8px; margin-bottom:14px; .input { flex:1; max-width:360px; } }
+.actions { display:flex; gap:6px; align-items:center; justify-content:flex-end; }
+.lock { color:var(--pm-text-soft); }
+.danger { color:#b91c1c; }
+.reassign { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:14px; padding:14px; p { flex-basis:100%; margin:0; } }

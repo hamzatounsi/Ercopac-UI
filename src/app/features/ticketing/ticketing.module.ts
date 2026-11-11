@@ -21,6 +21,9 @@ import { CustomersSettingsComponent } from './pages/customers-settings/customers
 import { H24AgentsSettingsComponent } from './pages/h24-agents-settings/h24-agents-settings.component';
 import { L2TechniciansSettingsComponent } from './pages/l2-technicians-settings/l2-technicians-settings.component';
 import { LanguageSettingsComponent } from './pages/language-settings/language-settings.component';
+import { CategoriesSettingsComponent } from './pages/categories-settings/categories-settings.component';
+import { AccountsSettingsComponent } from './pages/accounts-settings/accounts-settings.component';
+import { ClientDashboardComponent } from './pages/client-dashboard/client-dashboard.component';
 
 // Shell
 import { TicketingLayoutComponent } from './components/ticketing-layout/ticketing-layout.component';
@@ -29,6 +32,7 @@ import { TicketNotificationsComponent } from './components/ticket-notifications/
 // Reusable form parts
 import { SelectOrManualComponent } from './components/select-or-manual/select-or-manual.component';
 import { ResourceEmployeePickerComponent } from './components/resource-employee-picker/resource-employee-picker.component';
+import { CustomerImportComponent } from './components/customer-import/customer-import.component';
 
 @NgModule({
   declarations: [
@@ -44,10 +48,14 @@ import { ResourceEmployeePickerComponent } from './components/resource-employee-
     H24AgentsSettingsComponent,
     L2TechniciansSettingsComponent,
     LanguageSettingsComponent,
+    CategoriesSettingsComponent,
+    AccountsSettingsComponent,
+    ClientDashboardComponent,
     TicketingLayoutComponent,
     TicketNotificationsComponent,
     SelectOrManualComponent,
-    ResourceEmployeePickerComponent
+    ResourceEmployeePickerComponent,
+    CustomerImportComponent
   ],
   imports: [
     CommonModule,
