@@ -2889,6 +2889,24 @@ export class GmProjectSchedulePageComponent implements OnInit, OnDestroy, AfterV
 
   onResourceSearch(): void { this.filterResources(); }
 
+  private groupedCache: { source: unknown; groups: { type: string; users: { id: number; fullName: string; departmentCode: string; resourceType: string }[] }[] } | null = null;
+
+  /** Internal resources of the picker grouped by configured resource type (untyped resources last). */
+  get groupedResourceOptions(): { type: string; users: { id: number; fullName: string; departmentCode: string; resourceType: string }[] }[] {
+    if (this.groupedCache?.source === this.filteredResourceOptions) return this.groupedCache.groups;
+    const byType = new Map<string, { id: number; fullName: string; departmentCode: string; resourceType: string }[]>();
+    for (const u of this.filteredResourceOptions) {
+      const key = (u.resourceType || '').toUpperCase();
+      if (!byType.has(key)) byType.set(key, []);
+      byType.get(key)!.push(u);
+    }
+    const groups = [...byType.entries()]
+      .sort(([a], [b]) => (a ? 0 : 1) - (b ? 0 : 1) || a.localeCompare(b))
+      .map(([type, users]) => ({ type, users: users.sort((x, y) => (x.fullName || '').localeCompare(y.fullName || '')) }));
+    this.groupedCache = { source: this.filteredResourceOptions, groups };
+    return groups;
+  }
+
   private filterResources(): void {
     let filtered = [...this.resourceOptions];
     const selectedType = (this.newResource.resourceType ?? '').trim().toUpperCase();

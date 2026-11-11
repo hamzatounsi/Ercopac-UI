@@ -4757,3 +4757,6 @@ html {
 /* RTL: mirror directional arrows and chevrons */
 [dir='rtl'] .rtl-mirror,
 [dir='rtl'] .export-option-arrow { display: inline-block; transform: scaleX(-1); }
+
+/* Resource and customer names are displayed in UPPERCASE (display-level only: stored values and search stay unchanged) */
+.text-upper { text-transform: uppercase; }

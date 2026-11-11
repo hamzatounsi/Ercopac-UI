@@ -1,0 +1,32 @@
+<button type="button" class="ghost small" (click)="toggle()">
+  <span class="material-symbols-outlined">upload_file</span>{{ 'ticketing.import.button' | translate }}
+</button>
+
+<div class="import-panel panel" *ngIf="open">
+  <p class="muted-sm">{{ 'ticketing.import.help' | translate }}</p>
+  <code class="cols">customerCode; customerName; country; town; email; phone; orderNumber (N° Commessa); orderName; year</code>
+  <label class="ghost small upload">{{ 'ticketing.import.chooseFile' | translate }}
+    <input type="file" hidden accept=".csv,.xlsx,.xls" (change)="onFile($event)">
+  </label>
+  <span class="muted-sm" *ngIf="fileName">{{ fileName }} · {{ rows.length }} {{ 'ticketing.import.rows' | translate }}</span>
+
+  <div class="state" *ngIf="busy">{{ 'common.loading' | translate }}</div>
+  <p class="field-error" *ngIf="error">{{ error }}</p>
+
+  <ng-container *ngFor="let r of [preview || result]">
+    <div class="summary" *ngIf="r">
+      <strong>{{ (r.dryRun ? 'ticketing.import.preview' : 'ticketing.import.done') | translate }}</strong>
+      <span>{{ 'ticketing.import.customersCreated' | translate }}: <b>{{ r.customersCreated }}</b></span>
+      <span>{{ 'ticketing.import.customersExisting' | translate }}: <b>{{ r.customersExisting }}</b></span>
+      <span>{{ 'ticketing.import.ordersCreated' | translate }}: <b>{{ r.ordersCreated }}</b></span>
+      <span>{{ 'ticketing.import.duplicates' | translate }}: <b>{{ r.ordersDuplicate }}</b></span>
+      <span>{{ 'ticketing.import.skipped' | translate }}: <b>{{ r.skipped }}</b></span>
+      <ul class="errors" *ngIf="r.errors.length"><li *ngFor="let e of r.errors">{{ e }}</li></ul>
+    </div>
+  </ng-container>
+
+  <div class="actions" *ngIf="preview">
+    <button type="button" class="ghost small" (click)="reset()">{{ 'common.cancel' | translate }}</button>
+    <button type="button" class="primary small" (click)="run(false)" [disabled]="busy || (!preview.customersCreated && !preview.ordersCreated)">{{ 'ticketing.import.confirm' | translate }}</button>
+  </div>
+</div>

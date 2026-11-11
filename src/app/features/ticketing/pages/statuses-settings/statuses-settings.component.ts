@@ -1,13 +1,14 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { AuthService } from 'src/app/core/auth/auth.service';
-import { StatusColor, StatusSetting } from '../../models/ticket.models';
+import { CustomStatus, StatusColor, StatusSetting, TicketStatus } from '../../models/ticket.models';
 import { TicketSettingsService } from '../../services/ticket-settings.service';
 import { TICKETING_LEAD_ROLES } from '../../ticketing-roles';
 import { I18nService } from 'src/app/core/i18n/i18n.service';
 
-// Wording and colour of each ticket status. The lifecycle itself (which statuses exist and the
-// allowed transitions) is fixed by the backend, so statuses cannot be added or removed.
+// Wording and colour of each system ticket status. The lifecycle itself (system statuses and the allowed
+// transitions) is fixed by the backend, so system statuses cannot be added, renamed in code or removed.
+// Custom statuses (below) are created, edited and deleted by leads; each maps onto a lifecycle status.
 @Component({
   selector: 'app-statuses-settings',
   templateUrl: './statuses-settings.component.html',
@@ -22,6 +23,10 @@ export class StatusesSettingsComponent implements OnInit, OnDestroy {
   notice = '';
   readonly colors: StatusColor[] = ['blue', 'amber', 'red', 'green', 'gray', 'purple', 'coral'];
   readonly isLead = this.auth.hasAnyRole(TICKETING_LEAD_ROLES);
+  custom: CustomStatus[] = [];
+  draft: Partial<CustomStatus> | null = null;
+  draftError = '';
+  readonly baseStatuses: TicketStatus[] = ['OPEN', 'IN_PROGRESS', 'ESCALATED', 'REOPENED', 'RESOLVED', 'CLOSED', 'CANCELLED'];
   private saved = '';
   private sub?: Subscription;
 
@@ -37,6 +42,7 @@ export class StatusesSettingsComponent implements OnInit, OnDestroy {
     this.sub = this.settings.refresh().subscribe({
       next: s => {
         this.rows = s.statuses.map(x => ({ ...x }));
+        this.custom = s.customStatuses ?? [];
         this.saved = JSON.stringify(this.rows);
         this.loading = false;
       },
@@ -67,6 +73,29 @@ export class StatusesSettingsComponent implements OnInit, OnDestroy {
       error: e => { this.saving = false; this.error = this.i18n.error(e, 'ticketing.statuses.statusesCouldNotSaved'); }
     });
   }
+
+  // ---------- custom statuses ----------
+  newCustom(): void { this.draft = { label: '', description: '', color: 'blue', baseStatus: 'IN_PROGRESS' }; this.draftError = ''; }
+  editCustom(c: CustomStatus): void { this.draft = { ...c }; this.draftError = ''; }
+  saveCustom(): void {
+    if (!this.draft || this.saving) return;
+    if (!this.draft.label?.trim()) { this.draftError = this.i18n.t('ticketing.statuses.everyStatusNeedsLabel'); return; }
+    this.saving = true;
+    this.settings.saveCustomStatus({ ...this.draft, label: this.draft.label.trim(), description: this.draft.description?.trim() || undefined }).subscribe({
+      next: () => { this.saving = false; this.draft = null; this.flash(this.i18n.t('ticketing.statuses.statusesSaved')); this.load(); },
+      error: e => { this.saving = false; this.draftError = this.i18n.error(e, 'ticketing.statuses.statusesCouldNotSaved'); }
+    });
+  }
+  deleteCustom(c: CustomStatus): void {
+    const key = c.ticketCount ? 'ticketing.statuses.confirmDeleteInUse' : 'ticketing.statuses.confirmDelete';
+    if (!confirm(this.i18n.t(key, { label: c.label, count: c.ticketCount, base: this.settings.statusLabel(c.baseStatus) }))) return;
+    this.saving = true;
+    this.settings.deleteCustomStatus(c.id).subscribe({
+      next: () => { this.saving = false; this.flash(this.i18n.t('ticketing.statuses.statusDeleted')); this.load(); },
+      error: e => { this.saving = false; this.error = this.i18n.error(e, 'ticketing.statuses.statusesCouldNotSaved'); }
+    });
+  }
+  baseLabel(s: TicketStatus): string { return this.settings.statusLabel(s); }
 
   private flash(text: string): void { this.notice = text; setTimeout(() => this.notice = '', 2500); }
 }

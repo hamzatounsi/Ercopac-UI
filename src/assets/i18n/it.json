@@ -1063,7 +1063,9 @@
       "unableAddLostReason": "Impossibile aggiungere il motivo di perdita",
       "unableDeleteLostReason": "Impossibile eliminare il motivo di perdita",
       "unableSaveLostReason": "Impossibile salvare il motivo di perdita",
-      "weekly": "Settimanale"
+      "weekly": "Settimanale",
+      "commentNotifications": "Notifiche commenti",
+      "commentNotificationsDesc": "Ricevi una notifica quando qualcuno commenta un record CRM di cui sei responsabile o membro."
     }
   },
   "department": {
@@ -2792,7 +2794,8 @@
       "willAttemptAddDefault": "Verranno aggiunte le milestone predefinite. Quelle esistenti verranno saltate. Continuare?",
       "workingDays": "Giorni lavorativi",
       "workingdaysHoursperdayHDay": "{{workingDays}} · {{hoursPerDay}} h/giorno · Inizio {{startTime}}",
-      "zoom": "Zoom:"
+      "zoom": "Zoom:",
+      "noResourceType": "Senza tipo di risorsa"
     },
     "scheduleInit": {
       "additionalProjectNotes": "Note aggiuntive sul progetto",
@@ -4039,7 +4042,9 @@
       "useLeast5Characters": "Usa almeno 5 caratteri.",
       "whatHappenedWhenWhich": "Cosa è successo, quando, su quale apparecchiatura e cosa hai già provato",
       "year": "Anno",
-      "yearMustBetween1900": "L’anno deve essere compreso tra 1900 e 2100."
+      "yearMustBetween1900": "L’anno deve essere compreso tra 1900 e 2100.",
+      "invalidEmail": "Inserisci un indirizzo email valido.",
+      "invalidPhone": "Usa solo cifre, spazi e + ( ) . - /."
     },
     "customers": {
       "active": "Attivo",
@@ -4278,7 +4283,18 @@
       "writeMessageSupportTeam": "Scrivi un messaggio al team di assistenza…",
       "writeReplyCustomer": "Scrivi una risposta al cliente…",
       "year": "Anno",
-      "yearMustBetween1900": "L’anno deve essere compreso tra 1900 e 2100."
+      "yearMustBetween1900": "L’anno deve essere compreso tra 1900 e 2100.",
+      "deleteTicket": "Elimina questo ticket",
+      "confirmDelete": "Eliminare il ticket {{number}} con messaggi e allegati? L'operazione è irreversibile.",
+      "deleteFailed": "Impossibile eliminare il ticket.",
+      "customStatuses": "Stati personalizzati",
+      "contactPerson": "Persona di contatto",
+      "phone": "Telefono",
+      "contactSaved": "Persona di contatto salvata",
+      "attachmentCouldNotOpen": "Impossibile aprire l'allegato.",
+      "download": "Scarica",
+      "videoTooLarge": "I video sono limitati a 20 MB.",
+      "fileTooLarge": "I file sono limitati a 10 MB (video 20 MB)."
     },
     "h24": {
       "active": "Attivo",
@@ -4416,7 +4432,8 @@
       "unfinishedTicketsPastTheir": "Ticket non conclusi oltre lo SLA di risoluzione",
       "unreadMessages": "Messaggi non letti",
       "updated": "Aggiornato",
-      "youHaveNoTickets": "Non hai ancora ticket."
+      "youHaveNoTickets": "Non hai ancora ticket.",
+      "orderNumber": "N° Commessa"
     },
     "notifications": {
       "markAllRead": "Segna tutte come lette",
@@ -4571,7 +4588,9 @@
       "statuses": "Stati",
       "system": "Sistema",
       "tickets": "Ticket",
-      "users": "Utenti"
+      "users": "Utenti",
+      "accounts": "Nuovi account",
+      "categories": "Categorie"
     },
     "priorities": {
       "discardChanges": "Annulla le modifiche",
@@ -4623,7 +4642,83 @@
       "statusesCouldNotLoaded": "Impossibile caricare gli stati.",
       "statusesCouldNotSaved": "Impossibile salvare gli stati.",
       "statusesSaved": "Stati salvati",
-      "ticketStatuses": "Stati dei ticket"
+      "ticketStatuses": "Stati dei ticket",
+      "customTitle": "Stati personalizzati",
+      "customSubtitle": "Stati aggiuntivi della tua organizzazione. Ognuno appartiene a uno stato del ciclo di vita, così SLA e transizioni restano validi.",
+      "addCustom": "Aggiungi stato",
+      "noCustom": "Nessuno stato personalizzato.",
+      "lifecycle": "Stato del ciclo di vita",
+      "confirmDelete": "Eliminare lo stato \"{{label}}\"?",
+      "confirmDeleteInUse": "\"{{label}}\" è usato da {{count}} ticket, che torneranno a \"{{base}}\". Eliminarlo?",
+      "statusDeleted": "Stato eliminato"
+    },
+    "clientDashboard": {
+      "title": "La mia dashboard",
+      "subtitle": "Statistiche dei tuoi ticket",
+      "loading": "Caricamento delle statistiche…",
+      "couldNotLoad": "Impossibile caricare le statistiche.",
+      "open": "Aperti",
+      "inProgress": "In corso",
+      "avgResolution": "Risoluzione media",
+      "byStatus": "Per stato",
+      "byPriority": "Per priorità",
+      "byCategory": "Per categoria",
+      "last12Months": "Ticket aperti (ultimi 12 mesi)",
+      "recent": "Aggiornati di recente"
+    },
+    "categoriesSettings": {
+      "title": "Categorie ticket",
+      "subtitle": "Le categorie di sistema si possono rinominare; quelle personalizzate anche disattivare o eliminare.",
+      "loading": "Caricamento categorie…",
+      "couldNotLoad": "Impossibile caricare le categorie.",
+      "couldNotSave": "Impossibile salvare la categoria.",
+      "newCategory": "Nome nuova categoria",
+      "code": "Codice",
+      "tickets": "Ticket",
+      "system": "Sistema",
+      "systemLocked": "Categoria di sistema: non può essere eliminata",
+      "activate": "Attiva",
+      "deactivate": "Disattiva",
+      "confirmDelete": "Eliminare la categoria \"{{label}}\"?",
+      "inUse": "\"{{label}}\" è usata da {{count}} ticket. Scegli la categoria in cui spostarli prima di eliminarla.",
+      "chooseTarget": "Sposta i ticket in…",
+      "moveAndDelete": "Sposta ed elimina",
+      "saved": "Categoria salvata",
+      "deleted": "Categoria eliminata"
+    },
+    "accounts": {
+      "title": "Nuovi account",
+      "subtitle": "Crea gli account dei nuovi agenti H24, responsabili supporto e tecnici L2 della tua organizzazione.",
+      "type": "Tipo di account",
+      "kindH24": "Agente H24",
+      "kindLead": "Responsabile H24",
+      "kindTechnician": "Tecnico L2 (dipendente)",
+      "email": "Email",
+      "temporaryPassword": "Password temporanea",
+      "passwordHint": "Almeno 8 caratteri; si applica la policy password dell'organizzazione.",
+      "department": "Reparto",
+      "fillRequired": "Compila i campi obbligatori (email valida, password di almeno 8 caratteri).",
+      "create": "Crea account",
+      "creating": "Creazione…",
+      "createdNow": "Creati in questa sessione",
+      "couldNotCreate": "Impossibile creare l'account."
+    },
+    "import": {
+      "button": "Importa clienti e commesse",
+      "help": "File CSV o Excel, una riga per cliente o per cliente + commessa. Le commesse devono essere del 2023-2026; clienti e commesse esistenti vengono rilevati e saltati.",
+      "chooseFile": "Scegli file…",
+      "rows": "righe",
+      "preview": "Anteprima (nulla è ancora salvato)",
+      "done": "Importazione completata",
+      "customersCreated": "Nuovi clienti",
+      "customersExisting": "Clienti esistenti",
+      "ordersCreated": "Nuove commesse",
+      "duplicates": "Commesse duplicate",
+      "skipped": "Righe saltate",
+      "confirm": "Importa",
+      "noRows": "Il file non contiene righe di clienti o commesse.",
+      "invalidFile": "Impossibile leggere il file.",
+      "failed": "Importazione non riuscita."
     }
   },
   "validation": {

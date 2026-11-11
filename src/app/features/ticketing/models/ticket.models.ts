@@ -1,16 +1,22 @@
 export type TicketStatus = 'OPEN'|'IN_PROGRESS'|'ESCALATED'|'RESOLVED'|'CLOSED'|'REOPENED'|'CANCELLED';
 export type TicketPriority = 'LOW'|'MEDIUM'|'HIGH'|'CRITICAL';
-export type TicketCategory = 'SOFTWARE'|'ACCESS'|'PERFORMANCE'|'BILLING'|'DATA'|'INTEGRATION'|'FEATURE_REQUEST'|'OTHER';
+// Category code: a system category (SYSTEM_CATEGORIES) or a custom category of Ticket settings
+export type TicketCategory = string;
+export const SYSTEM_CATEGORIES = ['SOFTWARE', 'ACCESS', 'PERFORMANCE', 'BILLING', 'DATA', 'INTEGRATION', 'FEATURE_REQUEST', 'OTHER'];
 export type TicketOrigin = 'WEB'|'EMAIL'|'PHONE'|'INTERNAL'|'OTHER';
 export interface Ref { id:number; name:string; }
 // Customer / project saved on a ticket: id is the Projectum record, null for a manual (historical or external) entry
 export interface SavedRef { id:number|null; name:string; }
 export interface UserSummary { id:number; fullName:string; email:string; role:string; }
-export interface Ticket { id:number; ticketNumber:string; subject:string; organisationId:number; organisationName:string; status:TicketStatus; priority:TicketPriority; category:TicketCategory; site?:string; client?:UserSummary; assignee?:UserSummary; createdAt:string; updatedAt:string; lastMessageAt?:string; unreadCount:number; customer?:SavedRef; project?:SavedRef; l2Technician?:UserSummary; overdue:boolean; projectNumber?:string; projectYear?:number; }
+export interface Ticket { id:number; ticketNumber:string; subject:string; organisationId:number; organisationName:string; status:TicketStatus; priority:TicketPriority; category:TicketCategory; site?:string; client?:UserSummary; assignee?:UserSummary; createdAt:string; updatedAt:string; lastMessageAt?:string; unreadCount:number; customer?:SavedRef; project?:SavedRef; l2Technician?:UserSummary; overdue:boolean; projectNumber?:string; projectYear?:number; customStatus?:CustomStatusRef|null; }
+export interface CustomStatusRef { id:number; label:string; color:StatusColor; }
+export interface ContactPerson { name?:string|null; email?:string|null; phone?:string|null; }
 export interface TicketMessage { id:number; message:string; messageType:string; internalNote:boolean; sender:UserSummary; createdAt:string; }
 export interface TicketActivity { id:number; activityType:string; description:string; previousValue?:string; newValue?:string; actor?:UserSummary; createdAt:string; field?:string; }
 export interface Attachment { id:number; originalFileName:string; contentType:string; fileSize:number; uploadedBy?:UserSummary; uploadedAt:string; }
-export interface TicketDetails { ticket:Ticket; description:string; origin:TicketOrigin; escalationLevel:number; resolvedAt?:string; closedAt?:string; version:number; messages:TicketMessage[]; activities:TicketActivity[]; attachments:Attachment[]; canManage:boolean; canClose:boolean; equipment?:Equipment; problem?:string; cause?:string; solution?:string; clientLanguage:string; }
+export interface TicketDetails { ticket:Ticket; description:string; origin:TicketOrigin; escalationLevel:number; resolvedAt?:string; closedAt?:string; version:number; messages:TicketMessage[]; activities:TicketActivity[]; attachments:Attachment[]; canManage:boolean; canClose:boolean; equipment?:Equipment; problem?:string; cause?:string; solution?:string; clientLanguage:string; contact?:ContactPerson; canDelete:boolean; }
+// Client portal dashboard (own tickets only, filtered by the backend)
+export interface ClientDashboard { total:number; open:number; inProgress:number; resolved:number; closed:number; overdue:number; averageResolutionHours:number; byStatus:Breakdown[]; byPriority:Breakdown[]; byCategory:Breakdown[]; byMonth:Breakdown[]; recent:Ticket[]; }
 export interface TicketStats { open:number; inProgress:number; escalated:number; resolved:number; closed:number; createdToday:number; overdue:number; averageResolutionHours:number; }
 export interface Page<T> { content:T[]; totalElements:number; totalPages:number; number:number; }
 
@@ -23,7 +29,24 @@ export interface ChatMessage { id:number; senderId:number; recipientId:number; m
 export type StatusColor = 'blue'|'amber'|'red'|'green'|'gray'|'purple'|'coral';
 export interface StatusSetting { status:TicketStatus; label:string; description?:string; color:StatusColor; }
 export interface PrioritySetting { priority:TicketPriority; label:string; firstResponseMinutes:number; resolutionHours:number; }
-export interface TicketSettings { statuses:StatusSetting[]; priorities:PrioritySetting[]; }
+export interface TicketSettings { statuses:StatusSetting[]; priorities:PrioritySetting[]; categories?:CategorySetting[]; customStatuses?:CustomStatus[]; }
+export interface CategorySetting { id:number; code:string; label:string; system:boolean; active:boolean; ticketCount:number; }
+export interface CustomStatus { id:number; code:string; label:string; description?:string; color:StatusColor; baseStatus:TicketStatus; ticketCount:number; }
+export type AccountKind = 'H24'|'H24_LEAD'|'TECHNICIAN';
+export interface AccountRequest { fullName:string; email:string; password:string; kind:AccountKind; departmentId?:number|null; resourceTypeId?:number|null; specialization?:string|null; }
+// Import of historical customers and orders
+export interface ImportRow { customerCode?:string|null; customerName?:string|null; country?:string|null; town?:string|null; email?:string|null; phone?:string|null; orderNumber?:string|null; orderName?:string|null; year?:number|null; }
+export interface ImportResult { rows:number; customersCreated:number; customersExisting:number; ordersCreated:number; ordersDuplicate:number; skipped:number; errors:string[]; dryRun:boolean; }
+// Attachments: images, PDFs, documents and videos (mp4, webm, mov up to 20 MB)
+export const ATTACHMENT_ACCEPT = '.pdf,.png,.jpg,.jpeg,.gif,.webp,.txt,.docx,.mp4,.webm,.mov';
+export const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
+export const MAX_VIDEO_BYTES = 20 * 1024 * 1024;
+export function isVideoFile(file: File): boolean { return file.type.startsWith('video/') || /\.(mp4|webm|mov)$/i.test(file.name); }
+/** Size error key for an attachment, or '' when the file can be uploaded. */
+export function attachmentSizeError(file: File): string {
+  if (isVideoFile(file)) return file.size > MAX_VIDEO_BYTES ? 'ticketing.details.videoTooLarge' : '';
+  return file.size > MAX_ATTACHMENT_BYTES ? 'ticketing.details.fileTooLarge' : '';
+}
 export interface Agent { id:number; fullName:string; email:string; roles:string[]; lead:boolean; l2Technician:boolean; specialization?:string; preferredLanguage?:string; openTickets:number; l2OpenTickets:number; active:boolean; resourceTypeId?:number; resourceType?:string; h24:boolean; ticketingAccess:boolean; }
 // Projectum resource types and the employees of one type (cascading L2 choice)
 export interface ResourceTypeOption { id:number; code:string; label:string; }

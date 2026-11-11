@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { API_BASE_URL } from 'src/app/core/config/api.config';
 import {
-  Attachment, FormOptions, Page, Ticket, TicketActivity, TicketCategory, TicketDetails, TicketMessage, TicketOrigin,
+  Attachment, ClientDashboard, ContactPerson, FormOptions, Page, Ticket, TicketActivity, TicketCategory, TicketDetails, TicketMessage, TicketOrigin,
   TicketPriority, TicketStats, TicketStatus, UserSummary
 } from '../models/ticket.models';
 
@@ -16,6 +16,7 @@ export interface NewTicket {
   subject: string; description: string; category: TicketCategory; priority: TicketPriority; origin: TicketOrigin;
   site: string | null; clientUserId: number | null; customerId: number | null; projectId: number | null; equipmentId: number | null; assigneeId: number | null;
   customerName?: string | null; projectName?: string | null; projectNumber?: string | null; projectYear?: number | null;
+  contactName?: string | null; contactEmail?: string | null; contactPhone?: string | null;
 }
 
 /** customerId / projectId link Projectum records; with a null id, customerName and projectName/Number/Year are a manual entry. */
@@ -34,7 +35,7 @@ export class TicketService {
     let p = new HttpParams()
       .set('page', filters.page || 0)
       .set('size', filters.size || 20)
-      .set('sort', filters.sort || 'updatedAt,desc');
+      .set('sort', filters.sort || 'id,desc');
     Object.entries(filters).forEach(([k, v]) => {
       if (v !== undefined && v !== null && v !== '' && !['page', 'size', 'sort'].includes(k)) p = p.set(k, String(v));
     });
@@ -81,8 +82,23 @@ export class TicketService {
     return this.http.patch<TicketDetails>(`${this.base}/${id}/problem-statement`, { ...value, version });
   }
 
-  status(id: number, status: TicketStatus, version: number): Observable<TicketDetails> {
-    return this.http.patch<TicketDetails>(`${this.base}/${id}/status`, { status, version });
+  /** A system status, or a custom status of Ticket settings (customStatusId; its lifecycle status is applied). */
+  status(id: number, status: TicketStatus | null, version: number, customStatusId: number | null = null): Observable<TicketDetails> {
+    return this.http.patch<TicketDetails>(`${this.base}/${id}/status`, { status, version, customStatusId });
+  }
+
+  contact(id: number, contact: ContactPerson, version: number): Observable<TicketDetails> {
+    return this.http.patch<TicketDetails>(`${this.base}/${id}/contact`, { contactName: contact.name, contactEmail: contact.email, contactPhone: contact.phone, version });
+  }
+
+  /** Deletes the ticket with its messages and attachments (support leads). */
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${id}`);
+  }
+
+  /** Client portal dashboard (own tickets only). */
+  myDashboard(): Observable<ClientDashboard> {
+    return this.http.get<ClientDashboard>(`${this.base}/my-dashboard`);
   }
 
   priority(id: number, priority: TicketPriority, version: number): Observable<TicketDetails> {
@@ -117,6 +133,11 @@ export class TicketService {
 
   attachmentUrl(ticketId: number, attachmentId: number): string {
     return `${this.base}/${ticketId}/attachments/${attachmentId}`;
+  }
+
+  /** Attachment content fetched with the auth header (a plain link has no JWT, which is why images did not open). */
+  attachmentBlob(ticketId: number, attachmentId: number): Observable<Blob> {
+    return this.http.get(this.attachmentUrl(ticketId, attachmentId), { responseType: 'blob' });
   }
 
   /** Customers the user may file a ticket under and, for the chosen one, its sites, equipment and projects. */

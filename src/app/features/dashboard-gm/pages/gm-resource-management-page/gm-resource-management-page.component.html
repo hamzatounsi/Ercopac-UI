@@ -65,20 +65,7 @@
           />
         </div>
 
-        <div class="form-field">
-          <label>{{ 'gm.resourceManagement.department' | translate }}</label>
-
-          <select [(ngModel)]="resourceTypeForm.departmentId">
-            <option [ngValue]="null">—</option>
-
-            <option
-              *ngFor="let dept of departmentsConfig"
-              [ngValue]="dept.id"
-            >
-              {{ dept.code }} - {{ dept.label }}
-            </option>
-          </select>
-        </div>
+        <!-- Department selection removed from resource type configuration (department_id stays nullable in DB) -->
 
       </div>
 
@@ -136,7 +123,6 @@
             <th>{{ 'gm.resourceManagement.resType' | translate }}</th>
             <th>{{ 'gm.resourceManagement.label' | translate }}</th>
             <th>{{ 'gm.resourceManagement.colour' | translate }}</th>
-            <th>{{ 'gm.resourceManagement.department' | translate }}</th>
             <th>{{ 'gm.resourceManagement.rate' | translate }}</th>
             <th>{{ 'gm.resourceManagement.assignable' | translate }}</th>
             <th>{{ 'common.orgStatus.ACTIVE' | translate }}</th>
@@ -163,10 +149,6 @@
               ></span>
 
               {{ type.colour }}
-            </td>
-
-            <td>
-              {{ type.departmentCode || '—' }}
             </td>
 
             <td>
@@ -398,7 +380,7 @@
             >
               <td class="muted">{{ resource.id }}</td>
               <td><span class="row-dot"></span></td>
-              <td class="strong">{{ resource.fullName }}</td>
+              <td class="strong text-upper">{{ resource.fullName }}</td>
               <td class="linkish">{{ resource.employeeCode || '—' }}</td>
               <td>{{ resource.departmentCode || '—' }}</td>
               <td>{{ resource.resourceType || '—' }}</td>
@@ -749,7 +731,7 @@
 
           <tr *ngFor="let supplier of filteredSuppliers">
             <td>{{ supplier.id }}</td>
-            <td class="strong">{{ supplier.name }}</td>
+            <td class="strong text-upper">{{ supplier.name }}</td>
             <td>{{ supplier.shortCode || '—' }}</td>
             <td>{{ (supplier.departments || []).join(', ') || '—' }}</td>
             <td>{{ (supplier.resourceTypes || []).join(', ') || '—' }}</td>

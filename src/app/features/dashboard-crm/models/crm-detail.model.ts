@@ -1,5 +1,5 @@
 export interface CrmSupplyCategory { id: number | null; name: string; displayOrder: number; active: boolean; }
-export interface CrmNotificationPreference { emailNotifications: boolean; stageChangeAlerts: boolean; closingDateReminders: boolean; }
+export interface CrmNotificationPreference { emailNotifications: boolean; stageChangeAlerts: boolean; closingDateReminders: boolean; commentNotifications?: boolean; }
 export interface CrmIndustry { id: number | null; name: string; active: boolean; createdAt?: string | null; updatedAt?: string | null; }
 export interface CrmUser { id: number; name: string; email: string; role: string; }
 export interface CrmOpportunityNote { id: number; authorId: number; authorName: string; content: string; createdAt: string; updatedAt: string; }

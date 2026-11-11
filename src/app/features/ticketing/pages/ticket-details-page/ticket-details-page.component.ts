@@ -1,8 +1,10 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { AuthService } from 'src/app/core/auth/auth.service';
 import {
+  ATTACHMENT_ACCEPT, Attachment, ContactPerson, CustomStatus, attachmentSizeError,
   Agent, FormOptions, LANGUAGES, ORIGIN_LABELS, TicketActivity, TicketCategory, TicketDetails, TicketMessage, TicketOrigin,
   TicketPriority, TicketStatus, UserSummary
 } from '../../models/ticket.models';
@@ -41,7 +43,12 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
   l2Technicians: Agent[] = [];
   options: FormOptions = { customers: [], sites: [], equipment: [], projects: [] };
   readonly priorities: TicketPriority[] = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'];
-  readonly categories: TicketCategory[] = ['SOFTWARE', 'ACCESS', 'PERFORMANCE', 'BILLING', 'DATA', 'INTEGRATION', 'FEATURE_REQUEST', 'OTHER'];
+  get categories(): TicketCategory[] { return this.labels.categoryCodes; }
+  readonly attachmentAccept = ATTACHMENT_ACCEPT;
+  openingAttachment: number | null = null;
+  viewer: { name: string; kind: 'image' | 'video'; url: string; safeUrl: SafeUrl } | null = null;
+  editingContact = false;
+  contactDraft: ContactPerson = { name: '', email: '', phone: '' };
   readonly origins: TicketOrigin[] = ['WEB', 'EMAIL', 'PHONE', 'INTERNAL', 'OTHER'];
   readonly originLabels = ORIGIN_LABELS;
   readonly rcaFields: { key: RcaField; label: string; placeholder: string }[] = [
@@ -83,7 +90,7 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
 
   constructor(private i18n: I18nService,
     private route: ActivatedRoute, private router: Router, public api: TicketService, public labels: TicketSettingsService,
-              private live: TicketChatService, private pdf: TicketPdfService, private auth: AuthService) {}
+              private live: TicketChatService, private pdf: TicketPdfService, private auth: AuthService, private sanitizer: DomSanitizer) {}
 
   ngOnInit(): void {
     this.subs.add(this.labels.me().subscribe({ next: me => this.myLanguage = me.preferredLanguage || 'en' }));
@@ -100,6 +107,7 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.closeViewer();
     this.subs.unsubscribe();
     this.liveSub?.unsubscribe();
     this.live.disconnect();
@@ -148,13 +156,76 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
 
   // ---------- changes (each sends the version it was based on; a conflict reloads the ticket) ----------
   changeStatus(status: TicketStatus): void { this.apply(this.api.status(this.id, status, this.version), this.i18n.t('ticketing.details.statusUpdated')); }
+  /** Custom statuses reachable from the current status (same lifecycle status, or an allowed next one). */
+  get availableCustomStatuses(): CustomStatus[] {
+    const t = this.details?.ticket;
+    const all = this.labels.customStatuses;
+    if (!t) return [];
+    if (this.customCache.ticket !== t || this.customCache.all !== all) {
+      this.customCache = { ticket: t, all, list: all.filter(c => c.id !== t.customStatus?.id && (c.baseStatus === t.status || this.nextStatuses.includes(c.baseStatus))) };
+    }
+    return this.customCache.list;
+  }
+  private customCache: { ticket: unknown; all: unknown; list: CustomStatus[] } = { ticket: null, all: null, list: [] };
+  /** 'S:<status>' = system status, 'C:<id>' = custom status. */
+  pickStatus(value: string): void {
+    if (value.startsWith('C:')) this.apply(this.api.status(this.id, null, this.version, Number(value.slice(2))), this.i18n.t('ticketing.details.statusUpdated'));
+    else this.changeStatus(value.slice(2) as TicketStatus);
+  }
+
+  // ---------- contact person ----------
+  startContactEdit(): void {
+    const c = this.details?.contact;
+    this.contactDraft = { name: c?.name ?? '', email: c?.email ?? '', phone: c?.phone ?? '' };
+    this.editingContact = true;
+  }
+  get contactEmailError(): boolean { const v = (this.contactDraft.email ?? '').trim(); return !!v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+  get contactPhoneError(): boolean { const v = (this.contactDraft.phone ?? '').trim(); return !!v && !/^[0-9+()./ -]{3,60}$/.test(v); }
+  saveContact(): void {
+    if (this.contactEmailError || this.contactPhoneError) return;
+    const trim = (v?: string | null) => (v ?? '').trim() || null;
+    this.apply(this.api.contact(this.id, { name: trim(this.contactDraft.name), email: trim(this.contactDraft.email), phone: trim(this.contactDraft.phone) }, this.version), this.i18n.t('ticketing.details.contactSaved'));
+    this.editingContact = false;
+  }
+
+  // ---------- delete ----------
+  deleteTicket(): void {
+    if (!this.details?.canDelete || this.saving) return;
+    if (!confirm(this.i18n.t('ticketing.details.confirmDelete', { number: this.details.ticket.ticketNumber }))) return;
+    this.saving = true;
+    this.api.delete(this.id).subscribe({
+      next: () => { this.saving = false; void this.router.navigate(['/tickets']); },
+      error: e => { this.saving = false; this.error = this.i18n.error(e, 'ticketing.details.deleteFailed'); }
+    });
+  }
+
+  // ---------- attachments ----------
+  /** Fetches the file with the auth header; images/videos open in the viewer, other files in a new tab. */
+  openAttachment(a: Attachment): void {
+    if (!this.details) return;
+    this.openingAttachment = a.id;
+    this.api.attachmentBlob(this.details.ticket.id, a.id).subscribe({
+      next: blob => {
+        this.openingAttachment = null;
+        const typed = blob.type ? blob : new Blob([blob], { type: a.contentType });
+        const url = URL.createObjectURL(typed);
+        const kind = a.contentType.startsWith('image/') ? 'image' : a.contentType.startsWith('video/') ? 'video' : null;
+        if (kind) { this.closeViewer(); this.viewer = { name: a.originalFileName, kind, url, safeUrl: this.sanitizer.bypassSecurityTrustUrl(url) }; return; }
+        const win = window.open(url, '_blank', 'noopener');
+        if (!win) { const link = document.createElement('a'); link.href = url; link.download = a.originalFileName; link.click(); }
+        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      },
+      error: e => { this.openingAttachment = null; this.error = this.i18n.error(e, 'ticketing.details.attachmentCouldNotOpen'); }
+    });
+  }
+  closeViewer(): void { if (this.viewer) URL.revokeObjectURL(this.viewer.url); this.viewer = null; }
   setPriority(priority: TicketPriority): void { this.apply(this.api.priority(this.id, priority, this.version), this.i18n.t('ticketing.details.priorityUpdated')); }
   setCategory(category: TicketCategory): void { this.apply(this.api.update(this.id, { category }, this.version), this.i18n.t('ticketing.details.categoryUpdated')); }
   setOrigin(origin: TicketOrigin): void { this.apply(this.api.update(this.id, { origin }, this.version), this.i18n.t('ticketing.details.originUpdated')); }
   assignTo(assigneeId: number | null): void { this.apply(this.api.assign(this.id, assigneeId, this.version), assigneeId ? this.i18n.t('ticketing.details.h24AgentAssigned') : this.i18n.t('ticketing.details.h24AgentRemoved')); }
   assignL2(assigneeId: number | null): void { this.apply(this.api.assignL2(this.id, assigneeId, this.version), assigneeId ? this.i18n.t('ticketing.details.l2TechnicianAssigned') : this.i18n.t('ticketing.details.l2TechnicianRemoved')); }
 
-  get customerOptions(): PickOption[] { return this.options.customers.map(c => ({ id: c.id, label: c.name })); }
+  get customerOptions(): PickOption[] { return this.options.customers.map(c => ({ id: c.id, label: c.name.toUpperCase() })); }
   get projectOptions(): PickOption[] {
     return this.options.projects.map(p => ({ id: p.id, label: p.name, hint: [p.code, p.year].filter(v => v != null && v !== '').join(' · ') || undefined }));
   }
@@ -251,7 +322,8 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     const f = input.files?.[0];
     if (!f) return;
-    if (f.size > 10 * 1024 * 1024) { this.error = this.i18n.t('ticketing.details.filesLimited10Mb'); input.value = ''; return; }
+    const sizeError = attachmentSizeError(f);
+    if (sizeError) { this.error = this.i18n.t(sizeError); input.value = ''; return; }
     this.api.upload(this.id, f).subscribe({
       next: a => { this.details?.attachments.push(a); input.value = ''; this.flash(this.i18n.t('ticketing.details.fileAttached')); },
       error: e => { this.error = this.i18n.error(e, 'ticketing.details.attachmentCouldNotUploaded'); input.value = ''; }
@@ -270,7 +342,7 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
   toggle(section: string): void { this.collapsed[section] = !this.collapsed[section]; }
   isClientMessage(m: TicketMessage): boolean { return m.sender?.id === this.details?.ticket.client?.id; }
   initials(name?: string): string { return (name || '?').split(/\s+/).slice(0, 2).map(v => v[0]).join('').toUpperCase(); }
-  label(category: string): string { return category ? this.i18n.t('ticketing.categories.' + category) : ''; }
+  label(category: string): string { return this.labels.categoryLabel(category); }
   languageName(code: string): string { const label = LANGUAGES.find(l => l.code === code)?.label; return label ? this.i18n.t(label) : code; }
   agentOptionMissing(id?: number): boolean { return !!id && !this.agents.some(a => a.id === id); }
 

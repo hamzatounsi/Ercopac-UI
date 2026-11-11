@@ -3,10 +3,11 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, shareReplay, tap } from 'rxjs';
 import { API_BASE_URL } from 'src/app/core/config/api.config';
 import {
-  Agent, Contact, Customer, CustomerProject, EmployeeOption, Equipment, MySettings, PrioritySetting, Ref, ResourceTypeOption, Site, StatusColor,
+  AccountRequest, Agent, CategorySetting, Contact, CustomStatus, ImportResult, ImportRow, SYSTEM_CATEGORIES, Customer, CustomerProject, EmployeeOption, Equipment, MySettings, PrioritySetting, Ref, ResourceTypeOption, Site, StatusColor,
   StatusSetting, TicketAnalytics, TicketPriority, TicketSettings, TicketStatus, UserSummary
 } from '../models/ticket.models';
 
+const NO_CUSTOM_STATUSES: CustomStatus[] = [];
 const DEFAULT_COLORS: Record<TicketStatus, StatusColor> = {
   OPEN: 'blue', IN_PROGRESS: 'amber', ESCALATED: 'red', RESOLVED: 'green', CLOSED: 'gray', REOPENED: 'purple', CANCELLED: 'gray'
 };
@@ -42,6 +43,51 @@ export class TicketSettingsService {
   statusColor(status: TicketStatus | string): StatusColor {
     return this.settingsSource.value?.statuses.find(s => s.status === status)?.color ?? DEFAULT_COLORS[status as TicketStatus] ?? 'gray';
   }
+
+  /** Categories offered on tickets: active ones from settings (system categories until the settings are loaded).
+   *  Cached per settings value: templates bind these in *ngFor, and a new array on every check breaks change detection. */
+  get categories(): CategorySetting[] { this.refreshCategoryCache(); return this.categoryCache; }
+  /** Codes of the categories above (same caching). */
+  get categoryCodes(): string[] { this.refreshCategoryCache(); return this.categoryCodeCache; }
+  private categoryCacheKey: unknown = undefined;
+  private categoryCache: CategorySetting[] = [];
+  private categoryCodeCache: string[] = [];
+  private refreshCategoryCache(): void {
+    const loaded = this.settingsSource.value?.categories ?? null;
+    if (this.categoryCacheKey === loaded) return;
+    this.categoryCacheKey = loaded;
+    this.categoryCache = loaded?.length ? loaded.filter(c => c.active) : SYSTEM_CATEGORIES.map((code, i) => ({ id: -i - 1, code, label: humanize(code), system: true, active: true, ticketCount: 0 }));
+    this.categoryCodeCache = this.categoryCache.map(c => c.code);
+  }
+
+  /** Organisation statuses mapped onto a lifecycle status. */
+  get customStatuses(): CustomStatus[] { return this.settingsSource.value?.customStatuses ?? NO_CUSTOM_STATUSES; }
+
+  categoryLabel(code: string | null | undefined): string {
+    if (!code) return '';
+    return this.settingsSource.value?.categories?.find(c => c.code === code)?.label ?? humanize(code);
+  }
+
+  /** Label and colour shown for a ticket: its custom status when it has one, else its lifecycle status. */
+  ticketStatusLabel(t: { status: TicketStatus; customStatus?: { label: string } | null }): string { return t.customStatus?.label || this.statusLabel(t.status); }
+  ticketStatusColor(t: { status: TicketStatus; customStatus?: { color: StatusColor } | null }): StatusColor { return t.customStatus?.color || this.statusColor(t.status); }
+
+  createCategory(c: { code?: string | null; label: string; active?: boolean }): Observable<CategorySetting> { return this.http.post<CategorySetting>(`${this.base}/settings/categories`, c); }
+  updateCategory(id: number, c: { label: string; active?: boolean }): Observable<CategorySetting> { return this.http.put<CategorySetting>(`${this.base}/settings/categories/${id}`, c); }
+  deleteCategory(id: number, reassignTo?: string | null): Observable<void> {
+    const params = reassignTo ? new HttpParams().set('reassignTo', reassignTo) : undefined;
+    return this.http.delete<void>(`${this.base}/settings/categories/${id}`, { params });
+  }
+  saveCustomStatus(s: Partial<CustomStatus>): Observable<CustomStatus> {
+    return s.id ? this.http.put<CustomStatus>(`${this.base}/settings/custom-statuses/${s.id}`, s) : this.http.post<CustomStatus>(`${this.base}/settings/custom-statuses`, s);
+  }
+  deleteCustomStatus(id: number): Observable<void> { return this.http.delete<void>(`${this.base}/settings/custom-statuses/${id}`); }
+
+  /** New H24 agent / lead or L2 technician account in the organisation (support leads). */
+  createAccount(request: AccountRequest): Observable<Agent> { return this.http.post<Agent>(`${this.base}/settings/accounts`, request); }
+
+  /** Import of historical customers and orders; dryRun previews without saving. */
+  importCustomers(rows: ImportRow[], dryRun: boolean): Observable<ImportResult> { return this.http.post<ImportResult>(`${this.base}/customers/import`, { rows, dryRun }); }
 
   priorityLabel(priority: TicketPriority | string): string {
     return this.settingsSource.value?.priorities.find(p => p.priority === priority)?.label ?? humanize(priority);

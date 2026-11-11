@@ -82,7 +82,7 @@
             *ngFor="let resource of resources; trackBy: trackByResourceId"
             (click)="openDetails(resource.id)"
           >
-            <td>{{ resource.fullName }}</td>
+            <td class="text-upper">{{ resource.fullName }}</td>
             <td>{{ resource.employeeCode || '-' }}</td>
             <td>{{ resource.departmentCode || '-' }}</td>
             <td>{{ resource.resourceType || '-' }}</td>

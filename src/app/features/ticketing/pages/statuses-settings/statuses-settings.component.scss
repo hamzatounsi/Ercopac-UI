@@ -12,3 +12,6 @@
   .status-row { flex-wrap:wrap; }
   .grow { flex-basis:100%; order:5; }
 }
+
+.custom-statuses { margin-top:26px; h3 { margin:0; font-size:15px; } p { margin:2px 0 10px; } }
+.custom-form { margin-top:8px; flex-wrap:wrap; }

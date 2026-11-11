@@ -33,9 +33,9 @@
 
     <button type="button" class="tk-card" *ngFor="let t of tickets" (click)="open(t)">
       <div class="tk-card-head">
-        <span class="meta">#{{ t.ticketNumber }}<ng-container *ngIf="t.customer"> · {{ t.customer.name }}</ng-container><ng-container *ngIf="t.site"> · {{ t.site }}</ng-container></span>
+        <span class="meta">#{{ t.ticketNumber }}<ng-container *ngIf="t.customer"> · <span class="text-upper">{{ t.customer.name }}</span></ng-container><ng-container *ngIf="t.projectNumber"> · {{ 'ticketing.list.orderNumber' | translate }} {{ t.projectNumber }}</ng-container><ng-container *ngIf="t.site"> · {{ t.site }}</ng-container></span>
         <span class="badges">
-          <span class="badge" [ngClass]="'c-' + labels.statusColor(t.status)">{{ labels.statusLabel(t.status) }}</span>
+          <span class="badge" [ngClass]="'c-' + labels.ticketStatusColor(t)">{{ labels.ticketStatusLabel(t) }}</span>
           <span class="priority" [ngClass]="'p-' + t.priority.toLowerCase()">{{ labels.priorityLabel(t.priority) }}</span>
           <i *ngIf="t.unreadCount" [title]="'ticketing.list.unreadMessages' | translate">{{ t.unreadCount }}</i>
         </span>
@@ -57,7 +57,7 @@
       </div>
       <select class="select narrow" [(ngModel)]="filters.customerId" (ngModelChange)="reload()" [attr.aria-label]="'ticketing.list.customer' | translate">
         <option [ngValue]="null">{{ 'ticketing.list.allCustomers' | translate }}</option>
-        <option *ngFor="let c of customers" [ngValue]="c.id">{{ c.name }}</option>
+        <option *ngFor="let c of customers" [ngValue]="c.id">{{ c.name | uppercase }}</option>
       </select>
       <div class="search">
         <span class="material-symbols-outlined">search</span>
@@ -101,7 +101,15 @@
       <div class="table-wrap" *ngIf="!loading && tickets.length">
         <table>
           <thead>
-            <tr><th>{{ 'ticketing.list.id' | translate }}</th><th>{{ 'ticketing.list.title' | translate }}</th><th>{{ 'ticketing.list.customer' | translate }}</th><th>{{ 'ticketing.list.site' | translate }}</th><th>{{ 'common.status' | translate }}</th><th>{{ 'ticketing.list.priority' | translate }}</th><th>{{ 'ticketing.list.h24Agent' | translate }}</th><th>{{ 'ticketing.list.created2' | translate }}</th><th>{{ 'ticketing.list.updated' | translate }}</th></tr>
+            <tr>
+              <th *ngFor="let col of sortColumns"
+                  class="sortable" [attr.aria-sort]="ariaSort(col.f)">
+                <button type="button" class="sort-btn" (click)="sortBy(col.f)">{{ col.l | translate }}<span class="material-symbols-outlined">{{ sortIcon(col.f) }}</span></button>
+              </th>
+              <th>{{ 'ticketing.list.h24Agent' | translate }}</th>
+              <th class="sortable" [attr.aria-sort]="ariaSort('createdAt')"><button type="button" class="sort-btn" (click)="sortBy('createdAt')">{{ 'ticketing.list.created2' | translate }}<span class="material-symbols-outlined">{{ sortIcon('createdAt') }}</span></button></th>
+              <th class="sortable" [attr.aria-sort]="ariaSort('updatedAt')"><button type="button" class="sort-btn" (click)="sortBy('updatedAt')">{{ 'ticketing.list.updated' | translate }}<span class="material-symbols-outlined">{{ sortIcon('updatedAt') }}</span></button></th>
+            </tr>
           </thead>
           <tbody>
             <tr *ngFor="let t of tickets" (click)="open(t)" tabindex="0" (keydown.enter)="open(t)">
@@ -114,9 +122,10 @@
                   <i *ngIf="t.unreadCount" [title]="'ticketing.list.unreadMessages' | translate">{{ t.unreadCount }}</i>
                 </small>
               </td>
-              <td class="muted-sm">{{ t.customer?.name || '—' }}</td>
+              <td class="muted-sm text-upper">{{ t.customer?.name || '—' }}</td>
+              <td class="muted-sm mono">{{ t.projectNumber || '—' }}</td>
               <td class="muted-sm">{{ t.site || '—' }}</td>
-              <td><span class="badge" [ngClass]="'c-' + labels.statusColor(t.status)">{{ labels.statusLabel(t.status) }}</span></td>
+              <td><span class="badge" [ngClass]="'c-' + labels.ticketStatusColor(t)">{{ labels.ticketStatusLabel(t) }}</span></td>
               <td><span class="priority" [ngClass]="'p-' + t.priority.toLowerCase()">{{ labels.priorityLabel(t.priority) }}</span></td>
               <td class="muted-sm"><ng-container *ngIf="t.assignee; else none">{{ shortName(t.assignee.fullName) }}</ng-container><ng-template #none><span class="danger-text">{{ 'common.none' | translate }}</span></ng-template></td>
               <td class="muted-sm">{{ t.createdAt | date:'mediumDate' }}</td>

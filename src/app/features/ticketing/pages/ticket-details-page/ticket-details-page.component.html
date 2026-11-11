@@ -13,7 +13,7 @@
     </div>
     <h1 [title]="d.ticket.subject">{{ d.ticket.subject }}</h1>
     <div class="tk-badges">
-      <span class="badge" [ngClass]="'c-' + labels.statusColor(d.ticket.status)">{{ labels.statusLabel(d.ticket.status) }}</span>
+      <span class="badge" [ngClass]="'c-' + labels.ticketStatusColor(d.ticket)">{{ labels.ticketStatusLabel(d.ticket) }}</span>
       <span class="priority" [ngClass]="'p-' + d.ticket.priority.toLowerCase()">{{ labels.priorityLabel(d.ticket.priority) }}</span>
       <span class="chip">{{ originLabels[d.origin] | translate }}</span>
       <span class="chip overdue" *ngIf="d.ticket.overdue"><span class="material-symbols-outlined">schedule</span>{{ 'ticketing.details.overdue' | translate }}</span>
@@ -25,6 +25,9 @@
       </button>
       <button type="button" class="primary small" *ngIf="d.canManage && nextStatuses.includes('RESOLVED')" (click)="changeStatus('RESOLVED')" [disabled]="saving">{{ 'ticketing.details.resolve' | translate }}</button>
       <button type="button" class="ghost small" *ngIf="d.ticket.status === 'RESOLVED' && (d.canManage || d.canClose)" (click)="changeStatus('REOPENED')" [disabled]="saving">{{ 'ticketing.details.reopen' | translate }}</button>
+      <button type="button" class="ghost small danger-text" *ngIf="d.canDelete" (click)="deleteTicket()" [disabled]="saving" [title]="'ticketing.details.deleteTicket' | translate">
+        <span class="material-symbols-outlined">delete</span>{{ 'common.delete' | translate }}
+      </button>
     </div>
   </header>
 
@@ -79,10 +82,13 @@
           </div>
           <div class="field"><label>{{ 'common.status' | translate }}</label>
             <div>
-              <span class="badge" [ngClass]="'c-' + labels.statusColor(d.ticket.status)">{{ labels.statusLabel(d.ticket.status) }}</span>
-              <select *ngIf="d.canManage && nextStatuses.length" class="inline-select" [ngModel]="null" (ngModelChange)="$event && changeStatus($event)" [disabled]="saving" [attr.aria-label]="'ticketing.details.changeStatus' | translate">
+              <span class="badge" [ngClass]="'c-' + labels.ticketStatusColor(d.ticket)">{{ labels.ticketStatusLabel(d.ticket) }}</span>
+              <select *ngIf="d.canManage && (nextStatuses.length || availableCustomStatuses.length)" class="inline-select" [ngModel]="null" (ngModelChange)="$event && pickStatus($event)" [disabled]="saving" [attr.aria-label]="'ticketing.details.changeStatus' | translate">
                 <option [ngValue]="null">{{ 'ticketing.details.changeStatus2' | translate }}</option>
-                <option *ngFor="let s of nextStatuses" [ngValue]="s">{{ labels.statusLabel(s) }}</option>
+                <option *ngFor="let s of nextStatuses" [ngValue]="'S:' + s">{{ labels.statusLabel(s) }}</option>
+                <optgroup *ngIf="availableCustomStatuses.length" [label]="'ticketing.details.customStatuses' | translate">
+                  <option *ngFor="let c of availableCustomStatuses" [ngValue]="'C:' + c.id">{{ c.label }}</option>
+                </optgroup>
               </select>
             </div>
           </div>
@@ -106,6 +112,7 @@
             <div>
               <ng-container *ngIf="!editable">{{ label(d.ticket.category) }}</ng-container>
               <select *ngIf="editable" class="inline-select" [ngModel]="d.ticket.category" (ngModelChange)="setCategory($event)" [disabled]="saving" [attr.aria-label]="'ticketing.details.category' | translate">
+                <option *ngIf="!categories.includes(d.ticket.category)" [ngValue]="d.ticket.category">{{ label(d.ticket.category) }}</option>
                 <option *ngFor="let c of categories" [ngValue]="c">{{ label(c) }}</option>
               </select>
             </div>
@@ -165,6 +172,29 @@
             <div class="field"><label>{{ 'ticketing.details.language' | translate }}</label><div>{{ languageName(d.clientLanguage) }}</div></div>
           </ng-container>
           <ng-template #noContact><p class="muted">{{ 'ticketing.details.noContactLinked' | translate }}</p></ng-template>
+
+          <!-- Contact person at the customer for this ticket -->
+          <h4 class="sub-head">{{ 'ticketing.details.contactPerson' | translate }}</h4>
+          <ng-container *ngIf="!editingContact; else contactForm">
+            <div class="field"><label>{{ 'common.name' | translate }}</label><div>{{ d.contact?.name || '—' }}</div></div>
+            <div class="field"><label>{{ 'ticketing.details.email' | translate }}</label><div><a class="link" *ngIf="d.contact?.email; else dash" [href]="'mailto:' + d.contact?.email">{{ d.contact?.email }}</a></div></div>
+            <div class="field"><label>{{ 'ticketing.details.phone' | translate }}</label><div><a class="link" *ngIf="d.contact?.phone; else dash" [href]="'tel:' + d.contact?.phone">{{ d.contact?.phone }}</a></div></div>
+            <ng-template #dash>—</ng-template>
+            <button type="button" class="ghost small" *ngIf="editable" (click)="startContactEdit()">{{ 'common.edit' | translate }}</button>
+          </ng-container>
+          <ng-template #contactForm>
+            <form class="contact-form" (ngSubmit)="saveContact()" novalidate>
+              <input class="input" name="contactName" [(ngModel)]="contactDraft.name" maxlength="150" [placeholder]="'common.name' | translate">
+              <input class="input" name="contactEmail" type="email" [(ngModel)]="contactDraft.email" maxlength="180" [placeholder]="'ticketing.details.email' | translate" [class.invalid]="contactEmailError">
+              <input class="input" name="contactPhone" type="tel" [(ngModel)]="contactDraft.phone" maxlength="60" [placeholder]="'ticketing.details.phone' | translate" [class.invalid]="contactPhoneError">
+              <span class="field-error" *ngIf="contactEmailError">{{ 'ticketing.create.invalidEmail' | translate }}</span>
+              <span class="field-error" *ngIf="contactPhoneError">{{ 'ticketing.create.invalidPhone' | translate }}</span>
+              <div class="row-actions">
+                <button type="button" class="ghost small" (click)="editingContact = false">{{ 'common.cancel' | translate }}</button>
+                <button type="submit" class="primary small" [disabled]="saving || contactEmailError || contactPhoneError">{{ 'common.save' | translate }}</button>
+              </div>
+            </form>
+          </ng-template>
         </div>
       </section>
     </aside>
@@ -340,13 +370,28 @@
           <p class="muted" *ngIf="!d.attachments.length">{{ 'ticketing.details.noFilesAttached' | translate }}</p>
           <ul class="files" *ngIf="d.attachments.length">
             <li *ngFor="let a of d.attachments">
-              <a [href]="api.attachmentUrl(d.ticket.id, a.id)" target="_blank" rel="noopener">{{ a.originalFileName }}</a>
+              <!-- Opened through an authenticated blob request (plain links carry no JWT) -->
+              <button type="button" class="link file-link" (click)="openAttachment(a)" [disabled]="openingAttachment === a.id">
+                <span class="material-symbols-outlined">{{ a.contentType.startsWith('image/') ? 'image' : a.contentType.startsWith('video/') ? 'movie' : 'description' }}</span>{{ a.originalFileName }}
+              </button>
               <small>{{ 'ticketing.details.filesizeKbFullname' | translate: { fileSize: (a.fileSize / 1024 | number:'1.0-0'), fullName: (a.uploadedBy?.fullName) } }}</small>
             </li>
           </ul>
-          <label class="ghost upload" *ngIf="!closed">{{ 'ticketing.details.attachFile' | translate }}<input type="file" hidden (change)="file($event)" accept=".pdf,.png,.jpg,.jpeg,.txt,.docx,.xlsx,.csv,.log,.zip"></label>
+          <label class="ghost upload" *ngIf="!closed">{{ 'ticketing.details.attachFile' | translate }}<input type="file" hidden (change)="file($event)" [accept]="attachmentAccept"></label>
         </div>
       </section>
     </aside>
+  </div>
+</div>
+
+<!-- Attachment viewer: images and videos inline, other files open in a new tab -->
+<div class="viewer-backdrop" *ngIf="viewer" (click)="closeViewer()">
+  <div class="viewer" (click)="$event.stopPropagation()" role="dialog" [attr.aria-label]="viewer.name">
+    <header><strong>{{ viewer.name }}</strong>
+      <a class="ghost small" [href]="viewer.safeUrl" [download]="viewer.name">{{ 'ticketing.details.download' | translate }}</a>
+      <button type="button" class="ghost small" (click)="closeViewer()">{{ 'common.close' | translate }}</button>
+    </header>
+    <img *ngIf="viewer.kind === 'image'" [src]="viewer.safeUrl" [alt]="viewer.name">
+    <video *ngIf="viewer.kind === 'video'" [src]="viewer.safeUrl" controls autoplay></video>
   </div>
 </div>

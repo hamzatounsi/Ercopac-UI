@@ -1063,7 +1063,9 @@
       "unableAddLostReason": "Impossible d'ajouter le motif de perte",
       "unableDeleteLostReason": "Impossible de supprimer le motif de perte",
       "unableSaveLostReason": "Impossible d'enregistrer le motif de perte",
-      "weekly": "Hebdomadaire"
+      "weekly": "Hebdomadaire",
+      "commentNotifications": "Notifications de commentaires",
+      "commentNotificationsDesc": "Être notifié quand quelqu'un commente un enregistrement CRM dont vous êtes responsable ou membre."
     }
   },
   "department": {
@@ -2792,7 +2794,8 @@
       "willAttemptAddDefault": "Les jalons par défaut vont être ajoutés. Ceux qui existent déjà seront ignorés. Continuer ?",
       "workingDays": "Jours ouvrés",
       "workingdaysHoursperdayHDay": "{{workingDays}} · {{hoursPerDay}} h/jour · Début {{startTime}}",
-      "zoom": "Zoom :"
+      "zoom": "Zoom :",
+      "noResourceType": "Sans type de ressource"
     },
     "scheduleInit": {
       "additionalProjectNotes": "Notes complémentaires sur le projet",
@@ -4039,7 +4042,9 @@
       "useLeast5Characters": "Utilisez au moins 5 caractères.",
       "whatHappenedWhenWhich": "Ce qui s’est passé, quand, sur quel équipement, et ce que vous avez déjà essayé",
       "year": "Année",
-      "yearMustBetween1900": "L’année doit être comprise entre 1900 et 2100."
+      "yearMustBetween1900": "L’année doit être comprise entre 1900 et 2100.",
+      "invalidEmail": "Saisissez une adresse e-mail valide.",
+      "invalidPhone": "Utilisez uniquement des chiffres, espaces et + ( ) . - /."
     },
     "customers": {
       "active": "Actif",
@@ -4278,7 +4283,18 @@
       "writeMessageSupportTeam": "Écrivez un message à l’équipe support…",
       "writeReplyCustomer": "Écrivez une réponse au client…",
       "year": "Année",
-      "yearMustBetween1900": "L’année doit être comprise entre 1900 et 2100."
+      "yearMustBetween1900": "L’année doit être comprise entre 1900 et 2100.",
+      "deleteTicket": "Supprimer ce ticket",
+      "confirmDelete": "Supprimer le ticket {{number}} avec ses messages et pièces jointes ? Cette action est irréversible.",
+      "deleteFailed": "Le ticket n'a pas pu être supprimé.",
+      "customStatuses": "Statuts personnalisés",
+      "contactPerson": "Personne de contact",
+      "phone": "Téléphone",
+      "contactSaved": "Personne de contact enregistrée",
+      "attachmentCouldNotOpen": "La pièce jointe n'a pas pu être ouverte.",
+      "download": "Télécharger",
+      "videoTooLarge": "Les vidéos sont limitées à 20 Mo.",
+      "fileTooLarge": "Les fichiers sont limités à 10 Mo (vidéos 20 Mo)."
     },
     "h24": {
       "active": "Actif",
@@ -4416,7 +4432,8 @@
       "unfinishedTicketsPastTheir": "Tickets non terminés ayant dépassé leur SLA de résolution",
       "unreadMessages": "Messages non lus",
       "updated": "Mis à jour",
-      "youHaveNoTickets": "Vous n’avez encore aucun ticket."
+      "youHaveNoTickets": "Vous n’avez encore aucun ticket.",
+      "orderNumber": "N° Commessa"
     },
     "notifications": {
       "markAllRead": "Tout marquer comme lu",
@@ -4571,7 +4588,9 @@
       "statuses": "Statuts",
       "system": "Système",
       "tickets": "Tickets",
-      "users": "Utilisateurs"
+      "users": "Utilisateurs",
+      "accounts": "Nouveaux comptes",
+      "categories": "Catégories"
     },
     "priorities": {
       "discardChanges": "Annuler les modifications",
@@ -4623,7 +4642,83 @@
       "statusesCouldNotLoaded": "Impossible de charger les statuts.",
       "statusesCouldNotSaved": "Impossible d’enregistrer les statuts.",
       "statusesSaved": "Statuts enregistrés",
-      "ticketStatuses": "Statuts des tickets"
+      "ticketStatuses": "Statuts des tickets",
+      "customTitle": "Statuts personnalisés",
+      "customSubtitle": "Statuts supplémentaires de votre organisation. Chacun appartient à un statut du cycle de vie, ce qui préserve les SLA et les transitions.",
+      "addCustom": "Ajouter un statut",
+      "noCustom": "Aucun statut personnalisé.",
+      "lifecycle": "Statut du cycle de vie",
+      "confirmDelete": "Supprimer le statut « {{label}} » ?",
+      "confirmDeleteInUse": "« {{label}} » est utilisé par {{count}} ticket(s) ; ils afficheront à nouveau « {{base}} ». Le supprimer ?",
+      "statusDeleted": "Statut supprimé"
+    },
+    "clientDashboard": {
+      "title": "Mon tableau de bord",
+      "subtitle": "Statistiques de vos tickets",
+      "loading": "Chargement de vos statistiques…",
+      "couldNotLoad": "Vos statistiques n'ont pas pu être chargées.",
+      "open": "Ouverts",
+      "inProgress": "En cours",
+      "avgResolution": "Résolution moyenne",
+      "byStatus": "Par statut",
+      "byPriority": "Par priorité",
+      "byCategory": "Par catégorie",
+      "last12Months": "Tickets ouverts (12 derniers mois)",
+      "recent": "Mis à jour récemment"
+    },
+    "categoriesSettings": {
+      "title": "Catégories de tickets",
+      "subtitle": "Les catégories système peuvent être renommées ; les catégories personnalisées peuvent aussi être désactivées ou supprimées.",
+      "loading": "Chargement des catégories…",
+      "couldNotLoad": "Les catégories n'ont pas pu être chargées.",
+      "couldNotSave": "La catégorie n'a pas pu être enregistrée.",
+      "newCategory": "Nom de la nouvelle catégorie",
+      "code": "Code",
+      "tickets": "Tickets",
+      "system": "Système",
+      "systemLocked": "Catégorie système : elle ne peut pas être supprimée",
+      "activate": "Activer",
+      "deactivate": "Désactiver",
+      "confirmDelete": "Supprimer la catégorie « {{label}} » ?",
+      "inUse": "« {{label}} » est utilisée par {{count}} ticket(s). Choisissez la catégorie vers laquelle déplacer ces tickets avant de la supprimer.",
+      "chooseTarget": "Déplacer les tickets vers…",
+      "moveAndDelete": "Déplacer et supprimer",
+      "saved": "Catégorie enregistrée",
+      "deleted": "Catégorie supprimée"
+    },
+    "accounts": {
+      "title": "Nouveaux comptes",
+      "subtitle": "Créez les comptes des nouveaux agents H24, responsables support et techniciens L2 de votre organisation.",
+      "type": "Type de compte",
+      "kindH24": "Agent H24",
+      "kindLead": "Responsable H24",
+      "kindTechnician": "Technicien L2 (employé)",
+      "email": "E-mail",
+      "temporaryPassword": "Mot de passe temporaire",
+      "passwordHint": "Au moins 8 caractères ; la politique de mot de passe de l'organisation s'applique.",
+      "department": "Département",
+      "fillRequired": "Remplissez les champs obligatoires (e-mail valide, mot de passe d'au moins 8 caractères).",
+      "create": "Créer le compte",
+      "creating": "Création…",
+      "createdNow": "Créés pendant cette session",
+      "couldNotCreate": "Le compte n'a pas pu être créé."
+    },
+    "import": {
+      "button": "Importer clients et commandes",
+      "help": "Fichier CSV ou Excel, une ligne par client ou par client + commande. Les commandes doivent dater de 2023 à 2026 ; les clients et commandes existants sont détectés et ignorés.",
+      "chooseFile": "Choisir un fichier…",
+      "rows": "lignes",
+      "preview": "Aperçu (rien n'est encore enregistré)",
+      "done": "Import terminé",
+      "customersCreated": "Nouveaux clients",
+      "customersExisting": "Clients existants",
+      "ordersCreated": "Nouvelles commandes",
+      "duplicates": "Commandes en double",
+      "skipped": "Lignes ignorées",
+      "confirm": "Importer",
+      "noRows": "Le fichier ne contient aucune ligne client ou commande.",
+      "invalidFile": "Le fichier n'a pas pu être lu.",
+      "failed": "L'import a échoué."
     }
   },
   "validation": {
