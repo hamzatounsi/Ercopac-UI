@@ -80,7 +80,7 @@
           (click)="openOrganisation(org)"
         >
           <td>
-            <strong class="org-name">{{ org.name }}</strong>
+            <strong class="org-name">{{ org.name | upperName }}</strong>
             <span class="org-meta">{{ org.code }} · {{ org.domain || ('owner.organisations.noDomain' | translate) }}</span>
           </td>
 

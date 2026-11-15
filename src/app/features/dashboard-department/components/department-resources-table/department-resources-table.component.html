@@ -1,0 +1,231 @@
+<div class="dx-toolbar">
+  <div class="dx-search">
+    <span class="material-symbols-outlined" aria-hidden="true">search</span>
+    <label class="sr-only" for="dept-resource-search">{{ 'department.workspace.resources.search' | translate }}</label>
+    <input id="dept-resource-search" type="search" [value]="table.search" (input)="onSearch($any($event.target).value)"
+           [placeholder]="'department.workspace.resources.searchPlaceholder' | translate" />
+  </div>
+
+  <label>
+    <span class="sr-only">{{ 'department.workspace.filterType' | translate }}</span>
+    <select class="dx-select" [value]="typeFilter" (change)="onTypeFilter($any($event.target).value)">
+      <option value="">{{ 'department.workspace.allTypes' | translate }}</option>
+      <option *ngFor="let type of resourceTypes" [value]="type">{{ type }}</option>
+    </select>
+  </label>
+
+  <label>
+    <span class="sr-only">{{ 'department.workspace.resources.filterKind' | translate }}</span>
+    <select class="dx-select" [value]="kindFilter" (change)="onKindFilter($any($event.target).value)">
+      <option value="">{{ 'department.workspace.resources.allKinds' | translate }}</option>
+      <option value="internal">{{ 'department.workspace.resources.kind.internal' | translate }}</option>
+      <option value="generic">{{ 'department.workspace.resources.kind.generic' | translate }}</option>
+    </select>
+  </label>
+
+  <label>
+    <span class="sr-only">{{ 'department.workspace.resources.filterAvailability' | translate }}</span>
+    <select class="dx-select" [value]="availabilityFilter" (change)="onAvailabilityFilter($any($event.target).value)">
+      <option value="">{{ 'department.workspace.resources.allAvailability' | translate }}</option>
+      <option value="available">{{ 'department.workspace.resources.availability.available' | translate }}</option>
+      <option value="assigned">{{ 'department.workspace.resources.availability.assigned' | translate }}</option>
+      <option value="onLeave">{{ 'department.workspace.resources.availability.onLeave' | translate }}</option>
+    </select>
+  </label>
+
+  <div class="dx-toolbar-end" *ngIf="canManageResources">
+    <a class="dx-btn primary" routerLink="/department/resources">
+      <span class="material-symbols-outlined" aria-hidden="true">manage_accounts</span>{{ 'department.workspace.resources.manage' | translate }}
+    </a>
+  </div>
+</div>
+
+<section class="dx-card" [attr.aria-busy]="loading">
+  <header>
+    <div>
+      <h2>{{ 'department.workspace.resources.title' | translate }}</h2>
+      <p>{{ 'department.workspace.resources.subtitle' | translate: { count: table.totalUnfiltered } }}</p>
+    </div>
+  </header>
+
+  <div *ngIf="loading && !table.totalUnfiltered" class="dx-state" aria-live="polite">
+    <span class="dx-spinner" aria-hidden="true"></span>{{ 'common.loading' | translate }}
+  </div>
+
+  <div class="dx-table-wrap" *ngIf="table.total">
+    <table class="dx-table">
+      <caption class="sr-only">{{ 'department.workspace.resources.title' | translate }}</caption>
+      <thead>
+        <tr>
+          <th scope="col" [attr.aria-sort]="table.ariaSort('name')">
+            <button type="button" (click)="table.setSort('name')">{{ 'department.workspace.resources.col.name' | translate }}
+              <span class="material-symbols-outlined" aria-hidden="true">{{ table.sortIcon('name') }}</span></button>
+          </th>
+          <th scope="col" [attr.aria-sort]="table.ariaSort('type')">
+            <button type="button" (click)="table.setSort('type')">{{ 'department.workspace.col.resourceType' | translate }}
+              <span class="material-symbols-outlined" aria-hidden="true">{{ table.sortIcon('type') }}</span></button>
+          </th>
+          <th scope="col" [attr.aria-sort]="table.ariaSort('kind')">
+            <button type="button" (click)="table.setSort('kind')">{{ 'department.workspace.resources.col.kind' | translate }}
+              <span class="material-symbols-outlined" aria-hidden="true">{{ table.sortIcon('kind') }}</span></button>
+          </th>
+          <th scope="col" [attr.aria-sort]="table.ariaSort('capacity')">
+            <button type="button" (click)="table.setSort('capacity')">{{ 'department.workspace.resources.col.capacity' | translate }}
+              <span class="material-symbols-outlined" aria-hidden="true">{{ table.sortIcon('capacity') }}</span></button>
+          </th>
+          <th scope="col" [attr.aria-sort]="table.ariaSort('assignments')">
+            <button type="button" (click)="table.setSort('assignments')">{{ 'department.workspace.col.assignments' | translate }}
+              <span class="material-symbols-outlined" aria-hidden="true">{{ table.sortIcon('assignments') }}</span></button>
+          </th>
+          <th scope="col" [attr.aria-sort]="table.ariaSort('availability')">
+            <button type="button" (click)="table.setSort('availability')">{{ 'department.workspace.resources.col.thisWeek' | translate }}
+              <span class="material-symbols-outlined" aria-hidden="true">{{ table.sortIcon('availability') }}</span></button>
+          </th>
+          <th scope="col" class="dx-actions-head">{{ 'common.actions' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of table.view; trackBy: trackByMember" class="dx-clickable" (click)="open(row)">
+          <td [attr.data-label]="'department.workspace.resources.col.name' | translate">
+            <div class="dx-identity">
+              <span class="dx-avatar" [class.generic]="row.kind === 'generic'" aria-hidden="true">{{ initials(row.member.fullName) }}</span>
+              <div>
+                <strong [title]="row.member.fullName | upperName">{{ row.member.fullName | upperName }}</strong>
+                <small>{{ row.member.employeeCode || row.member.email || (row.kind === 'generic' ? ('department.workspace.resources.genericHint' | translate) : '') }}</small>
+              </div>
+            </div>
+          </td>
+          <td [attr.data-label]="'department.workspace.col.resourceType' | translate">
+            <span class="dx-chip accent" *ngIf="row.member.resourceType; else noType">{{ row.member.resourceType }}</span>
+            <ng-template #noType><span class="dx-muted">—</span></ng-template>
+          </td>
+          <td [attr.data-label]="'department.workspace.resources.col.kind' | translate">
+            {{ ('department.workspace.resources.kind.' + row.kind) | translate }}
+            <small *ngIf="row.member.seniority">{{ row.member.seniority }}</small>
+          </td>
+          <td [attr.data-label]="'department.workspace.resources.col.capacity' | translate">
+            <ng-container *ngIf="row.hoursPerWeek !== null; else noCapacity">
+              {{ 'department.workspace.resources.hoursPerWeek' | translate: { hours: row.hoursPerWeek } }}
+              <small>{{ 'department.workspace.resources.capacityDetail' | translate: { hours: row.member.hoursPerDay, days: row.member.daysPerWeek } }}</small>
+            </ng-container>
+            <ng-template #noCapacity><span class="dx-muted">—</span></ng-template>
+          </td>
+          <td [attr.data-label]="'department.workspace.col.assignments' | translate">
+            {{ 'department.workspace.openActivities' | translate: { count: row.openAssignments } }}
+            <small>{{ 'department.workspace.resources.thisWeekCount' | translate: { count: row.weekAssignments } }}</small>
+          </td>
+          <td [attr.data-label]="'department.workspace.resources.col.thisWeek' | translate">
+            <span *ngIf="row.availability !== 'none'; else noAvailability" class="dx-status" [ngClass]="availabilityClass(row.availability)">
+              <i aria-hidden="true"></i>{{ ('department.workspace.resources.availability.' + row.availability) | translate }}
+            </span>
+            <ng-template #noAvailability><span class="dx-muted">—</span></ng-template>
+          </td>
+          <td [attr.data-label]="'common.actions' | translate" class="dx-actions">
+            <button type="button" class="dx-icon-btn" (click)="$event.stopPropagation(); open(row)"
+                    [title]="'department.workspace.viewNamed' | translate: { name: (row.member.fullName | upperName) }"
+                    [attr.aria-label]="'department.workspace.viewNamed' | translate: { name: (row.member.fullName | upperName) }">
+              <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="!loading && !table.total" class="dx-empty">
+    <span class="material-symbols-outlined" aria-hidden="true">group_off</span>
+    <ng-container *ngIf="table.hasFilters; else noResources">
+      <strong>{{ 'department.workspace.noMatch' | translate }}</strong>
+      <span>{{ 'department.workspace.noMatchHint' | translate }}</span>
+      <button type="button" (click)="clearFilters()">{{ 'department.workspace.clearFilters' | translate }}</button>
+    </ng-container>
+    <ng-template #noResources>
+      <strong>{{ 'department.workspace.resources.emptyTitle' | translate }}</strong>
+      <span>{{ 'department.workspace.resources.emptyText' | translate }}</span>
+    </ng-template>
+  </div>
+
+  <footer *ngIf="table.total">
+    <span>{{ 'department.workspace.range' | translate: { from: table.rangeStart, to: table.rangeEnd, total: table.total } }}</span>
+    <div class="dx-pager">
+      <label>
+        <span>{{ 'department.workspace.pageSize' | translate }}</span>
+        <select [value]="table.pageSize" (change)="table.setPageSize($any($event.target).value)">
+          <option *ngFor="let size of table.pageSizes" [value]="size">{{ size }}</option>
+        </select>
+      </label>
+      <button type="button" (click)="table.previousPage()" [disabled]="table.page === 0">{{ 'department.workspace.previous' | translate }}</button>
+      <span aria-live="polite">{{ 'department.workspace.pageOf' | translate: { page: table.page + 1, total: table.pageCount } }}</span>
+      <button type="button" (click)="table.nextPage()" [disabled]="table.page + 1 >= table.pageCount">{{ 'department.workspace.next' | translate }}</button>
+    </div>
+  </footer>
+</section>
+
+<ng-container *ngIf="selected as row">
+  <div class="dx-backdrop" (click)="close()" aria-hidden="true"></div>
+  <aside class="dx-drawer" role="dialog" aria-modal="true" aria-labelledby="dept-resource-title">
+    <header>
+      <div>
+        <span class="dx-eyebrow">{{ ('department.workspace.resources.kind.' + row.kind) | translate }}</span>
+        <h2 id="dept-resource-title">{{ row.member.fullName | upperName }}</h2>
+        <p>{{ row.member.email || row.member.employeeCode || '' }}</p>
+      </div>
+      <button type="button" class="dx-icon-btn" (click)="close()" [attr.aria-label]="'common.close' | translate" #closeButton>
+        <span class="material-symbols-outlined" aria-hidden="true">close</span>
+      </button>
+    </header>
+
+    <div class="dx-drawer-body">
+      <dl class="dx-details">
+        <dt>{{ 'department.workspace.col.resourceType' | translate }}</dt>
+        <dd>{{ row.member.resourceType || '—' }}</dd>
+        <dt>{{ 'department.workspace.resources.employeeCode' | translate }}</dt>
+        <dd>{{ row.member.employeeCode || '—' }}</dd>
+        <dt>{{ 'department.workspace.resources.seniority' | translate }}</dt>
+        <dd>{{ row.member.seniority || '—' }}</dd>
+        <dt>{{ 'department.workspace.resources.col.capacity' | translate }}</dt>
+        <dd>
+          <ng-container *ngIf="row.hoursPerWeek !== null; else dash">
+            {{ 'department.workspace.resources.hoursPerWeek' | translate: { hours: row.hoursPerWeek } }}
+            ({{ 'department.workspace.resources.capacityDetail' | translate: { hours: row.member.hoursPerDay, days: row.member.daysPerWeek } }})
+          </ng-container>
+          <ng-template #dash>—</ng-template>
+        </dd>
+        <dt>{{ 'department.workspace.resources.col.thisWeek' | translate }}</dt>
+        <dd>
+          <span *ngIf="row.availability !== 'none'; else dashAvailability" class="dx-status" [ngClass]="availabilityClass(row.availability)">
+            <i aria-hidden="true"></i>{{ ('department.workspace.resources.availability.' + row.availability) | translate }}
+          </span>
+          <ng-template #dashAvailability>—</ng-template>
+        </dd>
+      </dl>
+
+      <h3 class="dx-section-title">{{ 'department.workspace.resources.openActivities' | translate }}</h3>
+      <ul class="dx-list" *ngIf="selectedOpenItems.length; else noItems">
+        <li *ngFor="let item of selectedOpenItems">
+          <strong>{{ item.taskName }}</strong>
+          <small>{{ item.projectCode || item.projectName || '' }} · {{ item.startDate | date: 'mediumDate' }} – {{ item.endDate | date: 'mediumDate' }} · {{ item.progressPercent || 0 }}%</small>
+        </li>
+      </ul>
+      <ng-template #noItems><p class="dx-muted">{{ 'department.workspace.resources.noOpenActivities' | translate }}</p></ng-template>
+
+      <ng-container *ngIf="row.kind === 'internal'">
+        <h3 class="dx-section-title">{{ 'department.workspace.holidays.upcoming' | translate }}</h3>
+        <ul class="dx-list" *ngIf="selectedHolidays.length; else noHolidays">
+          <li *ngFor="let holiday of selectedHolidays">
+            <strong>{{ holiday.fromDate | date: 'mediumDate' }} – {{ holiday.toDate | date: 'mediumDate' }}</strong>
+            <small *ngIf="holiday.note">{{ holiday.note }}</small>
+          </li>
+        </ul>
+        <ng-template #noHolidays><p class="dx-muted">{{ 'department.workspace.holidays.noneUpcoming' | translate }}</p></ng-template>
+      </ng-container>
+    </div>
+
+    <div class="dx-drawer-foot">
+      <button type="button" class="dx-btn" (click)="close()">{{ 'common.close' | translate }}</button>
+      <button type="button" class="dx-btn primary" (click)="close(); showOnTimeline.emit()">
+        <span class="material-symbols-outlined" aria-hidden="true">view_timeline</span>{{ 'department.workspace.resources.showTimeline' | translate }}
+      </button>
+    </div>
+  </aside>
+</ng-container>

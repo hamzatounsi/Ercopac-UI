@@ -1,13 +1,11 @@
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
-import { Observable, Subject, catchError, concatMap, finalize, forkJoin, from, of, takeUntil, toArray } from 'rxjs';
+import { Observable, Subject, finalize, forkJoin, takeUntil } from 'rxjs';
 import {
-  CustomerConfig,
   OrganisationDepartment,
   OrganisationResourceType,
   ProjectCategoryConfig,
   ProjectTypeConfig,
-  SaveCustomerConfig,
   SaveOrganisationResourceType,
   SaveProjectCategoryConfig,
   SaveProjectTypeConfig,
@@ -18,8 +16,9 @@ import { OrgAdminService } from '../../services/org-admin.service';
 import { AdminToastService } from '../../shared/admin-toast.service';
 import { I18nService } from 'src/app/core/i18n/i18n.service';
 
-type ConfigurationTab = 'categories' | 'types' | 'resourceTypes' | 'customers' | 'suppliers';
-type ConfigurationKind = 'category' | 'type' | 'customer' | 'supplier';
+// Customers moved to their own page (Customer Management, /org-admin/customers).
+type ConfigurationTab = 'categories' | 'types' | 'resourceTypes' | 'suppliers';
+type ConfigurationKind = 'category' | 'type' | 'supplier';
 type DialogKind = ConfigurationKind | 'resourceType';
 
 interface DeleteTarget {
@@ -40,7 +39,6 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
   activeTab: ConfigurationTab = 'categories';
   categories: ProjectCategoryConfig[] = [];
   projectTypes: ProjectTypeConfig[] = [];
-  customers: CustomerConfig[] = [];
   suppliers: SupplierConfig[] = [];
   departments: OrganisationDepartment[] = [];
   resourceTypes: OrganisationResourceType[] = [];
@@ -48,47 +46,12 @@ export class OrgAdminResourceConfigurationComponent implements OnInit, OnDestroy
   loading = true;
   saving = false;
   deleting = false;
-  importing = false;
   errorMessage = '';
   dialogKind: DialogKind | null = null;
   editingId: number | null = null;
   deleteTarget: DeleteTarget | null = null;
   supplierResourceTypeDropdownOpen = false;
   supplierResourceTypeSearch = '';
-readonly countries = [
-    'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 
-    'Argentina', 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 
-    'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 
-    'Bolivia', 'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei', 'Bulgaria', 
-    'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cambodia', 'Cameroon', 'Canada', 
-    'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros', 
-    'Congo', 'Costa Rica', 'Croatia', 'Cuba', 'Cyprus', 'Czech Republic', 
-    "Côte d'Ivoire", 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 
-    'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 
-    'Eswatini', 'Ethiopia', 'Fiji', 'Finland', 'France', 'Gabon', 'Gambia', 
-    'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 
-    'Guinea-Bissau', 'Guyana', 'Haiti', 'Honduras', 'Hungary', 'Iceland', 'India', 
-    'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 'Italy', 'Jamaica', 'Japan', 
-    'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati', 'Kuwait', 'Kyrgyzstan', 'Laos', 
-    'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein', 'Lithuania', 
-    'Luxembourg', 'Madagascar', 'Malawi', 'Malaysia', 'Maldives', 'Mali', 'Malta', 
-    'Marshall Islands', 'Mauritania', 'Mauritius', 'Mexico', 'Micronesia', 'Moldova', 
-    'Monaco', 'Mongolia', 'Montenegro', 'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 
-    'Nauru', 'Nepal', 'Netherlands', 'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 
-    'North Korea', 'North Macedonia', 'Norway', 'Oman', 'Pakistan', 'Palau', 
-    'Palestine', 'Panama', 'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines', 
-    'Poland', 'Portugal', 'Qatar', 'Romania', 'Russia', 'Rwanda', 'Saint Kitts and Nevis', 
-    'Saint Lucia', 'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 
-    'Sao Tome and Principe', 'Saudi Arabia', 'Senegal', 'Serbia', 'Seychelles', 
-    'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia', 'Solomon Islands', 'Somalia', 
-    'South Africa', 'South Korea', 'South Sudan', 'Spain', 'Sri Lanka', 'Sudan', 
-    'Suriname', 'Sweden', 'Switzerland', 'Syria', 'Taiwan', 'Tajikistan', 'Tanzania', 
-    'Thailand', 'Timor-Leste', 'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 
-    'Turkey', 'Turkmenistan', 'Tuvalu', 'Uganda', 'Ukraine', 'United Arab Emirates', 
-    'United Kingdom', 'United States', 'Uruguay', 'Uzbekistan', 'Vanuatu', 'Vatican City', 
-    'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe'
-  ];
-
   readonly categoryForm = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
     code: ['', [Validators.required, Validators.pattern(/^[A-Za-z0-9_-]{2,30}$/)]],
@@ -105,20 +68,6 @@ readonly countries = [
     icon: ['description', Validators.maxLength(80)],
     color: ['#0f766e', Validators.pattern(/^#[0-9A-Fa-f]{6}$/)],
     billable: [false],
-    active: [true]
-  });
-
-  readonly customerForm = this.formBuilder.nonNullable.group({
-    customerCode: ['', [Validators.required, Validators.pattern(/^[A-Za-z0-9_-]{2,40}$/)]],
-    name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(150)]],
-    country: ['', Validators.maxLength(80)],
-    town: ['', Validators.maxLength(100)],
-    address: ['', Validators.maxLength(250)],
-    vatTaxId: ['', Validators.maxLength(80)],
-    contactPerson: ['', Validators.maxLength(150)],
-    email: ['', [Validators.email, Validators.maxLength(180)]],
-    phone: ['', Validators.maxLength(50)],
-    erpId: ['', Validators.maxLength(80)],
     active: [true]
   });
 
@@ -175,7 +124,6 @@ readonly countries = [
     forkJoin({
       categories: this.adminService.getCategories(),
       projectTypes: this.adminService.getProjectTypes(),
-      customers: this.adminService.getCustomers(),
       departments: this.adminService.getDepartments(),
       resourceTypes: this.adminService.getResourceTypes(),
       suppliers: this.adminService.getSuppliers()
@@ -186,7 +134,6 @@ readonly countries = [
       next: response => {
         this.categories = response.categories;
         this.projectTypes = response.projectTypes;
-        this.customers = response.customers;
         this.departments = response.departments;
         this.resourceTypes = response.resourceTypes;
         this.suppliers = response.suppliers;
@@ -208,13 +155,6 @@ readonly countries = [
   get filteredProjectTypes(): ProjectTypeConfig[] {
     const query = this.normalizedSearch;
     return this.projectTypes.filter(item => !query || `${item.code} ${item.name} ${item.description || ''}`.toLowerCase().includes(query));
-  }
-
-  get filteredCustomers(): CustomerConfig[] {
-    const query = this.normalizedSearch;
-    return this.customers.filter(item => !query || [
-      item.customerCode, item.name, item.country, item.town, item.contactPerson, item.email, item.erpId
-    ].filter(Boolean).join(' ').toLowerCase().includes(query));
   }
 
   get filteredResourceTypes(): OrganisationResourceType[] {
@@ -377,23 +317,6 @@ readonly countries = [
       billable: item?.billable ?? false, active: item?.active ?? true
     });
   }
-  openCustomer(item?: CustomerConfig): void {
-    this.dialogKind = 'customer';
-    this.editingId = item?.id ?? null;
-    this.customerForm.reset({
-      customerCode: item?.customerCode ?? '', 
-      name: item?.name ?? '', 
-      country: item?.country ?? '', // ✅ Utilisez '' au lieu de null
-      town: item?.town ?? '', 
-      address: item?.address ?? '', 
-      vatTaxId: item?.vatTaxId ?? '',
-      contactPerson: item?.contactPerson ?? '', 
-      email: item?.email ?? '', 
-      phone: item?.phone ?? '',
-      erpId: item?.erpId ?? '', 
-      active: item?.active ?? true
-    });
-  }
   closeDialog(): void {
     if (this.saving) return;
     this.dialogKind = null;
@@ -434,24 +357,7 @@ readonly countries = [
     this.saveConfiguration(this.adminService.saveProjectType(this.editingId, payload), 'type');
   }
 
-  saveCustomer(): void {
-    if (this.customerForm.invalid || this.saving) {
-      this.customerForm.markAllAsTouched();
-      return;
-    }
-    const value = this.customerForm.getRawValue();
-    const payload: SaveCustomerConfig = {
-      customerCode: value.customerCode.trim().toUpperCase(),
-      name: value.name.trim(),
-      country: this.optional(value.country), town: this.optional(value.town),
-      address: this.optional(value.address), vatTaxId: this.optional(value.vatTaxId),
-      contactPerson: this.optional(value.contactPerson), email: this.optional(value.email)?.toLowerCase() ?? null,
-      phone: this.optional(value.phone), erpId: this.optional(value.erpId), active: value.active
-    };
-    this.saveConfiguration(this.adminService.saveCustomer(this.editingId, payload), 'customer');
-  }
-
-  requestDelete(kind: ConfigurationKind, item: ProjectCategoryConfig | ProjectTypeConfig | CustomerConfig | SupplierConfig): void {
+  requestDelete(kind: ConfigurationKind, item: ProjectCategoryConfig | ProjectTypeConfig | SupplierConfig): void {
     this.deleteTarget = {
       kind,
       id: item.id,
@@ -467,16 +373,13 @@ readonly countries = [
       ? this.adminService.deleteCategory(target.id)
       : target.kind === 'type'
         ? this.adminService.deleteProjectType(target.id)
-        : target.kind === 'customer'
-          ? this.adminService.deleteCustomer(target.id)
-          : this.adminService.deactivateSupplier(target.id);
+        : this.adminService.deactivateSupplier(target.id);
 
     this.deleting = true;
     request.pipe(finalize(() => this.deleting = false)).subscribe({
       next: () => {
         if (target.kind === 'category') this.categories = this.categories.filter(item => item.id !== target.id);
         if (target.kind === 'type') this.projectTypes = this.projectTypes.filter(item => item.id !== target.id);
-        if (target.kind === 'customer') this.customers = this.customers.filter(item => item.id !== target.id);
         if (target.kind === 'supplier') this.suppliers = this.suppliers.map(item => item.id === target.id ? { ...item, active: false } : item);
         this.deleteTarget = null;
         this.toast.show(this.i18n.t(`orgAdmin.resourceConfiguration.toast.${target.kind}.${target.kind === 'supplier' ? 'deactivated' : 'deleted'}`), 'success');
@@ -485,69 +388,7 @@ readonly countries = [
     });
   }
 
-  importCustomers(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    input.value = '';
-    if (!file || this.importing) return;
-
-    const reader = new FileReader();
-    reader.onload = () => this.processCustomerCsv(String(reader.result || ''));
-    reader.onerror = () => this.toast.show(this.i18n.t('orgAdmin.resourceConfiguration.readSelectedCsvFile'), 'error');
-    reader.readAsText(file);
-  }
-
-  private processCustomerCsv(text: string): void {
-    const rows = this.parseCustomerCsv(text);
-    if (!rows.length) {
-      this.toast.show(this.i18n.t('orgAdmin.resourceConfiguration.noValidCustomerRows'), 'info');
-      return;
-    }
-
-    let failures = 0;
-    this.importing = true;
-    from(rows).pipe(
-      concatMap(row => {
-        const existing = this.customers.find(item => item.customerCode.toLowerCase() === row.customerCode.toLowerCase());
-        return this.adminService.saveCustomer(existing?.id ?? null, row).pipe(
-          catchError(() => { failures++; return of(null); })
-        );
-      }),
-      toArray(),
-      finalize(() => this.importing = false)
-    ).subscribe(() => {
-      const imported = rows.length - failures;
-      if (imported) this.toast.show(this.i18n.t('orgAdmin.resourceConfiguration.toast.customersImported', { count: imported }), 'success');
-      if (failures) this.toast.show(this.i18n.t('orgAdmin.resourceConfiguration.toast.rowsNotImported', { count: failures }), 'info');
-      this.load();
-    });
-  }
-
-  private parseCustomerCsv(text: string): SaveCustomerConfig[] {
-    const lines = text.split(/\r?\n/).filter(line => line.trim());
-    if (lines.length < 2) return [];
-    const headers = this.csvValues(lines[0])
-      .map(value => value.toLowerCase().replace(/[^a-z0-9_]/g, ''));
-    return lines.slice(1).map(line => {
-      const values = this.csvValues(line);
-      const row = Object.fromEntries(headers.map((header, index) => [header, values[index] || '']));
-      return {
-        customerCode: (row['customercode'] || row['customer_code'] || row['id'] || '').trim().toUpperCase(),
-        name: (row['name'] || row['customer_name'] || '').trim(),
-        country: this.optional(row['country']), town: this.optional(row['town'] || row['city']),
-        address: this.optional(row['address']), vatTaxId: this.optional(row['vattaxid'] || row['vat_tax_id'] || row['vat']),
-        contactPerson: this.optional(row['contactperson'] || row['contact_person'] || row['contact']),
-        email: this.optional(row['email'])?.toLowerCase() ?? null, phone: this.optional(row['phone']),
-        erpId: this.optional(row['erpid'] || row['erp_id']), active: true
-      };
-    }).filter(row => !!row.customerCode && !!row.name);
-  }
-
-  private csvValues(line: string): string[] {
-    return line.split(',').map(value => value.trim().replace(/^"|"$/g, ''));
-  }
-
-  private saveConfiguration<T extends ProjectCategoryConfig | ProjectTypeConfig | CustomerConfig | SupplierConfig>(
+  private saveConfiguration<T extends ProjectCategoryConfig | ProjectTypeConfig | SupplierConfig>(
     request: Observable<T>,
     kind: ConfigurationKind
   ): void {
@@ -557,7 +398,6 @@ readonly countries = [
       next: item => {
         if (kind === 'category') this.categories = this.upsert(this.categories, item as ProjectCategoryConfig);
         if (kind === 'type') this.projectTypes = this.upsert(this.projectTypes, item as ProjectTypeConfig);
-        if (kind === 'customer') this.customers = this.upsert(this.customers, item as CustomerConfig);
         if (kind === 'supplier') this.suppliers = this.upsert(this.suppliers, item as SupplierConfig);
         this.dialogKind = null;
         this.editingId = null;

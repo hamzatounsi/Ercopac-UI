@@ -1199,6 +1199,171 @@
       "totalelementsTotal": "{{totalElements}} au total",
       "type": "Type",
       "workdays": "Jours ouvrés"
+    },
+    "workspace": {
+      "eyebrow": "Mon département",
+      "chief": "Chef",
+      "resourceTypes": "Types de ressource",
+      "refresh": "Actualiser",
+      "tabsLabel": "Sections du département",
+      "tabs": {
+        "resources": "Ressources",
+        "suppliers": "Fournisseurs",
+        "activities": "Activités",
+        "holidays": "Congés"
+      },
+      "kpi": {
+        "label": "Synthèse du département",
+        "resources": "Ressources",
+        "available": "Disponibles cette semaine",
+        "assigned": "Affectées cette semaine",
+        "onLeave": "En congé aujourd'hui · {{count}} à venir",
+        "suppliers": "Fournisseurs",
+        "projects": "Projets · {{count}} activités ouvertes"
+      },
+      "filterType": "Filtrer par type de ressource",
+      "allTypes": "Tous les types de ressource",
+      "col": {
+        "resourceType": "Type de ressource",
+        "assignments": "Affectations"
+      },
+      "openActivities": "{{count}} ouvertes",
+      "viewNamed": "Voir {{name}}",
+      "noMatch": "Aucun résultat pour ces filtres",
+      "noMatchHint": "Essayez une autre recherche ou un autre filtre.",
+      "clearFilters": "Effacer les filtres",
+      "range": "{{from}}–{{to}} sur {{total}}",
+      "pageSize": "Lignes par page",
+      "pageOf": "Page {{page}} sur {{total}}",
+      "previous": "Précédent",
+      "next": "Suivant",
+      "scale": "Échelle du planning",
+      "zoomIn": "Zoom avant",
+      "zoomOut": "Zoom arrière",
+      "back": "Plus tôt",
+      "backLong": "Beaucoup plus tôt",
+      "forward": "Plus tard",
+      "forwardLong": "Beaucoup plus tard",
+      "show": "Afficher sur le planning",
+      "columns": "Colonnes",
+      "resources": {
+        "title": "Ressources du département",
+        "subtitle": "{{count}} lignes · personnes et ressources génériques",
+        "search": "Rechercher des ressources",
+        "searchPlaceholder": "Rechercher par nom, code, e-mail ou type",
+        "filterKind": "Filtrer par nature",
+        "allKinds": "Toutes natures",
+        "filterAvailability": "Filtrer par disponibilité",
+        "allAvailability": "Toute disponibilité",
+        "kind": {
+          "internal": "Ressource interne",
+          "generic": "Ressource générique"
+        },
+        "availability": {
+          "available": "Disponible",
+          "assigned": "Affectée",
+          "onLeave": "En congé"
+        },
+        "col": {
+          "name": "Ressource",
+          "kind": "Nature",
+          "capacity": "Capacité",
+          "thisWeek": "Cette semaine"
+        },
+        "hoursPerWeek": "{{hours}} h / semaine",
+        "capacityDetail": "{{hours}} h × {{days}} jours",
+        "thisWeekCount": "{{count}} cette semaine",
+        "genericHint": "Capacité non nominative de ce type",
+        "manage": "Gérer les ressources",
+        "emptyTitle": "Aucune ressource dans ce département",
+        "emptyText": "Les ressources apparaissent ici dès qu'elles sont rattachées au département.",
+        "employeeCode": "Matricule",
+        "seniority": "Séniorité",
+        "openActivities": "Activités ouvertes",
+        "noOpenActivities": "Aucune activité ouverte.",
+        "showTimeline": "Voir le planning",
+        "viewLabel": "Affichage des ressources",
+        "tableView": "Tableau",
+        "timelineView": "Planning"
+      },
+      "suppliers": {
+        "title": "Fournisseurs du département",
+        "subtitle": "{{count}} fournisseurs actifs liés aux types de ressource du département",
+        "search": "Rechercher des fournisseurs",
+        "searchPlaceholder": "Rechercher par nom, code, pays, contact ou type",
+        "add": "Ajouter un fournisseur",
+        "eyebrow": "Fournisseur",
+        "scopeNote": "Vous gérez les fournisseurs des types de ressource de votre département : {{types}}.",
+        "col": {
+          "supplier": "Fournisseur",
+          "country": "Pays",
+          "contact": "Contact"
+        },
+        "name": "Nom du fournisseur",
+        "nameInvalid": "Saisissez le nom du fournisseur (150 caractères maximum).",
+        "shortCode": "Code court",
+        "website": "Site web",
+        "departments": "Départements",
+        "notes": "Notes",
+        "formIntro": "Les fournisseurs sont partagés dans l'organisation et liés à des types de ressource.",
+        "typesHint": "Choisissez les types de ressource que ce fournisseur fournit à votre département.",
+        "typesRequired": "Sélectionnez au moins un type de ressource.",
+        "lockedTypes": "Également lié à ces types d'autres départements (inchangés) :",
+        "emptyTitle": "Aucun fournisseur pour ce département",
+        "emptyText": "Les fournisseurs liés aux types de ressource du département apparaissent ici.",
+        "deleteTitle": "Supprimer {{name}} ?",
+        "deleteText": "Le fournisseur est désactivé : il disparaît des listes et des sélecteurs, et les affectations existantes le conservent.",
+        "loadError": "Les fournisseurs n'ont pas pu être chargés.",
+        "saveError": "Le fournisseur n'a pas pu être enregistré.",
+        "deleteError": "Le fournisseur n'a pas pu être supprimé.",
+        "toast": {
+          "created": "Fournisseur {{name}} créé.",
+          "updated": "Fournisseur {{name}} mis à jour.",
+          "deleted": "Fournisseur {{name}} supprimé."
+        }
+      },
+      "activities": {
+        "allStatuses": "Tous les statuts de projet",
+        "status": {
+          "ACTIVE": "Actif",
+          "PLANNED": "Planifié",
+          "STANDBY": "En attente",
+          "COMPLETED": "Terminé"
+        }
+      },
+      "holidays": {
+        "title": "Congés",
+        "subtitle": "{{count}} congés dans le département",
+        "search": "Rechercher des congés",
+        "searchPlaceholder": "Rechercher par personne ou note",
+        "filterPeriod": "Filtrer par période",
+        "filterPerson": "Filtrer par personne",
+        "allPeople": "Tout le monde",
+        "period": {
+          "current": "En cours et à venir",
+          "ongoing": "En cours",
+          "upcoming": "À venir",
+          "past": "Passés",
+          "all": "Toutes les périodes"
+        },
+        "col": {
+          "days": "Jours"
+        },
+        "showAll": "Afficher tous les congés",
+        "emptyText": "Les congés planifiés pour les ressources du département apparaissent ici.",
+        "formIntro": "La ressource apparaît indisponible sur le planning pour ces dates.",
+        "dateOrder": "La date de fin ne peut pas précéder la date de début.",
+        "datesRequired": "Saisissez les deux dates.",
+        "deleteNamed": "Supprimer le congé de {{name}}",
+        "deleteTitle": "Supprimer ce congé ?",
+        "deleteText": "{{name}} redeviendra disponible du {{from}} au {{to}}.",
+        "upcoming": "Congés à venir",
+        "noneUpcoming": "Aucun congé à venir.",
+        "toast": {
+          "created": "Congé ajouté pour {{name}}.",
+          "deleted": "Congé de {{name}} supprimé."
+        }
+      }
     }
   },
   "dm": {
@@ -1335,7 +1500,10 @@
     "UNAUTHORIZED": "Votre session a expiré. Veuillez vous reconnecter.",
     "UNKNOWN": "Une erreur inattendue s'est produite.",
     "VALIDATION_ERROR": "Certains champs sont manquants ou invalides.",
-    "preferencesSave": "Votre préférence n'a pas pu être enregistrée. Elle est conservée sur cet appareil et sera enregistrée lors de votre prochaine modification."
+    "preferencesSave": "Votre préférence n'a pas pu être enregistrée. Elle est conservée sur cet appareil et sera enregistrée lors de votre prochaine modification.",
+    "CUSTOMER_NAME_EXISTS": "Un client portant ce nom existe déjà dans votre organisation.",
+    "CUSTOMER_CODE_EXISTS": "Ce code client est déjà utilisé.",
+    "CUSTOMER_IN_USE": "Ce client est encore utilisé par des projets ou des tickets. Désactivez-le plutôt."
   },
   "forbidden": {
     "accessRestricted": "Accès restreint",
@@ -3185,6 +3353,10 @@
       "users": {
         "description": "Créez, affectez et gérez les comptes de votre organisation.",
         "title": "Utilisateurs"
+      },
+      "customers": {
+        "title": "Gestion des clients",
+        "description": "Créez et gérez les clients utilisés par les projets et les tickets."
       }
     },
     "profile": {
@@ -3569,6 +3741,45 @@
       "userCanSignWhile": "L’utilisateur peut se connecter tant que ce paramètre est activé.",
       "userWillAbleSign": "L’utilisateur pourra à nouveau se connecter, dans la limite des licences de l’organisation.",
       "userWillImmediatelyLose": "L’utilisateur perdra immédiatement l’accès lors de la prochaine vérification de son jeton."
+    },
+    "customers": {
+      "searchLabel": "Rechercher des clients",
+      "searchPlaceholder": "Rechercher par nom, code, ville, contact ou e-mail",
+      "filterStatus": "Filtrer par statut",
+      "allStatuses": "Tous les statuts",
+      "count": "{{count}} clients",
+      "countOne": "1 client",
+      "usedIn": "Utilisé dans",
+      "usage": "{{projects}} projets · {{tickets}} tickets",
+      "notUsed": "Pas encore utilisé",
+      "activateNamed": "Activer {{name}}",
+      "deactivateNamed": "Désactiver {{name}}",
+      "emptyFiltered": "Essayez une autre recherche ou un autre statut.",
+      "clearFilters": "Effacer les filtres",
+      "emptyTitle": "Aucun client pour le moment",
+      "range": "{{from}}–{{to}} sur {{total}}",
+      "pageSize": "Lignes par page",
+      "formIntro": "Les clients appartiennent à votre organisation et sont proposés dans les formulaires de projets et de tickets.",
+      "identity": "Identité",
+      "nameInvalid": "Saisissez le nom du client (2 à 150 caractères).",
+      "codeHint": "Laissez vide pour générer un code automatiquement.",
+      "codeInvalid": "Utilisez 2 à 40 lettres, chiffres, tirets ou tirets bas.",
+      "emailInvalid": "Saisissez une adresse e-mail valide.",
+      "activeHint": "Les clients inactifs restent sur les enregistrements existants mais ne sont plus proposés dans les formulaires.",
+      "inUseTitle": "{{name}} ne peut pas être supprimé",
+      "inUseText": "Il est utilisé par {{projects}} projet(s), {{tickets}} ticket(s) et {{records}} enregistrement(s) de ticketing. Désactivez-le plutôt : il reste sur les enregistrements existants mais n'est plus proposé dans les formulaires.",
+      "deactivateInstead": "Désactiver plutôt",
+      "loadError": "Les clients n'ont pas pu être chargés.",
+      "saveError": "Le client n'a pas pu être enregistré.",
+      "deleteError": "Le client n'a pas pu être supprimé.",
+      "statusError": "Le statut du client n'a pas pu être modifié.",
+      "toast": {
+        "created": "Client {{name}} créé.",
+        "updated": "Client {{name}} mis à jour.",
+        "deleted": "Client {{name}} supprimé.",
+        "activated": "Client {{name}} activé.",
+        "deactivated": "Client {{name}} désactivé."
+      }
     }
   },
   "owner": {
@@ -4727,5 +4938,18 @@
     "minLength": "Saisissez au moins {{min}} caractères.",
     "number": "Saisissez un nombre valide.",
     "required": "Ce champ est obligatoire."
+  },
+  "customers": {
+    "select": {
+      "label": "Client",
+      "placeholder": "Rechercher un client…",
+      "none": "Aucun client",
+      "noResults": "Aucun client ne correspond à cette recherche.",
+      "noCustomers": "Aucun client actif. Demandez à l'administrateur de votre organisation d'en ajouter un.",
+      "loading": "Chargement des clients…",
+      "loadError": "Les clients n'ont pas pu être chargés.",
+      "inactive": "Inactif",
+      "clear": "Effacer le client"
+    }
   }
 }

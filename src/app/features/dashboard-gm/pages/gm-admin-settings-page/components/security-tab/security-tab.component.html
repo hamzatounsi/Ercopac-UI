@@ -42,7 +42,7 @@
       <tbody>
         <tr *ngFor="let request of requests">
           <td>
-            <strong>{{ request.fullName }}</strong>
+            <strong>{{ request.fullName | upperName }}</strong>
           </td>
 
           <td>{{ request.email }}</td>

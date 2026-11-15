@@ -1,8 +1,11 @@
+import { AsyncPipe, NgIf } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { AdminToastService } from './admin-toast.service';
 
 @Component({
   selector: 'app-admin-toast',
+  standalone: true,
+  imports: [NgIf, AsyncPipe],
   template: `
     <div
       *ngIf="toastService.toast$ | async as toast"

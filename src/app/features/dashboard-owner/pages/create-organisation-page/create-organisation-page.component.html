@@ -16,7 +16,7 @@
       <div class="form-grid">
         <label>
           {{ 'owner.createOrganisation.organisationName' | translate }}
-          <input type="text" [(ngModel)]="form.organisationName" name="organisationName" required />
+          <input appUppercaseName type="text" [(ngModel)]="form.organisationName" name="organisationName" required />
         </label>
 
         <label>

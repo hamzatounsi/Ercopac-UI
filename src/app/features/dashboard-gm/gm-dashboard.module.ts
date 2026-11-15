@@ -37,6 +37,8 @@ import { ProjectPerformanceComponent } from './pages/project-performance/project
 
 import { MilestoneDashboardComponent } from './pages/milestone-dashboard/milestone-dashboard.component';
 import { TranslateModule } from '@ngx-translate/core';
+import { UppercaseNameDirective, UpperNamePipe } from 'src/app/core/names';
+import { CustomerSelectComponent } from 'src/app/core/customers/customer-select.component';
 
 
 
@@ -74,6 +76,9 @@ import { TranslateModule } from '@ngx-translate/core';
     MilestoneDashboardComponent,
   ],
   imports: [
+    UppercaseNameDirective,
+    UpperNamePipe,
+    CustomerSelectComponent,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,

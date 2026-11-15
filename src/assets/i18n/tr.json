@@ -1199,6 +1199,171 @@
       "totalelementsTotal": "Toplam {{totalElements}}",
       "type": "Tür",
       "workdays": "İş günleri"
+    },
+    "workspace": {
+      "eyebrow": "Departmanım",
+      "chief": "Departman şefi",
+      "resourceTypes": "Kaynak türleri",
+      "refresh": "Yenile",
+      "tabsLabel": "Departman bölümleri",
+      "tabs": {
+        "resources": "Kaynaklar",
+        "suppliers": "Tedarikçiler",
+        "activities": "Aktiviteler",
+        "holidays": "İzinler"
+      },
+      "kpi": {
+        "label": "Departman özeti",
+        "resources": "Kaynaklar",
+        "available": "Bu hafta uygun",
+        "assigned": "Bu hafta atanmış",
+        "onLeave": "Bugün izinde · {{count}} yaklaşan",
+        "suppliers": "Tedarikçiler",
+        "projects": "Projeler · {{count}} açık aktivite"
+      },
+      "filterType": "Kaynak türüne göre filtrele",
+      "allTypes": "Tüm kaynak türleri",
+      "col": {
+        "resourceType": "Kaynak türü",
+        "assignments": "Atamalar"
+      },
+      "openActivities": "{{count}} açık",
+      "viewNamed": "{{name}} görüntüle",
+      "noMatch": "Bu filtrelerle eşleşen sonuç yok",
+      "noMatchHint": "Başka bir arama veya filtre deneyin.",
+      "clearFilters": "Filtreleri temizle",
+      "range": "{{from}}–{{to}} / {{total}}",
+      "pageSize": "Sayfa başına satır",
+      "pageOf": "Sayfa {{page}} / {{total}}",
+      "previous": "Önceki",
+      "next": "Sonraki",
+      "scale": "Zaman ölçeği",
+      "zoomIn": "Yakınlaştır",
+      "zoomOut": "Uzaklaştır",
+      "back": "Daha önce",
+      "backLong": "Çok daha önce",
+      "forward": "Daha sonra",
+      "forwardLong": "Çok daha sonra",
+      "show": "Zaman çizelgesinde göster",
+      "columns": "Sütunlar",
+      "resources": {
+        "title": "Departman kaynakları",
+        "subtitle": "{{count}} satır · kişiler ve genel kaynaklar",
+        "search": "Kaynak ara",
+        "searchPlaceholder": "Ad, kod, e-posta veya türe göre ara",
+        "filterKind": "Niteliğe göre filtrele",
+        "allKinds": "Tüm nitelikler",
+        "filterAvailability": "Uygunluğa göre filtrele",
+        "allAvailability": "Her uygunluk",
+        "kind": {
+          "internal": "İç kaynak",
+          "generic": "Genel kaynak"
+        },
+        "availability": {
+          "available": "Uygun",
+          "assigned": "Atanmış",
+          "onLeave": "İzinde"
+        },
+        "col": {
+          "name": "Kaynak",
+          "kind": "Nitelik",
+          "capacity": "Kapasite",
+          "thisWeek": "Bu hafta"
+        },
+        "hoursPerWeek": "{{hours}} sa / hafta",
+        "capacityDetail": "{{hours}} sa × {{days}} gün",
+        "thisWeekCount": "Bu hafta {{count}}",
+        "genericHint": "Bu türün isimsiz kapasitesi",
+        "manage": "Kaynakları yönet",
+        "emptyTitle": "Bu departmanda kaynak yok",
+        "emptyText": "Kaynaklar departmana atandıklarında burada görünür.",
+        "employeeCode": "Personel kodu",
+        "seniority": "Kıdem",
+        "openActivities": "Açık aktiviteler",
+        "noOpenActivities": "Açık aktivite yok.",
+        "showTimeline": "Zaman çizelgesini göster",
+        "viewLabel": "Kaynak görünümü",
+        "tableView": "Tablo",
+        "timelineView": "Zaman çizelgesi"
+      },
+      "suppliers": {
+        "title": "Departman tedarikçileri",
+        "subtitle": "Departmanın kaynak türlerine bağlı {{count}} etkin tedarikçi",
+        "search": "Tedarikçi ara",
+        "searchPlaceholder": "Ad, kod, ülke, ilgili kişi veya türe göre ara",
+        "add": "Tedarikçi ekle",
+        "eyebrow": "Tedarikçi",
+        "scopeNote": "Departmanınızın kaynak türlerine ait tedarikçileri yönetirsiniz: {{types}}.",
+        "col": {
+          "supplier": "Tedarikçi",
+          "country": "Ülke",
+          "contact": "İlgili kişi"
+        },
+        "name": "Tedarikçi adı",
+        "nameInvalid": "Tedarikçi adını girin (en fazla 150 karakter).",
+        "shortCode": "Kısa kod",
+        "website": "Web sitesi",
+        "departments": "Departmanlar",
+        "notes": "Notlar",
+        "formIntro": "Tedarikçiler kuruluş genelinde paylaşılır ve kaynak türlerine bağlanır.",
+        "typesHint": "Bu tedarikçinin departmanınıza sağladığı kaynak türlerini seçin.",
+        "typesRequired": "En az bir kaynak türü seçin.",
+        "lockedTypes": "Diğer departmanların şu türlerine de bağlı (değiştirilmez):",
+        "emptyTitle": "Bu departman için tedarikçi yok",
+        "emptyText": "Departmanın kaynak türlerine bağlı tedarikçiler burada görünür.",
+        "deleteTitle": "{{name}} silinsin mi?",
+        "deleteText": "Tedarikçi devre dışı bırakılır: listelerden ve seçicilerden kaybolur, mevcut atamalar onu korur.",
+        "loadError": "Tedarikçiler yüklenemedi.",
+        "saveError": "Tedarikçi kaydedilemedi.",
+        "deleteError": "Tedarikçi silinemedi.",
+        "toast": {
+          "created": "{{name}} tedarikçisi oluşturuldu.",
+          "updated": "{{name}} tedarikçisi güncellendi.",
+          "deleted": "{{name}} tedarikçisi silindi."
+        }
+      },
+      "activities": {
+        "allStatuses": "Tüm proje durumları",
+        "status": {
+          "ACTIVE": "Etkin",
+          "PLANNED": "Planlandı",
+          "STANDBY": "Beklemede",
+          "COMPLETED": "Tamamlandı"
+        }
+      },
+      "holidays": {
+        "title": "İzinler",
+        "subtitle": "Departmanda {{count}} izin",
+        "search": "İzin ara",
+        "searchPlaceholder": "Kişi veya nota göre ara",
+        "filterPeriod": "Döneme göre filtrele",
+        "filterPerson": "Kişiye göre filtrele",
+        "allPeople": "Herkes",
+        "period": {
+          "current": "Süren ve yaklaşan",
+          "ongoing": "Süren",
+          "upcoming": "Yaklaşan",
+          "past": "Geçmiş",
+          "all": "Tüm dönemler"
+        },
+        "col": {
+          "days": "Gün"
+        },
+        "showAll": "Tüm izinleri göster",
+        "emptyText": "Departman kaynakları için planlanan izinler burada görünür.",
+        "formIntro": "Kaynak bu tarihlerde zaman çizelgesinde müsait değil olarak gösterilir.",
+        "dateOrder": "Bitiş tarihi başlangıç tarihinden önce olamaz.",
+        "datesRequired": "Her iki tarihi de girin.",
+        "deleteNamed": "{{name}} iznini sil",
+        "deleteTitle": "Bu izin silinsin mi?",
+        "deleteText": "{{name}}, {{from}} – {{to}} arasında yeniden müsait olacak.",
+        "upcoming": "Yaklaşan izinler",
+        "noneUpcoming": "Yaklaşan izin yok.",
+        "toast": {
+          "created": "{{name}} için izin eklendi.",
+          "deleted": "{{name}} izni silindi."
+        }
+      }
     }
   },
   "dm": {
@@ -1335,7 +1500,10 @@
     "UNAUTHORIZED": "Oturumunuzun süresi doldu. Lütfen tekrar giriş yapın.",
     "UNKNOWN": "Beklenmeyen bir hata oluştu.",
     "VALIDATION_ERROR": "Bazı alanlar eksik veya geçersiz.",
-    "preferencesSave": "Tercihiniz kaydedilemedi. Bu cihazda tutuluyor ve bir sonraki değişikliğinizle kaydedilecek."
+    "preferencesSave": "Tercihiniz kaydedilemedi. Bu cihazda tutuluyor ve bir sonraki değişikliğinizle kaydedilecek.",
+    "CUSTOMER_NAME_EXISTS": "Kuruluşunuzda bu ada sahip bir müşteri zaten var.",
+    "CUSTOMER_CODE_EXISTS": "Bu müşteri kodu zaten kullanılıyor.",
+    "CUSTOMER_IN_USE": "Bu müşteri hâlâ projeler veya talepler tarafından kullanılıyor. Bunun yerine devre dışı bırakın."
   },
   "forbidden": {
     "accessRestricted": "Erişim kısıtlı",
@@ -3185,6 +3353,10 @@
       "users": {
         "description": "Kuruluşunuzdaki hesapları oluşturun, atayın ve yönetin.",
         "title": "Kullanıcılar"
+      },
+      "customers": {
+        "title": "Müşteri Yönetimi",
+        "description": "Projeler ve talepler tarafından kullanılan müşterileri oluşturun ve yönetin."
       }
     },
     "profile": {
@@ -3569,6 +3741,45 @@
       "userCanSignWhile": "Bu ayar etkin olduğu sürece kullanıcı giriş yapabilir.",
       "userWillAbleSign": "Kullanıcı, kuruluş lisans sınırlarına bağlı olarak yeniden giriş yapabilecek.",
       "userWillImmediatelyLose": "Mevcut belirteci yeniden denetlendiğinde kullanıcı erişimini hemen kaybedecek."
+    },
+    "customers": {
+      "searchLabel": "Müşteri ara",
+      "searchPlaceholder": "Ad, kod, şehir, ilgili kişi veya e-postaya göre ara",
+      "filterStatus": "Duruma göre filtrele",
+      "allStatuses": "Tüm durumlar",
+      "count": "{{count}} müşteri",
+      "countOne": "1 müşteri",
+      "usedIn": "Kullanıldığı yer",
+      "usage": "{{projects}} proje · {{tickets}} talep",
+      "notUsed": "Henüz kullanılmadı",
+      "activateNamed": "{{name}} etkinleştir",
+      "deactivateNamed": "{{name}} devre dışı bırak",
+      "emptyFiltered": "Başka bir arama veya durum deneyin.",
+      "clearFilters": "Filtreleri temizle",
+      "emptyTitle": "Henüz müşteri yok",
+      "range": "{{from}}–{{to}} / {{total}}",
+      "pageSize": "Sayfa başına satır",
+      "formIntro": "Müşteriler kuruluşunuza aittir ve proje ile talep formlarında sunulur.",
+      "identity": "Kimlik",
+      "nameInvalid": "Müşteri adını girin (2 ila 150 karakter).",
+      "codeHint": "Otomatik kod oluşturmak için boş bırakın.",
+      "codeInvalid": "2 ila 40 harf, rakam, kısa çizgi veya alt çizgi kullanın.",
+      "emailInvalid": "Geçerli bir e-posta adresi girin.",
+      "activeHint": "Pasif müşteriler mevcut kayıtlarda kalır ancak formlarda artık sunulmaz.",
+      "inUseTitle": "{{name}} silinemez",
+      "inUseText": "{{projects}} proje, {{tickets}} talep ve {{records}} talep kaydı tarafından kullanılıyor. Bunun yerine devre dışı bırakın: mevcut kayıtlarda kalır ancak formlarda artık sunulmaz.",
+      "deactivateInstead": "Bunun yerine devre dışı bırak",
+      "loadError": "Müşteriler yüklenemedi.",
+      "saveError": "Müşteri kaydedilemedi.",
+      "deleteError": "Müşteri silinemedi.",
+      "statusError": "Müşteri durumu değiştirilemedi.",
+      "toast": {
+        "created": "{{name}} müşterisi oluşturuldu.",
+        "updated": "{{name}} müşterisi güncellendi.",
+        "deleted": "{{name}} müşterisi silindi.",
+        "activated": "{{name}} müşterisi etkinleştirildi.",
+        "deactivated": "{{name}} müşterisi devre dışı bırakıldı."
+      }
     }
   },
   "owner": {
@@ -4727,5 +4938,18 @@
     "minLength": "En az {{min}} karakter girin.",
     "number": "Geçerli bir sayı girin.",
     "required": "Bu alan zorunludur."
+  },
+  "customers": {
+    "select": {
+      "label": "Müşteri",
+      "placeholder": "Müşteri ara…",
+      "none": "Müşteri yok",
+      "noResults": "Bu aramayla eşleşen müşteri yok.",
+      "noCustomers": "Etkin müşteri yok. Kuruluş yöneticinizden bir müşteri eklemesini isteyin.",
+      "loading": "Müşteriler yükleniyor…",
+      "loadError": "Müşteriler yüklenemedi.",
+      "inactive": "Pasif",
+      "clear": "Müşteriyi temizle"
+    }
   }
 }

@@ -19,7 +19,7 @@
       <thead><tr><th><button type="button" (click)="setSort('fullName')">{{ 'common.user' | translate }} <span *ngIf="sort === 'fullName'">{{ direction === 'asc' ? '↑' : '↓' }}</span></button></th><th><button type="button" (click)="setSort('role')">{{ 'orgAdmin.users.role' | translate }} <span *ngIf="sort === 'role'">{{ direction === 'asc' ? '↑' : '↓' }}</span></button></th><th>{{ 'orgAdmin.users.department' | translate }}</th><th>{{ 'orgAdmin.users.employeeCode' | translate }}</th><th><button type="button" (click)="setSort('active')">{{ 'common.status' | translate }} <span *ngIf="sort === 'active'">{{ direction === 'asc' ? '↑' : '↓' }}</span></button></th><th class="actions-heading">{{ 'common.actions' | translate }}</th></tr></thead>
       <tbody>
         <tr *ngFor="let user of users; trackBy: trackUser">
-          <td [attr.data-label]="'common.user' | translate"><div class="user-cell"><span class="avatar" aria-hidden="true">{{ user.fullName.charAt(0) | uppercase }}</span><div><strong>{{ user.fullName }}</strong><span>{{ user.email }}</span></div></div></td>
+          <td [attr.data-label]="'common.user' | translate"><div class="user-cell"><span class="avatar" aria-hidden="true">{{ user.fullName.charAt(0) | uppercase }}</span><div><strong>{{ user.fullName | upperName }}</strong><span>{{ user.email }}</span></div></div></td>
           <td [attr.data-label]="'orgAdmin.users.roles' | translate"><span *ngFor="let role of user.roles" class="role-badge" [class.admin]="role === 'ORG_ADMIN'" [class.sales-manager]="role === 'SALES_MANAGER'" [class.client]="role === 'CLIENT'">{{ roleLabel(role) }}</span><small *ngIf="user.jobTitle">{{ user.jobTitle }}</small></td>
           <td [attr.data-label]="'orgAdmin.users.department' | translate"><strong class="department">{{ user.departmentName || ('orgAdmin.users.unassigned' | translate) }}</strong><span class="muted">{{ user.departmentCode || '—' }}</span></td>
           <td [attr.data-label]="'orgAdmin.users.employeeCode' | translate">{{ user.employeeCode || '—' }}</td>
@@ -48,7 +48,7 @@
     <div class="form-error" *ngIf="formError" role="alert">{{ formError }}</div>
 
     <fieldset><legend>{{ 'orgAdmin.users.identity' | translate }}</legend>
-      <div class="field"><label for="user-full-name">{{ 'orgAdmin.users.fullName' | translate }} <b>*</b></label><input id="user-full-name" formControlName="fullName" autocomplete="name" /><small *ngIf="userForm.controls.fullName.touched && userForm.controls.fullName.invalid">{{ 'orgAdmin.users.fullNameRequired' | translate }}</small></div>
+      <div class="field"><label for="user-full-name">{{ 'orgAdmin.users.fullName' | translate }} <b>*</b></label><input appUppercaseName id="user-full-name" formControlName="fullName" autocomplete="name" /><small *ngIf="userForm.controls.fullName.touched && userForm.controls.fullName.invalid">{{ 'orgAdmin.users.fullNameRequired' | translate }}</small></div>
       <div class="field"><label for="user-email">{{ 'orgAdmin.users.emailAddress' | translate }} <b>*</b></label><input id="user-email" formControlName="email" type="email" autocomplete="email" /><small *ngIf="userForm.controls.email.touched && userForm.controls.email.invalid">{{ 'orgAdmin.users.enterValidEmailAddress' | translate }}</small></div>
       
       <!-- Champ mot de passe pour la CRÉATION -->
@@ -98,7 +98,7 @@
 <div class="modal-backdrop" *ngIf="pendingStatusUser as user">
   <section class="confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="status-confirm-title">
     <span class="confirm-icon material-symbols-outlined" aria-hidden="true">{{ user.active ? 'person_off' : 'person_check' }}</span>
-    <h2 id="status-confirm-title">{{ user.active ? ('orgAdmin.users.deactivate' | translate) : ('orgAdmin.users.activate' | translate) }} {{ user.fullName }}?</h2>
+    <h2 id="status-confirm-title">{{ user.active ? ('orgAdmin.users.deactivate' | translate) : ('orgAdmin.users.activate' | translate) }} {{ user.fullName | upperName }}?</h2>
     <p>{{ user.active ? ('orgAdmin.users.userWillImmediatelyLose' | translate) : ('orgAdmin.users.userWillAbleSign' | translate) }}</p>
     <div><button type="button" class="secondary" (click)="pendingStatusUser = null" [disabled]="saving">{{ 'common.cancel' | translate }}</button><button type="button" [class.danger]="user.active" [class.primary]="!user.active" (click)="confirmStatusChange()" [disabled]="saving">{{ saving ? ('orgAdmin.users.updating' | translate) : (user.active ? ('orgAdmin.users.deactivateUser' | translate) : ('orgAdmin.users.activateUser' | translate)) }}</button></div>
   </section>

@@ -29,7 +29,7 @@
       >
         <span class="status-dot" [class.trial]="org.status === 'TRIAL'" [class.suspended]="org.status === 'SUSPENDED'"></span>
         <span>
-          <strong>{{ org.name }}</strong>
+          <strong>{{ org.name | upperName }}</strong>
           <small>{{ org.plan }}</small>
         </span>
       </button>
@@ -56,7 +56,7 @@
         <div class="org-avatar">{{ orgInitials(selectedOrganisation) }}</div>
 
         <div>
-          <h2>{{ selectedOrganisation.name }}</h2>
+          <h2>{{ selectedOrganisation.name | upperName }}</h2>
           <p>{{ selectedOrganisation.code }} · {{ selectedOrganisation.plan }} · {{ 'common.orgStatus.' + selectedOrganisation.status | translate }}</p>
         </div>
 

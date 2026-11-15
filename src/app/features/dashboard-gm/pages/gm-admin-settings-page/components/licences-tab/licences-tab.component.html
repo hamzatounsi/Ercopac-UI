@@ -36,7 +36,7 @@
         <div class="lic-chips">
           <span class="lic-empty-chips" *ngIf="assignedForRole(role.key).length === 0">{{ 'gm.licencesTab.noActiveLabelUsers' | translate: { label: ('roles.' + role.key | translate) } }}</span>
           <span class="lic-chip" *ngFor="let item of assignedForRole(role.key)">
-            <span>{{ item.fullName }}</span>
+            <span>{{ item.fullName | upperName }}</span>
             <span class="lic-chip-dept" *ngIf="item.departmentCode">{{ item.departmentCode }}</span>
             <button type="button" class="lic-chip-del" [title]="'gm.licencesTab.returnEmployee' | translate" (click)="removeLicence(item.userId)">×</button>
           </span>
@@ -45,7 +45,7 @@
           <select class="sel assign-select" (change)="assignLicence(role, $event)">
             <option value="">{{ 'gm.licencesTab.changeActiveOrganisationUser' | translate }}</option>
             <option *ngFor="let candidate of availableCandidates()" [value]="candidate.userId">
-              {{ candidate.fullName }} · {{ candidate.role }}
+              {{ candidate.fullName | upperName }} · {{ candidate.role }}
             </option>
           </select>
         </div>

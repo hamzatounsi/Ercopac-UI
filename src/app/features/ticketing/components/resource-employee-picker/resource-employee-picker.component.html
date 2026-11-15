@@ -8,7 +8,7 @@
           [disabled]="disabled || !typeId || loadingEmployees" [attr.aria-label]="'ticketing.picker.employee' | translate">
     <option [ngValue]="null">{{ employeeHint }}</option>
     <option *ngIf="missing" [ngValue]="selectedId">{{ employeeName || ('ticketing.picker.currentSelection' | translate) }}</option>
-    <option *ngFor="let e of available" [ngValue]="e.id">{{ e.fullName }}<ng-container *ngIf="e.specialization"> · {{ e.specialization }}</ng-container></option>
+    <option *ngFor="let e of available" [ngValue]="e.id">{{ e.fullName | upperName }}<ng-container *ngIf="e.specialization"> · {{ e.specialization }}</ng-container></option>
   </select>
   <small class="field-error" *ngIf="typesError || employeesError">
     {{ typesError || employeesError }} <button type="button" class="rep-retry" (click)="retry()">{{ 'common.retry' | translate }}</button>

@@ -20,12 +20,34 @@ import { DepartmentTimelineColumn } from '../../models/department-timeline-colum
 import { DepartmentTimelineItem } from '../../models/department-timeline-item.model';
 import { DepartmentActivityRow } from '../../models/department-activity-row.model';
 import { DepartmentWeeklyStat } from '../../models/department-weekly-stat.model';
-import { CreateDepartmentHolidayRequest } from '../../models/create-department-holiday-request.model';
 import { MyDepartmentResponse } from '../../models/my-department-response.model';
+import { DepartmentContext } from '../../models/department-context.model';
+import { DepartmentSupplier } from '../../models/department-supplier.model';
 import { MyDepartmentService } from '../../service/my-department.service';
 import { I18nService } from 'src/app/core/i18n/i18n.service';
+import { AuthService } from 'src/app/core/auth/auth.service';
+import { DepartmentHolidaysPanelComponent } from '../../components/department-holidays-panel/department-holidays-panel.component';
+import { currentWeek, overlaps, todayIso } from '../../utils/department-dates';
 
 type MainView = 'resource' | 'projects';
+export type WorkspaceTab = 'resources' | 'suppliers' | 'activities' | 'holidays';
+type ResourceView = 'table' | 'timeline';
+
+/** Headline figures of the department, computed from the overview and the supplier list. */
+export interface DepartmentKpis {
+  resources: number;
+  assigned: number;
+  available: number;
+  onLeave: number;
+  suppliers: number;
+  projects: number;
+  openActivities: number;
+  upcomingHolidays: number;
+}
+
+/** Overview member ids of suppliers are -1_000_000 - supplierId (see DepartmentDashboardService). */
+const SUPPLIER_MEMBER_OFFSET = -1_000_000;
+const GENERIC_POOL_ID = -999_999;
 type TimelineView = 'day' | 'week';
 type TaskBarLabelMode = 'full' | 'medium' | 'external';
 
@@ -104,11 +126,20 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
   span = 52;
   colWidth = 72;
 
-  holidayModalOpen = false;
-  holidayMemberId: number | null = null;
-  holidayFrom = '';
-  holidayTo = '';
-  holidayNote = '';
+  readonly tabs: WorkspaceTab[] = ['resources', 'suppliers', 'activities', 'holidays'];
+  activeTab: WorkspaceTab = 'resources';
+  resourceView: ResourceView = 'table';
+
+  context: DepartmentContext | null = null;
+  suppliers: DepartmentSupplier[] = [];
+  suppliersLoading = false;
+  suppliersError = '';
+  kpis: DepartmentKpis | null = null;
+  supplierAssignmentCounts: Record<number, number> = {};
+  /** Manager whose context and suppliers are loaded (undefined: none yet). */
+  private workspaceManagerId: number | null | undefined = undefined;
+
+  @ViewChild(DepartmentHolidaysPanelComponent) private holidaysPanel?: DepartmentHolidaysPanelComponent;
 
   overview: DepartmentOverview | null = null;
 
@@ -191,7 +222,8 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
   private myDepartmentService: MyDepartmentService,
   private sanitizer: DomSanitizer,
   private router: Router,
-  private i18n: I18nService
+  private i18n: I18nService,
+  private authService: AuthService
   ) {}
 
   // Under /gm the layout header already shows the navigation buttons
@@ -245,13 +277,6 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
 
   get weeklyStats(): DepartmentWeeklyStat[] {
     return this.overview?.weeklyStats ?? [];
-  }
-
-  get holidayListForSelectedMember(): DepartmentHoliday[] {
-    if (!this.holidayMemberId) {
-      return [];
-    }
-    return this.holidays.filter((h: DepartmentHoliday) => h.memberId === this.holidayMemberId);
   }
 
   get rangeLabel(): string {
@@ -505,7 +530,7 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
       .subscribe({
         next: (response: MyDepartmentResponse) => {
           this.overview = response.overview;
-          this.syncHolidayMemberSelection();
+          this.afterOverviewLoaded(null);
           this.loadProjectOptions();
           this.renderActivityView();
 
@@ -529,6 +554,10 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
 
     if (!this.selectedManagerId) {
       this.overview = null;
+      this.context = null;
+      this.suppliers = [];
+      this.kpis = null;
+      this.workspaceManagerId = undefined;
       this.renderActivityView();
       return;
     }
@@ -556,7 +585,7 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
       .subscribe({
         next: (response: MyDepartmentResponse) => {
           this.overview = response.overview;
-          this.syncHolidayMemberSelection();
+          this.afterOverviewLoaded(this.selectedManagerId);
           this.loadProjectOptions();
           this.renderActivityView();
 
@@ -646,58 +675,189 @@ export class MyDepartmentPageComponent implements OnInit, AfterViewInit {
     this.loadOverview();
   }
 
-  openHolidayModal(): void {
-    if (!this.members.length) {
-      return;
-    }
+  // ================================================================== workspace (header, KPIs, tabs)
 
-    this.holidayModalOpen = true;
-    this.syncHolidayMemberSelection();
-
-    const today = new Date().toISOString().slice(0, 10);
-    this.holidayFrom = today;
-    this.holidayTo = today;
-    this.holidayNote = '';
+  get departmentTitle(): string {
+    return this.context?.departmentLabel || this.selectedDepartmentCode;
   }
 
-  closeHolidayModal(): void {
-    this.holidayModalOpen = false;
+  /** Real people of the department (no supplier rows, no generic placeholders). */
+  get people(): DepartmentMember[] {
+    return this.members.filter(member => this.isPerson(member));
   }
 
-  addHoliday(): void {
-    if (!this.holidayMemberId || !this.holidayFrom || !this.holidayTo) {
-      return;
-    }
-
-    const payload: CreateDepartmentHolidayRequest = {
-      memberId: this.holidayMemberId,
-      fromDate: this.holidayFrom,
-      toDate: this.holidayTo,
-      note: this.holidayNote?.trim() || null
+  get tabCounts(): Record<WorkspaceTab, number | null> {
+    return {
+      resources: this.kpis?.resources ?? null,
+      suppliers: this.context ? this.suppliers.length : null,
+      activities: this.kpis?.openActivities ?? null,
+      holidays: this.kpis?.upcomingHolidays ?? null
     };
+  }
 
-    this.myDepartmentService.createHoliday(payload).subscribe({
-      next: () => {
-        this.closeHolidayModal();
-        this.loadOverview();
+  selectTab(tab: WorkspaceTab): void {
+    if (this.activeTab === tab) {
+      return;
+    }
+    this.activeTab = tab;
+    if (tab === 'activities') {
+      this.setMainView('projects');
+    } else if (tab === 'resources' && this.resourceView === 'timeline') {
+      this.setMainView('resource');
+    }
+  }
+
+  /** Arrow keys, Home and End move between tabs (WAI-ARIA tabs pattern). */
+  onTabKeydown(event: KeyboardEvent, index: number): void {
+    const last = this.tabs.length - 1;
+    const keys: Record<string, number> = {
+      ArrowRight: index === last ? 0 : index + 1,
+      ArrowLeft: index === 0 ? last : index - 1,
+      Home: 0,
+      End: last
+    };
+    if (!(event.key in keys)) {
+      return;
+    }
+    event.preventDefault();
+    const next = this.tabs[keys[event.key]];
+    this.selectTab(next);
+    setTimeout(() => document.getElementById('dept-tab-' + next)?.focus());
+  }
+
+  setResourceView(view: ResourceView): void {
+    if (this.resourceView === view) {
+      return;
+    }
+    this.resourceView = view;
+    if (view === 'timeline') {
+      // Re-sync the timeline scroll bars now that it is visible again.
+      this.mainView = 'projects';
+      this.setMainView('resource');
+    }
+  }
+
+  /** Timeline "Add holiday" opens the form of the Holidays tab. */
+  openHolidayForm(): void {
+    this.selectTab('holidays');
+    setTimeout(() => this.holidaysPanel?.openCreate());
+  }
+
+  refresh(): void {
+    this.workspaceManagerId = undefined;
+    this.loadOverview();
+  }
+
+  onHolidaysChanged(): void {
+    this.loadOverview();
+  }
+
+  onSuppliersChanged(): void {
+    this.loadSuppliers(this.workspaceManagerParam);
+    this.loadOverview();
+  }
+
+  retrySuppliers(): void {
+    this.loadSuppliers(this.workspaceManagerParam);
+  }
+
+  private get workspaceManagerParam(): number | null {
+    return this.isDepartmentManager ? null : this.selectedManagerId;
+  }
+
+  private afterOverviewLoaded(managerId: number | null): void {
+    if (this.workspaceManagerId !== managerId) {
+      this.workspaceManagerId = managerId;
+      this.loadContext(managerId);
+      this.loadSuppliers(managerId);
+    }
+    this.computeKpis();
+  }
+
+  private loadContext(managerId: number | null): void {
+    this.myDepartmentService.getContext(managerId).subscribe({
+      next: context => {
+        this.context = context;
       },
       error: () => {
-        this.error = this.i18n.t('department.my.failedAddHoliday');
+        // Header falls back to the department code; actions stay hidden without permissions.
+        this.context = null;
       }
     });
   }
 
-  deleteHoliday(holidayId: number): void {
-    this.myDepartmentService.deleteHoliday(holidayId).subscribe({
-      next: () => this.loadOverview(),
-      error: () => {
-        this.error = this.i18n.t('department.my.failedDeleteHoliday');
-      }
-    });
+  private loadSuppliers(managerId: number | null): void {
+    this.suppliersLoading = true;
+    this.suppliersError = '';
+    this.myDepartmentService.getSuppliers(managerId)
+      .pipe(finalize(() => (this.suppliersLoading = false)))
+      .subscribe({
+        next: suppliers => {
+          this.suppliers = suppliers ?? [];
+          this.computeKpis();
+        },
+        error: err => {
+          this.suppliers = [];
+          this.suppliersError = this.i18n.error(err, 'department.workspace.suppliers.loadError');
+          this.computeKpis();
+        }
+      });
   }
 
-  onHolidayMemberChange(value: string): void {
-    this.holidayMemberId = value ? Number(value) : null;
+  private computeKpis(): void {
+    if (!this.overview) {
+      this.kpis = null;
+      this.supplierAssignmentCounts = {};
+      return;
+    }
+    const today = todayIso();
+    const week = currentWeek();
+    const in30Days = new Date();
+    in30Days.setDate(in30Days.getDate() + 30);
+    const horizon = in30Days.toISOString().slice(0, 10);
+
+    let assigned = 0;
+    let onLeave = 0;
+    const counts: Record<number, number> = {};
+
+    for (const row of this.overview.resourceRows ?? []) {
+      const activities = (row.items ?? []).filter(item => !item.holiday);
+      if (row.member.role === 'SUPPLIER') {
+        const supplierId = SUPPLIER_MEMBER_OFFSET - row.member.id;
+        counts[supplierId] = activities.filter(item => (item.endDate || item.startDate) >= today).length;
+        continue;
+      }
+      if (!this.isPerson(row.member)) {
+        continue;
+      }
+      const away = this.holidays.some(holiday =>
+        holiday.memberId === row.member.id && overlaps(holiday.fromDate, holiday.toDate, today, today));
+      if (away) {
+        onLeave++;
+      } else if (activities.some(item => overlaps(item.startDate, item.endDate, week.start, week.end))) {
+        assigned++;
+      }
+    }
+
+    const people = this.people.length;
+    const blocks = this.overview.projectBlocks ?? [];
+    this.supplierAssignmentCounts = counts;
+    this.kpis = {
+      resources: people,
+      assigned,
+      available: Math.max(0, people - assigned - onLeave),
+      onLeave,
+      suppliers: this.suppliers.length,
+      projects: blocks.length,
+      openActivities: blocks.reduce((total, block) => total + (block.rows ?? [])
+        .filter(row => !row.summary && (row.progressPercent ?? 0) < 100).length, 0),
+      upcomingHolidays: this.holidays.filter(holiday => holiday.toDate >= today && holiday.fromDate <= horizon).length
+    };
+  }
+
+  private isPerson(member: DepartmentMember): boolean {
+    return member.internal && member.id > 0 && member.id !== GENERIC_POOL_ID
+      && member.role !== 'GENERIC' && member.role !== 'SUPPLIER';
   }
 
   togglePaColMenu(): void {
@@ -940,39 +1100,10 @@ zoomPaGantt(delta: number): void {
     }
   }
 
+  /** Users may hold several roles: anyone with DEPARTMENT_MANAGER sees their own department (as the API does). */
   private resolveCurrentRole(): void {
-    const token = localStorage.getItem('token');
-
-    if (!token) {
-      this.currentRole = '';
-      this.isDepartmentManager = false;
-      return;
-    }
-
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const role = payload?.role || payload?.authorities?.[0] || '';
-
-      this.currentRole = role;
-      this.isDepartmentManager =
-      role === 'DEPARTMENT_MANAGER' || role === 'ROLE_DEPARTMENT_MANAGER';
-    } catch {
-      this.currentRole = '';
-      this.isDepartmentManager = false;
-    }
-  }
-
-  private syncHolidayMemberSelection(): void {
-    const memberIds = this.members.map((m: DepartmentMember) => m.id);
-
-    if (!memberIds.length) {
-      this.holidayMemberId = null;
-      return;
-    }
-
-    if (!this.holidayMemberId || !memberIds.includes(this.holidayMemberId)) {
-      this.holidayMemberId = memberIds[0];
-    }
+    this.currentRole = this.authService.getCurrentRole();
+    this.isDepartmentManager = this.authService.hasRole('DEPARTMENT_MANAGER');
   }
 
   private syncResourceScrollBarWidth(): void {
@@ -2006,7 +2137,7 @@ loadOverviewByDepartment(): void {
     .subscribe({
       next: (response: MyDepartmentResponse) => {
         this.overview = response.overview;
-        this.syncHolidayMemberSelection();
+        this.computeKpis();
         this.renderActivityView();
         this.loadProjectOptions();
 

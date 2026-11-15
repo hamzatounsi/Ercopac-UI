@@ -220,7 +220,7 @@
                       <td>
                         <select [(ngModel)]="row.ownerId" class="tbl-select" [disabled]="!row.departmentId">
                           <option [ngValue]="null">{{ 'gm.finance.selectOwner' | translate }}</option>
-                          <option *ngFor="let user of usersByDepartment[row.departmentId!] || []" [ngValue]="user.id">{{ user.fullName }}</option>
+                          <option *ngFor="let user of usersByDepartment[row.departmentId!] || []" [ngValue]="user.id">{{ user.fullName | upperName }}</option>
                         </select>
                       </td>
                       <td>

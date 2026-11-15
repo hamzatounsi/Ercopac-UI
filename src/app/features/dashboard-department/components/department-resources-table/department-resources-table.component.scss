@@ -1,0 +1,5 @@
+@use '../../styles/dept-ui' as ui;
+
+:host { display: block; }
+
+@include ui.dept-ui;

@@ -12,7 +12,7 @@
     </select>
   </label>
   <label>{{ 'common.name' | translate }} *
-    <input class="input" name="fullName" [(ngModel)]="form.fullName" maxlength="150" [class.invalid]="submitted && !form.fullName.trim()">
+    <input appUppercaseName class="input" name="fullName" [(ngModel)]="form.fullName" maxlength="150" [class.invalid]="submitted && !form.fullName.trim()">
   </label>
   <label>{{ 'ticketing.accounts.email' | translate }} *
     <input class="input" name="email" type="email" [(ngModel)]="form.email" maxlength="180" autocomplete="off" [class.invalid]="submitted && !emailValid">
@@ -50,7 +50,7 @@
   <table class="set-table">
     <tbody>
       <tr *ngFor="let a of created">
-        <td class="strong text-upper">{{ a.fullName }}<small>{{ a.email }}</small></td>
+        <td class="strong text-upper">{{ a.fullName | upperName }}<small>{{ a.email }}</small></td>
         <td>{{ a.roles.join(', ') }}</td>
         <td><span class="badge c-red" *ngIf="a.l2Technician">L2</span></td>
       </tr>

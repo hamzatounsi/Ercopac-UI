@@ -61,7 +61,7 @@
       <button class="back-btn" type="button" (click)="goBack()">{{ 'owner.organisationDetails.organisations' | translate }}</button>
 
       <div class="header-copy">
-        <strong>{{ organisation.name }}</strong>
+        <strong>{{ organisation.name | upperName }}</strong>
         <span>{{ organisation.code }} · {{ organisation.plan }}</span>
       </div>
 
@@ -81,7 +81,7 @@
         <!-- LEFT -->
         <label>
             <span>{{ 'owner.organisationDetails.organisationName' | translate }}</span>
-            <input [(ngModel)]="organisation.name" />
+            <input appUppercaseName [(ngModel)]="organisation.name" />
         </label>
 
         <label>

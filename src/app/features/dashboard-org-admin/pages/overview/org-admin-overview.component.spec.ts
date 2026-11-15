@@ -3,6 +3,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 import { OrgAdminService } from '../../services/org-admin.service';
+import { UpperNamePipe } from 'src/app/core/names';
 import { OrgAdminOverviewComponent } from './org-admin-overview.component';
 import en from 'src/assets/i18n/en.json';
 
@@ -18,7 +19,7 @@ describe('OrgAdminOverviewComponent', () => {
       configurationWarnings: []
     }));
     await TestBed.configureTestingModule({
-      imports: [RouterTestingModule, TranslateModule.forRoot()],
+      imports: [RouterTestingModule, TranslateModule.forRoot(), UpperNamePipe],
       declarations: [OrgAdminOverviewComponent],
       providers: [{ provide: OrgAdminService, useValue: service }]
     }).compileComponents();
@@ -30,7 +31,7 @@ describe('OrgAdminOverviewComponent', () => {
   });
 
   it('renders real organisation data and healthy configuration state', () => {
-    expect(fixture.nativeElement.textContent).toContain('Acme');
+    expect(fixture.nativeElement.textContent).toContain('ACME');
     expect(fixture.nativeElement.textContent).toContain('Configuration looks healthy');
   });
 });

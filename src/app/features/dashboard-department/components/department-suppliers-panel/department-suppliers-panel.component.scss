@@ -1,0 +1,17 @@
+@use '../../styles/dept-ui' as ui;
+
+:host { display: block; }
+
+@include ui.dept-ui;
+
+.dx-scope-note {
+  display: flex; align-items: center; gap: 8px; margin: 0 0 12px; padding: 9px 12px;
+  border: 1px solid var(--pm-info-border, var(--pm-border)); border-radius: var(--pm-radius);
+  background: var(--pm-info-soft); color: var(--pm-info-text, var(--pm-info)); font-size: 12px;
+  .material-symbols-outlined { font-size: 18px; }
+}
+
+.dx-locked { display: grid; gap: 6px; margin-top: 4px; }
+
+fieldset.dx-field { margin: 0; padding: 0; border: 0; min-width: 0; }
+legend.dx-label { padding: 0; margin-bottom: 6px; }

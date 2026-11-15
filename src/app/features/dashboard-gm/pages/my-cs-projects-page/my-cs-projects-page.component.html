@@ -310,8 +310,9 @@
             </div>
 
             <div class="mf span-2">
-              <label>{{ 'gm.myCsProjects.customer' | translate }}</label>
-              <input class="mi" [(ngModel)]="projectForm.customer" [placeholder]="'gm.myCsProjects.customerName' | translate" />
+              <label for="my-cs-customer">{{ 'gm.myCsProjects.customer' | translate }}</label>
+              <app-customer-select inputId="my-cs-customer" [(ngModel)]="projectForm.customerId" [ngModelOptions]="{ standalone: true }"
+                                   (customerChange)="onCustomerChange($event)"></app-customer-select>
             </div>
 
             <div class="mf span-2">
@@ -441,7 +442,7 @@
 
           <div class="team-res-wrap">
             <span class="team-assigned-chip" *ngFor="let resource of getAssignedResources(dept.code)">
-              {{ resource.fullName }}
+              {{ resource.fullName | upperName }}
               <button
                 type="button"
                 class="team-chip-del"
@@ -455,7 +456,7 @@
               <option
                 *ngFor="let resource of getResourcesForDepartment(dept.code)"
                 [ngValue]="resource.id">
-                {{ resource.fullName }}{{ resource.jobTitle ? ' · ' + resource.jobTitle : '' }}
+                {{ resource.fullName | upperName }}{{ resource.jobTitle ? ' · ' + resource.jobTitle : '' }}
               </option>
             </select>
 

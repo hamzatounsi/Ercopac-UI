@@ -11,9 +11,6 @@
     <button type="button" role="tab" [attr.aria-selected]="activeTab === 'resourceTypes'" [class.active]="activeTab === 'resourceTypes'" (click)="setTab('resourceTypes')">
       {{ 'orgAdmin.resourceConfiguration.resourceTypes' | translate }} <span>{{ resourceTypes.length }}</span>
     </button>
-    <button type="button" role="tab" [attr.aria-selected]="activeTab === 'customers'" [class.active]="activeTab === 'customers'" (click)="setTab('customers')">
-      {{ 'orgAdmin.resourceConfiguration.customers' | translate }} <span>{{ customers.length }}</span>
-    </button>
 
     <button
       type="button"
@@ -34,11 +31,6 @@
       <input [value]="search" (input)="search = $any($event.target).value" [placeholder]="'orgAdmin.resourceConfiguration.searchSection' | translate" />
     </label>
 
-    <label *ngIf="activeTab === 'customers'" class="secondary-button file-button" [class.disabled]="importing">
-      <span class="material-symbols-outlined" aria-hidden="true">upload_file</span>
-      {{ importing ? ('orgAdmin.resourceConfiguration.importing' | translate) : ('orgAdmin.resourceConfiguration.importCsv' | translate) }}
-      <input type="file" accept=".csv,text/csv" [disabled]="importing" (change)="importCustomers($event)" />
-    </label>
 
     <button *ngIf="activeTab === 'categories'" type="button" class="primary-button" (click)="openCategory()">
       <span class="material-symbols-outlined" aria-hidden="true">add</span> {{ 'orgAdmin.resourceConfiguration.addCategory' | translate }}
@@ -48,9 +40,6 @@
     </button>
     <button *ngIf="activeTab === 'resourceTypes'" type="button" class="primary-button" (click)="openResourceType()">
       <span class="material-symbols-outlined" aria-hidden="true">add</span> {{ 'orgAdmin.resourceConfiguration.addResourceType' | translate }}
-    </button>
-    <button *ngIf="activeTab === 'customers'" type="button" class="primary-button" (click)="openCustomer()">
-      <span class="material-symbols-outlined" aria-hidden="true">add</span> {{ 'orgAdmin.resourceConfiguration.addCustomer' | translate }}
     </button>
 
     <button
@@ -172,30 +161,6 @@
     </ng-template>
   </ng-container>
 
-  <!-- CUSTOMERS -->
-  <ng-container *ngSwitchCase="'customers'">
-    <header><div><h2>{{ 'orgAdmin.resourceConfiguration.customerDirectory' | translate }}</h2><p>{{ 'orgAdmin.resourceConfiguration.maintainCustomerRecordsUsed' | translate }}</p></div><small class="csv-hint">{{ 'orgAdmin.resourceConfiguration.csvColumnsCustomercodeName' | translate }}</small></header>
-    <div class="table-scroll" *ngIf="filteredCustomers.length; else emptyCustomers">
-      <table>
-        <thead><tr><th>{{ 'orgAdmin.resourceConfiguration.customer' | translate }}</th><th>{{ 'orgAdmin.resourceConfiguration.location' | translate }}</th><th>{{ 'orgAdmin.resourceConfiguration.primaryContact' | translate }}</th><th>{{ 'orgAdmin.resourceConfiguration.projects' | translate }}</th><th>{{ 'common.status' | translate }}</th><th><span class="sr-only">{{ 'common.actions' | translate }}</span></th></tr></thead>
-        <tbody>
-          <tr *ngFor="let item of filteredCustomers">
-            <td [attr.data-label]="'orgAdmin.resourceConfiguration.customer' | translate"><div class="identity"><span class="avatar" aria-hidden="true">{{ item.name.charAt(0) }}</span><div><strong>{{ item.name }}</strong><small>{{ item.customerCode }}<ng-container *ngIf="item.erpId"> {{ 'orgAdmin.resourceConfiguration.erpErpid' | translate: { erpId: item.erpId } }}</ng-container></small></div></div></td>
-            <td [attr.data-label]="'orgAdmin.resourceConfiguration.location' | translate">{{ item.town || '—' }}<small>{{ item.country || '' }}</small></td>
-            <td [attr.data-label]="'orgAdmin.resourceConfiguration.primaryContact' | translate">{{ item.contactPerson || '—' }}<small>{{ item.email || item.phone || '' }}</small></td>
-            <td [attr.data-label]="'orgAdmin.resourceConfiguration.projects' | translate">{{ item.projectsUsing }}</td>
-            <td [attr.data-label]="'common.status' | translate"><span class="status" [class.inactive]="!item.active">{{ item.active ? ('orgAdmin.resourceConfiguration.active' | translate) : ('orgAdmin.resourceConfiguration.inactive' | translate) }}</span></td>
-            <td class="row-actions">
-              <button type="button" [title]="'orgAdmin.resourceConfiguration.editCustomer' | translate" (click)="openCustomer(item)"><span class="material-symbols-outlined" aria-hidden="true">edit</span></button>
-              <button type="button" class="danger" [title]="'orgAdmin.resourceConfiguration.deleteCustomer' | translate" (click)="requestDelete('customer', item)"><span class="material-symbols-outlined" aria-hidden="true">delete</span></button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <ng-template #emptyCustomers><div class="empty-state"><span class="material-symbols-outlined" aria-hidden="true">handshake</span><h3>{{ 'orgAdmin.resourceConfiguration.noMatchingCustomers' | translate }}</h3><p>{{ 'orgAdmin.resourceConfiguration.addCustomerImportCsv' | translate }}</p><button type="button" (click)="openCustomer()">{{ 'orgAdmin.resourceConfiguration.addCustomer' | translate }}</button></div></ng-template>
-  </ng-container>
-
   <!-- =======================================================
        SUPPLIERS
   ======================================================== -->
@@ -223,12 +188,12 @@
         <tbody>
           <tr *ngFor="let item of filteredSuppliers">
             <td [attr.data-label]="'orgAdmin.resourceConfiguration.code' | translate"><strong>{{ item.code }}</strong></td>
-            <td [attr.data-label]="'orgAdmin.resourceConfiguration.supplier' | translate">{{ item.name }}</td>
+            <td [attr.data-label]="'orgAdmin.resourceConfiguration.supplier' | translate">{{ item.name | upperName }}</td>
             <td [attr.data-label]="'orgAdmin.resourceConfiguration.resourceTypes' | translate">
               <span class="resource-type-badges" *ngIf="item.resourceTypes?.length; else noSupplierResourceTypes">
                 <span class="resource-type-badge" *ngFor="let resourceType of item.resourceTypes">{{ resourceType.code }}</span>
               </span>
-              <ng-template #noSupplierResourceTypes>â€”</ng-template>
+              <ng-template #noSupplierResourceTypes>—</ng-template>
             </td>
             <td [attr.data-label]="'orgAdmin.resourceConfiguration.contact' | translate">{{ item.contactPerson || '—' }}<small>{{ item.phone || '' }}</small></td>
             <td [attr.data-label]="'orgAdmin.resourceConfiguration.email' | translate">{{ item.email || '—' }}</td>
@@ -329,36 +294,9 @@
       </footer>
     </form>
 
-    <!-- CUSTOMER FORM -->
-    <form *ngIf="dialogKind === 'customer'" [formGroup]="customerForm" (ngSubmit)="saveCustomer()">
-      <div class="form-grid">
-        <label>{{ 'orgAdmin.resourceConfiguration.customerCode' | translate }} <span>*</span><input type="text" formControlName="customerCode" autofocus autocomplete="off" /></label>
-        <label>{{ 'orgAdmin.resourceConfiguration.customerName' | translate }} <span>*</span><input type="text" formControlName="name" autocomplete="off" /></label>
-        <label>{{ 'orgAdmin.resourceConfiguration.country' | translate }}
-  <select formControlName="country">
-    <option value="">{{ 'orgAdmin.resourceConfiguration.selectCountry' | translate }}</option>
-    <option *ngFor="let country of countries" [value]="country">{{ country }}</option>
-  </select>
-</label>
-        <label>{{ 'orgAdmin.resourceConfiguration.townCity' | translate }}<input type="text" formControlName="town" /></label>
-        <label class="wide">{{ 'orgAdmin.resourceConfiguration.address' | translate }}<input type="text" formControlName="address" /></label>
-        <label>{{ 'orgAdmin.resourceConfiguration.vatTaxId' | translate }}<input type="text" formControlName="vatTaxId" /></label>
-        <label>{{ 'orgAdmin.resourceConfiguration.erpId' | translate }}<input type="text" formControlName="erpId" /></label>
-        <label>{{ 'orgAdmin.resourceConfiguration.contactPerson' | translate }}<input type="text" formControlName="contactPerson" /></label>
-        <label>{{ 'orgAdmin.resourceConfiguration.email' | translate }}<input type="email" formControlName="email" /></label>
-        <label>{{ 'orgAdmin.resourceConfiguration.phone' | translate }}<input type="tel" formControlName="phone" /></label>
-        <label class="toggle"><input type="checkbox" formControlName="active" /> {{ 'orgAdmin.resourceConfiguration.activeCustomer' | translate }}</label>
-      </div>
-      <p class="validation" *ngIf="customerForm.touched && customerForm.invalid" role="alert">{{ 'orgAdmin.resourceConfiguration.customerCodeNameRequired' | translate }}</p>
-      <footer>
-        <button type="button" class="secondary-button" [disabled]="saving" (click)="closeDialog()">{{ 'common.cancel' | translate }}</button>
-        <button type="submit" class="primary-button" [disabled]="customerForm.invalid || saving">{{ saving ? ('orgAdmin.resourceConfiguration.saving' | translate) : ('orgAdmin.resourceConfiguration.saveCustomer' | translate) }}</button>
-      </footer>
-    </form>
-
     <form *ngIf="dialogKind === 'supplier'" [formGroup]="supplierForm" (ngSubmit)="saveSupplier()">
       <div class="form-grid">
-        <label>{{ 'orgAdmin.resourceConfiguration.supplierName' | translate }} <span>*</span><input type="text" formControlName="name" autofocus autocomplete="organization" /></label>
+        <label>{{ 'orgAdmin.resourceConfiguration.supplierName' | translate }} <span>*</span><input appUppercaseName type="text" formControlName="name" autofocus autocomplete="organization" /></label>
         <label>{{ 'orgAdmin.resourceConfiguration.supplierCode' | translate }} <span>*</span><input type="text" formControlName="code" autocomplete="off" /></label>
         <div class="wide supplier-resource-type-field">
           <label>{{ 'orgAdmin.resourceConfiguration.resourceTypes2' | translate }}</label>

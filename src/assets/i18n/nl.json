@@ -1199,6 +1199,171 @@
       "totalelementsTotal": "{{totalElements}} in totaal",
       "type": "Type",
       "workdays": "Werkdagen"
+    },
+    "workspace": {
+      "eyebrow": "Mijn afdeling",
+      "chief": "Afdelingshoofd",
+      "resourceTypes": "Resourcetypen",
+      "refresh": "Vernieuwen",
+      "tabsLabel": "Afdelingsonderdelen",
+      "tabs": {
+        "resources": "Resources",
+        "suppliers": "Leveranciers",
+        "activities": "Activiteiten",
+        "holidays": "Verlof"
+      },
+      "kpi": {
+        "label": "Afdelingsoverzicht",
+        "resources": "Resources",
+        "available": "Beschikbaar deze week",
+        "assigned": "Ingepland deze week",
+        "onLeave": "Vandaag met verlof · {{count}} gepland",
+        "suppliers": "Leveranciers",
+        "projects": "Projecten · {{count}} open activiteiten"
+      },
+      "filterType": "Filteren op resourcetype",
+      "allTypes": "Alle resourcetypen",
+      "col": {
+        "resourceType": "Resourcetype",
+        "assignments": "Toewijzingen"
+      },
+      "openActivities": "{{count}} open",
+      "viewNamed": "{{name}} bekijken",
+      "noMatch": "Niets komt overeen met deze filters",
+      "noMatchHint": "Probeer een andere zoekopdracht of filter.",
+      "clearFilters": "Filters wissen",
+      "range": "{{from}}–{{to}} van {{total}}",
+      "pageSize": "Rijen per pagina",
+      "pageOf": "Pagina {{page}} van {{total}}",
+      "previous": "Vorige",
+      "next": "Volgende",
+      "scale": "Tijdschaal",
+      "zoomIn": "Inzoomen",
+      "zoomOut": "Uitzoomen",
+      "back": "Eerder",
+      "backLong": "Veel eerder",
+      "forward": "Later",
+      "forwardLong": "Veel later",
+      "show": "Tonen op de planning",
+      "columns": "Kolommen",
+      "resources": {
+        "title": "Resources van de afdeling",
+        "subtitle": "{{count}} rijen · personen en generieke plaatshouders",
+        "search": "Resources zoeken",
+        "searchPlaceholder": "Zoeken op naam, code, e-mail of type",
+        "filterKind": "Filteren op soort",
+        "allKinds": "Alle soorten",
+        "filterAvailability": "Filteren op beschikbaarheid",
+        "allAvailability": "Elke beschikbaarheid",
+        "kind": {
+          "internal": "Interne resource",
+          "generic": "Generieke plaatshouder"
+        },
+        "availability": {
+          "available": "Beschikbaar",
+          "assigned": "Ingepland",
+          "onLeave": "Met verlof"
+        },
+        "col": {
+          "name": "Resource",
+          "kind": "Soort",
+          "capacity": "Capaciteit",
+          "thisWeek": "Deze week"
+        },
+        "hoursPerWeek": "{{hours}} u / week",
+        "capacityDetail": "{{hours}} u × {{days}} dagen",
+        "thisWeekCount": "{{count}} deze week",
+        "genericHint": "Naamloze capaciteit van dit type",
+        "manage": "Resources beheren",
+        "emptyTitle": "Geen resources in deze afdeling",
+        "emptyText": "Resources verschijnen hier zodra ze aan de afdeling zijn toegewezen.",
+        "employeeCode": "Personeelsnummer",
+        "seniority": "Senioriteit",
+        "openActivities": "Open activiteiten",
+        "noOpenActivities": "Geen open activiteit.",
+        "showTimeline": "Planning tonen",
+        "viewLabel": "Weergave van resources",
+        "tableView": "Tabel",
+        "timelineView": "Planning"
+      },
+      "suppliers": {
+        "title": "Leveranciers van de afdeling",
+        "subtitle": "{{count}} actieve leveranciers gekoppeld aan de resourcetypen van de afdeling",
+        "search": "Leveranciers zoeken",
+        "searchPlaceholder": "Zoeken op naam, code, land, contact of type",
+        "add": "Leverancier toevoegen",
+        "eyebrow": "Leverancier",
+        "scopeNote": "U beheert de leveranciers van de resourcetypen van uw afdeling: {{types}}.",
+        "col": {
+          "supplier": "Leverancier",
+          "country": "Land",
+          "contact": "Contact"
+        },
+        "name": "Naam van de leverancier",
+        "nameInvalid": "Voer de naam van de leverancier in (maximaal 150 tekens).",
+        "shortCode": "Korte code",
+        "website": "Website",
+        "departments": "Afdelingen",
+        "notes": "Notities",
+        "formIntro": "Leveranciers worden binnen de organisatie gedeeld en aan resourcetypen gekoppeld.",
+        "typesHint": "Kies de resourcetypen die deze leverancier aan uw afdeling levert.",
+        "typesRequired": "Selecteer minstens één resourcetype.",
+        "lockedTypes": "Ook gekoppeld aan deze typen van andere afdelingen (ongewijzigd):",
+        "emptyTitle": "Geen leveranciers voor deze afdeling",
+        "emptyText": "Leveranciers gekoppeld aan de resourcetypen van de afdeling verschijnen hier.",
+        "deleteTitle": "{{name}} verwijderen?",
+        "deleteText": "De leverancier wordt gedeactiveerd: hij verdwijnt uit lijsten en keuzelijsten, bestaande toewijzingen houden hem.",
+        "loadError": "De leveranciers konden niet worden geladen.",
+        "saveError": "De leverancier kon niet worden opgeslagen.",
+        "deleteError": "De leverancier kon niet worden verwijderd.",
+        "toast": {
+          "created": "Leverancier {{name}} aangemaakt.",
+          "updated": "Leverancier {{name}} bijgewerkt.",
+          "deleted": "Leverancier {{name}} verwijderd."
+        }
+      },
+      "activities": {
+        "allStatuses": "Alle projectstatussen",
+        "status": {
+          "ACTIVE": "Actief",
+          "PLANNED": "Gepland",
+          "STANDBY": "In de wacht",
+          "COMPLETED": "Afgerond"
+        }
+      },
+      "holidays": {
+        "title": "Verlof",
+        "subtitle": "{{count}} verlofperiodes in de afdeling",
+        "search": "Verlof zoeken",
+        "searchPlaceholder": "Zoeken op persoon of notitie",
+        "filterPeriod": "Filteren op periode",
+        "filterPerson": "Filteren op persoon",
+        "allPeople": "Iedereen",
+        "period": {
+          "current": "Lopend en gepland",
+          "ongoing": "Lopend",
+          "upcoming": "Gepland",
+          "past": "Voorbij",
+          "all": "Alle periodes"
+        },
+        "col": {
+          "days": "Dagen"
+        },
+        "showAll": "Al het verlof tonen",
+        "emptyText": "Gepland verlof voor de resources van de afdeling verschijnt hier.",
+        "formIntro": "De resource wordt op deze dagen als niet beschikbaar getoond op de planning.",
+        "dateOrder": "De einddatum mag niet voor de begindatum liggen.",
+        "datesRequired": "Voer beide datums in.",
+        "deleteNamed": "Verlof van {{name}} verwijderen",
+        "deleteTitle": "Dit verlof verwijderen?",
+        "deleteText": "{{name}} is weer beschikbaar van {{from}} tot {{to}}.",
+        "upcoming": "Gepland verlof",
+        "noneUpcoming": "Geen gepland verlof.",
+        "toast": {
+          "created": "Verlof toegevoegd voor {{name}}.",
+          "deleted": "Verlof van {{name}} verwijderd."
+        }
+      }
     }
   },
   "dm": {
@@ -1335,7 +1500,10 @@
     "UNAUTHORIZED": "Je sessie is verlopen. Meld je opnieuw aan.",
     "UNKNOWN": "Er is een onverwachte fout opgetreden.",
     "VALIDATION_ERROR": "Sommige velden ontbreken of zijn ongeldig.",
-    "preferencesSave": "Je voorkeur kon niet worden opgeslagen. Deze blijft op dit apparaat bewaard en wordt bij je volgende wijziging opgeslagen."
+    "preferencesSave": "Je voorkeur kon niet worden opgeslagen. Deze blijft op dit apparaat bewaard en wordt bij je volgende wijziging opgeslagen.",
+    "CUSTOMER_NAME_EXISTS": "Er bestaat al een klant met deze naam in uw organisatie.",
+    "CUSTOMER_CODE_EXISTS": "Deze klantcode is al in gebruik.",
+    "CUSTOMER_IN_USE": "Deze klant wordt nog gebruikt door projecten of tickets. Deactiveer hem in plaats daarvan."
   },
   "forbidden": {
     "accessRestricted": "Beperkte toegang",
@@ -3185,6 +3353,10 @@
       "users": {
         "description": "Maak, wijs toe en beheer accounts in uw organisatie.",
         "title": "Gebruikers"
+      },
+      "customers": {
+        "title": "Klantbeheer",
+        "description": "Maak en beheer de klanten die door projecten en tickets worden gebruikt."
       }
     },
     "profile": {
@@ -3569,6 +3741,45 @@
       "userCanSignWhile": "De gebruiker kan zich aanmelden zolang deze instelling is ingeschakeld.",
       "userWillAbleSign": "De gebruiker kan zich opnieuw aanmelden, binnen de licentielimieten van de organisatie.",
       "userWillImmediatelyLose": "De gebruiker verliest direct de toegang zodra het huidige token opnieuw wordt gecontroleerd."
+    },
+    "customers": {
+      "searchLabel": "Klanten zoeken",
+      "searchPlaceholder": "Zoeken op naam, code, plaats, contactpersoon of e-mail",
+      "filterStatus": "Filteren op status",
+      "allStatuses": "Alle statussen",
+      "count": "{{count}} klanten",
+      "countOne": "1 klant",
+      "usedIn": "Gebruikt in",
+      "usage": "{{projects}} projecten · {{tickets}} tickets",
+      "notUsed": "Nog niet gebruikt",
+      "activateNamed": "{{name}} activeren",
+      "deactivateNamed": "{{name}} deactiveren",
+      "emptyFiltered": "Probeer een andere zoekopdracht of status.",
+      "clearFilters": "Filters wissen",
+      "emptyTitle": "Nog geen klanten",
+      "range": "{{from}}–{{to}} van {{total}}",
+      "pageSize": "Rijen per pagina",
+      "formIntro": "Klanten horen bij uw organisatie en worden aangeboden in project- en ticketformulieren.",
+      "identity": "Identiteit",
+      "nameInvalid": "Voer de klantnaam in (2 tot 150 tekens).",
+      "codeHint": "Laat leeg om automatisch een code te maken.",
+      "codeInvalid": "Gebruik 2 tot 40 letters, cijfers, koppeltekens of underscores.",
+      "emailInvalid": "Voer een geldig e-mailadres in.",
+      "activeHint": "Inactieve klanten blijven op bestaande records staan maar worden niet meer aangeboden in formulieren.",
+      "inUseTitle": "{{name}} kan niet worden verwijderd",
+      "inUseText": "Deze klant wordt gebruikt door {{projects}} project(en), {{tickets}} ticket(s) en {{records}} ticketingrecord(s). Deactiveer hem in plaats daarvan: hij blijft op bestaande records staan maar wordt niet meer aangeboden in formulieren.",
+      "deactivateInstead": "In plaats daarvan deactiveren",
+      "loadError": "De klanten konden niet worden geladen.",
+      "saveError": "De klant kon niet worden opgeslagen.",
+      "deleteError": "De klant kon niet worden verwijderd.",
+      "statusError": "De status van de klant kon niet worden gewijzigd.",
+      "toast": {
+        "created": "Klant {{name}} aangemaakt.",
+        "updated": "Klant {{name}} bijgewerkt.",
+        "deleted": "Klant {{name}} verwijderd.",
+        "activated": "Klant {{name}} geactiveerd.",
+        "deactivated": "Klant {{name}} gedeactiveerd."
+      }
     }
   },
   "owner": {
@@ -4727,5 +4938,18 @@
     "minLength": "Voer minstens {{min}} tekens in.",
     "number": "Voer een geldig getal in.",
     "required": "Dit veld is verplicht."
+  },
+  "customers": {
+    "select": {
+      "label": "Klant",
+      "placeholder": "Zoek een klant…",
+      "none": "Geen klant",
+      "noResults": "Geen klant komt overeen met deze zoekopdracht.",
+      "noCustomers": "Geen actieve klanten. Vraag de beheerder van uw organisatie er een toe te voegen.",
+      "loading": "Klanten laden…",
+      "loadError": "De klanten konden niet worden geladen.",
+      "inactive": "Inactief",
+      "clear": "Klant wissen"
+    }
   }
 }

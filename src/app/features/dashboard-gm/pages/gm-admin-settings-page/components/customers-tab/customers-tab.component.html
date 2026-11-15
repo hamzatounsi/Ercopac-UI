@@ -50,7 +50,7 @@
         <tbody>
           <tr *ngFor="let c of filteredCustomers">
             <td class="mono">{{ c.customerCode }}</td>
-            <td><strong>{{ c.name }}</strong></td>
+            <td><strong>{{ c.name | upperName }}</strong></td>
             <td>{{ c.country || '—' }}</td>
             <td>{{ c.town || '—' }}</td>
             <td class="truncate" [title]="c.address">{{ c.address || '—' }}</td>
@@ -103,7 +103,7 @@
 
       <div class="m-field flex">
         <label>{{ 'gm.customersTab.name' | translate }}</label>
-        <input class="inp" [(ngModel)]="form.name" [placeholder]="'gm.customersTab.companyName' | translate" />
+        <input appUppercaseName class="inp" [(ngModel)]="form.name" [placeholder]="'gm.customersTab.companyName' | translate" />
       </div>
     </div>
 

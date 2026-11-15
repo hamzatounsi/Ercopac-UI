@@ -5,6 +5,7 @@ import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { OrgAdminLayoutComponent } from './layout/org-admin-layout.component';
 import { OrgAdminRoutingModule } from './org-admin-routing.module';
+import { OrgAdminCustomersComponent } from './pages/customers/org-admin-customers.component';
 import { OrgAdminDepartmentsComponent } from './pages/departments/org-admin-departments.component';
 import { OrgAdminOverviewComponent } from './pages/overview/org-admin-overview.component';
 import { OrgAdminProfileComponent } from './pages/profile/org-admin-profile.component';
@@ -13,6 +14,7 @@ import { OrgAdminResourceConfigurationComponent } from './pages/resource-configu
 import { OrgAdminSettingsComponent } from './pages/settings/org-admin-settings.component';
 import { OrgAdminUsersComponent } from './pages/users/org-admin-users.component';
 import { AdminToastComponent } from './shared/admin-toast.component';
+import { UppercaseNameDirective, UpperNamePipe } from 'src/app/core/names';
 
 @NgModule({
   declarations: [
@@ -23,9 +25,18 @@ import { AdminToastComponent } from './shared/admin-toast.component';
     OrgAdminRolesComponent,
     OrgAdminDepartmentsComponent,
     OrgAdminResourceConfigurationComponent,
-    OrgAdminSettingsComponent,
-    AdminToastComponent
+    OrgAdminCustomersComponent,
+    OrgAdminSettingsComponent
   ],
-  imports: [CommonModule, ReactiveFormsModule, TranslateModule, OrgAdminRoutingModule, ProfileMenuComponent]
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    TranslateModule,
+    OrgAdminRoutingModule,
+    ProfileMenuComponent,
+    UppercaseNameDirective,
+    UpperNamePipe,
+    AdminToastComponent
+  ]
 })
 export class OrgAdminModule {}

@@ -17,6 +17,7 @@ import { OwnerSupportPageComponent } from './pages/owner-support-page/owner-supp
 import { OwnerPermissionsPageComponent } from './pages/owner-permissions-page/owner-permissions-page.component';
 import { OwnerSettingsPageComponent } from './pages/owner-settings-page/owner-settings-page.component';
 import { OwnerOrganisationDetailsPageComponent } from './pages/owner-organisation-details-page/owner-organisation-details-page.component';
+import { UppercaseNameDirective, UpperNamePipe } from 'src/app/core/names';
 
 @NgModule({
   declarations: [
@@ -33,6 +34,8 @@ import { OwnerOrganisationDetailsPageComponent } from './pages/owner-organisatio
     OwnerOrganisationDetailsPageComponent
   ],
   imports: [
+    UppercaseNameDirective,
+    UpperNamePipe,
     CommonModule,
     TranslateModule,
     FormsModule,

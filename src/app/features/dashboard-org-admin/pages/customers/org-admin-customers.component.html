@@ -1,0 +1,268 @@
+<app-admin-toast></app-admin-toast>
+
+<div class="cm-toolbar">
+  <div class="search-field">
+    <span class="material-symbols-outlined" aria-hidden="true">search</span>
+    <label class="sr-only" for="customer-search">{{ 'orgAdmin.customers.searchLabel' | translate }}</label>
+    <input id="customer-search" type="search" [formControl]="searchControl" [placeholder]="'orgAdmin.customers.searchPlaceholder' | translate" />
+  </div>
+  <label class="filter">
+    <span class="sr-only">{{ 'orgAdmin.customers.filterStatus' | translate }}</span>
+    <select [formControl]="statusControl">
+      <option value="">{{ 'orgAdmin.customers.allStatuses' | translate }}</option>
+      <option value="active">{{ 'orgAdmin.resourceConfiguration.active' | translate }}</option>
+      <option value="inactive">{{ 'orgAdmin.resourceConfiguration.inactive' | translate }}</option>
+    </select>
+  </label>
+  <label class="secondary file-button" [class.disabled]="importing">
+    <span class="material-symbols-outlined" aria-hidden="true">upload_file</span>
+    {{ importing ? ('orgAdmin.resourceConfiguration.importing' | translate) : ('orgAdmin.resourceConfiguration.importCsv' | translate) }}
+    <input type="file" accept=".csv,text/csv" [disabled]="importing" (change)="importCsv($event)" />
+  </label>
+  <button class="primary" type="button" (click)="openCreate()">
+    <span class="material-symbols-outlined" aria-hidden="true">add_business</span>{{ 'orgAdmin.resourceConfiguration.addCustomer' | translate }}
+  </button>
+</div>
+
+<section *ngIf="firstLoad && loading" class="state" aria-live="polite">
+  <span class="spinner" aria-hidden="true"></span>{{ 'common.loading' | translate }}
+</section>
+
+<section *ngIf="!firstLoad || !loading" class="table-card" [attr.aria-busy]="loading">
+  <header>
+    <div>
+      <h2>{{ 'orgAdmin.resourceConfiguration.customerDirectory' | translate }}</h2>
+      <p>{{ (totalElements === 1 ? 'orgAdmin.customers.countOne' : 'orgAdmin.customers.count') | translate: { count: totalElements } }}
+        · <span class="csv-hint">{{ 'orgAdmin.resourceConfiguration.csvColumnsCustomercodeName' | translate }}</span></p>
+    </div>
+    <span *ngIf="loading" class="loading-label" aria-live="polite"><i></i>{{ 'orgAdmin.users.refreshing' | translate }}</span>
+  </header>
+
+  <div class="inline-error" *ngIf="errorMessage" role="alert">
+    {{ errorMessage }} <button type="button" (click)="load()">{{ 'common.retry' | translate }}</button>
+  </div>
+
+  <div class="table-wrap" *ngIf="customers.length">
+    <table>
+      <caption class="sr-only">{{ 'orgAdmin.resourceConfiguration.customerDirectory' | translate }}</caption>
+      <thead>
+        <tr>
+          <th scope="col" [attr.aria-sort]="ariaSort('name')">
+            <button type="button" (click)="setSort('name')">{{ 'orgAdmin.resourceConfiguration.customer' | translate }}
+              <span class="material-symbols-outlined sort-icon" aria-hidden="true">{{ sort === 'name' ? (direction === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'unfold_more' }}</span></button>
+          </th>
+          <th scope="col" [attr.aria-sort]="ariaSort('customerCode')">
+            <button type="button" (click)="setSort('customerCode')">{{ 'orgAdmin.resourceConfiguration.code' | translate }}
+              <span class="material-symbols-outlined sort-icon" aria-hidden="true">{{ sort === 'customerCode' ? (direction === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'unfold_more' }}</span></button>
+          </th>
+          <th scope="col" [attr.aria-sort]="ariaSort('town')">
+            <button type="button" (click)="setSort('town')">{{ 'orgAdmin.resourceConfiguration.location' | translate }}
+              <span class="material-symbols-outlined sort-icon" aria-hidden="true">{{ sort === 'town' ? (direction === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'unfold_more' }}</span></button>
+          </th>
+          <th scope="col" [attr.aria-sort]="ariaSort('contactPerson')">
+            <button type="button" (click)="setSort('contactPerson')">{{ 'orgAdmin.resourceConfiguration.primaryContact' | translate }}
+              <span class="material-symbols-outlined sort-icon" aria-hidden="true">{{ sort === 'contactPerson' ? (direction === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'unfold_more' }}</span></button>
+          </th>
+          <th scope="col">{{ 'orgAdmin.customers.usedIn' | translate }}</th>
+          <th scope="col" [attr.aria-sort]="ariaSort('active')">
+            <button type="button" (click)="setSort('active')">{{ 'common.status' | translate }}
+              <span class="material-symbols-outlined sort-icon" aria-hidden="true">{{ sort === 'active' ? (direction === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'unfold_more' }}</span></button>
+          </th>
+          <th scope="col" class="actions-heading">{{ 'common.actions' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let customer of customers; trackBy: trackById" [class.inactive-row]="!customer.active">
+          <td [attr.data-label]="'orgAdmin.resourceConfiguration.customer' | translate">
+            <div class="identity">
+              <span class="avatar" aria-hidden="true">{{ (customer.name | upperName).charAt(0) }}</span>
+              <div><strong>{{ customer.name | upperName }}</strong><small *ngIf="customer.erpId">{{ 'orgAdmin.resourceConfiguration.erpErpid' | translate: { erpId: customer.erpId } }}</small></div>
+            </div>
+          </td>
+          <td [attr.data-label]="'orgAdmin.resourceConfiguration.code' | translate"><code>{{ customer.customerCode }}</code></td>
+          <td [attr.data-label]="'orgAdmin.resourceConfiguration.location' | translate">{{ customer.town || '—' }}<small>{{ customer.country || '' }}</small></td>
+          <td [attr.data-label]="'orgAdmin.resourceConfiguration.primaryContact' | translate">{{ customer.contactPerson || '—' }}<small>{{ customer.email || customer.phone || '' }}</small></td>
+          <td [attr.data-label]="'orgAdmin.customers.usedIn' | translate">
+            <span *ngIf="references(customer); else notUsed" class="usage">
+              {{ 'orgAdmin.customers.usage' | translate: { projects: customer.references.projects, tickets: customer.references.tickets } }}
+            </span>
+            <ng-template #notUsed><span class="muted">{{ 'orgAdmin.customers.notUsed' | translate }}</span></ng-template>
+          </td>
+          <td [attr.data-label]="'common.status' | translate">
+            <span class="status" [class.inactive]="!customer.active"><i aria-hidden="true"></i>{{ customer.active ? ('orgAdmin.resourceConfiguration.active' | translate) : ('orgAdmin.resourceConfiguration.inactive' | translate) }}</span>
+          </td>
+          <td [attr.data-label]="'common.actions' | translate" class="actions">
+            <button type="button" (click)="openEdit(customer)" [title]="'common.editNamed' | translate: { name: customer.name }" [attr.aria-label]="'common.editNamed' | translate: { name: customer.name }">
+              <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+            </button>
+            <button type="button" (click)="toggleActive(customer)" [disabled]="busyId === customer.id"
+                    [title]="(customer.active ? 'orgAdmin.customers.deactivateNamed' : 'orgAdmin.customers.activateNamed') | translate: { name: customer.name }"
+                    [attr.aria-label]="(customer.active ? 'orgAdmin.customers.deactivateNamed' : 'orgAdmin.customers.activateNamed') | translate: { name: customer.name }">
+              <span class="material-symbols-outlined" aria-hidden="true">{{ customer.active ? 'toggle_on' : 'toggle_off' }}</span>
+            </button>
+            <button type="button" class="btn-delete" (click)="requestDelete(customer)" [disabled]="busyId === customer.id"
+                    [title]="'common.deleteNamed' | translate: { name: customer.name }" [attr.aria-label]="'common.deleteNamed' | translate: { name: customer.name }">
+              <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="!loading && !errorMessage && !customers.length" class="empty">
+    <span class="material-symbols-outlined" aria-hidden="true">handshake</span>
+    <ng-container *ngIf="hasFilters; else noCustomers">
+      <strong>{{ 'orgAdmin.resourceConfiguration.noMatchingCustomers' | translate }}</strong>
+      <span>{{ 'orgAdmin.customers.emptyFiltered' | translate }}</span>
+      <button type="button" (click)="clearFilters()">{{ 'orgAdmin.customers.clearFilters' | translate }}</button>
+    </ng-container>
+    <ng-template #noCustomers>
+      <strong>{{ 'orgAdmin.customers.emptyTitle' | translate }}</strong>
+      <span>{{ 'orgAdmin.resourceConfiguration.addCustomerImportCsv' | translate }}</span>
+      <button type="button" (click)="openCreate()">{{ 'orgAdmin.resourceConfiguration.addCustomer' | translate }}</button>
+    </ng-template>
+  </div>
+
+  <footer *ngIf="totalElements > 0">
+    <span>{{ 'orgAdmin.customers.range' | translate: { from: rangeStart, to: rangeEnd, total: totalElements } }}</span>
+    <div class="pager">
+      <label>
+        <span>{{ 'orgAdmin.customers.pageSize' | translate }}</span>
+        <select [value]="size" (change)="setPageSize($any($event.target).value)">
+          <option *ngFor="let option of pageSizes" [value]="option">{{ option }}</option>
+        </select>
+      </label>
+      <button type="button" (click)="previousPage()" [disabled]="page === 0 || loading">{{ 'orgAdmin.users.previous' | translate }}</button>
+      <span aria-live="polite">{{ 'orgAdmin.users.pagePageTotalpages' | translate: { page: page + 1, totalPages: totalPages } }}</span>
+      <button type="button" (click)="nextPage()" [disabled]="page + 1 >= totalPages || loading">{{ 'orgAdmin.users.next' | translate }}</button>
+    </div>
+  </footer>
+</section>
+
+<!-- CREATE / EDIT DRAWER -->
+<div class="backdrop" *ngIf="drawerOpen" (click)="closeDrawer()"></div>
+<aside class="drawer" *ngIf="drawerOpen" role="dialog" aria-modal="true" aria-labelledby="customer-dialog-title">
+  <header>
+    <div>
+      <span class="eyebrow">{{ 'orgAdmin.pages.customers.title' | translate }}</span>
+      <h2 id="customer-dialog-title">{{ editing ? ('orgAdmin.resourceConfiguration.editCustomer' | translate) : ('orgAdmin.resourceConfiguration.addCustomer' | translate) }}</h2>
+      <p>{{ 'orgAdmin.customers.formIntro' | translate }}</p>
+    </div>
+    <button type="button" (click)="closeDrawer()" [disabled]="saving" [attr.aria-label]="'common.close' | translate">
+      <span class="material-symbols-outlined" aria-hidden="true">close</span>
+    </button>
+  </header>
+
+  <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+    <div class="form-error" *ngIf="formError" role="alert">{{ formError }}</div>
+
+    <fieldset>
+      <legend>{{ 'orgAdmin.customers.identity' | translate }}</legend>
+      <div class="field">
+        <label for="customer-name">{{ 'orgAdmin.resourceConfiguration.customerName' | translate }} <b aria-hidden="true">*</b></label>
+        <input id="customer-name" appUppercaseName formControlName="name" autocomplete="organization" required
+               [attr.aria-invalid]="form.controls.name.touched && form.controls.name.invalid"
+               aria-describedby="customer-name-error" />
+        <small id="customer-name-error" *ngIf="form.controls.name.touched && form.controls.name.invalid">{{ 'orgAdmin.customers.nameInvalid' | translate }}</small>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="customer-code">{{ 'orgAdmin.resourceConfiguration.customerCode' | translate }}</label>
+          <input id="customer-code" formControlName="customerCode" autocomplete="off"
+                 [attr.aria-invalid]="form.controls.customerCode.invalid" aria-describedby="customer-code-hint" />
+          <span id="customer-code-hint" *ngIf="!form.controls.customerCode.invalid">{{ 'orgAdmin.customers.codeHint' | translate }}</span>
+          <small *ngIf="form.controls.customerCode.invalid">{{ 'orgAdmin.customers.codeInvalid' | translate }}</small>
+        </div>
+        <div class="field">
+          <label for="customer-erp">{{ 'orgAdmin.resourceConfiguration.erpId' | translate }}</label>
+          <input id="customer-erp" formControlName="erpId" autocomplete="off" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="customer-vat">{{ 'orgAdmin.resourceConfiguration.vatTaxId' | translate }}</label>
+        <input id="customer-vat" formControlName="vatTaxId" autocomplete="off" />
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>{{ 'orgAdmin.resourceConfiguration.location' | translate }}</legend>
+      <div class="field-row">
+        <div class="field">
+          <label for="customer-country">{{ 'orgAdmin.resourceConfiguration.country' | translate }}</label>
+          <select id="customer-country" formControlName="country">
+            <option value="">{{ 'orgAdmin.resourceConfiguration.selectCountry' | translate }}</option>
+            <option *ngFor="let country of countryOptions" [value]="country">{{ country }}</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="customer-town">{{ 'orgAdmin.resourceConfiguration.townCity' | translate }}</label>
+          <input id="customer-town" formControlName="town" autocomplete="address-level2" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="customer-address">{{ 'orgAdmin.resourceConfiguration.address' | translate }}</label>
+        <input id="customer-address" formControlName="address" autocomplete="street-address" />
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>{{ 'orgAdmin.resourceConfiguration.primaryContact' | translate }}</legend>
+      <div class="field">
+        <label for="customer-contact">{{ 'orgAdmin.resourceConfiguration.contactPerson' | translate }}</label>
+        <input id="customer-contact" formControlName="contactPerson" autocomplete="name" />
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="customer-email">{{ 'orgAdmin.resourceConfiguration.email' | translate }}</label>
+          <input id="customer-email" type="email" formControlName="email" autocomplete="email"
+                 [attr.aria-invalid]="form.controls.email.touched && form.controls.email.invalid" />
+          <small *ngIf="form.controls.email.touched && form.controls.email.invalid">{{ 'orgAdmin.customers.emailInvalid' | translate }}</small>
+        </div>
+        <div class="field">
+          <label for="customer-phone">{{ 'orgAdmin.resourceConfiguration.phone' | translate }}</label>
+          <input id="customer-phone" type="tel" formControlName="phone" autocomplete="tel" />
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <label class="switch-row" for="customer-active">
+        <span><strong>{{ 'orgAdmin.resourceConfiguration.activeCustomer' | translate }}</strong><small>{{ 'orgAdmin.customers.activeHint' | translate }}</small></span>
+        <input id="customer-active" type="checkbox" formControlName="active" />
+      </label>
+    </fieldset>
+
+    <footer>
+      <button type="button" class="secondary" (click)="closeDrawer()" [disabled]="saving">{{ 'common.cancel' | translate }}</button>
+      <button type="submit" class="primary" [disabled]="saving">{{ saving ? ('orgAdmin.resourceConfiguration.saving' | translate) : ('orgAdmin.resourceConfiguration.saveCustomer' | translate) }}</button>
+    </footer>
+  </form>
+</aside>
+
+<!-- DELETE / DEACTIVATE CONFIRMATION -->
+<div class="modal-backdrop" *ngIf="deleteDialog as dialog" (click)="$event.target === $event.currentTarget && busyId === null && (deleteDialog = null)">
+  <section class="confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="customer-delete-title" aria-describedby="customer-delete-text">
+    <div class="confirm-icon" [class.blocked]="deleteBlocked"><span class="material-symbols-outlined" aria-hidden="true">{{ deleteBlocked ? 'link' : 'delete' }}</span></div>
+    <ng-container *ngIf="deleteBlocked; else canDelete">
+      <h2 id="customer-delete-title">{{ 'orgAdmin.customers.inUseTitle' | translate: { name: (dialog.customer.name | upperName) } }}</h2>
+      <p id="customer-delete-text">{{ 'orgAdmin.customers.inUseText' | translate: { projects: dialog.references.projects, tickets: dialog.references.tickets, records: dialog.references.ticketingRecords } }}</p>
+      <div>
+        <button type="button" class="secondary" (click)="deleteDialog = null" [disabled]="busyId !== null">{{ 'common.cancel' | translate }}</button>
+        <button *ngIf="dialog.customer.active" type="button" class="primary" (click)="toggleActive(dialog.customer)" [disabled]="busyId !== null">
+          {{ 'orgAdmin.customers.deactivateInstead' | translate }}
+        </button>
+      </div>
+    </ng-container>
+    <ng-template #canDelete>
+      <h2 id="customer-delete-title">{{ 'common.deleteNamed' | translate: { name: (dialog.customer.name | upperName) } }}</h2>
+      <p id="customer-delete-text">{{ 'orgAdmin.resourceConfiguration.recordWillPermanentlyRemoved' | translate }}</p>
+      <div>
+        <button type="button" class="secondary" (click)="deleteDialog = null" [disabled]="busyId !== null">{{ 'common.cancel' | translate }}</button>
+        <button type="button" class="danger" (click)="confirmDelete()" [disabled]="busyId !== null">
+          {{ busyId !== null ? ('orgAdmin.resourceConfiguration.deleting' | translate) : ('common.delete' | translate) }}
+        </button>
+      </div>
+    </ng-template>
+  </section>
+</div>

@@ -1,0 +1,206 @@
+<div class="dx-toolbar">
+  <div class="dx-search">
+    <span class="material-symbols-outlined" aria-hidden="true">search</span>
+    <label class="sr-only" for="dept-holiday-search">{{ 'department.workspace.holidays.search' | translate }}</label>
+    <input id="dept-holiday-search" type="search" [value]="table.search" (input)="onSearch($any($event.target).value)"
+           [placeholder]="'department.workspace.holidays.searchPlaceholder' | translate" />
+  </div>
+
+  <label>
+    <span class="sr-only">{{ 'department.workspace.holidays.filterPeriod' | translate }}</span>
+    <select class="dx-select" [value]="periodFilter" (change)="onPeriodFilter($any($event.target).value)">
+      <option value="current">{{ 'department.workspace.holidays.period.current' | translate }}</option>
+      <option value="ongoing">{{ 'department.workspace.holidays.period.ongoing' | translate }}</option>
+      <option value="upcoming">{{ 'department.workspace.holidays.period.upcoming' | translate }}</option>
+      <option value="past">{{ 'department.workspace.holidays.period.past' | translate }}</option>
+      <option value="">{{ 'department.workspace.holidays.period.all' | translate }}</option>
+    </select>
+  </label>
+
+  <label>
+    <span class="sr-only">{{ 'department.workspace.holidays.filterPerson' | translate }}</span>
+    <select class="dx-select" [value]="memberFilter" (change)="onMemberFilter($any($event.target).value)">
+      <option value="">{{ 'department.workspace.holidays.allPeople' | translate }}</option>
+      <option *ngFor="let member of people" [value]="member.id">{{ member.fullName | upperName }}</option>
+    </select>
+  </label>
+
+  <div class="dx-toolbar-end" *ngIf="canManage && people.length">
+    <button type="button" class="dx-btn primary" (click)="openCreate()">
+      <span class="material-symbols-outlined" aria-hidden="true">beach_access</span>{{ 'department.my.addHoliday' | translate }}
+    </button>
+  </div>
+</div>
+
+<section class="dx-card" [attr.aria-busy]="loading">
+  <header>
+    <div>
+      <h2>{{ 'department.workspace.holidays.title' | translate }}</h2>
+      <p>{{ 'department.workspace.holidays.subtitle' | translate: { count: table.totalUnfiltered } }}</p>
+    </div>
+  </header>
+
+  <div *ngIf="loading && !table.totalUnfiltered" class="dx-state" aria-live="polite">
+    <span class="dx-spinner" aria-hidden="true"></span>{{ 'common.loading' | translate }}
+  </div>
+
+  <div class="dx-table-wrap" *ngIf="table.total">
+    <table class="dx-table">
+      <caption class="sr-only">{{ 'department.workspace.holidays.title' | translate }}</caption>
+      <thead>
+        <tr>
+          <th scope="col" [attr.aria-sort]="table.ariaSort('member')">
+            <button type="button" (click)="table.setSort('member')">{{ 'department.my.person' | translate }}
+              <span class="material-symbols-outlined" aria-hidden="true">{{ table.sortIcon('member') }}</span></button>
+          </th>
+          <th scope="col" [attr.aria-sort]="table.ariaSort('from')">
+            <button type="button" (click)="table.setSort('from')">{{ 'department.my.from' | translate }}
+              <span class="material-symbols-outlined" aria-hidden="true">{{ table.sortIcon('from') }}</span></button>
+          </th>
+          <th scope="col" [attr.aria-sort]="table.ariaSort('to')">
+            <button type="button" (click)="table.setSort('to')">{{ 'department.my.text' | translate }}
+              <span class="material-symbols-outlined" aria-hidden="true">{{ table.sortIcon('to') }}</span></button>
+          </th>
+          <th scope="col" [attr.aria-sort]="table.ariaSort('days')">
+            <button type="button" (click)="table.setSort('days')">{{ 'department.workspace.holidays.col.days' | translate }}
+              <span class="material-symbols-outlined" aria-hidden="true">{{ table.sortIcon('days') }}</span></button>
+          </th>
+          <th scope="col">{{ 'department.my.note' | translate }}</th>
+          <th scope="col" [attr.aria-sort]="table.ariaSort('period')">
+            <button type="button" (click)="table.setSort('period')">{{ 'common.status' | translate }}
+              <span class="material-symbols-outlined" aria-hidden="true">{{ table.sortIcon('period') }}</span></button>
+          </th>
+          <th scope="col" class="dx-actions-head" *ngIf="canManage">{{ 'common.actions' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of table.view; trackBy: trackById">
+          <td [attr.data-label]="'department.my.person' | translate">
+            <div class="dx-identity">
+              <span class="dx-avatar" aria-hidden="true">{{ initials(row.holiday.memberName) }}</span>
+              <div><strong>{{ row.holiday.memberName | upperName }}</strong></div>
+            </div>
+          </td>
+          <td [attr.data-label]="'department.my.from' | translate">{{ row.holiday.fromDate | date: 'mediumDate' }}</td>
+          <td [attr.data-label]="'department.my.text' | translate">{{ row.holiday.toDate | date: 'mediumDate' }}</td>
+          <td [attr.data-label]="'department.workspace.holidays.col.days' | translate">{{ row.days }}</td>
+          <td [attr.data-label]="'department.my.note' | translate">{{ row.holiday.note || '—' }}</td>
+          <td [attr.data-label]="'common.status' | translate">
+            <span class="dx-status" [ngClass]="periodClass(row.period)"><i aria-hidden="true"></i>{{ ('department.workspace.holidays.period.' + row.period) | translate }}</span>
+          </td>
+          <td [attr.data-label]="'common.actions' | translate" class="dx-actions" *ngIf="canManage">
+            <button type="button" class="dx-icon-btn danger" (click)="requestDelete(row.holiday)"
+                    [title]="'department.workspace.holidays.deleteNamed' | translate: { name: (row.holiday.memberName | upperName) }"
+                    [attr.aria-label]="'department.workspace.holidays.deleteNamed' | translate: { name: (row.holiday.memberName | upperName) }">
+              <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="!loading && !table.total" class="dx-empty">
+    <span class="material-symbols-outlined" aria-hidden="true">beach_access</span>
+    <ng-container *ngIf="table.totalUnfiltered; else noHolidays">
+      <strong>{{ 'department.workspace.noMatch' | translate }}</strong>
+      <span>{{ 'department.workspace.noMatchHint' | translate }}</span>
+      <button type="button" (click)="clearFilters()">{{ 'department.workspace.holidays.showAll' | translate }}</button>
+    </ng-container>
+    <ng-template #noHolidays>
+      <strong>{{ 'department.my.noHolidays' | translate }}</strong>
+      <span>{{ 'department.workspace.holidays.emptyText' | translate }}</span>
+      <button type="button" *ngIf="canManage && people.length" (click)="openCreate()">{{ 'department.my.addHoliday' | translate }}</button>
+    </ng-template>
+  </div>
+
+  <footer *ngIf="table.total">
+    <span>{{ 'department.workspace.range' | translate: { from: table.rangeStart, to: table.rangeEnd, total: table.total } }}</span>
+    <div class="dx-pager">
+      <label>
+        <span>{{ 'department.workspace.pageSize' | translate }}</span>
+        <select [value]="table.pageSize" (change)="table.setPageSize($any($event.target).value)">
+          <option *ngFor="let size of table.pageSizes" [value]="size">{{ size }}</option>
+        </select>
+      </label>
+      <button type="button" (click)="table.previousPage()" [disabled]="table.page === 0">{{ 'department.workspace.previous' | translate }}</button>
+      <span aria-live="polite">{{ 'department.workspace.pageOf' | translate: { page: table.page + 1, total: table.pageCount } }}</span>
+      <button type="button" (click)="table.nextPage()" [disabled]="table.page + 1 >= table.pageCount">{{ 'department.workspace.next' | translate }}</button>
+    </div>
+  </footer>
+</section>
+
+<!-- Add holiday side panel -->
+<ng-container *ngIf="drawerOpen">
+  <div class="dx-backdrop" (click)="closeDrawer()" aria-hidden="true"></div>
+  <aside class="dx-drawer" role="dialog" aria-modal="true" aria-labelledby="dept-holiday-title">
+    <header>
+      <div>
+        <span class="dx-eyebrow">{{ 'department.workspace.tabs.holidays' | translate }}</span>
+        <h2 id="dept-holiday-title">{{ 'department.my.addHoliday' | translate }}</h2>
+        <p>{{ 'department.workspace.holidays.formIntro' | translate }}</p>
+      </div>
+      <button type="button" class="dx-icon-btn" #drawerClose (click)="closeDrawer()" [attr.aria-label]="'common.close' | translate">
+        <span class="material-symbols-outlined" aria-hidden="true">close</span>
+      </button>
+    </header>
+
+    <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+      <div class="dx-drawer-body">
+        <div class="dx-form-error" *ngIf="formError" role="alert">{{ formError }}</div>
+
+        <div class="dx-field">
+          <label for="holiday-member">{{ 'department.my.person' | translate }} <b aria-hidden="true">*</b></label>
+          <select id="holiday-member" formControlName="memberId" [attr.aria-invalid]="isInvalid('memberId')" aria-required="true">
+            <option *ngFor="let member of people" [ngValue]="member.id">{{ member.fullName | upperName }}{{ member.resourceType ? ' · ' + member.resourceType : '' }}</option>
+          </select>
+        </div>
+
+        <div class="dx-field-row">
+          <div class="dx-field">
+            <label for="holiday-from">{{ 'department.my.from' | translate }} <b aria-hidden="true">*</b></label>
+            <input id="holiday-from" type="date" formControlName="fromDate" [attr.aria-invalid]="isInvalid('fromDate')" aria-required="true" />
+          </div>
+          <div class="dx-field">
+            <label for="holiday-to">{{ 'department.my.text' | translate }} <b aria-hidden="true">*</b></label>
+            <input id="holiday-to" type="date" formControlName="toDate" [min]="form.value.fromDate"
+                   [attr.aria-invalid]="isInvalid('toDate') || dateOrderInvalid" aria-required="true" aria-describedby="holiday-dates-error" />
+          </div>
+        </div>
+        <small id="holiday-dates-error" class="dx-field-error" *ngIf="dateOrderInvalid || isInvalid('fromDate') || isInvalid('toDate')" role="alert">
+          {{ (dateOrderInvalid ? 'department.workspace.holidays.dateOrder' : 'department.workspace.holidays.datesRequired') | translate }}
+        </small>
+
+        <div class="dx-field">
+          <label for="holiday-note">{{ 'department.my.note' | translate }}</label>
+          <input id="holiday-note" formControlName="note" maxlength="255" [placeholder]="'department.my.eGAnnualLeave' | translate" />
+        </div>
+      </div>
+
+      <div class="dx-drawer-foot">
+        <button type="button" class="dx-btn" (click)="closeDrawer()" [disabled]="saving">{{ 'common.cancel' | translate }}</button>
+        <button type="submit" class="dx-btn primary" [disabled]="saving">
+          <span *ngIf="saving" class="dx-spinner" aria-hidden="true"></span>{{ 'common.add' | translate }}
+        </button>
+      </div>
+    </form>
+  </aside>
+</ng-container>
+
+<!-- Delete confirmation -->
+<div class="dx-modal-backdrop" *ngIf="pendingDelete as holiday" (click)="cancelDelete()">
+  <section class="dx-confirm" role="alertdialog" aria-modal="true" aria-labelledby="holiday-delete-title"
+           aria-describedby="holiday-delete-text" (click)="$event.stopPropagation()">
+    <div class="dx-confirm-icon"><span class="material-symbols-outlined" aria-hidden="true">event_busy</span></div>
+    <h2 id="holiday-delete-title">{{ 'department.workspace.holidays.deleteTitle' | translate }}</h2>
+    <p id="holiday-delete-text">
+      {{ 'department.workspace.holidays.deleteText' | translate: { name: (holiday.memberName | upperName), from: (holiday.fromDate | date: 'mediumDate'), to: (holiday.toDate | date: 'mediumDate') } }}
+    </p>
+    <div class="dx-confirm-actions">
+      <button type="button" class="dx-btn" #confirmCancel (click)="cancelDelete()" [disabled]="deleting">{{ 'common.cancel' | translate }}</button>
+      <button type="button" class="dx-btn danger" (click)="confirmDelete()" [disabled]="deleting">
+        <span *ngIf="deleting" class="dx-spinner" aria-hidden="true"></span>{{ 'common.delete' | translate }}
+      </button>
+    </div>
+  </section>
+</div>

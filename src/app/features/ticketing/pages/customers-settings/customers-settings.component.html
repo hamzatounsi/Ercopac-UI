@@ -84,7 +84,7 @@
         <thead><tr><th>{{ 'common.name' | translate }}</th><th>{{ 'ticketing.customers.emailPhone' | translate }}</th><th>{{ 'ticketing.customers.language' | translate }}</th><th>{{ 'ticketing.customers.portalAccount' | translate }}</th><th *ngIf="isLead"></th></tr></thead>
         <tbody>
           <tr *ngFor="let x of contacts">
-            <td class="strong">{{ x.fullName }}<small>{{ x.jobTitle }}</small></td>
+            <td class="strong">{{ x.fullName | upperName }}<small>{{ x.jobTitle }}</small></td>
             <td>{{ x.email || '—' }}<small>{{ x.phone }}</small></td>
             <td>{{ languageName(x.language) }}</td>
             <td><span class="badge c-green" *ngIf="x.portalUser; else noPortal">{{ x.portalUser.email }}</span><ng-template #noPortal><span class="muted-sm">{{ 'ticketing.customers.notLinked' | translate }}</span></ng-template></td>
@@ -173,7 +173,7 @@
         <h3>{{ form.id ? ('ticketing.customers.editCustomer' | translate) : ('ticketing.customers.newCustomer' | translate) }}</h3>
         <div class="grid">
           <label>{{ 'ticketing.customers.code2' | translate }}<input class="input" name="code" [(ngModel)]="form.code" maxlength="60" [class.invalid]="submitted && !form.code?.trim()"></label>
-          <label>{{ 'ticketing.customers.name' | translate }}<input class="input" name="name" [(ngModel)]="form.name" maxlength="180" [class.invalid]="submitted && !form.name?.trim()"></label>
+          <label>{{ 'ticketing.customers.name' | translate }}<input appUppercaseName class="input" name="name" [(ngModel)]="form.name" maxlength="180" [class.invalid]="submitted && !form.name?.trim()"></label>
           <label>{{ 'ticketing.customers.mainContact' | translate }}<input class="input" name="contactPerson" [(ngModel)]="form.contactPerson" maxlength="150"></label>
           <label>{{ 'ticketing.customers.email' | translate }}<input class="input" name="email" type="email" [(ngModel)]="form.email" maxlength="180"></label>
           <label>{{ 'ticketing.customers.phone' | translate }}<input class="input" name="phone" [(ngModel)]="form.phone" maxlength="60"></label>
@@ -199,7 +199,7 @@
           <label class="full">{{ 'ticketing.customers.portalAccount' | translate }}
             <select class="select" name="portalUser" [(ngModel)]="form.portalUserId">
               <option [ngValue]="null">{{ 'ticketing.customers.noPortalAccess' | translate }}</option>
-              <option *ngFor="let u of portalUsers" [ngValue]="u.id" [disabled]="portalUserTaken(u)">{{ u.fullName }} · {{ u.email }}</option>
+              <option *ngFor="let u of portalUsers" [ngValue]="u.id" [disabled]="portalUserTaken(u)">{{ u.fullName | upperName }} · {{ u.email }}</option>
             </select>
             <small class="muted-sm">{{ 'ticketing.customers.clientAccountsCreatedUser' | translate }}</small>
           </label>
