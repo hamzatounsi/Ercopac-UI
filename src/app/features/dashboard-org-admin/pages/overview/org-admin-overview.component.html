@@ -23,7 +23,7 @@
   <section class="oa-hero-card">
     <div>
       <span class="eyebrow">{{ data.organisation.code }}</span>
-      <h2>{{ data.organisation.name }}</h2>
+      <h2>{{ data.organisation.name | upperName }}</h2>
       <p>{{ data.organisation.country || ('orgAdmin.overview.countryNotConfigured' | translate) }}<span aria-hidden="true">·</span>{{ data.organisation.domain || ('orgAdmin.overview.domainNotConfigured' | translate) }}</p>
     </div>
     <div class="oa-capacity">

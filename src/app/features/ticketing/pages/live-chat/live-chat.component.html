@@ -20,7 +20,7 @@
       <button type="button" class="conv" *ngFor="let c of filteredContacts" (click)="startChat(c)">
         <span class="avatar" [class.client]="!c.staff">{{ initials(c.fullName) }}</span>
         <span class="conv-body">
-          <span class="conv-top"><strong>{{ c.fullName }}</strong><span class="kind" [class.client]="!c.staff">{{ c.staff ? ('ticketing.chat.support' | translate) : ('ticketing.chat.client' | translate) }}</span></span>
+          <span class="conv-top"><strong>{{ c.fullName | upperName }}</strong><span class="kind" [class.client]="!c.staff">{{ c.staff ? ('ticketing.chat.support' | translate) : ('ticketing.chat.client' | translate) }}</span></span>
           <span class="conv-preview">{{ c.email }}</span>
         </span>
       </button>
@@ -54,7 +54,7 @@
       <header class="thread-head">
         <span class="avatar" [class.client]="!p.staff">{{ initials(p.fullName) }}</span>
         <div>
-          <strong>{{ p.fullName }}</strong>
+          <strong>{{ p.fullName | upperName }}</strong>
           <small>{{ p.staff ? ('ticketing.chat.support' | translate) : ('ticketing.chat.client' | translate) }} · {{ p.email }}</small>
         </div>
       </header>
@@ -71,7 +71,7 @@
 
       <footer class="composer">
         <textarea [(ngModel)]="message" rows="2" (keydown)="onKeydown($event)"
-                  placeholder="Message {{ p.fullName }}… (Enter to send, Shift+Enter for a new line)"></textarea>
+                  placeholder="Message {{ p.fullName | upperName }}… (Enter to send, Shift+Enter for a new line)"></textarea>
         <button type="button" class="primary" (click)="send()" [disabled]="sending || !message.trim()">
           {{ sending ? ('ticketing.chat.sending' | translate) : ('ticketing.chat.send' | translate) }}
         </button>

@@ -180,7 +180,7 @@
             <td>
               <select class="r-sel" [(ngModel)]="row.ownerUserId" (ngModelChange)="onRowOwnerChange(row, $event)" (click)="$event.stopPropagation()">
                 <option [ngValue]="null">—</option>
-                <option *ngFor="let u of getRowUsers(row)" [ngValue]="u.id">{{ u.fullName }}</option>
+                <option *ngFor="let u of getRowUsers(row)" [ngValue]="u.id">{{ u.fullName | upperName }}</option>
               </select>
             </td>
 
@@ -343,7 +343,7 @@
         <div class="dd-lbl">{{ 'gm.risks.owner' | translate }}</div>
         <select class="dd-sel" [value]="selectedRisk.ownerUserId ?? ''" (change)="onOwnerUserChange($any($event.target).value)">
           <option value="">—</option>
-          <option *ngFor="let u of usersByResourceType" [value]="u.id">{{ u.fullName }}</option>
+          <option *ngFor="let u of usersByResourceType" [value]="u.id">{{ u.fullName | upperName }}</option>
         </select>
       </div>
 

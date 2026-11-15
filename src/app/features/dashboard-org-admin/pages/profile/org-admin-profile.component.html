@@ -7,7 +7,7 @@
     <div class="error-banner" *ngIf="errorMessage" role="alert">{{ errorMessage }}</div>
     <div class="field full">
       <label for="organisation-name">{{ 'orgAdmin.profile.organisationName' | translate }} <b aria-hidden="true">*</b></label>
-      <input id="organisation-name" formControlName="name" autocomplete="organization" [attr.aria-invalid]="form.controls.name.invalid && form.controls.name.touched" />
+      <input appUppercaseName id="organisation-name" formControlName="name" autocomplete="organization" [attr.aria-invalid]="form.controls.name.invalid && form.controls.name.touched" />
       <small *ngIf="form.controls.name.touched && form.controls.name.hasError('required')">{{ 'orgAdmin.profile.organisationNameRequired' | translate }}</small>
       <small *ngIf="form.controls.name.touched && form.controls.name.hasError('minlength')">{{ 'orgAdmin.profile.useLeast2Characters' | translate }}</small>
     </div>

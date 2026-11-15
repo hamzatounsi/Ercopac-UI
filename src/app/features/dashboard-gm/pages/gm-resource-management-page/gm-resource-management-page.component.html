@@ -380,7 +380,7 @@
             >
               <td class="muted">{{ resource.id }}</td>
               <td><span class="row-dot"></span></td>
-              <td class="strong text-upper">{{ resource.fullName }}</td>
+              <td class="strong text-upper">{{ resource.fullName | upperName }}</td>
               <td class="linkish">{{ resource.employeeCode || '—' }}</td>
               <td>{{ resource.departmentCode || '—' }}</td>
               <td>{{ resource.resourceType || '—' }}</td>
@@ -421,7 +421,7 @@
 
           <div class="form-field full">
             <label>{{ 'gm.resourceManagement.fullName' | translate }}</label>
-            <input [(ngModel)]="resourceCreateForm.fullName" />
+            <input appUppercaseName [(ngModel)]="resourceCreateForm.fullName" />
           </div>
 
           <div class="row-2">
@@ -549,7 +549,7 @@
 
           <div class="form-field full">
             <label>{{ 'gm.resourceManagement.fullName' | translate }}</label>
-            <input [(ngModel)]="resourceUpdateForm.fullName" />
+            <input appUppercaseName [(ngModel)]="resourceUpdateForm.fullName" />
           </div>
 
           <div class="row-2">
@@ -731,7 +731,7 @@
 
           <tr *ngFor="let supplier of filteredSuppliers">
             <td>{{ supplier.id }}</td>
-            <td class="strong text-upper">{{ supplier.name }}</td>
+            <td class="strong text-upper">{{ supplier.name | upperName }}</td>
             <td>{{ supplier.shortCode || '—' }}</td>
             <td>{{ (supplier.departments || []).join(', ') || '—' }}</td>
             <td>{{ (supplier.resourceTypes || []).join(', ') || '—' }}</td>
@@ -765,7 +765,7 @@
 
       <div class="form-field full">
         <label>{{ 'gm.resourceManagement.supplierName' | translate }}</label>
-        <input [(ngModel)]="supplierForm.name" />
+        <input appUppercaseName [(ngModel)]="supplierForm.name" />
       </div>
 
       <div class="row-2">

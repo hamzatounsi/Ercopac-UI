@@ -1199,6 +1199,171 @@
       "totalelementsTotal": "{{totalElements}} total",
       "type": "Type",
       "workdays": "Workdays"
+    },
+    "workspace": {
+      "eyebrow": "My Department",
+      "chief": "Chief",
+      "resourceTypes": "Resource types",
+      "refresh": "Refresh",
+      "tabsLabel": "Department sections",
+      "tabs": {
+        "resources": "Resources",
+        "suppliers": "Suppliers",
+        "activities": "Activities",
+        "holidays": "Holidays"
+      },
+      "kpi": {
+        "label": "Department summary",
+        "resources": "Resources",
+        "available": "Available this week",
+        "assigned": "Assigned this week",
+        "onLeave": "On leave today · {{count}} upcoming",
+        "suppliers": "Suppliers",
+        "projects": "Projects · {{count}} open activities"
+      },
+      "filterType": "Filter by resource type",
+      "allTypes": "All resource types",
+      "col": {
+        "resourceType": "Resource type",
+        "assignments": "Assignments"
+      },
+      "openActivities": "{{count}} open",
+      "viewNamed": "View {{name}}",
+      "noMatch": "Nothing matches these filters",
+      "noMatchHint": "Try another search or filter.",
+      "clearFilters": "Clear filters",
+      "range": "{{from}}–{{to}} of {{total}}",
+      "pageSize": "Rows per page",
+      "pageOf": "Page {{page}} of {{total}}",
+      "previous": "Previous",
+      "next": "Next",
+      "scale": "Timeline scale",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "back": "Earlier",
+      "backLong": "Much earlier",
+      "forward": "Later",
+      "forwardLong": "Much later",
+      "show": "Show on the timeline",
+      "columns": "Columns",
+      "resources": {
+        "title": "Department resources",
+        "subtitle": "{{count}} rows · people and generic placeholders",
+        "search": "Search resources",
+        "searchPlaceholder": "Search by name, code, email or type",
+        "filterKind": "Filter by kind",
+        "allKinds": "All kinds",
+        "filterAvailability": "Filter by availability",
+        "allAvailability": "Any availability",
+        "kind": {
+          "internal": "Internal resource",
+          "generic": "Generic placeholder"
+        },
+        "availability": {
+          "available": "Available",
+          "assigned": "Assigned",
+          "onLeave": "On leave"
+        },
+        "col": {
+          "name": "Resource",
+          "kind": "Kind",
+          "capacity": "Capacity",
+          "thisWeek": "This week"
+        },
+        "hoursPerWeek": "{{hours}} h / week",
+        "capacityDetail": "{{hours}} h × {{days}} days",
+        "thisWeekCount": "{{count}} this week",
+        "genericHint": "Unnamed capacity of this type",
+        "manage": "Manage resources",
+        "emptyTitle": "No resources in this department",
+        "emptyText": "Resources appear here once they are assigned to the department.",
+        "employeeCode": "Employee code",
+        "seniority": "Seniority",
+        "openActivities": "Open activities",
+        "noOpenActivities": "No open activity.",
+        "showTimeline": "Show timeline",
+        "viewLabel": "Resources view",
+        "tableView": "Table",
+        "timelineView": "Timeline"
+      },
+      "suppliers": {
+        "title": "Department suppliers",
+        "subtitle": "{{count}} active suppliers linked to the department's resource types",
+        "search": "Search suppliers",
+        "searchPlaceholder": "Search by name, code, country, contact or type",
+        "add": "Add supplier",
+        "eyebrow": "Supplier",
+        "scopeNote": "You manage the suppliers of your department's resource types: {{types}}.",
+        "col": {
+          "supplier": "Supplier",
+          "country": "Country",
+          "contact": "Contact"
+        },
+        "name": "Supplier name",
+        "nameInvalid": "Enter the supplier name (up to 150 characters).",
+        "shortCode": "Short code",
+        "website": "Website",
+        "departments": "Departments",
+        "notes": "Notes",
+        "formIntro": "Suppliers are shared with the organisation and linked to resource types.",
+        "typesHint": "Choose the resource types this supplier provides for your department.",
+        "typesRequired": "Select at least one resource type.",
+        "lockedTypes": "Also linked to these types of other departments (kept unchanged):",
+        "emptyTitle": "No suppliers for this department",
+        "emptyText": "Suppliers linked to the department's resource types appear here.",
+        "deleteTitle": "Delete {{name}}?",
+        "deleteText": "The supplier is deactivated: it disappears from lists and pickers, and existing task assignments keep it.",
+        "loadError": "Suppliers could not be loaded.",
+        "saveError": "The supplier could not be saved.",
+        "deleteError": "The supplier could not be deleted.",
+        "toast": {
+          "created": "Supplier {{name}} created.",
+          "updated": "Supplier {{name}} updated.",
+          "deleted": "Supplier {{name}} deleted."
+        }
+      },
+      "activities": {
+        "allStatuses": "All project statuses",
+        "status": {
+          "ACTIVE": "Active",
+          "PLANNED": "Planned",
+          "STANDBY": "Standby",
+          "COMPLETED": "Completed"
+        }
+      },
+      "holidays": {
+        "title": "Holidays",
+        "subtitle": "{{count}} holidays in the department",
+        "search": "Search holidays",
+        "searchPlaceholder": "Search by person or note",
+        "filterPeriod": "Filter by period",
+        "filterPerson": "Filter by person",
+        "allPeople": "Everyone",
+        "period": {
+          "current": "Ongoing and upcoming",
+          "ongoing": "Ongoing",
+          "upcoming": "Upcoming",
+          "past": "Past",
+          "all": "All periods"
+        },
+        "col": {
+          "days": "Days"
+        },
+        "showAll": "Show all holidays",
+        "emptyText": "Holidays you plan for the department's resources appear here.",
+        "formIntro": "The resource is shown as unavailable on the timeline for these dates.",
+        "dateOrder": "The end date cannot be before the start date.",
+        "datesRequired": "Enter both dates.",
+        "deleteNamed": "Delete holiday of {{name}}",
+        "deleteTitle": "Delete this holiday?",
+        "deleteText": "{{name}} will be available again from {{from}} to {{to}}.",
+        "upcoming": "Upcoming holidays",
+        "noneUpcoming": "No upcoming holiday.",
+        "toast": {
+          "created": "Holiday added for {{name}}.",
+          "deleted": "Holiday of {{name}} deleted."
+        }
+      }
     }
   },
   "dm": {
@@ -1335,7 +1500,10 @@
     "UNAUTHORIZED": "Your session has expired. Please sign in again.",
     "UNKNOWN": "An unexpected error occurred.",
     "VALIDATION_ERROR": "Some fields are missing or not valid.",
-    "preferencesSave": "Your preference could not be saved. It is kept on this device and will be saved with your next change."
+    "preferencesSave": "Your preference could not be saved. It is kept on this device and will be saved with your next change.",
+    "CUSTOMER_NAME_EXISTS": "A customer with this name already exists in your organisation.",
+    "CUSTOMER_CODE_EXISTS": "This customer code is already used.",
+    "CUSTOMER_IN_USE": "This customer is still used by projects or tickets. Deactivate it instead."
   },
   "forbidden": {
     "accessRestricted": "Access restricted",
@@ -3185,6 +3353,10 @@
       "users": {
         "description": "Create, assign, and manage accounts in your organisation.",
         "title": "Users"
+      },
+      "customers": {
+        "title": "Customer Management",
+        "description": "Create and maintain the customers used by projects and tickets."
       }
     },
     "profile": {
@@ -3569,6 +3741,45 @@
       "userCanSignWhile": "User can sign in while this setting is enabled.",
       "userWillAbleSign": "The user will be able to sign in again, subject to organisation licence limits.",
       "userWillImmediatelyLose": "The user will immediately lose access when their current token is checked again."
+    },
+    "customers": {
+      "searchLabel": "Search customers",
+      "searchPlaceholder": "Search by name, code, town, contact or email",
+      "filterStatus": "Filter by status",
+      "allStatuses": "All statuses",
+      "count": "{{count}} customers",
+      "countOne": "1 customer",
+      "usedIn": "Used in",
+      "usage": "{{projects}} projects · {{tickets}} tickets",
+      "notUsed": "Not used yet",
+      "activateNamed": "Activate {{name}}",
+      "deactivateNamed": "Deactivate {{name}}",
+      "emptyFiltered": "Try another search or status.",
+      "clearFilters": "Clear filters",
+      "emptyTitle": "No customers yet",
+      "range": "{{from}}–{{to}} of {{total}}",
+      "pageSize": "Rows per page",
+      "formIntro": "Customers belong to your organisation and are offered in project and ticket forms.",
+      "identity": "Identity",
+      "nameInvalid": "Enter the customer name (2 to 150 characters).",
+      "codeHint": "Leave empty to generate a code automatically.",
+      "codeInvalid": "Use 2 to 40 letters, numbers, hyphens or underscores.",
+      "emailInvalid": "Enter a valid email address.",
+      "activeHint": "Inactive customers stay on existing records but are no longer offered in forms.",
+      "inUseTitle": "{{name}} cannot be deleted",
+      "inUseText": "It is used by {{projects}} project(s), {{tickets}} ticket(s) and {{records}} ticketing record(s). Deactivate it instead: it stays on existing records but is no longer offered in forms.",
+      "deactivateInstead": "Deactivate instead",
+      "loadError": "Customers could not be loaded.",
+      "saveError": "The customer could not be saved.",
+      "deleteError": "The customer could not be deleted.",
+      "statusError": "The customer status could not be changed.",
+      "toast": {
+        "created": "Customer {{name}} created.",
+        "updated": "Customer {{name}} updated.",
+        "deleted": "Customer {{name}} deleted.",
+        "activated": "Customer {{name}} activated.",
+        "deactivated": "Customer {{name}} deactivated."
+      }
     }
   },
   "owner": {
@@ -4727,5 +4938,18 @@
     "minLength": "Enter at least {{min}} characters.",
     "number": "Enter a valid number.",
     "required": "This field is required."
+  },
+  "customers": {
+    "select": {
+      "label": "Customer",
+      "placeholder": "Search a customer…",
+      "none": "No customer",
+      "noResults": "No customer matches this search.",
+      "noCustomers": "No active customers. Ask your organisation administrator to add one.",
+      "loading": "Loading customers…",
+      "loadError": "Customers could not be loaded.",
+      "inactive": "Inactive",
+      "clear": "Clear customer"
+    }
   }
 }

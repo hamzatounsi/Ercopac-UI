@@ -21,6 +21,7 @@ export class OrgAdminLayoutComponent implements OnInit, OnDestroy {
     { path: '/org-admin/users', label: 'orgAdmin.pages.users.title', icon: 'group' },
     { path: '/org-admin/roles', label: 'orgAdmin.pages.roles.title', icon: 'admin_panel_settings' },
     { path: '/org-admin/departments', label: 'orgAdmin.pages.departments.title', icon: 'account_tree' },
+    { path: '/org-admin/customers', label: 'orgAdmin.pages.customers.title', icon: 'handshake' },
     { path: '/org-admin/resources', label: 'orgAdmin.pages.resources.title', icon: 'tune' },
     { path: '/org-admin/settings', label: 'orgAdmin.pages.settings.title', icon: 'shield_lock' }
   ];

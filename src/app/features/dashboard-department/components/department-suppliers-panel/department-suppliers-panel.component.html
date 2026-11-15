@@ -1,0 +1,284 @@
+<div class="dx-toolbar">
+  <div class="dx-search">
+    <span class="material-symbols-outlined" aria-hidden="true">search</span>
+    <label class="sr-only" for="dept-supplier-search">{{ 'department.workspace.suppliers.search' | translate }}</label>
+    <input id="dept-supplier-search" type="search" [value]="table.search" (input)="onSearch($any($event.target).value)"
+           [placeholder]="'department.workspace.suppliers.searchPlaceholder' | translate" />
+  </div>
+
+  <label>
+    <span class="sr-only">{{ 'department.workspace.filterType' | translate }}</span>
+    <select class="dx-select" [value]="typeFilter" (change)="onTypeFilter($any($event.target).value)">
+      <option value="">{{ 'department.workspace.allTypes' | translate }}</option>
+      <option *ngFor="let type of departmentTypes" [value]="type">{{ type }}</option>
+    </select>
+  </label>
+
+  <div class="dx-toolbar-end" *ngIf="canCreate">
+    <button type="button" class="dx-btn primary" (click)="openCreate()">
+      <span class="material-symbols-outlined" aria-hidden="true">add_business</span>{{ 'department.workspace.suppliers.add' | translate }}
+    </button>
+  </div>
+</div>
+
+<p class="dx-scope-note" *ngIf="context?.restricted">
+  <span class="material-symbols-outlined" aria-hidden="true">info</span>
+  {{ 'department.workspace.suppliers.scopeNote' | translate: { types: departmentTypes.join(', ') || '—' } }}
+</p>
+
+<section class="dx-card" [attr.aria-busy]="loading">
+  <header>
+    <div>
+      <h2>{{ 'department.workspace.suppliers.title' | translate }}</h2>
+      <p>{{ 'department.workspace.suppliers.subtitle' | translate: { count: table.totalUnfiltered } }}</p>
+    </div>
+  </header>
+
+  <div class="dx-error" *ngIf="error" role="alert">
+    {{ error }} <button type="button" (click)="retry.emit()">{{ 'common.retry' | translate }}</button>
+  </div>
+
+  <div *ngIf="loading && !table.totalUnfiltered" class="dx-state" aria-live="polite">
+    <span class="dx-spinner" aria-hidden="true"></span>{{ 'common.loading' | translate }}
+  </div>
+
+  <div class="dx-table-wrap" *ngIf="table.total">
+    <table class="dx-table">
+      <caption class="sr-only">{{ 'department.workspace.suppliers.title' | translate }}</caption>
+      <thead>
+        <tr>
+          <th scope="col" [attr.aria-sort]="table.ariaSort('name')">
+            <button type="button" (click)="table.setSort('name')">{{ 'department.workspace.suppliers.col.supplier' | translate }}
+              <span class="material-symbols-outlined" aria-hidden="true">{{ table.sortIcon('name') }}</span></button>
+          </th>
+          <th scope="col" [attr.aria-sort]="table.ariaSort('types')">
+            <button type="button" (click)="table.setSort('types')">{{ 'department.workspace.col.resourceType' | translate }}
+              <span class="material-symbols-outlined" aria-hidden="true">{{ table.sortIcon('types') }}</span></button>
+          </th>
+          <th scope="col" [attr.aria-sort]="table.ariaSort('country')">
+            <button type="button" (click)="table.setSort('country')">{{ 'department.workspace.suppliers.col.country' | translate }}
+              <span class="material-symbols-outlined" aria-hidden="true">{{ table.sortIcon('country') }}</span></button>
+          </th>
+          <th scope="col" [attr.aria-sort]="table.ariaSort('contact')">
+            <button type="button" (click)="table.setSort('contact')">{{ 'department.workspace.suppliers.col.contact' | translate }}
+              <span class="material-symbols-outlined" aria-hidden="true">{{ table.sortIcon('contact') }}</span></button>
+          </th>
+          <th scope="col" [attr.aria-sort]="table.ariaSort('assignments')">
+            <button type="button" (click)="table.setSort('assignments')">{{ 'department.workspace.col.assignments' | translate }}
+              <span class="material-symbols-outlined" aria-hidden="true">{{ table.sortIcon('assignments') }}</span></button>
+          </th>
+          <th scope="col" class="dx-actions-head">{{ 'common.actions' | translate }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let supplier of table.view; trackBy: trackById" class="dx-clickable" (click)="openView(supplier)">
+          <td [attr.data-label]="'department.workspace.suppliers.col.supplier' | translate">
+            <div class="dx-identity">
+              <span class="dx-avatar supplier" aria-hidden="true">{{ initials(supplier.name) }}</span>
+              <div>
+                <strong [title]="supplier.name | upperName">{{ supplier.name | upperName }}</strong>
+                <small *ngIf="supplier.shortCode">{{ supplier.shortCode }}</small>
+              </div>
+            </div>
+          </td>
+          <td [attr.data-label]="'department.workspace.col.resourceType' | translate">
+            <div class="dx-chips">
+              <span class="dx-chip accent" *ngFor="let type of supplier.departmentResourceTypes">{{ type }}</span>
+            </div>
+          </td>
+          <td [attr.data-label]="'department.workspace.suppliers.col.country' | translate">{{ supplier.country || '—' }}</td>
+          <td [attr.data-label]="'department.workspace.suppliers.col.contact' | translate">
+            {{ supplier.contact || '—' }}
+            <small *ngIf="supplier.website">{{ supplier.website }}</small>
+          </td>
+          <td [attr.data-label]="'department.workspace.col.assignments' | translate">
+            {{ 'department.workspace.openActivities' | translate: { count: assignments(supplier) } }}
+          </td>
+          <td [attr.data-label]="'common.actions' | translate" class="dx-actions">
+            <button type="button" class="dx-icon-btn" (click)="$event.stopPropagation(); openView(supplier)"
+                    [title]="'department.workspace.viewNamed' | translate: { name: (supplier.name | upperName) }"
+                    [attr.aria-label]="'department.workspace.viewNamed' | translate: { name: (supplier.name | upperName) }">
+              <span class="material-symbols-outlined" aria-hidden="true">visibility</span>
+            </button>
+            <ng-container *ngIf="canManage && supplier.editable">
+              <button type="button" class="dx-icon-btn" (click)="$event.stopPropagation(); openEdit(supplier)"
+                      [title]="'common.editNamed' | translate: { name: (supplier.name | upperName) }"
+                      [attr.aria-label]="'common.editNamed' | translate: { name: (supplier.name | upperName) }">
+                <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+              </button>
+              <button type="button" class="dx-icon-btn danger" (click)="$event.stopPropagation(); requestDelete(supplier)"
+                      [title]="'common.deleteNamed' | translate: { name: (supplier.name | upperName) }"
+                      [attr.aria-label]="'common.deleteNamed' | translate: { name: (supplier.name | upperName) }">
+                <span class="material-symbols-outlined" aria-hidden="true">delete</span>
+              </button>
+            </ng-container>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="!loading && !error && !table.total" class="dx-empty">
+    <span class="material-symbols-outlined" aria-hidden="true">local_shipping</span>
+    <ng-container *ngIf="table.hasFilters; else noSuppliers">
+      <strong>{{ 'department.workspace.noMatch' | translate }}</strong>
+      <span>{{ 'department.workspace.noMatchHint' | translate }}</span>
+      <button type="button" (click)="clearFilters()">{{ 'department.workspace.clearFilters' | translate }}</button>
+    </ng-container>
+    <ng-template #noSuppliers>
+      <strong>{{ 'department.workspace.suppliers.emptyTitle' | translate }}</strong>
+      <span>{{ 'department.workspace.suppliers.emptyText' | translate }}</span>
+      <button type="button" *ngIf="canCreate" (click)="openCreate()">{{ 'department.workspace.suppliers.add' | translate }}</button>
+    </ng-template>
+  </div>
+
+  <footer *ngIf="table.total">
+    <span>{{ 'department.workspace.range' | translate: { from: table.rangeStart, to: table.rangeEnd, total: table.total } }}</span>
+    <div class="dx-pager">
+      <label>
+        <span>{{ 'department.workspace.pageSize' | translate }}</span>
+        <select [value]="table.pageSize" (change)="table.setPageSize($any($event.target).value)">
+          <option *ngFor="let size of table.pageSizes" [value]="size">{{ size }}</option>
+        </select>
+      </label>
+      <button type="button" (click)="table.previousPage()" [disabled]="table.page === 0">{{ 'department.workspace.previous' | translate }}</button>
+      <span aria-live="polite">{{ 'department.workspace.pageOf' | translate: { page: table.page + 1, total: table.pageCount } }}</span>
+      <button type="button" (click)="table.nextPage()" [disabled]="table.page + 1 >= table.pageCount">{{ 'department.workspace.next' | translate }}</button>
+    </div>
+  </footer>
+</section>
+
+<!-- View / create / edit side panel -->
+<ng-container *ngIf="drawerMode">
+  <div class="dx-backdrop" (click)="closeDrawer()" aria-hidden="true"></div>
+  <aside class="dx-drawer" role="dialog" aria-modal="true" aria-labelledby="dept-supplier-drawer-title">
+    <header>
+      <div>
+        <span class="dx-eyebrow">{{ 'department.workspace.suppliers.eyebrow' | translate }}</span>
+        <h2 id="dept-supplier-drawer-title">
+          <ng-container [ngSwitch]="drawerMode">
+            <ng-container *ngSwitchCase="'create'">{{ 'department.workspace.suppliers.add' | translate }}</ng-container>
+            <ng-container *ngSwitchDefault>{{ current?.name | upperName }}</ng-container>
+          </ng-container>
+        </h2>
+        <p *ngIf="drawerMode !== 'view'">{{ 'department.workspace.suppliers.formIntro' | translate }}</p>
+      </div>
+      <button type="button" class="dx-icon-btn" #drawerClose (click)="closeDrawer()" [attr.aria-label]="'common.close' | translate">
+        <span class="material-symbols-outlined" aria-hidden="true">close</span>
+      </button>
+    </header>
+
+    <!-- read-only view -->
+    <ng-container *ngIf="drawerMode === 'view' && current as supplier">
+      <div class="dx-drawer-body">
+        <dl class="dx-details">
+          <dt>{{ 'department.workspace.suppliers.shortCode' | translate }}</dt><dd>{{ supplier.shortCode || '—' }}</dd>
+          <dt>{{ 'department.workspace.col.resourceType' | translate }}</dt>
+          <dd><div class="dx-chips">
+            <span class="dx-chip" *ngFor="let type of supplier.resourceTypes" [class.accent]="supplier.departmentResourceTypes.includes(type)">{{ type }}</span>
+          </div></dd>
+          <dt>{{ 'department.workspace.suppliers.col.country' | translate }}</dt><dd>{{ supplier.country || '—' }}</dd>
+          <dt>{{ 'department.workspace.suppliers.col.contact' | translate }}</dt><dd>{{ supplier.contact || '—' }}</dd>
+          <dt>{{ 'department.workspace.suppliers.website' | translate }}</dt>
+          <dd><a *ngIf="supplier.website; else dash" [href]="supplier.website.startsWith('http') ? supplier.website : 'https://' + supplier.website"
+                 target="_blank" rel="noopener noreferrer">{{ supplier.website }}</a><ng-template #dash>—</ng-template></dd>
+          <dt>{{ 'department.workspace.suppliers.departments' | translate }}</dt><dd>{{ supplier.departments.join(', ') || '—' }}</dd>
+          <dt>{{ 'department.workspace.col.assignments' | translate }}</dt>
+          <dd>{{ 'department.workspace.openActivities' | translate: { count: assignments(supplier) } }}</dd>
+          <dt>{{ 'department.workspace.suppliers.notes' | translate }}</dt><dd>{{ supplier.notes || '—' }}</dd>
+        </dl>
+      </div>
+      <div class="dx-drawer-foot">
+        <button type="button" class="dx-btn" (click)="closeDrawer()">{{ 'common.close' | translate }}</button>
+        <button type="button" class="dx-btn primary" *ngIf="canManage && supplier.editable" (click)="openEdit(supplier)">
+          <span class="material-symbols-outlined" aria-hidden="true">edit</span>{{ 'common.edit' | translate }}
+        </button>
+      </div>
+    </ng-container>
+
+    <!-- create / edit form -->
+    <form *ngIf="drawerMode !== 'view'" [formGroup]="form" (ngSubmit)="save()" novalidate>
+      <div class="dx-drawer-body">
+        <div class="dx-form-error" *ngIf="formError" role="alert">{{ formError }}</div>
+
+        <div class="dx-field">
+          <label for="supplier-name">{{ 'department.workspace.suppliers.name' | translate }} <b aria-hidden="true">*</b></label>
+          <input id="supplier-name" formControlName="name" appUppercaseName autocomplete="organization" maxlength="150"
+                 [attr.aria-invalid]="isInvalid('name')" aria-required="true" aria-describedby="supplier-name-error" />
+          <small id="supplier-name-error" class="dx-field-error" *ngIf="isInvalid('name')">{{ 'department.workspace.suppliers.nameInvalid' | translate }}</small>
+        </div>
+
+        <div class="dx-field-row">
+          <div class="dx-field">
+            <label for="supplier-short">{{ 'department.workspace.suppliers.shortCode' | translate }}</label>
+            <input id="supplier-short" formControlName="shortCode" maxlength="50" />
+          </div>
+          <div class="dx-field">
+            <label for="supplier-country">{{ 'department.workspace.suppliers.col.country' | translate }}</label>
+            <select id="supplier-country" formControlName="country">
+              <option value="">—</option>
+              <option *ngIf="form.value.country && !countries.includes(form.value.country)" [value]="form.value.country">{{ form.value.country }}</option>
+              <option *ngFor="let country of countries" [value]="country">{{ country }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="dx-field-row">
+          <div class="dx-field">
+            <label for="supplier-contact">{{ 'department.workspace.suppliers.col.contact' | translate }}</label>
+            <input id="supplier-contact" formControlName="contact" maxlength="150" />
+          </div>
+          <div class="dx-field">
+            <label for="supplier-website">{{ 'department.workspace.suppliers.website' | translate }}</label>
+            <input id="supplier-website" formControlName="website" type="url" inputmode="url" maxlength="255" placeholder="https://" />
+          </div>
+        </div>
+
+        <fieldset class="dx-field" aria-describedby="supplier-types-hint supplier-types-error">
+          <legend class="dx-label">{{ 'department.workspace.col.resourceType' | translate }} <b aria-hidden="true">*</b></legend>
+          <div class="dx-check-list">
+            <label *ngFor="let type of departmentTypes">
+              <input type="checkbox" [checked]="selectedTypes.includes(type)" (change)="toggleType(type, $any($event.target).checked)" />
+              {{ type }}
+            </label>
+          </div>
+          <span id="supplier-types-hint" class="dx-hint">{{ 'department.workspace.suppliers.typesHint' | translate }}</span>
+          <small id="supplier-types-error" class="dx-field-error" *ngIf="typesInvalid" role="alert">{{ 'department.workspace.suppliers.typesRequired' | translate }}</small>
+          <div *ngIf="lockedTypes.length" class="dx-locked">
+            <span class="dx-hint">{{ 'department.workspace.suppliers.lockedTypes' | translate }}</span>
+            <div class="dx-chips"><span class="dx-chip locked" *ngFor="let type of lockedTypes">{{ type }}</span></div>
+          </div>
+        </fieldset>
+
+        <div class="dx-field">
+          <label for="supplier-notes">{{ 'department.workspace.suppliers.notes' | translate }}</label>
+          <textarea id="supplier-notes" formControlName="notes" maxlength="2000"></textarea>
+        </div>
+      </div>
+
+      <div class="dx-drawer-foot">
+        <button type="button" class="dx-btn" (click)="closeDrawer()" [disabled]="saving">{{ 'common.cancel' | translate }}</button>
+        <button type="submit" class="dx-btn primary" [disabled]="saving">
+          <span *ngIf="saving" class="dx-spinner" aria-hidden="true"></span>
+          {{ (drawerMode === 'create' ? 'common.create' : 'common.save') | translate }}
+        </button>
+      </div>
+    </form>
+  </aside>
+</ng-container>
+
+<!-- Delete confirmation -->
+<div class="dx-modal-backdrop" *ngIf="pendingDelete as supplier" (click)="cancelDelete()">
+  <section class="dx-confirm" role="alertdialog" aria-modal="true" aria-labelledby="supplier-delete-title"
+           aria-describedby="supplier-delete-text" (click)="$event.stopPropagation()">
+    <div class="dx-confirm-icon"><span class="material-symbols-outlined" aria-hidden="true">delete</span></div>
+    <h2 id="supplier-delete-title">{{ 'department.workspace.suppliers.deleteTitle' | translate: { name: (supplier.name | upperName) } }}</h2>
+    <p id="supplier-delete-text">{{ 'department.workspace.suppliers.deleteText' | translate }}</p>
+    <div class="dx-confirm-actions">
+      <button type="button" class="dx-btn" #confirmCancel (click)="cancelDelete()" [disabled]="deleting">{{ 'common.cancel' | translate }}</button>
+      <button type="button" class="dx-btn danger" (click)="confirmDelete()" [disabled]="deleting">
+        <span *ngIf="deleting" class="dx-spinner" aria-hidden="true"></span>{{ 'common.delete' | translate }}
+      </button>
+    </div>
+  </section>
+</div>

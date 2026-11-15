@@ -33,7 +33,7 @@
 
     <button type="button" class="tk-card" *ngFor="let t of tickets" (click)="open(t)">
       <div class="tk-card-head">
-        <span class="meta">#{{ t.ticketNumber }}<ng-container *ngIf="t.customer"> · <span class="text-upper">{{ t.customer.name }}</span></ng-container><ng-container *ngIf="t.projectNumber"> · {{ 'ticketing.list.orderNumber' | translate }} {{ t.projectNumber }}</ng-container><ng-container *ngIf="t.site"> · {{ t.site }}</ng-container></span>
+        <span class="meta">#{{ t.ticketNumber }}<ng-container *ngIf="t.customer"> · <span class="text-upper">{{ t.customer.name | upperName }}</span></ng-container><ng-container *ngIf="t.projectNumber"> · {{ 'ticketing.list.orderNumber' | translate }} {{ t.projectNumber }}</ng-container><ng-container *ngIf="t.site"> · {{ t.site }}</ng-container></span>
         <span class="badges">
           <span class="badge" [ngClass]="'c-' + labels.ticketStatusColor(t)">{{ labels.ticketStatusLabel(t) }}</span>
           <span class="priority" [ngClass]="'p-' + t.priority.toLowerCase()">{{ labels.priorityLabel(t.priority) }}</span>

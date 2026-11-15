@@ -82,7 +82,7 @@
             *ngFor="let resource of resources; trackBy: trackByResourceId"
             (click)="openDetails(resource.id)"
           >
-            <td class="text-upper">{{ resource.fullName }}</td>
+            <td class="text-upper">{{ resource.fullName | upperName }}</td>
             <td>{{ resource.employeeCode || '-' }}</td>
             <td>{{ resource.departmentCode || '-' }}</td>
             <td>{{ resource.resourceType || '-' }}</td>
@@ -133,7 +133,7 @@
 
         <div class="dp-field">
           <label>{{ 'department.resources.fullName' | translate }}</label>
-          <input class="dp-inp" type="text" formControlName="fullName" />
+          <input appUppercaseName class="dp-inp" type="text" formControlName="fullName" />
           <div class="field-error" *ngIf="form.get('fullName')?.touched && form.get('fullName')?.invalid">
             {{ 'department.resources.fullNameRequired' | translate }}
           </div>

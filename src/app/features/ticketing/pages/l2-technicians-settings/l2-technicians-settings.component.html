@@ -23,7 +23,7 @@
     <thead><tr><th>{{ 'common.name' | translate }}</th><th>{{ 'ticketing.l2.resourceType' | translate }}</th><th>{{ 'ticketing.l2.specialisation' | translate }}</th><th>{{ 'ticketing.l2.level' | translate }}</th><th>{{ 'ticketing.l2.openL2Tickets' | translate }}</th><th>{{ 'common.status' | translate }}</th><th *ngIf="isLead"></th></tr></thead>
     <tbody>
       <tr *ngFor="let t of technicians">
-        <td class="strong">{{ t.fullName }}<small>{{ t.email }}</small></td>
+        <td class="strong">{{ t.fullName | upperName }}<small>{{ t.email }}</small></td>
         <td>{{ t.resourceType || '—' }}</td>
         <td>{{ t.specialization || '—' }}</td>
         <td><span class="badge c-red">L2</span></td>

@@ -1199,6 +1199,171 @@
       "totalelementsTotal": "共 {{totalElements}} 个",
       "type": "类型",
       "workdays": "工作日"
+    },
+    "workspace": {
+      "eyebrow": "我的部门",
+      "chief": "部门负责人",
+      "resourceTypes": "资源类型",
+      "refresh": "刷新",
+      "tabsLabel": "部门分区",
+      "tabs": {
+        "resources": "资源",
+        "suppliers": "供应商",
+        "activities": "活动",
+        "holidays": "休假"
+      },
+      "kpi": {
+        "label": "部门概览",
+        "resources": "资源",
+        "available": "本周可用",
+        "assigned": "本周已分配",
+        "onLeave": "今日休假 · 即将 {{count}} 项",
+        "suppliers": "供应商",
+        "projects": "项目 · {{count}} 项未完成活动"
+      },
+      "filterType": "按资源类型筛选",
+      "allTypes": "所有资源类型",
+      "col": {
+        "resourceType": "资源类型",
+        "assignments": "分配"
+      },
+      "openActivities": "{{count}} 项未完成",
+      "viewNamed": "查看 {{name}}",
+      "noMatch": "没有符合这些筛选条件的结果",
+      "noMatchHint": "请尝试其他搜索或筛选条件。",
+      "clearFilters": "清除筛选",
+      "range": "第 {{from}}–{{to}} 条，共 {{total}} 条",
+      "pageSize": "每页行数",
+      "pageOf": "第 {{page}} 页，共 {{total}} 页",
+      "previous": "上一页",
+      "next": "下一页",
+      "scale": "时间轴刻度",
+      "zoomIn": "放大",
+      "zoomOut": "缩小",
+      "back": "向前",
+      "backLong": "向前很多",
+      "forward": "向后",
+      "forwardLong": "向后很多",
+      "show": "在时间轴中显示",
+      "columns": "列",
+      "resources": {
+        "title": "部门资源",
+        "subtitle": "{{count}} 行 · 人员和通用资源",
+        "search": "搜索资源",
+        "searchPlaceholder": "按姓名、编号、邮箱或类型搜索",
+        "filterKind": "按类别筛选",
+        "allKinds": "所有类别",
+        "filterAvailability": "按可用性筛选",
+        "allAvailability": "任意可用性",
+        "kind": {
+          "internal": "内部资源",
+          "generic": "通用资源"
+        },
+        "availability": {
+          "available": "可用",
+          "assigned": "已分配",
+          "onLeave": "休假中"
+        },
+        "col": {
+          "name": "资源",
+          "kind": "类别",
+          "capacity": "产能",
+          "thisWeek": "本周"
+        },
+        "hoursPerWeek": "每周 {{hours}} 小时",
+        "capacityDetail": "{{hours}} 小时 × {{days}} 天",
+        "thisWeekCount": "本周 {{count}} 项",
+        "genericHint": "该类型的未命名产能",
+        "manage": "管理资源",
+        "emptyTitle": "该部门没有资源",
+        "emptyText": "资源分配到部门后会显示在这里。",
+        "employeeCode": "员工编号",
+        "seniority": "资历",
+        "openActivities": "未完成活动",
+        "noOpenActivities": "没有未完成的活动。",
+        "showTimeline": "查看时间轴",
+        "viewLabel": "资源视图",
+        "tableView": "表格",
+        "timelineView": "时间轴"
+      },
+      "suppliers": {
+        "title": "部门供应商",
+        "subtitle": "与部门资源类型关联的 {{count}} 个启用供应商",
+        "search": "搜索供应商",
+        "searchPlaceholder": "按名称、编号、国家、联系人或类型搜索",
+        "add": "添加供应商",
+        "eyebrow": "供应商",
+        "scopeNote": "您管理本部门资源类型的供应商：{{types}}。",
+        "col": {
+          "supplier": "供应商",
+          "country": "国家",
+          "contact": "联系人"
+        },
+        "name": "供应商名称",
+        "nameInvalid": "请输入供应商名称（最多 150 个字符）。",
+        "shortCode": "简码",
+        "website": "网站",
+        "departments": "部门",
+        "notes": "备注",
+        "formIntro": "供应商在组织内共享，并与资源类型关联。",
+        "typesHint": "选择该供应商为您部门提供的资源类型。",
+        "typesRequired": "请至少选择一个资源类型。",
+        "lockedTypes": "还关联了其他部门的以下类型（保持不变）：",
+        "emptyTitle": "该部门没有供应商",
+        "emptyText": "与部门资源类型关联的供应商会显示在这里。",
+        "deleteTitle": "删除 {{name}}？",
+        "deleteText": "该供应商将被停用：它会从列表和选择器中消失，现有分配仍保留它。",
+        "loadError": "无法加载供应商。",
+        "saveError": "无法保存供应商。",
+        "deleteError": "无法删除供应商。",
+        "toast": {
+          "created": "已创建供应商 {{name}}。",
+          "updated": "已更新供应商 {{name}}。",
+          "deleted": "已删除供应商 {{name}}。"
+        }
+      },
+      "activities": {
+        "allStatuses": "所有项目状态",
+        "status": {
+          "ACTIVE": "进行中",
+          "PLANNED": "已计划",
+          "STANDBY": "暂停",
+          "COMPLETED": "已完成"
+        }
+      },
+      "holidays": {
+        "title": "休假",
+        "subtitle": "部门共 {{count}} 条休假",
+        "search": "搜索休假",
+        "searchPlaceholder": "按人员或备注搜索",
+        "filterPeriod": "按时段筛选",
+        "filterPerson": "按人员筛选",
+        "allPeople": "所有人",
+        "period": {
+          "current": "进行中和即将开始",
+          "ongoing": "进行中",
+          "upcoming": "即将开始",
+          "past": "已结束",
+          "all": "所有时段"
+        },
+        "col": {
+          "days": "天数"
+        },
+        "showAll": "显示全部休假",
+        "emptyText": "为部门资源计划的休假会显示在这里。",
+        "formIntro": "在这些日期内，该资源在时间轴上显示为不可用。",
+        "dateOrder": "结束日期不能早于开始日期。",
+        "datesRequired": "请输入两个日期。",
+        "deleteNamed": "删除 {{name}} 的休假",
+        "deleteTitle": "删除此休假？",
+        "deleteText": "{{name}} 将在 {{from}} 至 {{to}} 期间重新可用。",
+        "upcoming": "即将开始的休假",
+        "noneUpcoming": "没有即将开始的休假。",
+        "toast": {
+          "created": "已为 {{name}} 添加休假。",
+          "deleted": "已删除 {{name}} 的休假。"
+        }
+      }
     }
   },
   "dm": {
@@ -1335,7 +1500,10 @@
     "UNAUTHORIZED": "您的会话已过期，请重新登录。",
     "UNKNOWN": "发生意外错误。",
     "VALIDATION_ERROR": "部分字段缺失或无效。",
-    "preferencesSave": "无法保存您的偏好设置。它已保留在此设备上，并将在您下次更改时保存。"
+    "preferencesSave": "无法保存您的偏好设置。它已保留在此设备上，并将在您下次更改时保存。",
+    "CUSTOMER_NAME_EXISTS": "您的组织中已存在同名客户。",
+    "CUSTOMER_CODE_EXISTS": "该客户代码已被使用。",
+    "CUSTOMER_IN_USE": "该客户仍被项目或工单使用。请改为停用。"
   },
   "forbidden": {
     "accessRestricted": "访问受限",
@@ -3185,6 +3353,10 @@
       "users": {
         "description": "创建、分配和管理组织中的账户。",
         "title": "用户"
+      },
+      "customers": {
+        "title": "客户管理",
+        "description": "创建并维护项目和工单使用的客户。"
       }
     },
     "profile": {
@@ -3569,6 +3741,45 @@
       "userCanSignWhile": "启用此设置时，用户可以登录。",
       "userWillAbleSign": "用户将可以再次登录，但受组织许可证数量限制。",
       "userWillImmediatelyLose": "当前令牌再次校验时，用户将立即失去访问权限。"
+    },
+    "customers": {
+      "searchLabel": "搜索客户",
+      "searchPlaceholder": "按名称、代码、城市、联系人或邮箱搜索",
+      "filterStatus": "按状态筛选",
+      "allStatuses": "所有状态",
+      "count": "{{count}} 个客户",
+      "countOne": "1 个客户",
+      "usedIn": "使用情况",
+      "usage": "{{projects}} 个项目 · {{tickets}} 个工单",
+      "notUsed": "尚未使用",
+      "activateNamed": "启用 {{name}}",
+      "deactivateNamed": "停用 {{name}}",
+      "emptyFiltered": "请尝试其他搜索或状态。",
+      "clearFilters": "清除筛选",
+      "emptyTitle": "暂无客户",
+      "range": "第 {{from}}–{{to}} 条，共 {{total}} 条",
+      "pageSize": "每页行数",
+      "formIntro": "客户属于您的组织，并在项目和工单表单中提供选择。",
+      "identity": "基本信息",
+      "nameInvalid": "请输入客户名称（2 到 150 个字符）。",
+      "codeHint": "留空将自动生成代码。",
+      "codeInvalid": "请使用 2 到 40 个字母、数字、连字符或下划线。",
+      "emailInvalid": "请输入有效的邮箱地址。",
+      "activeHint": "停用的客户保留在现有记录中，但不再出现在表单中。",
+      "inUseTitle": "无法删除 {{name}}",
+      "inUseText": "它被 {{projects}} 个项目、{{tickets}} 个工单和 {{records}} 条工单记录使用。请改为停用：它会保留在现有记录中，但不再出现在表单中。",
+      "deactivateInstead": "改为停用",
+      "loadError": "无法加载客户。",
+      "saveError": "无法保存客户。",
+      "deleteError": "无法删除客户。",
+      "statusError": "无法更改客户状态。",
+      "toast": {
+        "created": "已创建客户 {{name}}。",
+        "updated": "已更新客户 {{name}}。",
+        "deleted": "已删除客户 {{name}}。",
+        "activated": "已启用客户 {{name}}。",
+        "deactivated": "已停用客户 {{name}}。"
+      }
     }
   },
   "owner": {
@@ -4727,5 +4938,18 @@
     "minLength": "请至少输入 {{min}} 个字符。",
     "number": "请输入有效的数字。",
     "required": "此字段为必填项。"
+  },
+  "customers": {
+    "select": {
+      "label": "客户",
+      "placeholder": "搜索客户…",
+      "none": "无客户",
+      "noResults": "没有与此搜索匹配的客户。",
+      "noCustomers": "没有启用的客户。请联系组织管理员添加。",
+      "loading": "正在加载客户…",
+      "loadError": "无法加载客户。",
+      "inactive": "已停用",
+      "clear": "清除客户"
+    }
   }
 }

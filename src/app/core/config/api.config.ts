@@ -14,3 +14,5 @@ export const API_ADMIN_URL = `${API_BASE_URL}/admin`;
 export const API_ORG_ADMIN_URL = `${API_BASE_URL}/org-admin`;
 export const API_PLATFORM_URL = `${API_BASE_URL}/platform`;
 export const API_DEPARTMENT_DASHBOARD_URL = `${API_BASE_URL}/department-dashboard`;
+export const API_CUSTOMERS_URL = `${API_BASE_URL}/customers`;
+export const API_ORG_ADMIN_CUSTOMERS_URL = `${API_BASE_URL}/org-admin/customers`;

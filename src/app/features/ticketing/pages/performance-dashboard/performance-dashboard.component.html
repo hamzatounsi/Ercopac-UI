@@ -32,7 +32,7 @@
     <label>{{ 'ticketing.performance.customer' | translate }}
       <select class="select" [(ngModel)]="customerId" (ngModelChange)="load()">
         <option [ngValue]="null">{{ 'ticketing.performance.allCustomers' | translate }}</option>
-        <option *ngFor="let c of customers" [ngValue]="c.id">{{ c.name }}</option>
+        <option *ngFor="let c of customers" [ngValue]="c.id">{{ c.name | upperName }}</option>
       </select>
     </label>
     <label>{{ 'ticketing.performance.equipmentType' | translate }}
@@ -102,7 +102,7 @@
               <thead><tr><th>{{ 'ticketing.performance.customer' | translate }}</th><th>{{ 'ticketing.performance.tickets' | translate }}</th><th>{{ 'ticketing.performance.open' | translate }}</th><th class="w40">{{ 'ticketing.performance.slaCompliance' | translate }}</th></tr></thead>
               <tbody>
                 <tr *ngFor="let c of d.byCustomer">
-                  <td class="strong">{{ c.name }}</td>
+                  <td class="strong">{{ c.name | upperName }}</td>
                   <td>{{ c.total }}</td>
                   <td>{{ c.open }}</td>
                   <td>

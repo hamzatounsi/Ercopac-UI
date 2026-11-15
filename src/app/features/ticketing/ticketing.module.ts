@@ -33,6 +33,7 @@ import { TicketNotificationsComponent } from './components/ticket-notifications/
 import { SelectOrManualComponent } from './components/select-or-manual/select-or-manual.component';
 import { ResourceEmployeePickerComponent } from './components/resource-employee-picker/resource-employee-picker.component';
 import { CustomerImportComponent } from './components/customer-import/customer-import.component';
+import { UppercaseNameDirective, UpperNamePipe } from 'src/app/core/names';
 
 @NgModule({
   declarations: [
@@ -58,6 +59,8 @@ import { CustomerImportComponent } from './components/customer-import/customer-i
     CustomerImportComponent
   ],
   imports: [
+    UppercaseNameDirective,
+    UpperNamePipe,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,

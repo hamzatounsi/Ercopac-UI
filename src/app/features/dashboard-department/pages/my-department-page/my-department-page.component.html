@@ -1,159 +1,163 @@
+<app-admin-toast></app-admin-toast>
+
 <div class="dept-page">
-  <header class="dept-header">
-    <div class="brand">
-      <div class="app-name">Projectum<span>ALL</span></div>
-      <div class="app-sub">{{ 'department.my.departmentWorkloadAllocation' | translate }}</div>
+  <!-- ============================================================ header -->
+  <header class="dw-header">
+    <div class="dw-title">
+      <span class="dw-eyebrow">{{ 'department.workspace.eyebrow' | translate }}</span>
+      <h1>
+        <ng-container *ngIf="selectedDepartmentCode; else noDepartmentTitle">{{ departmentTitle }}</ng-container>
+        <ng-template #noDepartmentTitle>{{ 'department.my.departmentWorkloadAllocation' | translate }}</ng-template>
+        <span class="dw-code" *ngIf="selectedDepartmentCode && departmentTitle !== selectedDepartmentCode">{{ selectedDepartmentCode }}</span>
+      </h1>
+      <div class="dw-meta" *ngIf="selectedDepartmentCode">
+        <span class="dw-meta-item" *ngIf="(context?.managerName || selectedManager?.fullName) as chief">
+          <span class="material-symbols-outlined" aria-hidden="true">badge</span>
+          <span><span class="dw-meta-label">{{ 'department.workspace.chief' | translate }}</span> {{ chief | upperName }}</span>
+        </span>
+        <span class="dw-meta-item" *ngIf="context?.resourceTypes?.length">
+          <span class="material-symbols-outlined" aria-hidden="true">category</span>
+          <span class="dw-meta-label">{{ 'department.workspace.resourceTypes' | translate }}</span>
+          <span class="dw-types">
+            <span class="dw-type" *ngFor="let type of context?.resourceTypes" [title]="type.label || type.code">{{ type.code }}</span>
+          </span>
+        </span>
+      </div>
     </div>
-<!-- GM: manager dropdown -->
-<div class="header-select" *ngIf="!isDepartmentManager">
-  <label>{{ 'department.my.manager' | translate }}</label>
-  <select
-    [value]="selectedManagerId ?? ''"
-    (change)="onManagerChange($any($event.target).value)"
-  >
-    <option value="">{{ 'department.my.select' | translate }}</option>
-    <option *ngFor="let m of managers; trackBy: trackByManager" [value]="m.id">
-      {{ m.fullName }} · {{ m.departmentCode }}
-    </option>
-  </select>
-</div>
 
-
-<!-- DM: just shows his dept name, no dropdown -->
-<div class="header-select" *ngIf="isDepartmentManager">
-  <label>{{ 'department.my.department' | translate }}</label>
-  <div class="dept-label-static">{{ selectedDepartmentCode }}</div>
-</div>
-<!-- Badge -->
-<div class="dept-pill" *ngIf="selectedDepartmentCode">
-  {{ selectedDepartmentCode }}
-</div>
-<app-nav-buttons *ngIf="!insideGmLayout" [homes]="['/department']"></app-nav-buttons>
-<app-profile-menu *ngIf="!insideGmLayout"></app-profile-menu>
+    <div class="dw-header-actions">
+      <label class="dw-manager" *ngIf="!isDepartmentManager">
+        <span>{{ 'department.my.manager' | translate }}</span>
+        <select [value]="selectedManagerId ?? ''" (change)="onManagerChange($any($event.target).value)" [disabled]="managersLoading">
+          <option value="">{{ 'department.my.select' | translate }}</option>
+          <option *ngFor="let m of managers; trackBy: trackByManager" [value]="m.id">{{ m.fullName | upperName }} · {{ m.departmentCode }}</option>
+        </select>
+      </label>
+      <button type="button" class="dw-icon-button" (click)="refresh()" [disabled]="loading || !selectedDepartmentCode"
+              [title]="'department.workspace.refresh' | translate" [attr.aria-label]="'department.workspace.refresh' | translate">
+        <span class="material-symbols-outlined" aria-hidden="true" [class.spinning]="loading">refresh</span>
+      </button>
+      <app-nav-buttons *ngIf="!insideGmLayout" [homes]="['/department']"></app-nav-buttons>
+      <app-profile-menu *ngIf="!insideGmLayout"></app-profile-menu>
+    </div>
   </header>
-  <nav class="dept-toolbar">
-    <div class="view-tabs">
-      <button type="button" [class.active]="mainView === 'resource'" (click)="setMainView('resource')">
-        {{ 'department.my.resources' | translate }}
-      </button>
-      <button type="button" [class.active]="mainView === 'projects'" (click)="setMainView('projects')">
-        {{ 'department.my.activitiesProject' | translate }}
-      </button>
-    </div>
 
-    <div class="toolbar-actions" *ngIf="mainView === 'resource'">
-      <button type="button" [class.active]="timelineView === 'day'" (click)="setTimelineView('day')">{{ 'department.my.day' | translate }}</button>
-      <button type="button" [class.active]="timelineView === 'week'" (click)="setTimelineView('week')">{{ 'department.my.week' | translate }}</button>
+  <div class="dw-alert" *ngIf="error" role="alert">
+    <span class="material-symbols-outlined" aria-hidden="true">error</span>
+    <span>{{ error }}</span>
+    <button type="button" (click)="refresh()" *ngIf="selectedDepartmentCode || isDepartmentManager">{{ 'common.retry' | translate }}</button>
+  </div>
 
-      <span class="separator"></span>
-
-      <button type="button" (click)="zoom(-1)">−</button>
-      <button type="button" (click)="zoom(+1)">+</button>
-
-      <span class="separator"></span>
-
-      <button type="button" (click)="shift(-26)">«</button>
-      <button type="button" (click)="shift(-4)">‹</button>
-      <span class="range-label">{{ rangeLabel }}</span>
-      <button type="button" (click)="shift(+4)">›</button>
-      <button type="button" (click)="shift(+26)">»</button>
-
-      <button type="button" class="primary-light" (click)="goToday()">{{ 'department.my.today' | translate }}</button>
-      <button type="button" class="primary" (click)="openHolidayModal()">{{ 'department.my.addHoliday' | translate }}</button>
-    </div>
-
-    <div class="toolbar-actions" *ngIf="mainView === 'projects'">
-      <div class="pa-col-wrap" #paColBtnWrap>
-        <button type="button" (click)="togglePaColMenu()">{{ 'department.my.columns' | translate }}</button>
-
-        <div class="pa-col-menu" [class.open]="paColMenuOpen">
-          <label *ngFor="let col of paToggleableCols">
-            <input
-              type="checkbox"
-              [checked]="col.vis"
-              (change)="togglePaCol(col.id, $any($event.target).checked)"
-            />
-            {{ col.label | translate }}
-          </label>
-        </div>
-      </div>
-
-      <button type="button" (click)="zoomPaGantt(-1)">−</button>
-      <button type="button" (click)="zoomPaGantt(+1)">+</button>
-    </div>
-  </nav>
-
-  <section class="activity-filter-bar" *ngIf="mainView === 'projects'">
-
-    <div class="af-dropdown-wrap" #timeFilterWrap>
-      <button type="button" class="filter-btn" (click)="toggleTimeFilterMenu()">
-        {{ selectedTimeFilterLabel }} ▼
-      </button>
-
-      <div class="af-dropdown-menu" [class.open]="timeFilterMenuOpen">
-        <button
-          type="button"
-          *ngFor="let item of timeFilterOptions"
-          [class.active]="item.value === selectedTimeFilter"
-          (click)="selectTimeFilter(item.value)"
-        >
-          {{ item.label | translate }}
-        </button>
-      </div>
-    </div>
-
-    <!-- PROJECT SELECTOR HERE -->
-
-    <div class="project-select-wrap">
-      <label class="project-filter-label">{{ 'department.my.project' | translate }}</label>
-
-      <select
-        class="project-select"
-        [value]="selectedProjectId ?? ''"
-        (change)="onProjectChange($any($event.target).value)"
-      >
-        <option value="">{{ 'department.my.allProjects' | translate }}</option>
-
-        <option
-          *ngFor="let p of projectOptions"
-          [value]="p.projectId"
-        >
-          {{ projectDisplayName(p) }}
-        </option>
-      </select>
-    </div>
-
-    <input
-      class="activity-search"
-      type="text"
-      [ngModel]="activitySearch"
-      (ngModelChange)="onActivitySearchChange($event)"
-      [placeholder]="'department.my.searchProjectCodeActivity' | translate"
-    />
-
-    <div class="status-filters">
-      ...
-    </div>
-
-  </section>
-
-  <div *ngIf="loading" class="page-state">{{ 'department.my.loadingDepartmentData' | translate }}</div>
-  <div *ngIf="error" class="page-state error">{{ error }}</div>
-
-  <section class="empty-state" *ngIf="!loading && !selectedDepartmentCode && !isDepartmentManager">
-    <div class="empty-icon">🏢</div>
+  <!-- ============================================================ no department selected -->
+  <section class="dw-empty" *ngIf="!loading && !selectedDepartmentCode && !isDepartmentManager">
+    <span class="material-symbols-outlined" aria-hidden="true">domain</span>
     <h2>{{ 'department.my.selectDepartment' | translate }}</h2>
     <p>{{ 'department.my.choosePmMeEe' | translate }}</p>
   </section>
 
-  <section class="resource-shell" [style.display]="mainView === 'resource' && selectedDepartmentCode ? 'flex' : 'none'">
+  <section class="dw-empty" *ngIf="loading && !overview" aria-live="polite">
+    <span class="dw-spinner" aria-hidden="true"></span>
+    <p>{{ 'department.my.loadingDepartmentData' | translate }}</p>
+  </section>
+
+  <ng-container *ngIf="overview">
+    <!-- ============================================================ KPI cards -->
+    <section class="dw-kpis" *ngIf="kpis as k" [attr.aria-label]="'department.workspace.kpi.label' | translate">
+      <article class="dw-kpi">
+        <span class="dw-kpi-icon" aria-hidden="true"><span class="material-symbols-outlined">groups</span></span>
+        <div><strong>{{ k.resources }}</strong><span>{{ 'department.workspace.kpi.resources' | translate }}</span></div>
+      </article>
+      <article class="dw-kpi success">
+        <span class="dw-kpi-icon" aria-hidden="true"><span class="material-symbols-outlined">event_available</span></span>
+        <div><strong>{{ k.available }}</strong><span>{{ 'department.workspace.kpi.available' | translate }}</span></div>
+      </article>
+      <article class="dw-kpi info">
+        <span class="dw-kpi-icon" aria-hidden="true"><span class="material-symbols-outlined">assignment_ind</span></span>
+        <div><strong>{{ k.assigned }}</strong><span>{{ 'department.workspace.kpi.assigned' | translate }}</span></div>
+      </article>
+      <article class="dw-kpi warning">
+        <span class="dw-kpi-icon" aria-hidden="true"><span class="material-symbols-outlined">beach_access</span></span>
+        <div><strong>{{ k.onLeave }}</strong><span>{{ 'department.workspace.kpi.onLeave' | translate: { count: k.upcomingHolidays } }}</span></div>
+      </article>
+      <article class="dw-kpi">
+        <span class="dw-kpi-icon" aria-hidden="true"><span class="material-symbols-outlined">local_shipping</span></span>
+        <div><strong>{{ suppliersLoading && !suppliers.length ? '…' : k.suppliers }}</strong><span>{{ 'department.workspace.kpi.suppliers' | translate }}</span></div>
+      </article>
+      <article class="dw-kpi">
+        <span class="dw-kpi-icon" aria-hidden="true"><span class="material-symbols-outlined">folder_open</span></span>
+        <div><strong>{{ k.projects }}</strong><span>{{ 'department.workspace.kpi.projects' | translate: { count: k.openActivities } }}</span></div>
+      </article>
+    </section>
+
+    <!-- ============================================================ tabs -->
+    <div class="dw-tabs" role="tablist" [attr.aria-label]="'department.workspace.tabsLabel' | translate">
+      <button *ngFor="let tab of tabs; let i = index" type="button" role="tab" [id]="'dept-tab-' + tab"
+              [attr.aria-selected]="activeTab === tab" [attr.aria-controls]="'dept-panel-' + tab" [tabindex]="activeTab === tab ? 0 : -1"
+              [class.active]="activeTab === tab" (click)="selectTab(tab)" (keydown)="onTabKeydown($event, i)">
+        {{ ('department.workspace.tabs.' + tab) | translate }}
+        <span class="dw-tab-count" *ngIf="tabCounts[tab] !== null">{{ tabCounts[tab] }}</span>
+      </button>
+    </div>
+  </ng-container>
+
+  <!-- ============================================================ Resources -->
+  <section id="dept-panel-resources" role="tabpanel" aria-labelledby="dept-tab-resources" class="dw-panel"
+           [hidden]="!overview || activeTab !== 'resources'">
+    <div class="dw-panel-bar">
+      <div class="dw-segmented" role="group" [attr.aria-label]="'department.workspace.resources.viewLabel' | translate">
+        <button type="button" [class.active]="resourceView === 'table'" [attr.aria-pressed]="resourceView === 'table'" (click)="setResourceView('table')">
+          <span class="material-symbols-outlined" aria-hidden="true">table_rows</span>{{ 'department.workspace.resources.tableView' | translate }}
+        </button>
+        <button type="button" [class.active]="resourceView === 'timeline'" [attr.aria-pressed]="resourceView === 'timeline'" (click)="setResourceView('timeline')">
+          <span class="material-symbols-outlined" aria-hidden="true">view_timeline</span>{{ 'department.workspace.resources.timelineView' | translate }}
+        </button>
+      </div>
+
+      <div class="dw-timeline-tools" *ngIf="resourceView === 'timeline'">
+        <div class="dw-segmented small" role="group" [attr.aria-label]="'department.workspace.scale' | translate">
+          <button type="button" [class.active]="timelineView === 'day'" [attr.aria-pressed]="timelineView === 'day'" (click)="setTimelineView('day')">{{ 'department.my.day' | translate }}</button>
+          <button type="button" [class.active]="timelineView === 'week'" [attr.aria-pressed]="timelineView === 'week'" (click)="setTimelineView('week')">{{ 'department.my.week' | translate }}</button>
+        </div>
+        <div class="dw-tool-group">
+          <button type="button" class="dw-icon-button" (click)="zoom(-1)" [attr.aria-label]="'department.workspace.zoomOut' | translate" [title]="'department.workspace.zoomOut' | translate">
+            <span class="material-symbols-outlined" aria-hidden="true">zoom_out</span></button>
+          <button type="button" class="dw-icon-button" (click)="zoom(+1)" [attr.aria-label]="'department.workspace.zoomIn' | translate" [title]="'department.workspace.zoomIn' | translate">
+            <span class="material-symbols-outlined" aria-hidden="true">zoom_in</span></button>
+        </div>
+        <div class="dw-tool-group">
+          <button type="button" class="dw-icon-button" (click)="shift(-26)" [attr.aria-label]="'department.workspace.backLong' | translate" [title]="'department.workspace.backLong' | translate">
+            <span class="material-symbols-outlined" aria-hidden="true">keyboard_double_arrow_left</span></button>
+          <button type="button" class="dw-icon-button" (click)="shift(-4)" [attr.aria-label]="'department.workspace.back' | translate" [title]="'department.workspace.back' | translate">
+            <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span></button>
+          <span class="dw-range" aria-live="polite">{{ rangeLabel }}</span>
+          <button type="button" class="dw-icon-button" (click)="shift(+4)" [attr.aria-label]="'department.workspace.forward' | translate" [title]="'department.workspace.forward' | translate">
+            <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span></button>
+          <button type="button" class="dw-icon-button" (click)="shift(+26)" [attr.aria-label]="'department.workspace.forwardLong' | translate" [title]="'department.workspace.forwardLong' | translate">
+            <span class="material-symbols-outlined" aria-hidden="true">keyboard_double_arrow_right</span></button>
+        </div>
+        <button type="button" class="dw-button" (click)="goToday()">{{ 'department.my.today' | translate }}</button>
+        <div class="dw-segmented small" role="group" [attr.aria-label]="'department.workspace.show' | translate">
+          <button type="button" [class.active]="showResources" [attr.aria-pressed]="showResources" (click)="showResources = !showResources">{{ 'department.my.resources' | translate }}</button>
+          <button type="button" [class.active]="showSuppliers" [attr.aria-pressed]="showSuppliers" (click)="showSuppliers = !showSuppliers">{{ 'department.workspace.tabs.suppliers' | translate }}</button>
+        </div>
+        <button type="button" class="dw-button primary" *ngIf="context?.canManageHolidays && people.length" (click)="openHolidayForm()">
+          <span class="material-symbols-outlined" aria-hidden="true">beach_access</span>{{ 'department.my.addHoliday' | translate }}
+        </button>
+      </div>
+    </div>
+
+    <app-department-resources-table *ngIf="resourceView === 'table'"
+      [rows]="overview?.resourceRows ?? []" [holidays]="holidays" [loading]="loading"
+      [canManageResources]="!!context?.canManageResources" (showOnTimeline)="setResourceView('timeline')">
+    </app-department-resources-table>
+  </section>
+
+  <!-- Resource timeline (kept in the DOM so its scroll synchronisation keeps working) -->
+  <section class="resource-shell" [style.display]="overview && activeTab === 'resources' && resourceView === 'timeline' ? 'flex' : 'none'"
+           [attr.aria-label]="'department.workspace.resources.timelineView' | translate">
     <aside class="member-panel">
       <div class="member-header">
         <span>{{ 'department.my.member' | translate }}</span>
-        <div class="rs-actions">
-          <button type="button" [class.off]="!showResources" (click)="showResources = !showResources">R</button>
-          <button type="button" [class.off]="!showSuppliers" (click)="showSuppliers = !showSuppliers">S</button>
-        </div>
       </div>
 
       <div class="member-subtitle">
@@ -167,7 +171,7 @@
           </div>
 
           <div class="member-info">
-            <strong [attr.title]="row.member.fullName">{{ row.member.fullName }}</strong>
+            <strong [attr.title]="row.member.fullName">{{ row.member.fullName | upperName }}</strong>
             <span [attr.title]="row.member.resourceType || row.member.role || ('department.my.resource' | translate)">{{ row.member.resourceType || row.member.role || ('department.my.resource' | translate) }}</span>
           </div>
 
@@ -266,7 +270,7 @@
                 [style.left.px]="itemLeftPx(item.startDate)"
                 [style.width.px]="itemWidthPx(item.startDate, item.endDate)"
               >
-                🏖 {{ item.holidayNote || ('department.my.holiday' | translate) }}
+                <span class="material-symbols-outlined" aria-hidden="true">beach_access</span> {{ item.holidayNote || ('department.my.holiday' | translate) }}
               </div>
             </ng-container>
           </div>
@@ -275,7 +279,90 @@
     </main>
   </section>
 
-  <section class="activity-shell" [style.display]="mainView === 'projects' && selectedDepartmentCode ? 'flex' : 'none'">
+  <!-- ============================================================ Suppliers -->
+  <section id="dept-panel-suppliers" role="tabpanel" aria-labelledby="dept-tab-suppliers" class="dw-panel"
+           [hidden]="!overview || activeTab !== 'suppliers'">
+    <app-department-suppliers-panel
+      [suppliers]="suppliers" [context]="context" [loading]="suppliersLoading" [error]="suppliersError"
+      [assignmentCounts]="supplierAssignmentCounts" (changed)="onSuppliersChanged()" (retry)="retrySuppliers()">
+    </app-department-suppliers-panel>
+  </section>
+
+  <!-- ============================================================ Activities -->
+  <section id="dept-panel-activities" role="tabpanel" aria-labelledby="dept-tab-activities" class="dw-panel"
+           [hidden]="!overview || activeTab !== 'activities'">
+    <div class="activity-filter-bar">
+      <div class="af-dropdown-wrap" #timeFilterWrap>
+        <button type="button" class="filter-btn" (click)="toggleTimeFilterMenu()" [attr.aria-expanded]="timeFilterMenuOpen" aria-haspopup="true">
+          {{ selectedTimeFilterLabel }}
+          <span class="material-symbols-outlined" aria-hidden="true">expand_more</span>
+        </button>
+
+        <div class="af-dropdown-menu" [class.open]="timeFilterMenuOpen">
+          <button
+            type="button"
+            *ngFor="let item of timeFilterOptions"
+            [class.active]="item.value === selectedTimeFilter"
+            (click)="selectTimeFilter(item.value)"
+          >
+            {{ item.label | translate }}
+          </button>
+        </div>
+      </div>
+
+      <label class="project-select-wrap">
+        <span class="project-filter-label">{{ 'department.my.project' | translate }}</span>
+        <select class="project-select" [value]="selectedProjectId ?? ''" (change)="onProjectChange($any($event.target).value)">
+          <option value="">{{ 'department.my.allProjects' | translate }}</option>
+          <option *ngFor="let p of projectOptions" [value]="p.projectId">{{ projectDisplayName(p) }}</option>
+        </select>
+      </label>
+
+      <label class="project-select-wrap">
+        <span class="project-filter-label">{{ 'common.status' | translate }}</span>
+        <select class="status-select" [value]="selectedProjectStatus" (change)="setProjectStatusFilter($any($event.target).value)">
+          <option value="ALL">{{ 'department.workspace.activities.allStatuses' | translate }}</option>
+          <option value="ACTIVE">{{ 'department.workspace.activities.status.ACTIVE' | translate }}</option>
+          <option value="PLANNED">{{ 'department.workspace.activities.status.PLANNED' | translate }}</option>
+          <option value="STANDBY">{{ 'department.workspace.activities.status.STANDBY' | translate }}</option>
+          <option value="COMPLETED">{{ 'department.workspace.activities.status.COMPLETED' | translate }}</option>
+        </select>
+      </label>
+
+      <label class="activity-search-wrap">
+        <span class="sr-only">{{ 'department.my.searchProjectCodeActivity' | translate }}</span>
+        <span class="material-symbols-outlined" aria-hidden="true">search</span>
+        <input
+          class="activity-search"
+          type="search"
+          [ngModel]="activitySearch"
+          (ngModelChange)="onActivitySearchChange($event)"
+          [placeholder]="'department.my.searchProjectCodeActivity' | translate"
+        />
+      </label>
+
+      <div class="dw-tool-group">
+        <div class="pa-col-wrap" #paColBtnWrap>
+          <button type="button" class="dw-button" (click)="togglePaColMenu()" [attr.aria-expanded]="paColMenuOpen" aria-haspopup="true">
+            <span class="material-symbols-outlined" aria-hidden="true">view_column</span>{{ 'department.workspace.columns' | translate }}
+          </button>
+          <div class="pa-col-menu" [class.open]="paColMenuOpen">
+            <label *ngFor="let col of paToggleableCols">
+              <input type="checkbox" [checked]="col.vis" (change)="togglePaCol(col.id, $any($event.target).checked)" />
+              {{ col.label | translate }}
+            </label>
+          </div>
+        </div>
+        <button type="button" class="dw-icon-button" (click)="zoomPaGantt(-1)" [attr.aria-label]="'department.workspace.zoomOut' | translate" [title]="'department.workspace.zoomOut' | translate">
+          <span class="material-symbols-outlined" aria-hidden="true">zoom_out</span></button>
+        <button type="button" class="dw-icon-button" (click)="zoomPaGantt(+1)" [attr.aria-label]="'department.workspace.zoomIn' | translate" [title]="'department.workspace.zoomIn' | translate">
+          <span class="material-symbols-outlined" aria-hidden="true">zoom_in</span></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="activity-shell" [style.display]="overview && activeTab === 'activities' ? 'flex' : 'none'"
+           [attr.aria-label]="'department.my.activitiesProject' | translate">
     <div class="activity-main-wrap">
       <div id="act-table-panel" #actTablePanel>
         <div id="act-table-content" #actTableContent [innerHTML]="actTableHtmlSafe"></div>
@@ -292,48 +379,12 @@
     </div>
   </section>
 
-  <div id="hol-bg" [class.open]="holidayModalOpen">
-    <div id="hol-modal">
-      <div class="hm-head">
-        <h3>{{ 'department.my.addHoliday' | translate }}</h3>
-        <button type="button" class="hm-close" (click)="closeHolidayModal()">✕</button>
-      </div>
-
-      <div class="hm-body">
-        <label>{{ 'department.my.person' | translate }}</label>
-        <select class="fi" [value]="holidayMemberId ?? ''" (change)="onHolidayMemberChange($any($event.target).value)">
-          <option *ngFor="let member of members" [value]="member.id">{{ member.fullName }}</option>
-        </select>
-
-        <div class="date-grid">
-          <div>
-            <label>{{ 'department.my.from' | translate }}</label>
-            <input class="fi" type="date" [(ngModel)]="holidayFrom" />
-          </div>
-
-          <div>
-            <label>{{ 'department.my.text' | translate }}</label>
-            <input class="fi" type="date" [(ngModel)]="holidayTo" />
-          </div>
-        </div>
-
-        <label>{{ 'department.my.note' | translate }}</label>
-        <input class="fi" [(ngModel)]="holidayNote" [placeholder]="'department.my.eGAnnualLeave' | translate" />
-
-        <div class="holiday-list">
-          <div class="holiday-item" *ngFor="let h of holidayListForSelectedMember">
-            <span>🏖 {{ h.fromDate }} → {{ h.toDate }}<span *ngIf="h.note"> · {{ h.note }}</span></span>
-            <button type="button" (click)="deleteHoliday(h.id)">✕</button>
-          </div>
-
-          <p *ngIf="!holidayListForSelectedMember.length">{{ 'department.my.noHolidays' | translate }}</p>
-        </div>
-      </div>
-
-      <div class="hm-foot">
-        <button type="button" class="btn light" (click)="closeHolidayModal()">{{ 'common.cancel' | translate }}</button>
-        <button type="button" class="btn primary" (click)="addHoliday()">{{ 'common.add' | translate }}</button>
-      </div>
-    </div>
-  </div>
+  <!-- ============================================================ Holidays -->
+  <section id="dept-panel-holidays" role="tabpanel" aria-labelledby="dept-tab-holidays" class="dw-panel"
+           [hidden]="!overview || activeTab !== 'holidays'">
+    <app-department-holidays-panel
+      [holidays]="holidays" [members]="members" [loading]="loading"
+      [canManage]="!!context?.canManageHolidays" (changed)="onHolidaysChanged()">
+    </app-department-holidays-panel>
+  </section>
 </div>

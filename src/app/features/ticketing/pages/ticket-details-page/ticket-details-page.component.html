@@ -165,7 +165,7 @@
           <ng-container *ngIf="d.ticket.client as c; else noContact">
             <div class="person">
               <span class="avatar client">{{ initials(c.fullName) }}</span>
-              <div><strong>{{ c.fullName }}</strong><small>{{ d.ticket.customer?.name || d.ticket.organisationName }}</small></div>
+              <div><strong>{{ c.fullName | upperName }}</strong><small>{{ d.ticket.customer?.name || d.ticket.organisationName }}</small></div>
             </div>
             <div class="field"><label>{{ 'ticketing.details.email' | translate }}</label><div><a class="link" [href]="'mailto:' + c.email">{{ c.email }}</a></div></div>
             <div class="field"><label>{{ 'ticketing.details.customer' | translate }}</label><div>{{ d.ticket.customer?.name || '—' }}</div></div>
@@ -258,7 +258,7 @@
           <span class="avatar" [class.client]="isClientMessage(m)">{{ initials(m.sender.fullName) }}</span>
           <div class="msg-body">
             <div class="msg-meta">
-              <b>{{ m.sender.fullName }}</b>
+              <b>{{ m.sender.fullName | upperName }}</b>
               <em *ngIf="m.internalNote"><span class="material-symbols-outlined">lock</span>{{ 'ticketing.details.internalNote' | translate }}</em>
               <time>{{ m.createdAt | date:'short' }}</time>
             </div>
@@ -300,19 +300,19 @@
           <label class="label">{{ 'ticketing.details.h24Agent' | translate }}</label>
           <div class="person" *ngIf="d.ticket.assignee as a; else unassigned">
             <span class="avatar">{{ initials(a.fullName) }}</span>
-            <div><strong>{{ a.fullName }}</strong><small>{{ a.email }}</small></div>
+            <div><strong>{{ a.fullName | upperName }}</strong><small>{{ a.email }}</small></div>
           </div>
           <ng-template #unassigned><p class="danger">{{ 'ticketing.details.unassigned' | translate }}</p></ng-template>
           <select *ngIf="editable" class="inline-select" [ngModel]="d.ticket.assignee?.id ?? null" (ngModelChange)="assignTo($event)" [disabled]="saving" [attr.aria-label]="'ticketing.details.h24Agent' | translate">
             <option [ngValue]="null">{{ 'ticketing.details.unassigned' | translate }}</option>
-            <option *ngIf="agentOptionMissing(d.ticket.assignee?.id)" [ngValue]="d.ticket.assignee?.id">{{ d.ticket.assignee?.fullName }}</option>
-            <option *ngFor="let a of agents" [ngValue]="a.id">{{ a.fullName }}</option>
+            <option *ngIf="agentOptionMissing(d.ticket.assignee?.id)" [ngValue]="d.ticket.assignee?.id">{{ d.ticket.assignee?.fullName | upperName }}</option>
+            <option *ngFor="let a of agents" [ngValue]="a.id">{{ a.fullName | upperName }}</option>
           </select>
 
           <label class="label l2">{{ 'ticketing.details.l2Technician' | translate }}</label>
           <div class="person" *ngIf="d.ticket.l2Technician as t; else noL2">
             <span class="avatar l2">{{ initials(t.fullName) }}</span>
-            <div><strong>{{ t.fullName }}</strong><small>{{ t.email }}</small></div>
+            <div><strong>{{ t.fullName | upperName }}</strong><small>{{ t.email }}</small></div>
           </div>
           <ng-template #noL2><p class="muted">{{ 'ticketing.details.noneAssigned' | translate }}</p></ng-template>
           <ng-container *ngIf="editable">

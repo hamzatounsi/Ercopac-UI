@@ -1199,6 +1199,171 @@
       "totalelementsTotal": "{{totalElements}} insgesamt",
       "type": "Typ",
       "workdays": "Arbeitstage"
+    },
+    "workspace": {
+      "eyebrow": "Meine Abteilung",
+      "chief": "Leitung",
+      "resourceTypes": "Ressourcentypen",
+      "refresh": "Aktualisieren",
+      "tabsLabel": "Abteilungsbereiche",
+      "tabs": {
+        "resources": "Ressourcen",
+        "suppliers": "Lieferanten",
+        "activities": "Aktivitäten",
+        "holidays": "Urlaub"
+      },
+      "kpi": {
+        "label": "Abteilungsübersicht",
+        "resources": "Ressourcen",
+        "available": "Diese Woche verfügbar",
+        "assigned": "Diese Woche eingeplant",
+        "onLeave": "Heute abwesend · {{count}} geplant",
+        "suppliers": "Lieferanten",
+        "projects": "Projekte · {{count}} offene Aktivitäten"
+      },
+      "filterType": "Nach Ressourcentyp filtern",
+      "allTypes": "Alle Ressourcentypen",
+      "col": {
+        "resourceType": "Ressourcentyp",
+        "assignments": "Zuweisungen"
+      },
+      "openActivities": "{{count}} offen",
+      "viewNamed": "{{name}} anzeigen",
+      "noMatch": "Keine Treffer für diese Filter",
+      "noMatchHint": "Versuchen Sie eine andere Suche oder einen anderen Filter.",
+      "clearFilters": "Filter zurücksetzen",
+      "range": "{{from}}–{{to}} von {{total}}",
+      "pageSize": "Zeilen pro Seite",
+      "pageOf": "Seite {{page}} von {{total}}",
+      "previous": "Zurück",
+      "next": "Weiter",
+      "scale": "Zeitskala",
+      "zoomIn": "Vergrößern",
+      "zoomOut": "Verkleinern",
+      "back": "Früher",
+      "backLong": "Viel früher",
+      "forward": "Später",
+      "forwardLong": "Viel später",
+      "show": "Im Zeitplan anzeigen",
+      "columns": "Spalten",
+      "resources": {
+        "title": "Ressourcen der Abteilung",
+        "subtitle": "{{count}} Zeilen · Personen und generische Platzhalter",
+        "search": "Ressourcen suchen",
+        "searchPlaceholder": "Nach Name, Code, E-Mail oder Typ suchen",
+        "filterKind": "Nach Art filtern",
+        "allKinds": "Alle Arten",
+        "filterAvailability": "Nach Verfügbarkeit filtern",
+        "allAvailability": "Jede Verfügbarkeit",
+        "kind": {
+          "internal": "Interne Ressource",
+          "generic": "Generischer Platzhalter"
+        },
+        "availability": {
+          "available": "Verfügbar",
+          "assigned": "Eingeplant",
+          "onLeave": "Abwesend"
+        },
+        "col": {
+          "name": "Ressource",
+          "kind": "Art",
+          "capacity": "Kapazität",
+          "thisWeek": "Diese Woche"
+        },
+        "hoursPerWeek": "{{hours}} h / Woche",
+        "capacityDetail": "{{hours}} h × {{days}} Tage",
+        "thisWeekCount": "{{count}} diese Woche",
+        "genericHint": "Nicht benannte Kapazität dieses Typs",
+        "manage": "Ressourcen verwalten",
+        "emptyTitle": "Keine Ressourcen in dieser Abteilung",
+        "emptyText": "Ressourcen erscheinen hier, sobald sie der Abteilung zugeordnet sind.",
+        "employeeCode": "Personalnummer",
+        "seniority": "Erfahrungsstufe",
+        "openActivities": "Offene Aktivitäten",
+        "noOpenActivities": "Keine offene Aktivität.",
+        "showTimeline": "Zeitplan anzeigen",
+        "viewLabel": "Ressourcenansicht",
+        "tableView": "Tabelle",
+        "timelineView": "Zeitplan"
+      },
+      "suppliers": {
+        "title": "Lieferanten der Abteilung",
+        "subtitle": "{{count}} aktive Lieferanten zu den Ressourcentypen der Abteilung",
+        "search": "Lieferanten suchen",
+        "searchPlaceholder": "Nach Name, Code, Land, Kontakt oder Typ suchen",
+        "add": "Lieferant hinzufügen",
+        "eyebrow": "Lieferant",
+        "scopeNote": "Sie verwalten die Lieferanten der Ressourcentypen Ihrer Abteilung: {{types}}.",
+        "col": {
+          "supplier": "Lieferant",
+          "country": "Land",
+          "contact": "Kontakt"
+        },
+        "name": "Name des Lieferanten",
+        "nameInvalid": "Geben Sie den Lieferantennamen ein (höchstens 150 Zeichen).",
+        "shortCode": "Kurzcode",
+        "website": "Website",
+        "departments": "Abteilungen",
+        "notes": "Notizen",
+        "formIntro": "Lieferanten werden in der Organisation geteilt und mit Ressourcentypen verknüpft.",
+        "typesHint": "Wählen Sie die Ressourcentypen, die dieser Lieferant für Ihre Abteilung liefert.",
+        "typesRequired": "Wählen Sie mindestens einen Ressourcentyp.",
+        "lockedTypes": "Außerdem mit diesen Typen anderer Abteilungen verknüpft (bleiben unverändert):",
+        "emptyTitle": "Keine Lieferanten für diese Abteilung",
+        "emptyText": "Lieferanten zu den Ressourcentypen der Abteilung erscheinen hier.",
+        "deleteTitle": "{{name}} löschen?",
+        "deleteText": "Der Lieferant wird deaktiviert: Er verschwindet aus Listen und Auswahlfeldern, bestehende Zuweisungen behalten ihn.",
+        "loadError": "Die Lieferanten konnten nicht geladen werden.",
+        "saveError": "Der Lieferant konnte nicht gespeichert werden.",
+        "deleteError": "Der Lieferant konnte nicht gelöscht werden.",
+        "toast": {
+          "created": "Lieferant {{name}} angelegt.",
+          "updated": "Lieferant {{name}} aktualisiert.",
+          "deleted": "Lieferant {{name}} gelöscht."
+        }
+      },
+      "activities": {
+        "allStatuses": "Alle Projektstatus",
+        "status": {
+          "ACTIVE": "Aktiv",
+          "PLANNED": "Geplant",
+          "STANDBY": "Pausiert",
+          "COMPLETED": "Abgeschlossen"
+        }
+      },
+      "holidays": {
+        "title": "Urlaub",
+        "subtitle": "{{count}} Abwesenheiten in der Abteilung",
+        "search": "Urlaub suchen",
+        "searchPlaceholder": "Nach Person oder Notiz suchen",
+        "filterPeriod": "Nach Zeitraum filtern",
+        "filterPerson": "Nach Person filtern",
+        "allPeople": "Alle",
+        "period": {
+          "current": "Laufend und geplant",
+          "ongoing": "Laufend",
+          "upcoming": "Geplant",
+          "past": "Vergangen",
+          "all": "Alle Zeiträume"
+        },
+        "col": {
+          "days": "Tage"
+        },
+        "showAll": "Alle Abwesenheiten anzeigen",
+        "emptyText": "Geplante Abwesenheiten der Ressourcen der Abteilung erscheinen hier.",
+        "formIntro": "Die Ressource wird für diese Tage im Zeitplan als nicht verfügbar angezeigt.",
+        "dateOrder": "Das Enddatum darf nicht vor dem Startdatum liegen.",
+        "datesRequired": "Geben Sie beide Daten ein.",
+        "deleteNamed": "Abwesenheit von {{name}} löschen",
+        "deleteTitle": "Diese Abwesenheit löschen?",
+        "deleteText": "{{name}} ist vom {{from}} bis {{to}} wieder verfügbar.",
+        "upcoming": "Geplante Abwesenheiten",
+        "noneUpcoming": "Keine geplante Abwesenheit.",
+        "toast": {
+          "created": "Abwesenheit für {{name}} hinzugefügt.",
+          "deleted": "Abwesenheit von {{name}} gelöscht."
+        }
+      }
     }
   },
   "dm": {
@@ -1335,7 +1500,10 @@
     "UNAUTHORIZED": "Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.",
     "UNKNOWN": "Ein unerwarteter Fehler ist aufgetreten.",
     "VALIDATION_ERROR": "Einige Felder fehlen oder sind ungültig.",
-    "preferencesSave": "Ihre Einstellung konnte nicht gespeichert werden. Sie bleibt auf diesem Gerät erhalten und wird bei Ihrer nächsten Änderung gespeichert."
+    "preferencesSave": "Ihre Einstellung konnte nicht gespeichert werden. Sie bleibt auf diesem Gerät erhalten und wird bei Ihrer nächsten Änderung gespeichert.",
+    "CUSTOMER_NAME_EXISTS": "In Ihrer Organisation gibt es bereits einen Kunden mit diesem Namen.",
+    "CUSTOMER_CODE_EXISTS": "Dieser Kundencode wird bereits verwendet.",
+    "CUSTOMER_IN_USE": "Dieser Kunde wird noch von Projekten oder Tickets verwendet. Deaktivieren Sie ihn stattdessen."
   },
   "forbidden": {
     "accessRestricted": "Zugriff eingeschränkt",
@@ -3185,6 +3353,10 @@
       "users": {
         "description": "Erstellen, zuweisen und verwalten Sie Konten in Ihrer Organisation.",
         "title": "Benutzer"
+      },
+      "customers": {
+        "title": "Kundenverwaltung",
+        "description": "Kunden für Projekte und Tickets anlegen und pflegen."
       }
     },
     "profile": {
@@ -3569,6 +3741,45 @@
       "userCanSignWhile": "Der Benutzer kann sich anmelden, solange diese Einstellung aktiviert ist.",
       "userWillAbleSign": "Der Benutzer kann sich wieder anmelden, abhängig von den Lizenzgrenzen der Organisation.",
       "userWillImmediatelyLose": "Der Benutzer verliert sofort den Zugriff, sobald sein aktuelles Token erneut geprüft wird."
+    },
+    "customers": {
+      "searchLabel": "Kunden suchen",
+      "searchPlaceholder": "Nach Name, Code, Ort, Kontakt oder E-Mail suchen",
+      "filterStatus": "Nach Status filtern",
+      "allStatuses": "Alle Status",
+      "count": "{{count}} Kunden",
+      "countOne": "1 Kunde",
+      "usedIn": "Verwendet in",
+      "usage": "{{projects}} Projekte · {{tickets}} Tickets",
+      "notUsed": "Noch nicht verwendet",
+      "activateNamed": "{{name}} aktivieren",
+      "deactivateNamed": "{{name}} deaktivieren",
+      "emptyFiltered": "Versuchen Sie eine andere Suche oder einen anderen Status.",
+      "clearFilters": "Filter zurücksetzen",
+      "emptyTitle": "Noch keine Kunden",
+      "range": "{{from}}–{{to}} von {{total}}",
+      "pageSize": "Zeilen pro Seite",
+      "formIntro": "Kunden gehören zu Ihrer Organisation und werden in Projekt- und Ticketformularen angeboten.",
+      "identity": "Identität",
+      "nameInvalid": "Geben Sie den Kundennamen ein (2 bis 150 Zeichen).",
+      "codeHint": "Leer lassen, um automatisch einen Code zu erzeugen.",
+      "codeInvalid": "2 bis 40 Buchstaben, Ziffern, Bindestriche oder Unterstriche verwenden.",
+      "emailInvalid": "Geben Sie eine gültige E-Mail-Adresse ein.",
+      "activeHint": "Inaktive Kunden bleiben in bestehenden Datensätzen, werden aber in Formularen nicht mehr angeboten.",
+      "inUseTitle": "{{name}} kann nicht gelöscht werden",
+      "inUseText": "Er wird von {{projects}} Projekt(en), {{tickets}} Ticket(s) und {{records}} Ticketing-Datensatz/-sätzen verwendet. Deaktivieren Sie ihn stattdessen: Er bleibt in bestehenden Datensätzen, wird aber in Formularen nicht mehr angeboten.",
+      "deactivateInstead": "Stattdessen deaktivieren",
+      "loadError": "Die Kunden konnten nicht geladen werden.",
+      "saveError": "Der Kunde konnte nicht gespeichert werden.",
+      "deleteError": "Der Kunde konnte nicht gelöscht werden.",
+      "statusError": "Der Kundenstatus konnte nicht geändert werden.",
+      "toast": {
+        "created": "Kunde {{name}} angelegt.",
+        "updated": "Kunde {{name}} aktualisiert.",
+        "deleted": "Kunde {{name}} gelöscht.",
+        "activated": "Kunde {{name}} aktiviert.",
+        "deactivated": "Kunde {{name}} deaktiviert."
+      }
     }
   },
   "owner": {
@@ -4727,5 +4938,18 @@
     "minLength": "Geben Sie mindestens {{min}} Zeichen ein.",
     "number": "Geben Sie eine gültige Zahl ein.",
     "required": "Dieses Feld ist erforderlich."
+  },
+  "customers": {
+    "select": {
+      "label": "Kunde",
+      "placeholder": "Kunden suchen…",
+      "none": "Kein Kunde",
+      "noResults": "Kein Kunde entspricht dieser Suche.",
+      "noCustomers": "Keine aktiven Kunden. Bitten Sie Ihren Organisationsadministrator, einen anzulegen.",
+      "loading": "Kunden werden geladen…",
+      "loadError": "Die Kunden konnten nicht geladen werden.",
+      "inactive": "Inaktiv",
+      "clear": "Kunde entfernen"
+    }
   }
 }

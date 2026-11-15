@@ -17,7 +17,7 @@
                               [manual]="customerManual" (manualChange)="setCustomerManual($event)" [loading]="loadingOptions" [error]="optionsError"
                               (retry)="loadOptions(form.customerId)" [noneLabel]="'ticketing.create.noCustomer' | translate" [emptyText]="'ticketing.create.noCustomersYet' | translate"
                               [manualLabel]="'ticketing.create.addCustomerManually' | translate" [linkedLabel]="'ticketing.create.chooseExistingCustomer' | translate">
-          <input class="input" name="customerName" [(ngModel)]="form.customerName" maxlength="180" [placeholder]="'ticketing.create.customerNameHistoricalExternal' | translate"
+          <input appUppercaseName class="input" name="customerName" [(ngModel)]="form.customerName" maxlength="180" [placeholder]="'ticketing.create.customerNameHistoricalExternal' | translate"
                  [attr.aria-label]="'ticketing.create.customerName' | translate" [class.invalid]="submitted && customerError">
           <span class="field-error" *ngIf="submitted && customerError">{{ customerError }}</span>
         </app-select-or-manual>
@@ -117,7 +117,7 @@
         <label>{{ 'ticketing.create.clientAccount' | translate }}
           <select class="select" name="client" [(ngModel)]="form.clientUserId">
             <option [ngValue]="null">{{ 'ticketing.create.noClientAccountInternal' | translate }}</option>
-            <option *ngFor="let c of clients" [ngValue]="c.id">{{ c.fullName }} · {{ c.email }}</option>
+            <option *ngFor="let c of clients" [ngValue]="c.id">{{ c.fullName | upperName }} · {{ c.email }}</option>
           </select>
         </label>
 
@@ -130,7 +130,7 @@
         <label class="full">{{ 'ticketing.create.assignH24Agent' | translate }}
           <select class="select" name="agent" [(ngModel)]="form.assigneeId">
             <option [ngValue]="null">{{ 'ticketing.create.unassigned' | translate }}</option>
-            <option *ngFor="let a of agents" [ngValue]="a.id">{{ a.fullName }}</option>
+            <option *ngFor="let a of agents" [ngValue]="a.id">{{ a.fullName | upperName }}</option>
           </select>
         </label>
       </ng-container>

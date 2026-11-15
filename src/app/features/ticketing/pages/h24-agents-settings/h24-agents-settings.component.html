@@ -15,7 +15,7 @@
     <thead><tr><th>{{ 'common.name' | translate }}</th><th>{{ 'ticketing.h24.roles' | translate }}</th><th>{{ 'ticketing.h24.resourceType' | translate }}</th><th>{{ 'ticketing.h24.specialisation' | translate }}</th><th>{{ 'ticketing.h24.language' | translate }}</th><th>{{ 'ticketing.h24.openTickets' | translate }}</th><th>{{ 'common.status' | translate }}</th><th *ngIf="isLead"></th></tr></thead>
     <tbody>
       <tr *ngFor="let a of agents">
-        <td class="strong">{{ a.fullName }}<small>{{ a.email }}</small></td>
+        <td class="strong">{{ a.fullName | upperName }}<small>{{ a.email }}</small></td>
         <td><span class="muted-sm">{{ roleLabel(a.roles) }}</span><span class="badge c-red" *ngIf="a.l2Technician">L2</span>
           <span class="badge c-amber" *ngIf="!a.ticketingAccess" [title]="'ticketing.h24.addH24RoleSo' | translate">{{ 'ticketing.h24.noTicketingAccess' | translate }}</span></td>
         <td>{{ a.resourceType || '—' }}</td>

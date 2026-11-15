@@ -1199,6 +1199,171 @@
       "totalelementsTotal": "{{totalElements}} in totale",
       "type": "Tipo",
       "workdays": "Giorni lavorativi"
+    },
+    "workspace": {
+      "eyebrow": "Il mio reparto",
+      "chief": "Responsabile",
+      "resourceTypes": "Tipi di risorsa",
+      "refresh": "Aggiorna",
+      "tabsLabel": "Sezioni del reparto",
+      "tabs": {
+        "resources": "Risorse",
+        "suppliers": "Fornitori",
+        "activities": "Attività",
+        "holidays": "Ferie"
+      },
+      "kpi": {
+        "label": "Riepilogo del reparto",
+        "resources": "Risorse",
+        "available": "Disponibili questa settimana",
+        "assigned": "Assegnate questa settimana",
+        "onLeave": "In ferie oggi · {{count}} in arrivo",
+        "suppliers": "Fornitori",
+        "projects": "Progetti · {{count}} attività aperte"
+      },
+      "filterType": "Filtra per tipo di risorsa",
+      "allTypes": "Tutti i tipi di risorsa",
+      "col": {
+        "resourceType": "Tipo di risorsa",
+        "assignments": "Assegnazioni"
+      },
+      "openActivities": "{{count}} aperte",
+      "viewNamed": "Visualizza {{name}}",
+      "noMatch": "Nessun risultato per questi filtri",
+      "noMatchHint": "Prova un'altra ricerca o un altro filtro.",
+      "clearFilters": "Cancella filtri",
+      "range": "{{from}}–{{to}} di {{total}}",
+      "pageSize": "Righe per pagina",
+      "pageOf": "Pagina {{page}} di {{total}}",
+      "previous": "Precedente",
+      "next": "Successiva",
+      "scale": "Scala del planning",
+      "zoomIn": "Ingrandisci",
+      "zoomOut": "Riduci",
+      "back": "Prima",
+      "backLong": "Molto prima",
+      "forward": "Dopo",
+      "forwardLong": "Molto dopo",
+      "show": "Mostra nel planning",
+      "columns": "Colonne",
+      "resources": {
+        "title": "Risorse del reparto",
+        "subtitle": "{{count}} righe · persone e risorse generiche",
+        "search": "Cerca risorse",
+        "searchPlaceholder": "Cerca per nome, codice, e-mail o tipo",
+        "filterKind": "Filtra per natura",
+        "allKinds": "Tutte le nature",
+        "filterAvailability": "Filtra per disponibilità",
+        "allAvailability": "Qualsiasi disponibilità",
+        "kind": {
+          "internal": "Risorsa interna",
+          "generic": "Risorsa generica"
+        },
+        "availability": {
+          "available": "Disponibile",
+          "assigned": "Assegnata",
+          "onLeave": "In ferie"
+        },
+        "col": {
+          "name": "Risorsa",
+          "kind": "Natura",
+          "capacity": "Capacità",
+          "thisWeek": "Questa settimana"
+        },
+        "hoursPerWeek": "{{hours}} h / settimana",
+        "capacityDetail": "{{hours}} h × {{days}} giorni",
+        "thisWeekCount": "{{count}} questa settimana",
+        "genericHint": "Capacità non nominativa di questo tipo",
+        "manage": "Gestisci risorse",
+        "emptyTitle": "Nessuna risorsa in questo reparto",
+        "emptyText": "Le risorse compaiono qui quando vengono assegnate al reparto.",
+        "employeeCode": "Matricola",
+        "seniority": "Anzianità",
+        "openActivities": "Attività aperte",
+        "noOpenActivities": "Nessuna attività aperta.",
+        "showTimeline": "Mostra planning",
+        "viewLabel": "Vista risorse",
+        "tableView": "Tabella",
+        "timelineView": "Planning"
+      },
+      "suppliers": {
+        "title": "Fornitori del reparto",
+        "subtitle": "{{count}} fornitori attivi collegati ai tipi di risorsa del reparto",
+        "search": "Cerca fornitori",
+        "searchPlaceholder": "Cerca per nome, codice, paese, contatto o tipo",
+        "add": "Aggiungi fornitore",
+        "eyebrow": "Fornitore",
+        "scopeNote": "Gestisci i fornitori dei tipi di risorsa del tuo reparto: {{types}}.",
+        "col": {
+          "supplier": "Fornitore",
+          "country": "Paese",
+          "contact": "Contatto"
+        },
+        "name": "Nome del fornitore",
+        "nameInvalid": "Inserisci il nome del fornitore (massimo 150 caratteri).",
+        "shortCode": "Codice breve",
+        "website": "Sito web",
+        "departments": "Reparti",
+        "notes": "Note",
+        "formIntro": "I fornitori sono condivisi nell'organizzazione e collegati a tipi di risorsa.",
+        "typesHint": "Scegli i tipi di risorsa che questo fornitore fornisce al tuo reparto.",
+        "typesRequired": "Seleziona almeno un tipo di risorsa.",
+        "lockedTypes": "Collegato anche a questi tipi di altri reparti (invariati):",
+        "emptyTitle": "Nessun fornitore per questo reparto",
+        "emptyText": "Qui compaiono i fornitori collegati ai tipi di risorsa del reparto.",
+        "deleteTitle": "Eliminare {{name}}?",
+        "deleteText": "Il fornitore viene disattivato: scompare da elenchi e selettori, e le assegnazioni esistenti lo mantengono.",
+        "loadError": "Impossibile caricare i fornitori.",
+        "saveError": "Impossibile salvare il fornitore.",
+        "deleteError": "Impossibile eliminare il fornitore.",
+        "toast": {
+          "created": "Fornitore {{name}} creato.",
+          "updated": "Fornitore {{name}} aggiornato.",
+          "deleted": "Fornitore {{name}} eliminato."
+        }
+      },
+      "activities": {
+        "allStatuses": "Tutti gli stati di progetto",
+        "status": {
+          "ACTIVE": "Attivo",
+          "PLANNED": "Pianificato",
+          "STANDBY": "In attesa",
+          "COMPLETED": "Completato"
+        }
+      },
+      "holidays": {
+        "title": "Ferie",
+        "subtitle": "{{count}} ferie nel reparto",
+        "search": "Cerca ferie",
+        "searchPlaceholder": "Cerca per persona o nota",
+        "filterPeriod": "Filtra per periodo",
+        "filterPerson": "Filtra per persona",
+        "allPeople": "Tutti",
+        "period": {
+          "current": "In corso e in arrivo",
+          "ongoing": "In corso",
+          "upcoming": "In arrivo",
+          "past": "Passate",
+          "all": "Tutti i periodi"
+        },
+        "col": {
+          "days": "Giorni"
+        },
+        "showAll": "Mostra tutte le ferie",
+        "emptyText": "Qui compaiono le ferie pianificate per le risorse del reparto.",
+        "formIntro": "La risorsa risulta non disponibile nel planning in queste date.",
+        "dateOrder": "La data di fine non può precedere quella di inizio.",
+        "datesRequired": "Inserisci entrambe le date.",
+        "deleteNamed": "Elimina le ferie di {{name}}",
+        "deleteTitle": "Eliminare queste ferie?",
+        "deleteText": "{{name}} tornerà disponibile dal {{from}} al {{to}}.",
+        "upcoming": "Ferie in arrivo",
+        "noneUpcoming": "Nessuna feria in arrivo.",
+        "toast": {
+          "created": "Ferie aggiunte per {{name}}.",
+          "deleted": "Ferie di {{name}} eliminate."
+        }
+      }
     }
   },
   "dm": {
@@ -1335,7 +1500,10 @@
     "UNAUTHORIZED": "La sessione è scaduta. Accedi di nuovo.",
     "UNKNOWN": "Si è verificato un errore imprevisto.",
     "VALIDATION_ERROR": "Alcuni campi mancano o non sono validi.",
-    "preferencesSave": "Non è stato possibile salvare la tua preferenza. Resta su questo dispositivo e verrà salvata con la prossima modifica."
+    "preferencesSave": "Non è stato possibile salvare la tua preferenza. Resta su questo dispositivo e verrà salvata con la prossima modifica.",
+    "CUSTOMER_NAME_EXISTS": "Nella tua organizzazione esiste già un cliente con questo nome.",
+    "CUSTOMER_CODE_EXISTS": "Questo codice cliente è già in uso.",
+    "CUSTOMER_IN_USE": "Questo cliente è ancora usato da progetti o ticket. Disattivalo invece."
   },
   "forbidden": {
     "accessRestricted": "Accesso limitato",
@@ -3185,6 +3353,10 @@
       "users": {
         "description": "Crea, assegna e gestisci gli account della tua organizzazione.",
         "title": "Utenti"
+      },
+      "customers": {
+        "title": "Gestione clienti",
+        "description": "Crea e gestisci i clienti usati da progetti e ticket."
       }
     },
     "profile": {
@@ -3569,6 +3741,45 @@
       "userCanSignWhile": "L’utente può accedere finché questa impostazione è attiva.",
       "userWillAbleSign": "L’utente potrà accedere di nuovo, nei limiti delle licenze dell’organizzazione.",
       "userWillImmediatelyLose": "L’utente perderà immediatamente l’accesso alla prossima verifica del token corrente."
+    },
+    "customers": {
+      "searchLabel": "Cerca clienti",
+      "searchPlaceholder": "Cerca per nome, codice, città, contatto o e-mail",
+      "filterStatus": "Filtra per stato",
+      "allStatuses": "Tutti gli stati",
+      "count": "{{count}} clienti",
+      "countOne": "1 cliente",
+      "usedIn": "Usato in",
+      "usage": "{{projects}} progetti · {{tickets}} ticket",
+      "notUsed": "Non ancora usato",
+      "activateNamed": "Attiva {{name}}",
+      "deactivateNamed": "Disattiva {{name}}",
+      "emptyFiltered": "Prova un'altra ricerca o un altro stato.",
+      "clearFilters": "Cancella filtri",
+      "emptyTitle": "Ancora nessun cliente",
+      "range": "{{from}}–{{to}} di {{total}}",
+      "pageSize": "Righe per pagina",
+      "formIntro": "I clienti appartengono alla tua organizzazione e sono proposti nei moduli di progetti e ticket.",
+      "identity": "Identità",
+      "nameInvalid": "Inserisci il nome del cliente (da 2 a 150 caratteri).",
+      "codeHint": "Lascia vuoto per generare un codice automaticamente.",
+      "codeInvalid": "Usa da 2 a 40 lettere, numeri, trattini o trattini bassi.",
+      "emailInvalid": "Inserisci un indirizzo e-mail valido.",
+      "activeHint": "I clienti inattivi restano sui record esistenti ma non vengono più proposti nei moduli.",
+      "inUseTitle": "{{name}} non può essere eliminato",
+      "inUseText": "È usato da {{projects}} progetto/i, {{tickets}} ticket e {{records}} record di ticketing. Disattivalo invece: resta sui record esistenti ma non viene più proposto nei moduli.",
+      "deactivateInstead": "Disattiva invece",
+      "loadError": "Impossibile caricare i clienti.",
+      "saveError": "Impossibile salvare il cliente.",
+      "deleteError": "Impossibile eliminare il cliente.",
+      "statusError": "Impossibile modificare lo stato del cliente.",
+      "toast": {
+        "created": "Cliente {{name}} creato.",
+        "updated": "Cliente {{name}} aggiornato.",
+        "deleted": "Cliente {{name}} eliminato.",
+        "activated": "Cliente {{name}} attivato.",
+        "deactivated": "Cliente {{name}} disattivato."
+      }
     }
   },
   "owner": {
@@ -4727,5 +4938,18 @@
     "minLength": "Inserisci almeno {{min}} caratteri.",
     "number": "Inserisci un numero valido.",
     "required": "Questo campo è obbligatorio."
+  },
+  "customers": {
+    "select": {
+      "label": "Cliente",
+      "placeholder": "Cerca un cliente…",
+      "none": "Nessun cliente",
+      "noResults": "Nessun cliente corrisponde a questa ricerca.",
+      "noCustomers": "Nessun cliente attivo. Chiedi all'amministratore della tua organizzazione di aggiungerne uno.",
+      "loading": "Caricamento clienti…",
+      "loadError": "Impossibile caricare i clienti.",
+      "inactive": "Inattivo",
+      "clear": "Rimuovi cliente"
+    }
   }
 }

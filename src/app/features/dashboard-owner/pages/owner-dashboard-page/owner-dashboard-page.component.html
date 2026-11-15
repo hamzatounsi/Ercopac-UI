@@ -295,7 +295,7 @@
                         <span class="material-symbols-outlined">apartment</span>
                       </div>
                       <div class="entity-text">
-                        <strong>{{ org.organisationName }}</strong>
+                        <strong>{{ org.organisationName | upperName }}</strong>
                         <span>{{ 'owner.dashboard.tenantWorkspace' | translate }}</span>
                       </div>
                     </div>
@@ -480,7 +480,7 @@
                   </div>
                 </td>
 
-                <td>{{ project.organisationName }}</td>
+                <td>{{ project.organisationName | upperName }}</td>
                 <td>{{ project.plannedStartDate || '-' }}</td>
                 <td>{{ project.plannedEndDate || '-' }}</td>
 

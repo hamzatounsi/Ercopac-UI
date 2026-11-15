@@ -8,6 +8,7 @@ import { GmResourceService } from '../../services/gm-resource.service';
 import { ProjectDashboardRow } from '../../models/project-dashboard-row.model';
 import { AuthService } from 'src/app/core/auth/auth.service';
 import { I18nService } from 'src/app/core/i18n/i18n.service';
+import { CustomerOption } from 'src/app/core/customers/customer.models';
 
 
 type SortColumn =
@@ -90,6 +91,7 @@ export class MyCsProjectsPageComponent implements OnInit {
     name: '',
     code: '',
     customer: '',
+    customerId: null,
     category: '',
     country: '',
     projectType: '',
@@ -294,6 +296,7 @@ export class MyCsProjectsPageComponent implements OnInit {
       name: '',
       code: '',
       customer: '',
+      customerId: null,
       category: '',
       country: '',
       projectType: '',
@@ -324,6 +327,7 @@ export class MyCsProjectsPageComponent implements OnInit {
       name: project.name || '',
       code: project.code || '',
       customer: project.customer || '',
+      customerId: project.customerId ?? null,
       category: project.category || '',
       country: project.country || '',
       projectType: project.projectType || '',
@@ -346,6 +350,11 @@ export class MyCsProjectsPageComponent implements OnInit {
     if (!this.saving) {
       this.modalOpen = false;
     }
+  }
+
+  /** Keeps the denormalised customer name in sync with the chosen customer record. */
+  onCustomerChange(option: CustomerOption | null): void {
+    this.projectForm.customer = option?.name ?? '';
   }
 
   saveProject(): void {

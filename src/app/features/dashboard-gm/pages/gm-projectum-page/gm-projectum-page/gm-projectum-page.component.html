@@ -375,11 +375,10 @@
             </div>
 
             <div class="mf span-2">
-              <label>{{ 'gm.projectum.customer' | translate }}</label>
-              <select class="mi" [(ngModel)]="projectForm.customerId" name="customerId">
-                <option [ngValue]="null" [disabled]="formOptions.customers.length === 0">{{ formOptions.customers.length ? ('gm.projectum.selectCustomer' | translate) : ('gm.projectum.noCustomersConfigured' | translate) }}</option>
-                <option *ngFor="let customer of formOptions.customers" [ngValue]="customer.id">{{ customer.code ? customer.code + ' - ' : '' }}{{ customer.name }}</option>
-              </select>
+              <label for="projectum-customer">{{ 'gm.projectum.customer' | translate }}</label>
+              <!-- Active customers of the organisation; a deactivated current customer stays shown -->
+              <app-customer-select inputId="projectum-customer" name="customerId" [(ngModel)]="projectForm.customerId"
+                                   [placeholder]="'gm.projectum.selectCustomer' | translate"></app-customer-select>
             </div>
             <div class="mf span-2">
               <label>{{ 'gm.projectum.country' | translate }}</label>
@@ -444,12 +443,12 @@
           <div class="form-grid">
             <div class="mf span-2" *ngIf="canAssignProjectManager">
               <label>{{ 'gm.projectum.projectManager' | translate }}</label>
-              <select class="mi" [(ngModel)]="projectForm.projectManagerId" name="projectManagerId"><option [ngValue]="null">{{ 'gm.projectum.unassigned' | translate }}</option><option *ngFor="let user of formOptions.projectManagers" [ngValue]="user.id">{{ user.fullName }}</option></select>
+              <select class="mi" [(ngModel)]="projectForm.projectManagerId" name="projectManagerId"><option [ngValue]="null">{{ 'gm.projectum.unassigned' | translate }}</option><option *ngFor="let user of formOptions.projectManagers" [ngValue]="user.id">{{ user.fullName | upperName }}</option></select>
             </div>
 
             <div class="mf span-2">
               <label>{{ 'gm.projectum.salesManager' | translate }}</label>
-              <select class="mi" [(ngModel)]="projectForm.salesManagerId" name="salesManagerId"><option [ngValue]="null">{{ 'gm.projectum.selectSalesManager' | translate }}</option><option *ngFor="let user of formOptions.salesManagers" [ngValue]="user.id">{{ user.fullName }}</option></select>
+              <select class="mi" [(ngModel)]="projectForm.salesManagerId" name="salesManagerId"><option [ngValue]="null">{{ 'gm.projectum.selectSalesManager' | translate }}</option><option *ngFor="let user of formOptions.salesManagers" [ngValue]="user.id">{{ user.fullName | upperName }}</option></select>
             </div>
           </div>
         </section>
@@ -514,7 +513,7 @@
 
           <div class="team-res-wrap">
             <span class="team-assigned-chip" *ngFor="let resource of getAssignedResources(dept.code)">
-              {{ resource.fullName }}
+              {{ resource.fullName | upperName }}
               <button
                 type="button"
                 class="team-chip-del"
@@ -528,7 +527,7 @@
               <option
                 *ngFor="let resource of getResourcesForDepartment(dept.code)"
                 [ngValue]="resource.id">
-                {{ resource.fullName }}{{ resource.jobTitle ? ' · ' + resource.jobTitle : '' }}
+                {{ resource.fullName | upperName }}{{ resource.jobTitle ? ' · ' + resource.jobTitle : '' }}
               </option>
             </select>
 

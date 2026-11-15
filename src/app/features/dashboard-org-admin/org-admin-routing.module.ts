@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { RoleGuard } from 'src/app/core/auth/role.guard';
 import { OrgAdminLayoutComponent } from './layout/org-admin-layout.component';
+import { OrgAdminCustomersComponent } from './pages/customers/org-admin-customers.component';
 import { OrgAdminDepartmentsComponent } from './pages/departments/org-admin-departments.component';
 import { OrgAdminOverviewComponent } from './pages/overview/org-admin-overview.component';
 import { OrgAdminProfileComponent } from './pages/profile/org-admin-profile.component';
@@ -22,6 +23,7 @@ const routes: Routes = [{
     { path: 'users', component: OrgAdminUsersComponent, data: { title: 'orgAdmin.pages.users.title', description: 'orgAdmin.pages.users.description' } },
     { path: 'roles', component: OrgAdminRolesComponent, data: { title: 'orgAdmin.pages.roles.title', description: 'orgAdmin.pages.roles.description' } },
     { path: 'departments', component: OrgAdminDepartmentsComponent, data: { title: 'orgAdmin.pages.departments.title', description: 'orgAdmin.pages.departments.description' } },
+    { path: 'customers', component: OrgAdminCustomersComponent, data: { title: 'orgAdmin.pages.customers.title', description: 'orgAdmin.pages.customers.description' } },
     { path: 'resources', component: OrgAdminResourceConfigurationComponent, data: { title: 'orgAdmin.pages.resources.title', description: 'orgAdmin.pages.resources.description' } },
     { path: 'settings', component: OrgAdminSettingsComponent, data: { title: 'orgAdmin.pages.settings.title', description: 'orgAdmin.pages.settings.description' } },
     { path: '**', redirectTo: 'overview' }
