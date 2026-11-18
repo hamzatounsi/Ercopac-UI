@@ -72,6 +72,24 @@ export interface OrganisationUser {
   employeeCode: string | null;
   jobTitle: string | null;
   active: boolean;
+  /** INTERNAL (Users page) or CUSTOMER (Customer Users page). */
+  userType?: OrganisationUserType;
+  customerId?: number | null;
+  customerName?: string | null;
+  organisationId?: number | null;
+  organisationName?: string | null;
+}
+
+export type OrganisationUserType = 'INTERNAL' | 'CUSTOMER';
+
+/** Customer user: always the CLIENT role, no department, resource type or employee code. */
+export interface SaveCustomerUser {
+  fullName: string;
+  email: string;
+  password?: string;
+  jobTitle: string | null;
+  customerId: number;
+  active: boolean;
 }
 
 export interface SaveOrganisationUser {

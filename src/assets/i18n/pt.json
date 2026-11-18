@@ -3357,6 +3357,10 @@
       "customers": {
         "title": "Gestão de clientes",
         "description": "Crie e mantenha os clientes usados pelos projetos e tickets."
+      },
+      "customerUsers": {
+        "title": "Utilizadores clientes",
+        "description": "Contas dos seus clientes. Só iniciam sessão na aplicação Ticketing."
       }
     },
     "profile": {
@@ -3740,7 +3744,8 @@
       "userAccountUpdated": "Conta de usuário atualizada.",
       "userCanSignWhile": "O usuário pode entrar enquanto esta configuração estiver ativada.",
       "userWillAbleSign": "O usuário poderá entrar novamente, sujeito aos limites de licença da organização.",
-      "userWillImmediatelyLose": "O usuário perderá o acesso imediatamente quando o token atual for verificado novamente."
+      "userWillImmediatelyLose": "O usuário perderá o acesso imediatamente quando o token atual for verificado novamente.",
+      "organisation": "Organização"
     },
     "customers": {
       "searchLabel": "Pesquisar clientes",
@@ -3780,6 +3785,40 @@
         "activated": "Cliente {{name}} ativado.",
         "deactivated": "Cliente {{name}} desativado."
       }
+    },
+    "customerUsers": {
+      "search": "Pesquisar utilizadores clientes",
+      "searchPlaceholder": "Pesquisar nome ou e-mail",
+      "filterCustomer": "Filtrar por cliente",
+      "allCustomers": "Todos os clientes",
+      "manageCustomers": "Gerir clientes",
+      "add": "Adicionar utilizador cliente",
+      "edit": "Editar utilizador cliente",
+      "create": "Criar utilizador cliente",
+      "tableTitle": "Utilizadores clientes",
+      "ticketingOnly": "Apenas acesso ao Ticketing",
+      "customer": "Cliente",
+      "eyebrow": "Conta de cliente",
+      "formHint": "Esta pessoa trabalha para um dos seus clientes. A conta abre apenas a aplicação Ticketing.",
+      "customerAccess": "Cliente e acesso",
+      "selectCustomer": "Selecione um cliente",
+      "newCustomer": "Novo cliente",
+      "customerRequired": "Selecione o cliente a que este utilizador pertence.",
+      "clientRoleHint": "Os utilizadores clientes têm sempre a função Cliente. Só veem e criam tickets do seu cliente.",
+      "empty": "Ainda não há utilizadores clientes",
+      "emptyHint": "Crie uma conta para uma pessoa de um dos seus clientes.",
+      "newCustomerHint": "O cliente é adicionado à sua organização e selecionado para este utilizador. Pode completá-lo mais tarde na página Clientes.",
+      "customerName": "Nome do cliente",
+      "customerNameRequired": "O nome do cliente é obrigatório.",
+      "phone": "Telefone",
+      "address": "Morada",
+      "createCustomer": "Criar cliente",
+      "created": "Utilizador cliente criado.",
+      "updated": "Utilizador cliente atualizado.",
+      "customerCreated": "Cliente criado.",
+      "loadUsers": "Não foi possível carregar os utilizadores clientes.",
+      "saveUser": "Não foi possível guardar o utilizador cliente.",
+      "saveCustomer": "Não foi possível criar o cliente."
     }
   },
   "owner": {

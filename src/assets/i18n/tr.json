@@ -3357,6 +3357,10 @@
       "customers": {
         "title": "Müşteri Yönetimi",
         "description": "Projeler ve talepler tarafından kullanılan müşterileri oluşturun ve yönetin."
+      },
+      "customerUsers": {
+        "title": "Müşteri kullanıcıları",
+        "description": "Müşterilerinizin hesapları. Yalnızca Ticketing uygulamasına giriş yaparlar."
       }
     },
     "profile": {
@@ -3740,7 +3744,8 @@
       "userAccountUpdated": "Kullanıcı hesabı güncellendi.",
       "userCanSignWhile": "Bu ayar etkin olduğu sürece kullanıcı giriş yapabilir.",
       "userWillAbleSign": "Kullanıcı, kuruluş lisans sınırlarına bağlı olarak yeniden giriş yapabilecek.",
-      "userWillImmediatelyLose": "Mevcut belirteci yeniden denetlendiğinde kullanıcı erişimini hemen kaybedecek."
+      "userWillImmediatelyLose": "Mevcut belirteci yeniden denetlendiğinde kullanıcı erişimini hemen kaybedecek.",
+      "organisation": "Organizasyon"
     },
     "customers": {
       "searchLabel": "Müşteri ara",
@@ -3780,6 +3785,40 @@
         "activated": "{{name}} müşterisi etkinleştirildi.",
         "deactivated": "{{name}} müşterisi devre dışı bırakıldı."
       }
+    },
+    "customerUsers": {
+      "search": "Müşteri kullanıcılarını ara",
+      "searchPlaceholder": "Ad veya e-posta ara",
+      "filterCustomer": "Müşteriye göre filtrele",
+      "allCustomers": "Tüm müşteriler",
+      "manageCustomers": "Müşterileri yönet",
+      "add": "Müşteri kullanıcısı ekle",
+      "edit": "Müşteri kullanıcısını düzenle",
+      "create": "Müşteri kullanıcısı oluştur",
+      "tableTitle": "Müşteri kullanıcıları",
+      "ticketingOnly": "Yalnızca Ticketing erişimi",
+      "customer": "Müşteri",
+      "eyebrow": "Müşteri hesabı",
+      "formHint": "Bu kişi müşterilerinizden biri için çalışıyor. Hesap yalnızca Ticketing uygulamasını açar.",
+      "customerAccess": "Müşteri ve erişim",
+      "selectCustomer": "Bir müşteri seçin",
+      "newCustomer": "Yeni müşteri",
+      "customerRequired": "Bu kullanıcının bağlı olduğu müşteriyi seçin.",
+      "clientRoleHint": "Müşteri kullanıcıları her zaman Müşteri rolüne sahiptir. Yalnızca kendi müşterilerinin biletlerini görür ve oluştururlar.",
+      "empty": "Henüz müşteri kullanıcısı yok",
+      "emptyHint": "Müşterilerinizden birindeki bir kişi için hesap oluşturun.",
+      "newCustomerHint": "Müşteri organizasyonunuza eklenir ve bu kullanıcı için seçilir. Daha sonra Müşteriler sayfasında tamamlayabilirsiniz.",
+      "customerName": "Müşteri adı",
+      "customerNameRequired": "Müşteri adı zorunludur.",
+      "phone": "Telefon",
+      "address": "Adres",
+      "createCustomer": "Müşteri oluştur",
+      "created": "Müşteri kullanıcısı oluşturuldu.",
+      "updated": "Müşteri kullanıcısı güncellendi.",
+      "customerCreated": "Müşteri oluşturuldu.",
+      "loadUsers": "Müşteri kullanıcıları yüklenemedi.",
+      "saveUser": "Müşteri kullanıcısı kaydedilemedi.",
+      "saveCustomer": "Müşteri oluşturulamadı."
     }
   },
   "owner": {

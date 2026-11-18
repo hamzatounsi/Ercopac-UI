@@ -6,6 +6,8 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { OrgAdminLayoutComponent } from './layout/org-admin-layout.component';
 import { OrgAdminRoutingModule } from './org-admin-routing.module';
 import { OrgAdminCustomersComponent } from './pages/customers/org-admin-customers.component';
+import { OrgAdminCustomerUsersComponent } from './pages/customer-users/org-admin-customer-users.component';
+import { CustomerSelectComponent } from 'src/app/core/customers/customer-select.component';
 import { OrgAdminDepartmentsComponent } from './pages/departments/org-admin-departments.component';
 import { OrgAdminOverviewComponent } from './pages/overview/org-admin-overview.component';
 import { OrgAdminProfileComponent } from './pages/profile/org-admin-profile.component';
@@ -22,6 +24,7 @@ import { UppercaseNameDirective, UpperNamePipe } from 'src/app/core/names';
     OrgAdminOverviewComponent,
     OrgAdminProfileComponent,
     OrgAdminUsersComponent,
+    OrgAdminCustomerUsersComponent,
     OrgAdminRolesComponent,
     OrgAdminDepartmentsComponent,
     OrgAdminResourceConfigurationComponent,
@@ -36,7 +39,8 @@ import { UppercaseNameDirective, UpperNamePipe } from 'src/app/core/names';
     ProfileMenuComponent,
     UppercaseNameDirective,
     UpperNamePipe,
-    AdminToastComponent
+    AdminToastComponent,
+    CustomerSelectComponent
   ]
 })
 export class OrgAdminModule {}

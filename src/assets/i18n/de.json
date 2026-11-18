@@ -3357,6 +3357,10 @@
       "customers": {
         "title": "Kundenverwaltung",
         "description": "Kunden für Projekte und Tickets anlegen und pflegen."
+      },
+      "customerUsers": {
+        "title": "Kundenbenutzer",
+        "description": "Konten Ihrer Kunden. Sie melden sich nur bei der Ticketing-App an."
       }
     },
     "profile": {
@@ -3740,7 +3744,8 @@
       "userAccountUpdated": "Benutzerkonto aktualisiert.",
       "userCanSignWhile": "Der Benutzer kann sich anmelden, solange diese Einstellung aktiviert ist.",
       "userWillAbleSign": "Der Benutzer kann sich wieder anmelden, abhängig von den Lizenzgrenzen der Organisation.",
-      "userWillImmediatelyLose": "Der Benutzer verliert sofort den Zugriff, sobald sein aktuelles Token erneut geprüft wird."
+      "userWillImmediatelyLose": "Der Benutzer verliert sofort den Zugriff, sobald sein aktuelles Token erneut geprüft wird.",
+      "organisation": "Organisation"
     },
     "customers": {
       "searchLabel": "Kunden suchen",
@@ -3780,6 +3785,40 @@
         "activated": "Kunde {{name}} aktiviert.",
         "deactivated": "Kunde {{name}} deaktiviert."
       }
+    },
+    "customerUsers": {
+      "search": "Kundenbenutzer suchen",
+      "searchPlaceholder": "Name oder E-Mail suchen",
+      "filterCustomer": "Nach Kunde filtern",
+      "allCustomers": "Alle Kunden",
+      "manageCustomers": "Kunden verwalten",
+      "add": "Kundenbenutzer hinzufügen",
+      "edit": "Kundenbenutzer bearbeiten",
+      "create": "Kundenbenutzer anlegen",
+      "tableTitle": "Kundenbenutzer",
+      "ticketingOnly": "Nur Ticketing-Zugriff",
+      "customer": "Kunde",
+      "eyebrow": "Kundenkonto",
+      "formHint": "Diese Person arbeitet für einen Ihrer Kunden. Das Konto öffnet nur die Ticketing-App.",
+      "customerAccess": "Kunde und Zugriff",
+      "selectCustomer": "Kunden auswählen",
+      "newCustomer": "Neuer Kunde",
+      "customerRequired": "Wählen Sie den Kunden, zu dem dieser Benutzer gehört.",
+      "clientRoleHint": "Kundenbenutzer haben immer die Rolle Client. Sie sehen und erstellen nur Tickets ihres Kunden.",
+      "empty": "Noch keine Kundenbenutzer",
+      "emptyHint": "Legen Sie ein Konto für eine Person bei einem Ihrer Kunden an.",
+      "newCustomerHint": "Der Kunde wird Ihrer Organisation hinzugefügt und für diesen Benutzer ausgewählt. Sie können ihn später auf der Seite Kunden ergänzen.",
+      "customerName": "Kundenname",
+      "customerNameRequired": "Der Kundenname ist erforderlich.",
+      "phone": "Telefon",
+      "address": "Adresse",
+      "createCustomer": "Kunden anlegen",
+      "created": "Kundenbenutzer angelegt.",
+      "updated": "Kundenbenutzer aktualisiert.",
+      "customerCreated": "Kunde angelegt.",
+      "loadUsers": "Kundenbenutzer konnten nicht geladen werden.",
+      "saveUser": "Der Kundenbenutzer konnte nicht gespeichert werden.",
+      "saveCustomer": "Der Kunde konnte nicht angelegt werden."
     }
   },
   "owner": {

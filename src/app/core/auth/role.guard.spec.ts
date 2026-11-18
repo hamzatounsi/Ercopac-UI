@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRouteSnapshot, Router, UrlTree } from '@angular/router';
+import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { AuthService } from './auth.service';
 import { RoleGuard } from './role.guard';
@@ -9,7 +9,8 @@ describe('RoleGuard', () => {
   let auth: jasmine.SpyObj<AuthService>;
 
   beforeEach(() => {
-    auth = jasmine.createSpyObj<AuthService>('AuthService', ['getRoles', 'isLoggedIn', 'logout']);
+    auth = jasmine.createSpyObj<AuthService>('AuthService', ['getRoles', 'isLoggedIn', 'logout', 'isCustomerUser']);
+    auth.isCustomerUser.and.returnValue(false);
     TestBed.configureTestingModule({
       imports: [RouterTestingModule.withRoutes([{ path: 'forbidden', children: [] }])],
       providers: [RoleGuard, { provide: AuthService, useValue: auth }]
@@ -53,6 +54,25 @@ describe('RoleGuard', () => {
     const ticketingResult = guard.canActivate(routeWithRoles('CLIENT'));
     expect(TestBed.inject(Router).serializeUrl(ticketingResult as UrlTree)).toBe('/forbidden');
   });
+
+  it('keeps customer users inside the Ticketing app', () => {
+    auth.isLoggedIn.and.returnValue(true);
+    auth.getRoles.and.returnValue(['CLIENT']);
+    auth.isCustomerUser.and.returnValue(true);
+    const router = TestBed.inject(Router);
+
+    const workspace = guard.canActivate(routeWithRoles('CLIENT', 'EMPLOYEE'), stateFor('/workspace'));
+    expect(router.serializeUrl(workspace as UrlTree)).toBe('/tickets');
+    const projectum = guard.canActivate(routeWithRoles('PROJECT_MANAGER'), stateFor('/gm/projectum'));
+    expect(router.serializeUrl(projectum as UrlTree)).toBe('/tickets');
+
+    expect(guard.canActivate(routeWithRoles('CLIENT'), stateFor('/tickets'))).toBeTrue();
+    expect(guard.canActivate(routeWithRoles('CLIENT'), stateFor('/tickets/new'))).toBeTrue();
+  });
+
+  function stateFor(url: string): RouterStateSnapshot {
+    return { url } as RouterStateSnapshot;
+  }
 
   function routeWithRoles(...roles: string[]): ActivatedRouteSnapshot {
     const route = new ActivatedRouteSnapshot();

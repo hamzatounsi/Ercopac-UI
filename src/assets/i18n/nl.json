@@ -3357,6 +3357,10 @@
       "customers": {
         "title": "Klantbeheer",
         "description": "Maak en beheer de klanten die door projecten en tickets worden gebruikt."
+      },
+      "customerUsers": {
+        "title": "Klantgebruikers",
+        "description": "Accounts van uw klanten. Zij melden zich alleen aan bij de Ticketing-app."
       }
     },
     "profile": {
@@ -3740,7 +3744,8 @@
       "userAccountUpdated": "Gebruikersaccount bijgewerkt.",
       "userCanSignWhile": "De gebruiker kan zich aanmelden zolang deze instelling is ingeschakeld.",
       "userWillAbleSign": "De gebruiker kan zich opnieuw aanmelden, binnen de licentielimieten van de organisatie.",
-      "userWillImmediatelyLose": "De gebruiker verliest direct de toegang zodra het huidige token opnieuw wordt gecontroleerd."
+      "userWillImmediatelyLose": "De gebruiker verliest direct de toegang zodra het huidige token opnieuw wordt gecontroleerd.",
+      "organisation": "Organisatie"
     },
     "customers": {
       "searchLabel": "Klanten zoeken",
@@ -3780,6 +3785,40 @@
         "activated": "Klant {{name}} geactiveerd.",
         "deactivated": "Klant {{name}} gedeactiveerd."
       }
+    },
+    "customerUsers": {
+      "search": "Klantgebruikers zoeken",
+      "searchPlaceholder": "Naam of e-mail zoeken",
+      "filterCustomer": "Filteren op klant",
+      "allCustomers": "Alle klanten",
+      "manageCustomers": "Klanten beheren",
+      "add": "Klantgebruiker toevoegen",
+      "edit": "Klantgebruiker bewerken",
+      "create": "Klantgebruiker aanmaken",
+      "tableTitle": "Klantgebruikers",
+      "ticketingOnly": "Alleen Ticketing-toegang",
+      "customer": "Klant",
+      "eyebrow": "Klantaccount",
+      "formHint": "Deze persoon werkt voor een van uw klanten. Het account opent alleen de Ticketing-app.",
+      "customerAccess": "Klant en toegang",
+      "selectCustomer": "Selecteer een klant",
+      "newCustomer": "Nieuwe klant",
+      "customerRequired": "Selecteer de klant waartoe deze gebruiker behoort.",
+      "clientRoleHint": "Klantgebruikers hebben altijd de rol Klant. Zij zien en maken alleen tickets van hun klant.",
+      "empty": "Nog geen klantgebruikers",
+      "emptyHint": "Maak een account aan voor een persoon bij een van uw klanten.",
+      "newCustomerHint": "De klant wordt aan uw organisatie toegevoegd en voor deze gebruiker geselecteerd. U kunt hem later aanvullen op de pagina Klanten.",
+      "customerName": "Klantnaam",
+      "customerNameRequired": "Klantnaam is verplicht.",
+      "phone": "Telefoon",
+      "address": "Adres",
+      "createCustomer": "Klant aanmaken",
+      "created": "Klantgebruiker aangemaakt.",
+      "updated": "Klantgebruiker bijgewerkt.",
+      "customerCreated": "Klant aangemaakt.",
+      "loadUsers": "Klantgebruikers konden niet worden geladen.",
+      "saveUser": "De klantgebruiker kon niet worden opgeslagen.",
+      "saveCustomer": "De klant kon niet worden aangemaakt."
     }
   },
   "owner": {

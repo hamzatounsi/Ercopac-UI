@@ -3357,6 +3357,10 @@
       "customers": {
         "title": "Customer Management",
         "description": "Create and maintain the customers used by projects and tickets."
+      },
+      "customerUsers": {
+        "title": "Customer Users",
+        "description": "Accounts of your customers. They sign in to the Ticketing app only."
       }
     },
     "profile": {
@@ -3740,7 +3744,8 @@
       "userAccountUpdated": "User account updated.",
       "userCanSignWhile": "User can sign in while this setting is enabled.",
       "userWillAbleSign": "The user will be able to sign in again, subject to organisation licence limits.",
-      "userWillImmediatelyLose": "The user will immediately lose access when their current token is checked again."
+      "userWillImmediatelyLose": "The user will immediately lose access when their current token is checked again.",
+      "organisation": "Organisation"
     },
     "customers": {
       "searchLabel": "Search customers",
@@ -3780,6 +3785,40 @@
         "activated": "Customer {{name}} activated.",
         "deactivated": "Customer {{name}} deactivated."
       }
+    },
+    "customerUsers": {
+      "search": "Search customer users",
+      "searchPlaceholder": "Search name or email",
+      "filterCustomer": "Filter by customer",
+      "allCustomers": "All customers",
+      "manageCustomers": "Manage customers",
+      "add": "Add customer user",
+      "edit": "Edit customer user",
+      "create": "Create customer user",
+      "tableTitle": "Customer users",
+      "ticketingOnly": "Ticketing access only",
+      "customer": "Customer",
+      "eyebrow": "Customer account",
+      "formHint": "This person works for one of your customers. The account opens the Ticketing app only.",
+      "customerAccess": "Customer and access",
+      "selectCustomer": "Select a customer",
+      "newCustomer": "New customer",
+      "customerRequired": "Select the customer this user belongs to.",
+      "clientRoleHint": "Customer users always have the Client role. They see and create tickets of their customer only.",
+      "empty": "No customer users yet",
+      "emptyHint": "Create an account for a person at one of your customers.",
+      "newCustomerHint": "The customer is added to your organisation and selected for this user. You can complete it later on the Customers page.",
+      "customerName": "Customer name",
+      "customerNameRequired": "Customer name is required.",
+      "phone": "Phone",
+      "address": "Address",
+      "createCustomer": "Create customer",
+      "created": "Customer user created.",
+      "updated": "Customer user updated.",
+      "customerCreated": "Customer created.",
+      "loadUsers": "Could not load customer users.",
+      "saveUser": "Could not save the customer user.",
+      "saveCustomer": "Could not create the customer."
     }
   },
   "owner": {

@@ -237,6 +237,11 @@ saveUser(): void {
     this.userForm.controls.roles.markAsTouched();
   }
   hasSelectedRole(role: OrganisationRole): boolean { return this.userForm.controls.roles.value.includes(role); }
+  /** Client accounts are customer users (Customer Users page); CLIENT stays only on legacy accounts that already have it. */
+  get assignableRoles(): OrganisationRoleSummary[] {
+    const legacyClient = !!this.editingUser && (this.editingUser.roles ?? [this.editingUser.role]).includes('CLIENT');
+    return this.roles.filter(role => role.role !== 'CLIENT' || legacyClient);
+  }
   requiresResourceProfile(roles: OrganisationRole[]): boolean {
     return roles.some(role => ['PROJECT_MANAGER', 'PROJECT_MANAGER_LEAD', 'DEPARTMENT_MANAGER', 'EMPLOYEE'].includes(role));
   }

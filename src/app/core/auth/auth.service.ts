@@ -35,6 +35,8 @@ interface JwtPayload {
   fullName?: string;
   name?: string;
   username?: string;
+  /** INTERNAL (staff) or CUSTOMER (customer user: Ticketing only). Tokens issued before it are INTERNAL. */
+  userType?: 'INTERNAL' | 'CUSTOMER';
 }
 
 export interface LoginResponse {
@@ -144,7 +146,12 @@ export class AuthService {
   }
 
   getAccessibleWorkspaceModules(): WorkspaceModule[] {
-    return accessibleWorkspaceModules(this.getRoles());
+    return accessibleWorkspaceModules(this.getRoles(), this.isCustomerUser());
+  }
+
+  /** Customer user of the organisation: signs in to the Ticketing app only (enforced by the backend too). */
+  isCustomerUser(): boolean {
+    return this.getPayload()?.userType === 'CUSTOMER';
   }
 
   getCurrentUserId(): number | null {
@@ -161,6 +168,7 @@ export class AuthService {
       return '/login';
     }
     
+    if (this.isCustomerUser()) return '/tickets';
     const roles = this.getRoles();
     if (roles.includes('PLATFORM_OWNER')) return '/owner';
     if (roles.length === 1 && roles[0] === 'ORG_ADMIN') return '/org-admin';

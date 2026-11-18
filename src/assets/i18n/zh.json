@@ -3357,6 +3357,10 @@
       "customers": {
         "title": "客户管理",
         "description": "创建并维护项目和工单使用的客户。"
+      },
+      "customerUsers": {
+        "title": "客户用户",
+        "description": "您的客户的账户。他们只能登录工单应用。"
       }
     },
     "profile": {
@@ -3740,7 +3744,8 @@
       "userAccountUpdated": "用户账户已更新。",
       "userCanSignWhile": "启用此设置时，用户可以登录。",
       "userWillAbleSign": "用户将可以再次登录，但受组织许可证数量限制。",
-      "userWillImmediatelyLose": "当前令牌再次校验时，用户将立即失去访问权限。"
+      "userWillImmediatelyLose": "当前令牌再次校验时，用户将立即失去访问权限。",
+      "organisation": "组织"
     },
     "customers": {
       "searchLabel": "搜索客户",
@@ -3780,6 +3785,40 @@
         "activated": "已启用客户 {{name}}。",
         "deactivated": "已停用客户 {{name}}。"
       }
+    },
+    "customerUsers": {
+      "search": "搜索客户用户",
+      "searchPlaceholder": "搜索姓名或邮箱",
+      "filterCustomer": "按客户筛选",
+      "allCustomers": "所有客户",
+      "manageCustomers": "管理客户",
+      "add": "添加客户用户",
+      "edit": "编辑客户用户",
+      "create": "创建客户用户",
+      "tableTitle": "客户用户",
+      "ticketingOnly": "仅限工单访问",
+      "customer": "客户",
+      "eyebrow": "客户账户",
+      "formHint": "此人在您的某个客户处工作。该账户只能打开工单应用。",
+      "customerAccess": "客户与访问权限",
+      "selectCustomer": "选择客户",
+      "newCustomer": "新客户",
+      "customerRequired": "请选择此用户所属的客户。",
+      "clientRoleHint": "客户用户始终拥有客户角色。他们只能查看和创建其客户的工单。",
+      "empty": "暂无客户用户",
+      "emptyHint": "为您某个客户处的人员创建账户。",
+      "newCustomerHint": "该客户将添加到您的组织并为此用户选中。您可以稍后在客户页面中补充信息。",
+      "customerName": "客户名称",
+      "customerNameRequired": "客户名称为必填项。",
+      "phone": "电话",
+      "address": "地址",
+      "createCustomer": "创建客户",
+      "created": "客户用户已创建。",
+      "updated": "客户用户已更新。",
+      "customerCreated": "客户已创建。",
+      "loadUsers": "无法加载客户用户。",
+      "saveUser": "无法保存客户用户。",
+      "saveCustomer": "无法创建客户。"
     }
   },
   "owner": {

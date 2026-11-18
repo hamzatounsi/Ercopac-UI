@@ -12,6 +12,7 @@ import {
   OrganisationUser,
   PageResponse,
   PasswordResetRequest,
+  SaveCustomerUser,
   ProjectCategoryConfig,
   ProjectTypeConfig,
   SaveCustomerConfig,
@@ -109,6 +110,48 @@ export class OrgAdminService {
 
   updateUserStatus(id: number, active: boolean): Observable<OrganisationUser> {
     return this.http.patch<OrganisationUser>(`${this.baseUrl}/users/${id}/status`, { active });
+  }
+
+  // Customer users (CUSTOMER accounts, Ticketing only)
+  getCustomerUsers(filters: {
+    search?: string;
+    customerId?: number | null;
+    active?: boolean | null;
+    page?: number;
+    size?: number;
+    sort?: string;
+    direction?: 'asc' | 'desc';
+  }): Observable<PageResponse<OrganisationUser>> {
+    let params = new HttpParams()
+      .set('page', String(filters.page ?? 0))
+      .set('size', String(filters.size ?? 20))
+      .set('sort', filters.sort ?? 'fullName')
+      .set('direction', filters.direction ?? 'asc');
+
+    if (filters.search?.trim()) params = params.set('search', filters.search.trim());
+    if (filters.customerId != null) params = params.set('customerId', String(filters.customerId));
+    if (filters.active != null) params = params.set('active', String(filters.active));
+
+    return this.http.get<PageResponse<OrganisationUser>>(`${this.baseUrl}/customer-users`, { params });
+  }
+
+  createCustomerUser(payload: SaveCustomerUser & { password: string }): Observable<OrganisationUser> {
+    return this.http.post<OrganisationUser>(`${this.baseUrl}/customer-users`, payload);
+  }
+
+  /** The password is sent only when a new one was typed. */
+  updateCustomerUser(id: number, payload: SaveCustomerUser): Observable<OrganisationUser> {
+    const { password, ...rest } = payload;
+    const body = password && password.trim() ? { ...rest, password: password.trim() } : rest;
+    return this.http.put<OrganisationUser>(`${this.baseUrl}/customer-users/${id}`, body);
+  }
+
+  updateCustomerUserStatus(id: number, active: boolean): Observable<OrganisationUser> {
+    return this.http.patch<OrganisationUser>(`${this.baseUrl}/customer-users/${id}/status`, { active });
+  }
+
+  deleteCustomerUser(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/customer-users/${id}`);
   }
 
   getDepartments(): Observable<OrganisationDepartment[]> {

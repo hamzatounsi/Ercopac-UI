@@ -45,7 +45,9 @@ export const ROLE_MODULE_MAP: Record<AppRole, WorkspaceModuleKey> = {
   H24_LEAD: 'TICKETING'    // 👈 AJOUT : Mappe H24_LEAD vers le module Ticketing
 };
 
-export function accessibleWorkspaceModules(roles: readonly AppRole[]): WorkspaceModule[] {
+export function accessibleWorkspaceModules(roles: readonly AppRole[], customerUser = false): WorkspaceModule[] {
+  // Customer users only ever get the Ticketing app, whatever their roles
+  if (customerUser) return [WORKSPACE_MODULES.TICKETING];
   if (roles.includes('PLATFORM_OWNER')) return [WORKSPACE_MODULES.PLATFORM_ADMIN];
 
   const keys = roles.map(role => ROLE_MODULE_MAP[role]).filter(Boolean);

@@ -58,6 +58,17 @@ describe('AuthService', () => {
     expect(service.getAccessibleWorkspaceModules().map(module => module.key)).toEqual(['PROJECTUM']);
   });
 
+  it('sends customer users straight to Ticketing and offers no other app', () => {
+    const expiry = Math.floor(Date.now() / 1000) + 300;
+    localStorage.setItem('token', token({ roles: ['CLIENT'], userType: 'CUSTOMER', exp: expiry }));
+    expect(service.isCustomerUser()).toBeTrue();
+    expect(service.getHomeRoute()).toBe('/tickets');
+    expect(service.getAccessibleWorkspaceModules().map(module => module.key)).toEqual(['TICKETING']);
+
+    localStorage.setItem('token', token({ roles: ['CLIENT'], exp: expiry }));
+    expect(service.isCustomerUser()).toBeFalse();
+  });
+
   it('treats an expired token as logged out', () => {
     localStorage.setItem('token', token({ roles: ['ORG_ADMIN'], exp: Math.floor(Date.now() / 1000) - 30 }));
     expect(service.isLoggedIn()).toBeFalse();

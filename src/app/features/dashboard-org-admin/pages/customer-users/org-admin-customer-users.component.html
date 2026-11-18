@@ -1,0 +1,117 @@
+<div class="users-toolbar">
+  <div class="search-field"><span class="material-symbols-outlined" aria-hidden="true">search</span><label class="sr-only" for="customer-user-search">{{ 'orgAdmin.customerUsers.search' | translate }}</label><input id="customer-user-search" [formControl]="searchControl" [placeholder]="'orgAdmin.customerUsers.searchPlaceholder' | translate" /></div>
+  <form class="filters" [formGroup]="filterForm">
+    <label><span class="sr-only">{{ 'orgAdmin.customerUsers.filterCustomer' | translate }}</span><select formControlName="customerId"><option [ngValue]="null">{{ 'orgAdmin.customerUsers.allCustomers' | translate }}</option><option *ngFor="let customer of customers" [ngValue]="customer.id">{{ customer.name | upperName }}</option></select></label>
+    <label><span class="sr-only">{{ 'orgAdmin.users.filterStatus' | translate }}</span><select formControlName="status"><option value="">{{ 'orgAdmin.users.allStatuses' | translate }}</option><option value="active">{{ 'orgAdmin.users.active' | translate }}</option><option value="inactive">{{ 'orgAdmin.users.inactive' | translate }}</option></select></label>
+  </form>
+  <div class="toolbar-actions">
+    <a class="secondary" routerLink="/org-admin/customers"><span class="material-symbols-outlined" aria-hidden="true">handshake</span>{{ 'orgAdmin.customerUsers.manageCustomers' | translate }}</a>
+    <button class="primary" type="button" (click)="openCreate()"><span class="material-symbols-outlined" aria-hidden="true">person_add</span>{{ 'orgAdmin.customerUsers.add' | translate }}</button>
+  </div>
+</div>
+
+<section class="table-card" [attr.aria-busy]="loadingUsers">
+  <header><div><h2>{{ 'orgAdmin.customerUsers.tableTitle' | translate }}</h2><p>{{ (totalElements === 1 ? 'orgAdmin.users.accountCountOne' : 'orgAdmin.users.accountCount') | translate: { count: totalElements } }} · {{ 'orgAdmin.customerUsers.ticketingOnly' | translate }}</p></div><span *ngIf="loadingUsers" class="loading-label"><i></i>{{ 'orgAdmin.users.refreshing' | translate }}</span></header>
+  <div class="inline-error" *ngIf="errorMessage" role="alert">{{ errorMessage }} <button type="button" (click)="loadUsers()">{{ 'common.retry' | translate }}</button></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th><button type="button" (click)="setSort('fullName')">{{ 'common.user' | translate }} <span *ngIf="sort === 'fullName'">{{ direction === 'asc' ? '↑' : '↓' }}</span></button></th><th>{{ 'orgAdmin.users.role' | translate }}</th><th>{{ 'orgAdmin.customerUsers.customer' | translate }}</th><th>{{ 'orgAdmin.users.organisation' | translate }}</th><th><button type="button" (click)="setSort('active')">{{ 'common.status' | translate }} <span *ngIf="sort === 'active'">{{ direction === 'asc' ? '↑' : '↓' }}</span></button></th><th class="actions-heading">{{ 'common.actions' | translate }}</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let user of users; trackBy: trackUser">
+          <td [attr.data-label]="'common.user' | translate"><div class="user-cell"><span class="avatar" aria-hidden="true">{{ user.fullName.charAt(0) | uppercase }}</span><div><strong>{{ user.fullName | upperName }}</strong><span>{{ user.email }}</span></div></div></td>
+          <td [attr.data-label]="'orgAdmin.users.role' | translate"><span *ngFor="let role of user.roles" class="role-badge client">{{ roleLabel(role) }}</span><small *ngIf="user.jobTitle">{{ user.jobTitle }}</small></td>
+          <td [attr.data-label]="'orgAdmin.customerUsers.customer' | translate"><strong class="department">{{ user.customerName ? (user.customerName | upperName) : '—' }}</strong></td>
+          <td [attr.data-label]="'orgAdmin.users.organisation' | translate">{{ user.organisationName ? (user.organisationName | upperName) : '—' }}</td>
+          <td [attr.data-label]="'common.status' | translate"><span class="status" [class.inactive]="!user.active"><i aria-hidden="true"></i>{{ user.active ? ('orgAdmin.users.active' | translate) : ('orgAdmin.users.inactive' | translate) }}</span></td>
+          <td [attr.data-label]="'common.actions' | translate" class="actions">
+            <button type="button" (click)="openEdit(user)" [attr.aria-label]="'common.editNamed' | translate: { name: user.fullName }"><span class="material-symbols-outlined" aria-hidden="true">edit</span></button>
+            <button type="button" (click)="requestStatusChange(user)" [disabled]="user.id === currentUserId" [attr.aria-label]="(user.active ? ('orgAdmin.users.deactivate' | translate) : ('orgAdmin.users.activate' | translate)) + user.fullName"><span class="material-symbols-outlined" aria-hidden="true">{{ user.active ? 'person_off' : 'person_check' }}</span></button>
+            <button type="button" class="btn-delete" (click)="requestDelete(user)" [disabled]="user.id === currentUserId" [attr.aria-label]="'common.deleteNamed' | translate: { name: user.fullName }"><span class="material-symbols-outlined" aria-hidden="true">delete</span></button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div *ngIf="!loadingUsers && users.length === 0" class="empty"><span class="material-symbols-outlined" aria-hidden="true">support_agent</span><strong>{{ 'orgAdmin.customerUsers.empty' | translate }}</strong><span>{{ 'orgAdmin.customerUsers.emptyHint' | translate }}</span><button type="button" (click)="openCreate()">{{ 'orgAdmin.customerUsers.add' | translate }}</button></div>
+  </div>
+  <footer *ngIf="totalPages > 0"><span>{{ 'orgAdmin.users.pagePageTotalpages' | translate: { page: page + 1, totalPages: totalPages } }}</span><div><button type="button" (click)="previousPage()" [disabled]="page === 0">{{ 'orgAdmin.users.previous' | translate }}</button><button type="button" (click)="nextPage()" [disabled]="page + 1 >= totalPages">{{ 'orgAdmin.users.next' | translate }}</button></div></footer>
+</section>
+
+<div class="backdrop" *ngIf="drawerOpen" (click)="closeDrawer()"></div>
+<aside class="drawer" *ngIf="drawerOpen" role="dialog" aria-modal="true" aria-labelledby="customer-user-dialog-title">
+  <header><div><span class="eyebrow">{{ 'orgAdmin.customerUsers.eyebrow' | translate }}</span><h2 id="customer-user-dialog-title">{{ editingUser ? ('orgAdmin.customerUsers.edit' | translate) : ('orgAdmin.customerUsers.add' | translate) }}</h2><p>{{ 'orgAdmin.customerUsers.formHint' | translate }}</p></div><button type="button" (click)="closeDrawer()" [attr.aria-label]="'orgAdmin.users.closeUserForm' | translate"><span class="material-symbols-outlined" aria-hidden="true">close</span></button></header>
+  <form [formGroup]="userForm" (ngSubmit)="saveUser()" novalidate>
+    <div class="form-error" *ngIf="formError" role="alert">{{ formError }}</div>
+
+    <fieldset><legend>{{ 'orgAdmin.users.identity' | translate }}</legend>
+      <div class="field"><label for="customer-user-full-name">{{ 'orgAdmin.users.fullName' | translate }} <b>*</b></label><input appUppercaseName id="customer-user-full-name" formControlName="fullName" autocomplete="name" /><small *ngIf="userForm.controls.fullName.touched && userForm.controls.fullName.invalid">{{ 'orgAdmin.users.fullNameRequired' | translate }}</small></div>
+      <div class="field"><label for="customer-user-email">{{ 'orgAdmin.users.emailAddress' | translate }} <b>*</b></label><input id="customer-user-email" formControlName="email" type="email" autocomplete="email" /><small *ngIf="userForm.controls.email.touched && userForm.controls.email.invalid">{{ 'orgAdmin.users.enterValidEmailAddress' | translate }}</small></div>
+
+      <div class="field">
+        <label for="customer-user-password">{{ editingUser ? ('orgAdmin.users.newPassword' | translate) : ('orgAdmin.users.temporaryPassword' | translate) }} <b *ngIf="!editingUser">*</b><small *ngIf="editingUser">{{ 'orgAdmin.users.leaveEmptyKeepCurrent' | translate }}</small></label>
+        <div class="password-field">
+          <input id="customer-user-password" formControlName="password" [type]="showPassword ? 'text' : 'password'" autocomplete="new-password" [placeholder]="editingUser ? ('orgAdmin.users.enterNewPasswordLeave' | translate) : ''" />
+          <button type="button" class="toggle-password" (click)="showPassword = !showPassword" [attr.aria-label]="showPassword ? ('orgAdmin.users.hidePassword' | translate) : ('orgAdmin.users.showPassword' | translate)">
+            <span class="material-symbols-outlined">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+          </button>
+        </div>
+        <small *ngIf="userForm.controls.password.touched && userForm.controls.password.invalid">{{ 'orgAdmin.users.useLeast8Characters' | translate }}</small>
+        <span>{{ editingUser ? ('orgAdmin.users.ifYouEnterNew' | translate) : ('orgAdmin.users.shareTemporaryPasswordThrough' | translate) }}</span>
+      </div>
+    </fieldset>
+
+    <fieldset><legend>{{ 'orgAdmin.customerUsers.customerAccess' | translate }}</legend>
+      <div class="field">
+        <label for="customer-user-customer">{{ 'orgAdmin.customerUsers.customer' | translate }} <b>*</b></label>
+        <div class="customer-field">
+          <app-customer-select inputId="customer-user-customer" formControlName="customerId" [allowNone]="false"
+                               [invalid]="userForm.controls.customerId.touched && userForm.controls.customerId.invalid"
+                               [placeholder]="'orgAdmin.customerUsers.selectCustomer' | translate"></app-customer-select>
+          <button type="button" class="secondary" (click)="openCustomerDialog()"><span class="material-symbols-outlined" aria-hidden="true">add_business</span>{{ 'orgAdmin.customerUsers.newCustomer' | translate }}</button>
+        </div>
+        <small *ngIf="userForm.controls.customerId.touched && userForm.controls.customerId.invalid">{{ 'orgAdmin.customerUsers.customerRequired' | translate }}</small>
+      </div>
+      <p class="muted">{{ 'orgAdmin.customerUsers.clientRoleHint' | translate }}</p>
+      <div class="field"><label for="customer-user-job-title">{{ 'orgAdmin.users.jobTitle' | translate }}</label><input id="customer-user-job-title" formControlName="jobTitle" /></div>
+      <label class="switch-row"><span><strong>{{ 'orgAdmin.users.activeAccount' | translate }}</strong><small>{{ 'orgAdmin.users.userCanSignWhile' | translate }}</small></span><input type="checkbox" formControlName="active" /></label>
+    </fieldset>
+    <footer><button class="secondary" type="button" (click)="closeDrawer()" [disabled]="saving">{{ 'common.cancel' | translate }}</button><button class="primary" type="submit" [disabled]="saving || userForm.invalid">{{ saving ? ('orgAdmin.users.saving' | translate) : (editingUser ? ('orgAdmin.users.saveChanges' | translate) : ('orgAdmin.customerUsers.create' | translate)) }}</button></footer>
+  </form>
+</aside>
+
+<div class="modal-backdrop" *ngIf="customerDialogOpen">
+  <section class="confirm-modal customer-modal" role="dialog" aria-modal="true" aria-labelledby="new-customer-title">
+    <h2 id="new-customer-title">{{ 'orgAdmin.customerUsers.newCustomer' | translate }}</h2>
+    <p>{{ 'orgAdmin.customerUsers.newCustomerHint' | translate }}</p>
+    <form [formGroup]="customerForm" (ngSubmit)="saveCustomer()" novalidate>
+      <div class="form-error" *ngIf="customerError" role="alert">{{ customerError }}</div>
+      <div class="field"><label for="new-customer-name">{{ 'orgAdmin.customerUsers.customerName' | translate }} <b>*</b></label><input appUppercaseName id="new-customer-name" formControlName="name" /><small *ngIf="customerForm.controls.name.touched && customerForm.controls.name.invalid">{{ 'orgAdmin.customerUsers.customerNameRequired' | translate }}</small></div>
+      <div class="field-row">
+        <div class="field"><label for="new-customer-email">{{ 'orgAdmin.users.emailAddress' | translate }}</label><input id="new-customer-email" formControlName="email" type="email" /><small *ngIf="customerForm.controls.email.touched && customerForm.controls.email.invalid">{{ 'orgAdmin.users.enterValidEmailAddress' | translate }}</small></div>
+        <div class="field"><label for="new-customer-phone">{{ 'orgAdmin.customerUsers.phone' | translate }}</label><input id="new-customer-phone" formControlName="phone" type="tel" /></div>
+      </div>
+      <div class="field"><label for="new-customer-address">{{ 'orgAdmin.customerUsers.address' | translate }}</label><input id="new-customer-address" formControlName="address" /></div>
+      <div class="modal-actions"><button type="button" class="secondary" (click)="customerDialogOpen = false" [disabled]="savingCustomer">{{ 'common.cancel' | translate }}</button><button type="submit" class="primary" [disabled]="savingCustomer || customerForm.invalid">{{ savingCustomer ? ('orgAdmin.users.saving' | translate) : ('orgAdmin.customerUsers.createCustomer' | translate) }}</button></div>
+    </form>
+  </section>
+</div>
+
+<div class="modal-backdrop" *ngIf="pendingStatusUser as user">
+  <section class="confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="customer-status-confirm-title">
+    <span class="confirm-icon material-symbols-outlined" aria-hidden="true">{{ user.active ? 'person_off' : 'person_check' }}</span>
+    <h2 id="customer-status-confirm-title">{{ user.active ? ('orgAdmin.users.deactivate' | translate) : ('orgAdmin.users.activate' | translate) }} {{ user.fullName | upperName }}?</h2>
+    <p>{{ user.active ? ('orgAdmin.users.userWillImmediatelyLose' | translate) : ('orgAdmin.users.userWillAbleSign' | translate) }}</p>
+    <div><button type="button" class="secondary" (click)="pendingStatusUser = null" [disabled]="saving">{{ 'common.cancel' | translate }}</button><button type="button" [class.danger]="user.active" [class.primary]="!user.active" (click)="confirmStatusChange()" [disabled]="saving">{{ saving ? ('orgAdmin.users.updating' | translate) : (user.active ? ('orgAdmin.users.deactivateUser' | translate) : ('orgAdmin.users.activateUser' | translate)) }}</button></div>
+  </section>
+</div>
+
+<div class="modal-backdrop" *ngIf="pendingDeleteUser as user">
+  <section class="confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="customer-delete-confirm-title">
+    <span class="confirm-icon material-symbols-outlined danger" aria-hidden="true">delete</span>
+    <h2 id="customer-delete-confirm-title">{{ 'orgAdmin.users.deleteFullname' | translate: { fullName: user.fullName } }}</h2>
+    <p>{{ 'orgAdmin.users.actionCannotUndoneUser' | translate }}</p>
+    <div>
+      <button type="button" class="secondary" (click)="pendingDeleteUser = null" [disabled]="saving">{{ 'common.cancel' | translate }}</button>
+      <button type="button" class="danger" (click)="confirmDelete()" [disabled]="saving">{{ saving ? ('orgAdmin.users.deleting' | translate) : ('orgAdmin.users.deleteUser' | translate) }}</button>
+    </div>
+  </section>
+</div>

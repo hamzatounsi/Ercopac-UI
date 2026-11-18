@@ -3357,6 +3357,10 @@
       "customers": {
         "title": "Gestione clienti",
         "description": "Crea e gestisci i clienti usati da progetti e ticket."
+      },
+      "customerUsers": {
+        "title": "Utenti clienti",
+        "description": "Account dei vostri clienti. Accedono solo all'app Ticketing."
       }
     },
     "profile": {
@@ -3740,7 +3744,8 @@
       "userAccountUpdated": "Account utente aggiornato.",
       "userCanSignWhile": "L’utente può accedere finché questa impostazione è attiva.",
       "userWillAbleSign": "L’utente potrà accedere di nuovo, nei limiti delle licenze dell’organizzazione.",
-      "userWillImmediatelyLose": "L’utente perderà immediatamente l’accesso alla prossima verifica del token corrente."
+      "userWillImmediatelyLose": "L’utente perderà immediatamente l’accesso alla prossima verifica del token corrente.",
+      "organisation": "Organizzazione"
     },
     "customers": {
       "searchLabel": "Cerca clienti",
@@ -3780,6 +3785,40 @@
         "activated": "Cliente {{name}} attivato.",
         "deactivated": "Cliente {{name}} disattivato."
       }
+    },
+    "customerUsers": {
+      "search": "Cerca utenti clienti",
+      "searchPlaceholder": "Cerca nome o e-mail",
+      "filterCustomer": "Filtra per cliente",
+      "allCustomers": "Tutti i clienti",
+      "manageCustomers": "Gestisci clienti",
+      "add": "Aggiungi utente cliente",
+      "edit": "Modifica utente cliente",
+      "create": "Crea utente cliente",
+      "tableTitle": "Utenti clienti",
+      "ticketingOnly": "Solo accesso Ticketing",
+      "customer": "Cliente",
+      "eyebrow": "Account cliente",
+      "formHint": "Questa persona lavora per uno dei vostri clienti. L'account apre solo l'app Ticketing.",
+      "customerAccess": "Cliente e accesso",
+      "selectCustomer": "Seleziona un cliente",
+      "newCustomer": "Nuovo cliente",
+      "customerRequired": "Seleziona il cliente a cui appartiene questo utente.",
+      "clientRoleHint": "Gli utenti clienti hanno sempre il ruolo Cliente. Vedono e creano solo i ticket del proprio cliente.",
+      "empty": "Nessun utente cliente",
+      "emptyHint": "Crea un account per una persona presso uno dei vostri clienti.",
+      "newCustomerHint": "Il cliente viene aggiunto alla vostra organizzazione e selezionato per questo utente. Potete completarlo più tardi nella pagina Clienti.",
+      "customerName": "Nome cliente",
+      "customerNameRequired": "Il nome del cliente è obbligatorio.",
+      "phone": "Telefono",
+      "address": "Indirizzo",
+      "createCustomer": "Crea cliente",
+      "created": "Utente cliente creato.",
+      "updated": "Utente cliente aggiornato.",
+      "customerCreated": "Cliente creato.",
+      "loadUsers": "Impossibile caricare gli utenti clienti.",
+      "saveUser": "Impossibile salvare l'utente cliente.",
+      "saveCustomer": "Impossibile creare il cliente."
     }
   },
   "owner": {
