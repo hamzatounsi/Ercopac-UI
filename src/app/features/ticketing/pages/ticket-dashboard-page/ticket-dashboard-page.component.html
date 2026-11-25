@@ -11,16 +11,13 @@
   <ng-container *ngIf="!isStaff">
     <section class="metrics">
       <div class="metric"><span>{{ 'ticketing.list.total' | translate }}</span><b>{{ myTotal }}</b></div>
-      <div class="metric"><span>{{ 'ticketing.list.progress' | translate }}</span><b class="amber">{{ (stats?.open || 0) + (stats?.inProgress || 0) + (stats?.escalated || 0) }}</b></div>
-      <div class="metric"><span>{{ 'ticketing.list.resolved' | translate }}</span><b class="green">{{ (stats?.resolved || 0) + (stats?.closed || 0) }}</b></div>
+      <div class="metric"><span>{{ 'ticketing.list.progress' | translate }}</span><b class="amber">{{ stats?.open || 0 }}</b></div>
+      <div class="metric"><span>{{ 'ticketing.list.resolved' | translate }}</span><b class="green">{{ stats?.closed || 0 }}</b></div>
     </section>
 
     <div class="filters client">
       <input class="input" [(ngModel)]="filters.search" (ngModelChange)="onSearch()" [placeholder]="'ticketing.list.searchMyTickets' | translate" [attr.aria-label]="'ticketing.list.searchTickets' | translate">
-      <select class="select" [(ngModel)]="filters.status" (change)="reload()" [attr.aria-label]="'common.status' | translate">
-        <option value="">{{ 'ticketing.list.allStatuses' | translate }}</option>
-        <option *ngFor="let s of statuses" [value]="s">{{ labels.statusLabel(s) }}</option>
-      </select>
+      <app-ticket-status-select [value]="filters.status || null" (valueChange)="filters.status = $event || ''; reload()" allLabel="ticketing.list.allStatuses"></app-ticket-status-select>
     </div>
 
     <p class="error" *ngIf="error">{{ error }} <button class="ghost" (click)="load()">{{ 'common.retry' | translate }}</button></p>
@@ -35,7 +32,7 @@
       <div class="tk-card-head">
         <span class="meta">#{{ t.ticketNumber }}<ng-container *ngIf="t.customer"> · <span class="text-upper">{{ t.customer.name | upperName }}</span></ng-container><ng-container *ngIf="t.projectNumber"> · {{ 'ticketing.list.orderNumber' | translate }} {{ t.projectNumber }}</ng-container><ng-container *ngIf="t.site"> · {{ t.site }}</ng-container></span>
         <span class="badges">
-          <span class="badge" [ngClass]="'c-' + labels.ticketStatusColor(t)">{{ labels.ticketStatusLabel(t) }}</span>
+          <app-ticket-status-badge [status]="t.statusRef"></app-ticket-status-badge>
           <span class="priority" [ngClass]="'p-' + t.priority.toLowerCase()">{{ labels.priorityLabel(t.priority) }}</span>
           <i *ngIf="t.unreadCount" [title]="'ticketing.list.unreadMessages' | translate">{{ t.unreadCount }}</i>
         </span>
@@ -66,7 +63,7 @@
     </div>
 
     <div class="pipeline" *ngIf="stats">
-      <button type="button" *ngFor="let s of pipelineStatuses" class="pipe-seg" [ngClass]="'c-' + labels.statusColor(s)"
+      <button type="button" *ngFor="let s of pipelineStatuses" class="pipe-seg" [ngClass]="'c-' + labels.statusColor(s)" [ngStyle]="labels.statusStyle(s)"
               [class.on]="filters.status === s" (click)="toggleStatus(s)" [title]="'ticketing.list.showStatusTickets' | translate: { status: labels.statusLabel(s) }">
         <b>{{ statCount(s) }}</b><span>{{ labels.statusLabel(s) }}</span>
       </button>
@@ -77,10 +74,7 @@
 
     <section class="panel">
       <div class="filters">
-        <select class="select narrow" [(ngModel)]="filters.status" (change)="reload()" [attr.aria-label]="'common.status' | translate">
-          <option value="">{{ 'ticketing.list.allStatuses' | translate }}</option>
-          <option *ngFor="let s of statuses" [value]="s">{{ labels.statusLabel(s) }}</option>
-        </select>
+        <app-ticket-status-select selectClass="narrow" [value]="filters.status || null" (valueChange)="filters.status = $event || ''; reload()" allLabel="ticketing.list.allStatuses"></app-ticket-status-select>
         <select class="select narrow" [(ngModel)]="filters.priority" (change)="reload()" [attr.aria-label]="'ticketing.list.priority' | translate">
           <option value="">{{ 'ticketing.list.allPriorities' | translate }}</option>
           <option *ngFor="let p of priorities" [value]="p">{{ labels.priorityLabel(p) }}</option>
@@ -125,7 +119,7 @@
               <td class="muted-sm text-upper">{{ t.customer?.name || '—' }}</td>
               <td class="muted-sm mono">{{ t.projectNumber || '—' }}</td>
               <td class="muted-sm">{{ t.site || '—' }}</td>
-              <td><span class="badge" [ngClass]="'c-' + labels.ticketStatusColor(t)">{{ labels.ticketStatusLabel(t) }}</span></td>
+              <td><app-ticket-status-badge [status]="t.statusRef"></app-ticket-status-badge></td>
               <td><span class="priority" [ngClass]="'p-' + t.priority.toLowerCase()">{{ labels.priorityLabel(t.priority) }}</span></td>
               <td class="muted-sm"><ng-container *ngIf="t.assignee; else none">{{ shortName(t.assignee.fullName) }}</ng-container><ng-template #none><span class="danger-text">{{ 'common.none' | translate }}</span></ng-template></td>
               <td class="muted-sm">{{ t.createdAt | date:'mediumDate' }}</td>

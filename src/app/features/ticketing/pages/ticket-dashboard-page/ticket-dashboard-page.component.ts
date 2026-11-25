@@ -5,6 +5,7 @@ import { AuthService } from 'src/app/core/auth/auth.service';
 import { Ref, Ticket, TicketCategory, TicketPriority, TicketStats, TicketStatus } from '../../models/ticket.models';
 import { TicketFilters, TicketService } from '../../services/ticket.service';
 import { TicketSettingsService } from '../../services/ticket-settings.service';
+import { TicketStatusService } from '../../services/ticket-status.service';
 import { TICKETING_LEAD_ROLES, TICKETING_STAFF_ROLES } from '../../ticketing-roles';
 import { I18nService } from 'src/app/core/i18n/i18n.service';
 
@@ -21,8 +22,9 @@ const PERIOD_DAYS: Record<Exclude<Period, 'all'>, number> = { day: 1, week: 7, m
 export class TicketDashboardPageComponent implements OnInit, OnDestroy {
   readonly isStaff = this.auth.hasAnyRole(TICKETING_STAFF_ROLES);
   readonly isLead = this.auth.hasAnyRole(TICKETING_LEAD_ROLES);
-  readonly pipelineStatuses: TicketStatus[] = ['OPEN', 'IN_PROGRESS', 'ESCALATED', 'RESOLVED', 'CLOSED'];
-  readonly statuses: TicketStatus[] = ['OPEN', 'IN_PROGRESS', 'ESCALATED', 'REOPENED', 'RESOLVED', 'CLOSED', 'CANCELLED'];
+  /** Pipeline: the active statuses of Ticketing settings, in display order. */
+  get pipelineStatuses(): TicketStatus[] { const a = this.statuses.active; if (this.pipeCache.key !== a) this.pipeCache = { key: a, codes: a.map(s => s.code) }; return this.pipeCache.codes; }
+  private pipeCache: { key: unknown; codes: TicketStatus[] } = { key: undefined, codes: [] };
   readonly priorities: TicketPriority[] = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'];
   get categories(): TicketCategory[] { return this.labels.categoryCodes; }
   // Server-side sort; default = ticket id so editing a ticket never moves it in the list
@@ -52,9 +54,11 @@ export class TicketDashboardPageComponent implements OnInit, OnDestroy {
   private searchSub?: Subscription;
 
   constructor(private i18n: I18nService,
-    private auth: AuthService, private api: TicketService, public labels: TicketSettingsService, private router: Router) {}
+    private auth: AuthService, private api: TicketService, public labels: TicketSettingsService, private router: Router,
+    private statuses: TicketStatusService) {}
 
   ngOnInit(): void {
+    this.statuses.load();
     this.searchSub = this.searchInput.pipe(debounceTime(300)).subscribe(() => this.reload());
     this.load();
     this.loadStats();
@@ -96,19 +100,9 @@ export class TicketDashboardPageComponent implements OnInit, OnDestroy {
     return !!(f.search || f.status || f.priority || f.category || f.customerId || this.period !== 'all');
   }
 
-  statCount(s: TicketStatus): number {
-    if (!this.stats) return 0;
-    switch (s) {
-      case 'OPEN': return this.stats.open;
-      case 'IN_PROGRESS': return this.stats.inProgress;
-      case 'ESCALATED': return this.stats.escalated;
-      case 'RESOLVED': return this.stats.resolved;
-      case 'CLOSED': return this.stats.closed;
-      default: return 0;
-    }
-  }
+  statCount(s: TicketStatus): number { return this.stats?.byStatus.find(b => b.key === s)?.count ?? 0; }
 
-  get myTotal(): number { return this.stats ? this.stats.open + this.stats.inProgress + this.stats.escalated + this.stats.resolved + this.stats.closed : 0; }
+  get myTotal(): number { return this.stats ? this.stats.open + this.stats.closed : 0; }
 
   sortBy(field: string): void {
     if (this.sortField === field) this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';

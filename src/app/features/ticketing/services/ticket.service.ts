@@ -4,7 +4,7 @@ import { Observable, map } from 'rxjs';
 import { API_BASE_URL } from 'src/app/core/config/api.config';
 import {
   Attachment, ClientDashboard, ContactPerson, FormOptions, Page, Ticket, TicketActivity, TicketCategory, TicketDetails, TicketMessage, TicketOrigin,
-  TicketPriority, TicketStats, TicketStatus, UserSummary
+  TicketPriority, TicketStats, UserSummary
 } from '../models/ticket.models';
 
 export interface TicketFilters {
@@ -82,9 +82,14 @@ export class TicketService {
     return this.http.patch<TicketDetails>(`${this.base}/${id}/problem-statement`, { ...value, version });
   }
 
-  /** A system status, or a custom status of Ticket settings (customStatusId; its lifecycle status is applied). */
-  status(id: number, status: TicketStatus | null, version: number, customStatusId: number | null = null): Observable<TicketDetails> {
-    return this.http.patch<TicketDetails>(`${this.base}/${id}/status`, { status, version, customStatusId });
+  /** Moves the ticket to an active status of Ticketing settings > Statuses (by id). */
+  status(id: number, statusId: number, version: number): Observable<TicketDetails> {
+    return this.http.patch<TicketDetails>(`${this.base}/${id}/status`, { statusId, version });
+  }
+
+  /** Quick action: the first closed status (RESOLVED when it exists). */
+  resolve(id: number, version: number): Observable<TicketDetails> {
+    return this.http.post<TicketDetails>(`${this.base}/${id}/resolve`, null, { params: { version } });
   }
 
   contact(id: number, contact: ContactPerson, version: number): Observable<TicketDetails> {

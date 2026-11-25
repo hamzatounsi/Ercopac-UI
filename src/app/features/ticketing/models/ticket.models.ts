@@ -1,4 +1,5 @@
-export type TicketStatus = 'OPEN'|'IN_PROGRESS'|'ESCALATED'|'RESOLVED'|'CLOSED'|'REOPENED'|'CANCELLED';
+// Code of a status of Ticketing settings > Statuses (organisation defined, no built-in values)
+export type TicketStatus = string;
 export type TicketPriority = 'LOW'|'MEDIUM'|'HIGH'|'CRITICAL';
 // Category code: a system category (SYSTEM_CATEGORIES) or a custom category of Ticket settings
 export type TicketCategory = string;
@@ -8,16 +9,19 @@ export interface Ref { id:number; name:string; }
 // Customer / project saved on a ticket: id is the Projectum record, null for a manual (historical or external) entry
 export interface SavedRef { id:number|null; name:string; }
 export interface UserSummary { id:number; fullName:string; email:string; role:string; }
-export interface Ticket { id:number; ticketNumber:string; subject:string; organisationId:number; organisationName:string; status:TicketStatus; priority:TicketPriority; category:TicketCategory; site?:string; client?:UserSummary; assignee?:UserSummary; createdAt:string; updatedAt:string; lastMessageAt?:string; unreadCount:number; customer?:SavedRef; project?:SavedRef; l2Technician?:UserSummary; overdue:boolean; projectNumber?:string; projectYear?:number; customStatus?:CustomStatusRef|null; }
-export interface CustomStatusRef { id:number; label:string; color:StatusColor; }
+export interface Ticket { id:number; ticketNumber:string; subject:string; organisationId:number; organisationName:string; status:TicketStatus|null; priority:TicketPriority; category:TicketCategory; site?:string; client?:UserSummary; assignee?:UserSummary; createdAt:string; updatedAt:string; lastMessageAt?:string; unreadCount:number; customer?:SavedRef; project?:SavedRef; l2Technician?:UserSummary; overdue:boolean; projectNumber?:string; projectYear?:number; statusRef?:StatusRef|null; }
+// Status of a ticket as shown on badges (status on Ticket is its code)
+export interface StatusRef { id:number; code:string; name:string; color:string; isClosed:boolean; }
 export interface ContactPerson { name?:string|null; email?:string|null; phone?:string|null; }
 export interface TicketMessage { id:number; message:string; messageType:string; internalNote:boolean; sender:UserSummary; createdAt:string; }
 export interface TicketActivity { id:number; activityType:string; description:string; previousValue?:string; newValue?:string; actor?:UserSummary; createdAt:string; field?:string; }
 export interface Attachment { id:number; originalFileName:string; contentType:string; fileSize:number; uploadedBy?:UserSummary; uploadedAt:string; }
 export interface TicketDetails { ticket:Ticket; description:string; origin:TicketOrigin; escalationLevel:number; resolvedAt?:string; closedAt?:string; version:number; messages:TicketMessage[]; activities:TicketActivity[]; attachments:Attachment[]; canManage:boolean; canClose:boolean; equipment?:Equipment; problem?:string; cause?:string; solution?:string; clientLanguage:string; contact?:ContactPerson; canDelete:boolean; }
 // Client portal dashboard (own tickets only, filtered by the backend)
-export interface ClientDashboard { total:number; open:number; inProgress:number; resolved:number; closed:number; overdue:number; averageResolutionHours:number; byStatus:Breakdown[]; byPriority:Breakdown[]; byCategory:Breakdown[]; byMonth:Breakdown[]; recent:Ticket[]; }
-export interface TicketStats { open:number; inProgress:number; escalated:number; resolved:number; closed:number; createdToday:number; overdue:number; averageResolutionHours:number; }
+// open: tickets in the default status, inProgress: other open statuses, closed: statuses flagged closed
+export interface ClientDashboard { total:number; open:number; inProgress:number; closed:number; overdue:number; averageResolutionHours:number; byStatus:Breakdown[]; byPriority:Breakdown[]; byCategory:Breakdown[]; byMonth:Breakdown[]; recent:Ticket[]; }
+// open / closed: tickets whose status is not / is flagged closed; byStatus: count per status code
+export interface TicketStats { open:number; closed:number; createdToday:number; overdue:number; averageResolutionHours:number; byStatus:Breakdown[]; }
 export interface Page<T> { content:T[]; totalElements:number; totalPages:number; number:number; }
 
 // Live chat (one-to-one conversations, not linked to a ticket)
@@ -27,11 +31,13 @@ export interface ChatMessage { id:number; senderId:number; recipientId:number; m
 
 // Settings
 export type StatusColor = 'blue'|'amber'|'red'|'green'|'gray'|'purple'|'coral';
-export interface StatusSetting { status:TicketStatus; label:string; description?:string; color:StatusColor; }
+export const STATUS_PALETTE: StatusColor[] = ['blue', 'amber', 'red', 'green', 'gray', 'purple', 'coral'];
+// Ticket status of Ticketing settings > Statuses; color is a palette name or #RRGGBB
+export interface TicketStatusDef { id:number; code:string; name:string; description?:string|null; color:string; displayOrder:number; isDefault:boolean; isClosed:boolean; active:boolean; ticketCount:number; }
+export interface TicketStatusRequest { name:string; description?:string|null; color:string; displayOrder?:number|null; isDefault?:boolean|null; isClosed?:boolean|null; active?:boolean|null; }
 export interface PrioritySetting { priority:TicketPriority; label:string; firstResponseMinutes:number; resolutionHours:number; }
-export interface TicketSettings { statuses:StatusSetting[]; priorities:PrioritySetting[]; categories?:CategorySetting[]; customStatuses?:CustomStatus[]; }
+export interface TicketSettings { statuses:TicketStatusDef[]; priorities:PrioritySetting[]; categories?:CategorySetting[]; }
 export interface CategorySetting { id:number; code:string; label:string; system:boolean; active:boolean; ticketCount:number; }
-export interface CustomStatus { id:number; code:string; label:string; description?:string; color:StatusColor; baseStatus:TicketStatus; ticketCount:number; }
 export type AccountKind = 'H24'|'H24_LEAD'|'TECHNICIAN';
 export interface AccountRequest { fullName:string; email:string; password:string; kind:AccountKind; departmentId?:number|null; resourceTypeId?:number|null; specialization?:string|null; }
 // Import of historical customers and orders
@@ -68,7 +74,7 @@ export interface AnalyticsTotals { total:number; open:number; resolved:number; e
 export interface CustomerStat { id?:number; name:string; total:number; open:number; slaCompliance?:number; }
 export interface AgentStat { id:number; name:string; specialization?:string; l2Technician:boolean; assigned:number; open:number; resolved:number; escalated:number; avgFirstResponseHours?:number; slaCompliance?:number; }
 export interface TicketAnalytics { from:string; to:string; bucket:'day'|'month'; totals:AnalyticsTotals; byStatus:Breakdown[]; byPriority:Breakdown[]; byCustomer:CustomerStat[]; timeline:Breakdown[]; agents:AgentStat[]; equipmentTickets:EquipmentTicket[]; }
-export interface EquipmentTicket { id:number; ticketNumber:string; subject:string; customer?:string; site?:string; equipment:string; serialNumber?:string; status:TicketStatus; }
+export interface EquipmentTicket { id:number; ticketNumber:string; subject:string; customer?:string; site?:string; equipment:string; serialNumber?:string; status:TicketStatus|null; }
 
 export const LANGUAGES: { code:string; label:string }[] = [
   { code:'en', label:'ticketing.languages.en' }, { code:'fr', label:'ticketing.languages.fr' }, { code:'es', label:'ticketing.languages.es' }, { code:'it', label:'ticketing.languages.it' },

@@ -13,18 +13,18 @@
     </div>
     <h1 [title]="d.ticket.subject">{{ d.ticket.subject }}</h1>
     <div class="tk-badges">
-      <span class="badge" [ngClass]="'c-' + labels.ticketStatusColor(d.ticket)">{{ labels.ticketStatusLabel(d.ticket) }}</span>
+      <app-ticket-status-badge [status]="d.ticket.statusRef"></app-ticket-status-badge>
       <span class="priority" [ngClass]="'p-' + d.ticket.priority.toLowerCase()">{{ labels.priorityLabel(d.ticket.priority) }}</span>
       <span class="chip">{{ originLabels[d.origin] | translate }}</span>
       <span class="chip overdue" *ngIf="d.ticket.overdue"><span class="material-symbols-outlined">schedule</span>{{ 'ticketing.details.overdue' | translate }}</span>
-      <span class="chip locked" *ngIf="closed"><span class="material-symbols-outlined">lock</span>{{ labels.statusLabel(d.ticket.status) }}</span>
+      <span class="chip locked" *ngIf="closed"><span class="material-symbols-outlined">lock</span>{{ labels.ticketStatusLabel(d.ticket) }}</span>
     </div>
     <div class="tk-actions">
       <button type="button" class="ghost small" (click)="exportPdf()" [disabled]="exporting" [title]="'ticketing.details.exportPdf' | translate">
         <span class="material-symbols-outlined">picture_as_pdf</span>{{ exporting ? ('ticketing.details.exporting' | translate) : ('ticketing.details.exportPdf2' | translate) }}
       </button>
-      <button type="button" class="primary small" *ngIf="d.canManage && nextStatuses.includes('RESOLVED')" (click)="changeStatus('RESOLVED')" [disabled]="saving">{{ 'ticketing.details.resolve' | translate }}</button>
-      <button type="button" class="ghost small" *ngIf="d.ticket.status === 'RESOLVED' && (d.canManage || d.canClose)" (click)="changeStatus('REOPENED')" [disabled]="saving">{{ 'ticketing.details.reopen' | translate }}</button>
+      <button type="button" class="primary small" *ngIf="canResolve" (click)="resolve()" [disabled]="saving">{{ 'ticketing.details.resolve' | translate }}</button>
+      <button type="button" class="ghost small" *ngIf="closed && (d.canManage || d.canClose)" (click)="reopen()" [disabled]="saving">{{ 'ticketing.details.reopen' | translate }}</button>
       <button type="button" class="ghost small danger-text" *ngIf="d.canDelete" (click)="deleteTicket()" [disabled]="saving" [title]="'ticketing.details.deleteTicket' | translate">
         <span class="material-symbols-outlined">delete</span>{{ 'common.delete' | translate }}
       </button>
@@ -32,12 +32,12 @@
   </header>
 
   <!-- Status pipeline -->
-  <div class="pipeline-wrap">
+  <div class="pipeline-wrap" *ngIf="pipeline.length">
     <div class="pipeline">
       <ng-container *ngFor="let step of pipeline; let i = index; let last = last">
         <button type="button" class="step" [ngClass]="step.state" [class.allowed]="step.allowed && !saving"
                 [disabled]="!step.allowed || saving" (click)="changeStatus(step.status)"
-                [title]="step.state === 'active' ? ('ticketing.details.currentStatus' | translate) : step.allowed ? ('ticketing.details.moveTo' | translate: { status: step.label }) : ('ticketing.details.notAvailableFrom' | translate: { status: labels.statusLabel(d.ticket.status) })">
+                [title]="step.state === 'active' ? ('ticketing.details.currentStatus' | translate) : step.allowed ? ('ticketing.details.moveTo' | translate: { status: step.label }) : ('ticketing.details.notAvailableFrom' | translate: { status: d.ticket.statusRef?.name || '' })">
           <span class="node">{{ step.state === 'past' ? '✓' : i + 1 }}</span>
           <span class="step-label">{{ step.label }}</span>
         </button>
@@ -82,14 +82,9 @@
           </div>
           <div class="field"><label>{{ 'common.status' | translate }}</label>
             <div>
-              <span class="badge" [ngClass]="'c-' + labels.ticketStatusColor(d.ticket)">{{ labels.ticketStatusLabel(d.ticket) }}</span>
-              <select *ngIf="d.canManage && (nextStatuses.length || availableCustomStatuses.length)" class="inline-select" [ngModel]="null" (ngModelChange)="$event && pickStatus($event)" [disabled]="saving" [attr.aria-label]="'ticketing.details.changeStatus' | translate">
-                <option [ngValue]="null">{{ 'ticketing.details.changeStatus2' | translate }}</option>
-                <option *ngFor="let s of nextStatuses" [ngValue]="'S:' + s">{{ labels.statusLabel(s) }}</option>
-                <optgroup *ngIf="availableCustomStatuses.length" [label]="'ticketing.details.customStatuses' | translate">
-                  <option *ngFor="let c of availableCustomStatuses" [ngValue]="'C:' + c.id">{{ c.label }}</option>
-                </optgroup>
-              </select>
+              <app-ticket-status-badge [status]="d.ticket.statusRef"></app-ticket-status-badge>
+              <app-ticket-status-select *ngIf="d.canManage" selectClass="inline-select" placeholder="ticketing.details.changeStatus2" [value]="null"
+                                        [exclude]="d.ticket.status" [disabled]="saving" (valueChange)="changeStatus($event)"></app-ticket-status-select>
             </div>
           </div>
           <div class="field"><label>{{ 'ticketing.details.priority' | translate }}</label>
@@ -287,7 +282,7 @@
           </button>
         </div>
       </div>
-      <ng-template #closedNote><div class="closed-note"><span class="material-symbols-outlined">lock</span> {{ 'ticketing.details.repliesDisabled' | translate: { status: labels.statusLabel(d.ticket.status) } }}</div></ng-template>
+      <ng-template #closedNote><div class="closed-note"><span class="material-symbols-outlined">lock</span> {{ 'ticketing.details.repliesDisabled' | translate: { status: labels.ticketStatusLabel(d.ticket) } }}</div></ng-template>
     </section>
 
     <!-- Right: assignments, history, activities, files -->

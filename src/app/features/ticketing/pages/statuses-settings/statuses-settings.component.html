@@ -1,82 +1,125 @@
 <div class="set-head">
   <div>
     <h2>{{ 'ticketing.statuses.ticketStatuses' | translate }}</h2>
-    <p>{{ 'ticketing.statuses.lifecycleStagesTicketPasses' | translate }}</p>
+    <p>{{ 'ticketing.statusesAdmin.subtitle' | translate }}</p>
   </div>
+  <button type="button" class="primary small" *ngIf="isLead && !loading" (click)="add()" [disabled]="saving">
+    <span class="material-symbols-outlined" aria-hidden="true">add</span> {{ 'ticketing.statusesAdmin.add' | translate }}
+  </button>
 </div>
 <p class="readonly-note" *ngIf="!isLead">{{ 'ticketing.statuses.onlySupportLeadsCan' | translate }}</p>
 
 <div class="state" *ngIf="loading">{{ 'ticketing.statuses.loadingStatuses' | translate }}</div>
-<div class="load-error" *ngIf="!loading && error && !rows.length">{{ error }} <button class="ghost small" (click)="load()">{{ 'common.retry' | translate }}</button></div>
+<div class="load-error" *ngIf="!loading && error">{{ error }} <button class="ghost small" (click)="load()">{{ 'common.retry' | translate }}</button></div>
 
-<form *ngIf="!loading && rows.length" (ngSubmit)="save()">
-  <div class="status-list">
-    <div class="status-row" *ngFor="let s of rows; let i = index">
-      <span class="idx">{{ i + 1 }}</span>
-      <span class="badge preview" [ngClass]="'c-' + s.color" [title]="s.status">{{ s.label || '—' }}</span>
-      <label class="grow">
-        <span class="sr">{{ 'common.description' | translate }}</span>
-        <input class="input" [name]="'desc' + i" [(ngModel)]="s.description" maxlength="300" [placeholder]="'ticketing.statuses.description' | translate" [disabled]="!isLead">
-      </label>
-      <label>
-        <span class="sr">{{ 'ticketing.statuses.colour' | translate }}</span>
-        <select class="select colour" [name]="'color' + i" [(ngModel)]="s.color" [disabled]="!isLead">
-          <option *ngFor="let c of colors" [value]="c">{{ c }}</option>
-        </select>
-      </label>
-      <label>
-        <span class="sr">{{ 'ticketing.statuses.label' | translate }}</span>
-        <input class="input label" [name]="'label' + i" [(ngModel)]="s.label" maxlength="60" [placeholder]="'ticketing.statuses.label2' | translate" [disabled]="!isLead"
-               [class.invalid]="submitted && !s.label.trim()">
-      </label>
-      <span class="lock" [title]="'ticketing.statuses.builtStageCannotRemoved' | translate"><span class="material-symbols-outlined">lock</span></span>
-    </div>
-  </div>
-  <p class="field-error" *ngIf="submitted && invalid">{{ 'ticketing.statuses.everyStatusNeedsLabel' | translate }}</p>
-  <p class="field-error" *ngIf="error">{{ error }}</p>
-  <div class="set-actions" *ngIf="isLead">
-    <button type="button" class="ghost" (click)="reset()" [disabled]="!dirty || saving">{{ 'ticketing.statuses.discardChanges' | translate }}</button>
-    <button type="submit" class="primary" [disabled]="!dirty || saving">{{ saving ? ('ticketing.statuses.saving' | translate) : ('ticketing.statuses.saveStatuses' | translate) }}</button>
-  </div>
-</form>
+<div class="empty" *ngIf="!loading && !error && !rows.length">
+  <span class="material-symbols-outlined" aria-hidden="true">label_off</span>
+  <p>{{ 'ticketing.statusesAdmin.empty' | translate }}</p>
+  <button type="button" class="primary small" *ngIf="isLead" (click)="add()">{{ 'ticketing.statusesAdmin.addFirst' | translate }}</button>
+</div>
 
-<!-- Custom statuses: organisation statuses mapped onto a lifecycle (system) status -->
-<section class="custom-statuses" *ngIf="!loading">
-  <div class="set-head">
-    <div>
-      <h3>{{ 'ticketing.statuses.customTitle' | translate }}</h3>
-      <p>{{ 'ticketing.statuses.customSubtitle' | translate }}</p>
+<div class="table-wrap" *ngIf="!loading && rows.length">
+  <table class="status-table">
+    <thead>
+      <tr>
+        <th *ngIf="isLead" class="order-col"><span class="sr">{{ 'ticketing.statusesAdmin.order' | translate }}</span></th>
+        <th>{{ 'common.name' | translate }}</th>
+        <th>{{ 'common.description' | translate }}</th>
+        <th>{{ 'ticketing.statusesAdmin.type' | translate }}</th>
+        <th>{{ 'ticketing.categoriesSettings.tickets' | translate }}</th>
+        <th>{{ 'ticketing.statusesAdmin.active' | translate }}</th>
+        <th *ngIf="isLead"><span class="sr">{{ 'common.actions' | translate }}</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let s of rows; let i = index; let last = last" [class.inactive]="!s.active">
+        <td *ngIf="isLead" class="order-col">
+          <button type="button" class="icon-btn" (click)="move(i, -1)" [disabled]="i === 0 || saving" [attr.aria-label]="'ticketing.statusesAdmin.moveUp' | translate"><span class="material-symbols-outlined">arrow_upward</span></button>
+          <button type="button" class="icon-btn" (click)="move(i, 1)" [disabled]="last || saving" [attr.aria-label]="'ticketing.statusesAdmin.moveDown' | translate"><span class="material-symbols-outlined">arrow_downward</span></button>
+        </td>
+        <td>
+          <app-ticket-status-badge [status]="s"></app-ticket-status-badge>
+          <span class="tag default" *ngIf="s.isDefault">{{ 'ticketing.statusesAdmin.default' | translate }}</span>
+        </td>
+        <td class="muted">{{ s.description || '—' }}</td>
+        <td><span class="tag" [class.closed]="s.isClosed">{{ (s.isClosed ? 'ticketing.statusesAdmin.closedType' : 'ticketing.statusesAdmin.openType') | translate }}</span></td>
+        <td>{{ s.ticketCount }}</td>
+        <td>
+          <label class="switch" [title]="(s.isDefault ? 'ticketing.statusesAdmin.defaultMustBeActive' : '') | translate">
+            <input type="checkbox" [checked]="s.active" (change)="toggleActive(s)" [disabled]="!isLead || saving || (s.isDefault && s.active)"
+                   [attr.aria-label]="'ticketing.statusesAdmin.active' | translate">
+            <span></span>
+          </label>
+        </td>
+        <td *ngIf="isLead" class="actions">
+          <button type="button" class="ghost small" *ngIf="!s.isDefault && !s.isClosed && s.active" (click)="makeDefault(s)" [disabled]="saving">{{ 'ticketing.statusesAdmin.makeDefault' | translate }}</button>
+          <button type="button" class="ghost small" (click)="edit(s)" [disabled]="saving">{{ 'common.edit' | translate }}</button>
+          <button type="button" class="ghost small danger-text" (click)="remove(s)" [disabled]="saving || s.isDefault"
+                  [title]="(s.isDefault ? 'ticketing.statusesAdmin.defaultCannotBeDeleted' : '') | translate">{{ 'common.delete' | translate }}</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Add / edit dialog -->
+<div class="modal-backdrop" *ngIf="draft" (click)="closeDraft()">
+  <form class="modal" role="dialog" aria-modal="true" aria-labelledby="status-dialog-title" (click)="$event.stopPropagation()" (ngSubmit)="save()" (keydown.escape)="closeDraft()">
+    <h3 id="status-dialog-title">{{ (draft.id ? 'ticketing.statusesAdmin.editTitle' : 'ticketing.statusesAdmin.addTitle') | translate }}</h3>
+    <div class="preview-row"><app-ticket-status-badge [status]="preview"></app-ticket-status-badge></div>
+
+    <label class="field">{{ 'common.name' | translate }} *
+      <input class="input" name="name" [(ngModel)]="draft.name" maxlength="60" required autofocus [class.invalid]="submitted && nameError">
+      <span class="field-error" *ngIf="submitted && nameError">{{ nameError | translate }}</span>
+    </label>
+    <label class="field">{{ 'common.description' | translate }}
+      <textarea class="textarea" name="description" [(ngModel)]="draft.description" maxlength="300" rows="2"></textarea>
+    </label>
+
+    <div class="field">
+      <span>{{ 'ticketing.statuses.colour' | translate }}</span>
+      <div class="swatches" role="radiogroup" [attr.aria-label]="'ticketing.statuses.colour' | translate">
+        <button type="button" *ngFor="let c of palette" class="swatch" [ngClass]="'c-' + c" [class.on]="draft.color === c" (click)="draft.color = c"
+                role="radio" [attr.aria-checked]="draft.color === c" [attr.aria-label]="'ticketing.statusesAdmin.colors.' + c | translate"></button>
+        <label class="swatch custom" [class.on]="!isPalette(draft.color)" [style.background]="isPalette(draft.color) ? null : draft.color" [title]="'ticketing.statusesAdmin.customColor' | translate">
+          <span class="material-symbols-outlined" aria-hidden="true">palette</span>
+          <input type="color" name="customColor" [ngModel]="customColor" (ngModelChange)="draft.color = $event" [attr.aria-label]="'ticketing.statusesAdmin.customColor' | translate">
+        </label>
+      </div>
     </div>
-    <button type="button" class="primary small" *ngIf="isLead && !draft" (click)="newCustom()">{{ 'ticketing.statuses.addCustom' | translate }}</button>
-  </div>
-  <div class="empty" *ngIf="!custom.length && !draft">{{ 'ticketing.statuses.noCustom' | translate }}</div>
-  <div class="status-list">
-    <div class="status-row" *ngFor="let c of custom">
-      <span class="badge preview" [ngClass]="'c-' + c.color">{{ c.label }}</span>
-      <span class="grow muted-sm">{{ c.description || '—' }}</span>
-      <span class="muted-sm">→ {{ baseLabel(c.baseStatus) }}</span>
-      <span class="muted-sm">{{ 'ticketing.categoriesSettings.tickets' | translate }}: {{ c.ticketCount }}</span>
-      <ng-container *ngIf="isLead">
-        <button type="button" class="ghost small" (click)="editCustom(c)">{{ 'common.edit' | translate }}</button>
-        <button type="button" class="ghost small danger-text" (click)="deleteCustom(c)" [disabled]="saving">{{ 'common.delete' | translate }}</button>
-      </ng-container>
+
+    <label class="check"><input type="checkbox" name="isClosed" [(ngModel)]="draft.isClosed" [disabled]="draft.isDefault">
+      <span><b>{{ 'ticketing.statusesAdmin.closedFlag' | translate }}</b><small>{{ 'ticketing.statusesAdmin.closedHelp' | translate }}</small></span></label>
+    <label class="check"><input type="checkbox" name="isDefault" [(ngModel)]="draft.isDefault" [disabled]="draft.isClosed || editingDefault">
+      <span><b>{{ 'ticketing.statusesAdmin.defaultFlag' | translate }}</b><small>{{ (editingDefault ? 'ticketing.statusesAdmin.defaultLocked' : 'ticketing.statusesAdmin.defaultHelp') | translate }}</small></span></label>
+    <label class="check"><input type="checkbox" name="active" [(ngModel)]="draft.active" [disabled]="draft.isDefault">
+      <span><b>{{ 'ticketing.statusesAdmin.active' | translate }}</b><small>{{ 'ticketing.statusesAdmin.activeHelp' | translate }}</small></span></label>
+
+    <p class="field-error" *ngIf="draftError">{{ draftError }}</p>
+    <div class="set-actions">
+      <button type="button" class="ghost" (click)="closeDraft()" [disabled]="saving">{{ 'common.cancel' | translate }}</button>
+      <button type="submit" class="primary" [disabled]="saving">{{ saving ? ('ticketing.statuses.saving' | translate) : ('common.save' | translate) }}</button>
     </div>
-  </div>
-  <form class="status-row custom-form" *ngIf="draft" (ngSubmit)="saveCustom()">
-    <span class="badge preview" [ngClass]="'c-' + draft.color">{{ draft.label || '—' }}</span>
-    <input class="input label" name="customLabel" [(ngModel)]="draft.label" maxlength="60" [placeholder]="'ticketing.statuses.label2' | translate">
-    <input class="input grow" name="customDesc" [(ngModel)]="draft.description" maxlength="300" [placeholder]="'ticketing.statuses.description' | translate">
-    <select class="select colour" name="customColor" [(ngModel)]="draft.color">
-      <option *ngFor="let c of colors" [value]="c">{{ c }}</option>
-    </select>
-    <label class="muted-sm">{{ 'ticketing.statuses.lifecycle' | translate }}
-      <select class="select" name="customBase" [(ngModel)]="draft.baseStatus" [disabled]="!!draft.id && !!draft.ticketCount">
-        <option *ngFor="let b of baseStatuses" [ngValue]="b">{{ baseLabel(b) }}</option>
+  </form>
+</div>
+
+<!-- Delete a status used by tickets: move them or deactivate instead -->
+<div class="modal-backdrop" *ngIf="removing" (click)="removing = null">
+  <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="status-delete-title" (click)="$event.stopPropagation()" (keydown.escape)="removing = null">
+    <h3 id="status-delete-title">{{ 'ticketing.statusesAdmin.inUseTitle' | translate: { name: removing.status.name } }}</h3>
+    <p>{{ 'ticketing.statusesAdmin.inUseText' | translate: { count: removing.ticketCount, name: removing.status.name } }}</p>
+    <label class="field" *ngIf="reassignTargets.length">{{ 'ticketing.statusesAdmin.moveTicketsTo' | translate }}
+      <select class="select" [(ngModel)]="removing.reassignTo" name="reassignTo">
+        <option *ngFor="let t of reassignTargets" [ngValue]="t.id">{{ t.name }}</option>
       </select>
     </label>
-    <button type="button" class="ghost small" (click)="draft = null">{{ 'common.cancel' | translate }}</button>
-    <button type="submit" class="primary small" [disabled]="saving">{{ 'common.save' | translate }}</button>
-    <span class="field-error" *ngIf="draftError">{{ draftError }}</span>
-  </form>
-</section>
-<div class="toast" *ngIf="notice">{{ notice }}</div>
+    <p class="muted" *ngIf="!reassignTargets.length">{{ 'ticketing.statusesAdmin.noTarget' | translate }}</p>
+    <div class="set-actions">
+      <button type="button" class="ghost" (click)="removing = null" [disabled]="saving">{{ 'common.cancel' | translate }}</button>
+      <button type="button" class="ghost" *ngIf="removing.status.active" (click)="deactivateInstead()" [disabled]="saving">{{ 'ticketing.statusesAdmin.deactivateInstead' | translate }}</button>
+      <button type="button" class="primary danger" (click)="confirmReassign()" [disabled]="saving || !removing.reassignTo">{{ 'ticketing.statusesAdmin.moveAndDelete' | translate }}</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" *ngIf="notice" [class.error-toast]="noticeError" role="status" aria-live="polite">{{ notice }}</div>

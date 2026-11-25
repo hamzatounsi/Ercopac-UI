@@ -81,8 +81,8 @@
             <section class="panel card">
               <h3>{{ 'ticketing.performance.statusDistribution' | translate }}</h3>
               <div class="hbar" *ngFor="let b of byStatus" [title]="b.label + ': ' + b.count">
-                <span class="badge" [ngClass]="'c-' + labels.statusColor(b.key)">{{ b.label }}</span>
-                <div class="track"><div class="fill" [ngClass]="'c-' + labels.statusColor(b.key)" [style.width.%]="b.percent"></div></div>
+                <app-ticket-status-badge [code]="b.key"></app-ticket-status-badge>
+                <div class="track"><div class="fill" [ngClass]="'c-' + labels.statusColor(b.key)" [ngStyle]="labels.statusStyle(b.key)" [style.width.%]="b.percent"></div></div>
                 <b>{{ b.count }}</b><small>{{ b.percent | number:'1.0-0' }}%</small>
               </div>
             </section>
@@ -124,7 +124,7 @@
               <span class="subject">{{ t.subject }}</span>
               <span class="muted-sm">{{ t.customer || '—' }}<ng-container *ngIf="t.site"> · {{ t.site }}</ng-container></span>
               <span class="muted-sm">{{ t.equipment }}<ng-container *ngIf="t.serialNumber"> · S/N {{ t.serialNumber }}</ng-container></span>
-              <span class="badge" [ngClass]="'c-' + labels.statusColor(t.status)">{{ labels.statusLabel(t.status) }}</span>
+              <app-ticket-status-badge [code]="t.status"></app-ticket-status-badge>
             </a>
           </section>
         </ng-container>

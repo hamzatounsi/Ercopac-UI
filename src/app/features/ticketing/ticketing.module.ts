@@ -33,6 +33,8 @@ import { TicketNotificationsComponent } from './components/ticket-notifications/
 import { SelectOrManualComponent } from './components/select-or-manual/select-or-manual.component';
 import { ResourceEmployeePickerComponent } from './components/resource-employee-picker/resource-employee-picker.component';
 import { CustomerImportComponent } from './components/customer-import/customer-import.component';
+import { TicketStatusBadgeComponent } from './components/ticket-status-badge/ticket-status-badge.component';
+import { TicketStatusSelectComponent } from './components/ticket-status-select/ticket-status-select.component';
 import { UppercaseNameDirective, UpperNamePipe } from 'src/app/core/names';
 
 @NgModule({
@@ -56,7 +58,9 @@ import { UppercaseNameDirective, UpperNamePipe } from 'src/app/core/names';
     TicketNotificationsComponent,
     SelectOrManualComponent,
     ResourceEmployeePickerComponent,
-    CustomerImportComponent
+    CustomerImportComponent,
+    TicketStatusBadgeComponent,
+    TicketStatusSelectComponent
   ],
   imports: [
     UppercaseNameDirective,

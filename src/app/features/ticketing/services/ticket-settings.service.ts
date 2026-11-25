@@ -3,17 +3,13 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, shareReplay, tap } from 'rxjs';
 import { API_BASE_URL } from 'src/app/core/config/api.config';
 import {
-  AccountRequest, Agent, CategorySetting, Contact, CustomStatus, ImportResult, ImportRow, SYSTEM_CATEGORIES, Customer, CustomerProject, EmployeeOption, Equipment, MySettings, PrioritySetting, Ref, ResourceTypeOption, Site, StatusColor,
-  StatusSetting, TicketAnalytics, TicketPriority, TicketSettings, TicketStatus, UserSummary
+  AccountRequest, Agent, CategorySetting, Contact, ImportResult, ImportRow, SYSTEM_CATEGORIES, Customer, CustomerProject, EmployeeOption, Equipment, MySettings, PrioritySetting, Ref, ResourceTypeOption, Site,
+  StatusRef, TicketAnalytics, TicketPriority, TicketSettings, TicketStatus, UserSummary
 } from '../models/ticket.models';
-
-const NO_CUSTOM_STATUSES: CustomStatus[] = [];
-const DEFAULT_COLORS: Record<TicketStatus, StatusColor> = {
-  OPEN: 'blue', IN_PROGRESS: 'amber', ESCALATED: 'red', RESOLVED: 'green', CLOSED: 'gray', REOPENED: 'purple', CANCELLED: 'gray'
-};
+import { TicketStatusService, hexStatusStyle, isPaletteColor } from './ticket-status.service';
 
 // Ticketing settings, customers and the performance dashboard.
-// Status and priority wording is loaded once and shared by every page through label()/color() helpers.
+// Priority wording and categories are loaded once and shared by every page; status helpers delegate to TicketStatusService.
 @Injectable({ providedIn: 'root' })
 export class TicketSettingsService {
   private readonly base = `${API_BASE_URL}/tickets`;
@@ -22,7 +18,7 @@ export class TicketSettingsService {
   private requested = false;
   private resourceTypes$?: Observable<ResourceTypeOption[]>;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private statuses: TicketStatusService) {}
 
   /** Loads the status and priority settings once (call again with force after a change). */
   load(force = false): void {
@@ -33,16 +29,15 @@ export class TicketSettingsService {
 
   /** Fetches the current settings and shares them with every page. */
   refresh(): Observable<TicketSettings> {
-    return this.http.get<TicketSettings>(`${this.base}/settings`).pipe(tap(s => this.settingsSource.next(s)));
+    return this.http.get<TicketSettings>(`${this.base}/settings`).pipe(tap(s => { this.statuses.set(s.statuses); this.settingsSource.next(s); }));
   }
 
-  statusLabel(status: TicketStatus | string): string {
-    return this.settingsSource.value?.statuses.find(s => s.status === status)?.label ?? humanize(status);
-  }
-
-  statusColor(status: TicketStatus | string): StatusColor {
-    return this.settingsSource.value?.statuses.find(s => s.status === status)?.color ?? DEFAULT_COLORS[status as TicketStatus] ?? 'gray';
-  }
+  /** Name of a status code (Ticketing settings > Statuses). */
+  statusLabel(status: TicketStatus | null | undefined): string { return this.statuses.label(status); }
+  /** Palette colour name of a status, 'custom' for a #RRGGBB colour (use statusStyle for those). */
+  statusColor(status: TicketStatus | null | undefined): string { const c = this.statuses.color(status); return isPaletteColor(c) ? c : 'custom'; }
+  /** Inline style of a status with a #RRGGBB colour, null for palette colours. */
+  statusStyle(status: TicketStatus | null | undefined): Record<string, string> | null { return hexStatusStyle(this.statuses.color(status)); }
 
   /** Categories offered on tickets: active ones from settings (system categories until the settings are loaded).
    *  Cached per settings value: templates bind these in *ngFor, and a new array on every check breaks change detection. */
@@ -60,17 +55,13 @@ export class TicketSettingsService {
     this.categoryCodeCache = this.categoryCache.map(c => c.code);
   }
 
-  /** Organisation statuses mapped onto a lifecycle status. */
-  get customStatuses(): CustomStatus[] { return this.settingsSource.value?.customStatuses ?? NO_CUSTOM_STATUSES; }
-
   categoryLabel(code: string | null | undefined): string {
     if (!code) return '';
     return this.settingsSource.value?.categories?.find(c => c.code === code)?.label ?? humanize(code);
   }
 
-  /** Label and colour shown for a ticket: its custom status when it has one, else its lifecycle status. */
-  ticketStatusLabel(t: { status: TicketStatus; customStatus?: { label: string } | null }): string { return t.customStatus?.label || this.statusLabel(t.status); }
-  ticketStatusColor(t: { status: TicketStatus; customStatus?: { color: StatusColor } | null }): StatusColor { return t.customStatus?.color || this.statusColor(t.status); }
+  /** Status name shown for a ticket (PDF export, notifications). */
+  ticketStatusLabel(t: { status: TicketStatus | null; statusRef?: StatusRef | null }): string { return t.statusRef?.name || this.statusLabel(t.status); }
 
   createCategory(c: { code?: string | null; label: string; active?: boolean }): Observable<CategorySetting> { return this.http.post<CategorySetting>(`${this.base}/settings/categories`, c); }
   updateCategory(id: number, c: { label: string; active?: boolean }): Observable<CategorySetting> { return this.http.put<CategorySetting>(`${this.base}/settings/categories/${id}`, c); }
@@ -78,10 +69,6 @@ export class TicketSettingsService {
     const params = reassignTo ? new HttpParams().set('reassignTo', reassignTo) : undefined;
     return this.http.delete<void>(`${this.base}/settings/categories/${id}`, { params });
   }
-  saveCustomStatus(s: Partial<CustomStatus>): Observable<CustomStatus> {
-    return s.id ? this.http.put<CustomStatus>(`${this.base}/settings/custom-statuses/${s.id}`, s) : this.http.post<CustomStatus>(`${this.base}/settings/custom-statuses`, s);
-  }
-  deleteCustomStatus(id: number): Observable<void> { return this.http.delete<void>(`${this.base}/settings/custom-statuses/${id}`); }
 
   /** New H24 agent / lead or L2 technician account in the organisation (support leads). */
   createAccount(request: AccountRequest): Observable<Agent> { return this.http.post<Agent>(`${this.base}/settings/accounts`, request); }
@@ -91,10 +78,6 @@ export class TicketSettingsService {
 
   priorityLabel(priority: TicketPriority | string): string {
     return this.settingsSource.value?.priorities.find(p => p.priority === priority)?.label ?? humanize(priority);
-  }
-
-  saveStatuses(statuses: StatusSetting[]): Observable<TicketSettings> {
-    return this.http.put<TicketSettings>(`${this.base}/settings/statuses`, statuses).pipe(tap(s => this.settingsSource.next(s)));
   }
 
   savePriorities(priorities: PrioritySetting[]): Observable<TicketSettings> {

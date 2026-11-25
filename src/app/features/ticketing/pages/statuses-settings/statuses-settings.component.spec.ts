@@ -7,6 +7,8 @@ import { AuthService } from 'src/app/core/auth/auth.service';
 import { StatusesSettingsComponent } from './statuses-settings.component';
 import { translateTestingModule } from 'src/app/core/i18n/translate-testing';
 
+const status = (id: number, name: string, extra: object = {}) => ({ id, code: name.toUpperCase(), name, color: 'blue', displayOrder: id, isDefault: false, isClosed: false, active: true, ticketCount: 0, ...extra });
+
 describe('StatusesSettingsComponent', () => {
   let http: HttpTestingController;
 
@@ -20,27 +22,36 @@ describe('StatusesSettingsComponent', () => {
     http = TestBed.inject(HttpTestingController);
   });
 
-  it('loads the statuses and only saves valid labels', () => {
+  it('starts empty and creates a status with a unique name', () => {
     const fixture = TestBed.createComponent(StatusesSettingsComponent);
     fixture.detectChanges();
-    http.expectOne(r => r.url.endsWith('/tickets/settings')).flush({
-      statuses: [{ status: 'OPEN', label: 'Open', color: 'blue' }], priorities: []
-    });
+    http.expectOne(r => r.url.endsWith('/tickets/statuses')).flush([status(1, 'Open', { isDefault: true })]);
     const c = fixture.componentInstance;
     expect(c.rows.length).toBe(1);
-    expect(c.dirty).toBeFalse();
 
-    c.rows[0].label = '  ';
+    c.add();
+    c.draft!.name = ' open ';
     c.save();
-    http.expectNone(r => r.method === 'PUT');
-    expect(c.invalid).toBeTrue();
+    http.expectNone(r => r.method === 'POST');
+    expect(c.nameError).toBe('ticketing.statusesAdmin.nameTaken');
 
-    c.rows[0].label = 'New';
+    c.draft!.name = 'Waiting for parts';
     c.save();
-    const put = http.expectOne(r => r.method === 'PUT' && r.url.endsWith('/settings/statuses'));
-    expect(put.request.body[0].label).toBe('New');
-    put.flush({ statuses: [{ status: 'OPEN', label: 'New', color: 'blue' }], priorities: [] });
-    expect(c.dirty).toBeFalse();
-    http.verify();
+    const post = http.expectOne(r => r.method === 'POST' && r.url.endsWith('/settings/statuses'));
+    expect(post.request.body.name).toBe('Waiting for parts');
+  });
+
+  it('asks where to move the tickets of a status in use', () => {
+    const fixture = TestBed.createComponent(StatusesSettingsComponent);
+    fixture.detectChanges();
+    http.expectOne(r => r.url.endsWith('/tickets/statuses')).flush([status(1, 'Open', { isDefault: true }), status(2, 'Done', { isClosed: true, ticketCount: 4 })]);
+    const c = fixture.componentInstance;
+
+    c.remove(c.rows[1]);
+    expect(c.removing?.ticketCount).toBe(4);
+    expect(c.removing?.reassignTo).toBe(1);
+    c.confirmReassign();
+    const del = http.expectOne(r => r.method === 'DELETE' && r.url.endsWith('/settings/statuses/2'));
+    expect(del.request.params.get('reassignTo')).toBe('1');
   });
 });

@@ -14,7 +14,7 @@
       <div class="cd-metric"><span>{{ 'ticketing.list.total' | translate }}</span><b>{{ data.total }}</b></div>
       <div class="cd-metric"><span>{{ 'ticketing.clientDashboard.open' | translate }}</span><b class="amber">{{ data.open }}</b></div>
       <div class="cd-metric"><span>{{ 'ticketing.clientDashboard.inProgress' | translate }}</span><b class="amber">{{ data.inProgress }}</b></div>
-      <div class="cd-metric"><span>{{ 'ticketing.list.resolved' | translate }}</span><b class="green">{{ data.resolved + data.closed }}</b></div>
+      <div class="cd-metric"><span>{{ 'ticketing.list.resolved' | translate }}</span><b class="green">{{ data.closed }}</b></div>
       <div class="cd-metric"><span>{{ 'ticketing.list.overdue' | translate }}</span><b [class.red]="data.overdue">{{ data.overdue }}</b></div>
       <div class="cd-metric"><span>{{ 'ticketing.clientDashboard.avgResolution' | translate }}</span><b>{{ data.averageResolutionHours | number:'1.0-1' }} h</b></div>
     </section>
@@ -25,7 +25,7 @@
       <section class="panel cd-panel">
         <h3>{{ 'ticketing.clientDashboard.byStatus' | translate }}</h3>
         <div class="bar-row" *ngFor="let b of data.byStatus">
-          <span class="badge" [ngClass]="'c-' + labels.statusColor(b.key)">{{ labels.statusLabel(b.key) }}</span>
+          <app-ticket-status-badge [code]="b.key"></app-ticket-status-badge>
           <div class="bar"><i [style.width.%]="width(b, data.byStatus)"></i></div><b>{{ b.count }}</b>
         </div>
       </section>
@@ -59,7 +59,7 @@
       <button type="button" class="cd-ticket" *ngFor="let t of data.recent" (click)="open(t)">
         <span class="mono muted-sm">#{{ t.ticketNumber }}</span>
         <strong>{{ t.subject }}</strong>
-        <span class="badge" [ngClass]="'c-' + labels.ticketStatusColor(t)">{{ labels.ticketStatusLabel(t) }}</span>
+        <app-ticket-status-badge [status]="t.statusRef"></app-ticket-status-badge>
       </button>
     </section>
   </ng-container>

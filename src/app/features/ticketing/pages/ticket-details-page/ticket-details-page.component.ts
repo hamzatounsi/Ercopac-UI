@@ -4,31 +4,21 @@ import { Subscription } from 'rxjs';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { AuthService } from 'src/app/core/auth/auth.service';
 import {
-  ATTACHMENT_ACCEPT, Attachment, ContactPerson, CustomStatus, attachmentSizeError,
+  ATTACHMENT_ACCEPT, Attachment, ContactPerson, TicketStatusDef, attachmentSizeError,
   Agent, FormOptions, LANGUAGES, ORIGIN_LABELS, TicketActivity, TicketCategory, TicketDetails, TicketMessage, TicketOrigin,
   TicketPriority, TicketStatus, UserSummary
 } from '../../models/ticket.models';
 import { TicketContext, TicketService } from '../../services/ticket.service';
 import { PickOption } from '../../components/select-or-manual/select-or-manual.component';
 import { TicketSettingsService } from '../../services/ticket-settings.service';
+import { TicketStatusService } from '../../services/ticket-status.service';
 import { TicketChatService } from '../../services/ticket-chat.service';
 import { TicketPdfService } from '../../services/ticket-pdf.service';
 import { I18nService } from 'src/app/core/i18n/i18n.service';
 
-interface PipelineStep { status: TicketStatus; label: string; state: 'past' | 'active' | 'future'; allowed: boolean; }
+interface PipelineStep { status: TicketStatusDef; label: string; state: 'past' | 'active' | 'future'; allowed: boolean; }
 type RcaField = 'problem' | 'cause' | 'solution';
 
-// Same transitions as TicketStatusTransitionValidator in the backend
-const TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
-  OPEN: ['IN_PROGRESS', 'ESCALATED', 'CANCELLED'],
-  IN_PROGRESS: ['ESCALATED', 'RESOLVED', 'CANCELLED'],
-  ESCALATED: ['IN_PROGRESS', 'RESOLVED'],
-  RESOLVED: ['REOPENED', 'CLOSED'],
-  REOPENED: ['IN_PROGRESS'],
-  CLOSED: [],
-  CANCELLED: []
-};
-const STEPS: TicketStatus[] = ['OPEN', 'IN_PROGRESS', 'ESCALATED', 'RESOLVED', 'CLOSED'];
 
 // Ticket record: details and customer context, problem statement, reply / internal note thread,
 // H24 agent and L2 technician, history and files. New messages arrive through the /ws/tickets websocket.
@@ -90,9 +80,11 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
 
   constructor(private i18n: I18nService,
     private route: ActivatedRoute, private router: Router, public api: TicketService, public labels: TicketSettingsService,
-              private live: TicketChatService, private pdf: TicketPdfService, private auth: AuthService, private sanitizer: DomSanitizer) {}
+              private live: TicketChatService, private pdf: TicketPdfService, private auth: AuthService, private sanitizer: DomSanitizer,
+              public statuses: TicketStatusService) {}
 
   ngOnInit(): void {
+    this.statuses.load();
     this.subs.add(this.labels.me().subscribe({ next: me => this.myLanguage = me.preferredLanguage || 'en' }));
     // A notification can open another ticket while this page is shown
     this.subs.add(this.route.paramMap.subscribe(p => {
@@ -114,26 +106,34 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
     clearTimeout(this.noticeTimer);
   }
 
-  get closed(): boolean { return !!this.details && ['CLOSED', 'CANCELLED'].includes(this.details.ticket.status); }
+  /** The ticket is in a status flagged closed in Ticketing settings. */
+  get closed(): boolean { return !!this.details && (this.details.ticket.statusRef?.isClosed ?? this.statuses.isClosed(this.details.ticket.status)); }
   get editable(): boolean { return !!this.details?.canManage && !this.closed; }
   get publicMessages(): number { return this.details?.messages.filter(m => !m.internalNote).length ?? 0; }
-  get nextStatuses(): TicketStatus[] { return this.details ? TRANSITIONS[this.details.ticket.status] : []; }
+  /** Some active closed status exists, so Resolve has a target. */
+  get canResolve(): boolean { return !!this.details?.canManage && !this.closed && this.statuses.active.some(s => s.isClosed); }
   get clientLanguage(): string { return this.details?.clientLanguage || 'en'; }
   get sameLanguage(): boolean { return this.clientLanguage === this.myLanguage; }
   get assignmentHistory(): TicketActivity[] { return (this.details?.activities ?? []).filter(a => a.field === 'assignee' || a.field === 'l2Technician' || a.activityType === 'CREATED'); }
 
+  /** Active statuses in display order (plus the current one when it was deactivated); staff move the ticket by clicking a step. */
   get pipeline(): PipelineStep[] {
-    if (!this.details) return [];
-    const status = this.details.ticket.status;
-    // A reopened ticket is back at the start of the flow
-    const current = status === 'REOPENED' ? 0 : STEPS.indexOf(status);
-    return STEPS.map((step, i) => ({
-      status: step,
-      label: this.labels.statusLabel(step),
-      state: i < current ? 'past' : i === current ? 'active' : 'future',
-      allowed: !!this.details?.canManage && TRANSITIONS[status].includes(step)
+    const d = this.details;
+    const all = this.statuses.all;
+    if (!d) return [];
+    if (this.pipelineCache.ticket === d.ticket && this.pipelineCache.all === all) return this.pipelineCache.steps;
+    const currentId = d.ticket.statusRef?.id ?? this.statuses.byCode(d.ticket.status)?.id;
+    const list = all.filter(s => s.active || s.id === currentId);
+    const current = list.findIndex(s => s.id === currentId);
+    const steps: PipelineStep[] = list.map((s, i) => ({
+      status: s, label: s.name,
+      state: current < 0 ? 'future' : i < current ? 'past' : i === current ? 'active' : 'future',
+      allowed: !!d.canManage && s.active && s.id !== currentId
     }));
+    this.pipelineCache = { ticket: d.ticket, all, steps };
+    return steps;
   }
+  private pipelineCache: { ticket: unknown; all: unknown; steps: PipelineStep[] } = { ticket: null, all: null, steps: [] };
 
   load(show = true): void {
     if (show) this.busy = true;
@@ -155,23 +155,14 @@ export class TicketDetailsPageComponent implements OnInit, OnDestroy {
   }
 
   // ---------- changes (each sends the version it was based on; a conflict reloads the ticket) ----------
-  changeStatus(status: TicketStatus): void { this.apply(this.api.status(this.id, status, this.version), this.i18n.t('ticketing.details.statusUpdated')); }
-  /** Custom statuses reachable from the current status (same lifecycle status, or an allowed next one). */
-  get availableCustomStatuses(): CustomStatus[] {
-    const t = this.details?.ticket;
-    const all = this.labels.customStatuses;
-    if (!t) return [];
-    if (this.customCache.ticket !== t || this.customCache.all !== all) {
-      this.customCache = { ticket: t, all, list: all.filter(c => c.id !== t.customStatus?.id && (c.baseStatus === t.status || this.nextStatuses.includes(c.baseStatus))) };
-    }
-    return this.customCache.list;
+  /** Moves the ticket to a status of Ticketing settings (by code, from the status dropdown, or the definition from the pipeline). */
+  changeStatus(status: string | TicketStatusDef | null): void {
+    const target = typeof status === 'string' ? this.statuses.byCode(status) : status;
+    if (!target) return;
+    this.apply(this.api.status(this.id, target.id, this.version), this.i18n.t('ticketing.details.statusUpdated'));
   }
-  private customCache: { ticket: unknown; all: unknown; list: CustomStatus[] } = { ticket: null, all: null, list: [] };
-  /** 'S:<status>' = system status, 'C:<id>' = custom status. */
-  pickStatus(value: string): void {
-    if (value.startsWith('C:')) this.apply(this.api.status(this.id, null, this.version, Number(value.slice(2))), this.i18n.t('ticketing.details.statusUpdated'));
-    else this.changeStatus(value.slice(2) as TicketStatus);
-  }
+  resolve(): void { this.apply(this.api.resolve(this.id, this.version), this.i18n.t('ticketing.details.statusUpdated')); }
+  reopen(): void { this.apply(this.api.reopen(this.id, this.version), this.i18n.t('ticketing.details.statusUpdated')); }
 
   // ---------- contact person ----------
   startContactEdit(): void {
